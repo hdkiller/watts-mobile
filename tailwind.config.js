@@ -20,6 +20,17 @@ module.exports = {
           light: '#FFFFFF',
           dark: '#09090b',
         },
+        // Z1→Z7 — keep in sync with Colors.zones in src/theme/colors.ts
+        zone: {
+          1: '#3b82f6',
+          2: '#14b8a6',
+          3: '#eab308',
+          4: '#f97316',
+          5: '#ef4444',
+          6: '#a855f7',
+          7: '#52525b',
+          neutral: '#52525b',
+        },
       },
     },
   },

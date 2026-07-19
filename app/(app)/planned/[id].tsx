@@ -7,13 +7,16 @@ import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
 import { DetailSkeleton } from '@/src/components/Skeleton';
 import { SportIcon } from '@/src/components/SportIcon';
+import { StructureProfile } from '@/src/features/activity/charts/StructureProfile';
 import {
   absoluteInstanceUrl,
   formatActivityDate,
   formatDuration,
   plannedWorkoutWebPath,
+  zoneIndexFromBandName,
 } from '@/src/features/activity/mapActivity';
 import { usePlannedDetailQuery } from '@/src/features/activity/useActivity';
+import { zoneColor } from '@/src/theme/colors';
 
 export default function PlannedWorkoutDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -72,6 +75,7 @@ export default function PlannedWorkoutDetailScreen() {
           {data.structureSteps.length > 0 ? (
             <View className="mt-6">
               <Text className="text-xs uppercase tracking-wide text-ink-muted">Structure</Text>
+              <StructureProfile steps={data.structureSteps} />
               {data.structureSteps.map((step, index) => {
                 const meta = [formatDuration(step.durationSec), step.intensityLabel]
                   .filter(Boolean)
@@ -94,15 +98,25 @@ export default function PlannedWorkoutDetailScreen() {
               <Text className="text-xs uppercase tracking-wide text-ink-muted">
                 Zones · {data.zoneSummary.channelLabel}
               </Text>
-              {data.zoneSummary.bands.map((band) => (
-                <View
-                  key={`${band.name}-${band.rangeLabel}`}
-                  className="mt-3 flex-row items-baseline justify-between border-b border-zinc-800 pb-3"
-                >
-                  <Text className="text-base text-zinc-100">{band.name}</Text>
-                  <Text className="text-sm text-ink-muted">{band.rangeLabel}</Text>
-                </View>
-              ))}
+              {data.zoneSummary.bands.map((band, index) => {
+                const color = zoneColor(zoneIndexFromBandName(band.name, index));
+                return (
+                  <View
+                    key={`${band.name}-${band.rangeLabel}`}
+                    className="mt-3 flex-row items-center justify-between border-b border-zinc-800 pb-3"
+                  >
+                    <View className="min-w-0 flex-1 flex-row items-center gap-2.5">
+                      <View
+                        className="h-3 w-3 rounded-sm"
+                        style={{ backgroundColor: color }}
+                        accessibilityLabel={`${band.name} color`}
+                      />
+                      <Text className="text-base text-zinc-100">{band.name}</Text>
+                    </View>
+                    <Text className="text-sm text-ink-muted">{band.rangeLabel}</Text>
+                  </View>
+                );
+              })}
             </View>
           ) : null}
 
