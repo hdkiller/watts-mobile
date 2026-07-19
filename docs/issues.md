@@ -15,7 +15,7 @@ Already shipped from that review (not tracked here): shared `Button` (variants, 
 | [003](./issues/003.md) | Recommendation hero: state color, confidence visual, accepted state | Today | high | M | open |
 | [004](./issues/004.md) | Modify/Rest affordance: "Discuss with Coach" | Today | medium | M | open |
 | [005](./issues/005.md) | Recovery glance polish: sentiment dots + band header rename | Today | medium | S | open |
-| [006](./issues/006.md) | Faster check-in: tap controls, save feedback, weight unit | Log | high | M | open |
+| [006](./issues/006.md) | Faster check-in: tap controls, save feedback, weight unit | Log | high | M | in progress |
 | [007](./issues/007.md) | Log cleanup: drop "Back to Today", read-only chip icon | Log | low | XS | open |
 | [008](./issues/008.md) | Workout structure silhouette on planned detail | detail | high | M | open |
 | [009](./issues/009.md) | Zone color ramp (Z1–Z5) across zones UI | detail/charts | high | S | open |

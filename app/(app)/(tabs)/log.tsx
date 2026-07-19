@@ -2,8 +2,6 @@ import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -23,13 +21,18 @@ import { Button } from '@/src/components/Button';
 import { useSaveWellnessCheckin, useTodayWellnessQuery } from '@/src/features/log/useLog';
 import type { LogFormValues } from '@/src/features/log/types';
 import { NutritionSection } from '@/src/features/nutrition/NutritionSection';
-import { isNutritionTrackingEnabled } from '@/src/features/profile/mapProfile';
+import { isNutritionTrackingEnabled, weightUnit } from '@/src/features/profile/mapProfile';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { useActiveRecoveryQuery } from '@/src/features/recovery/useRecovery';
 import type { RecoveryContextItem } from '@/src/features/recovery/types';
+import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
 import { Colors } from '@/src/theme/colors';
 
 type LogSection = 'recovery' | 'wellness' | 'nutrition';
+
+const READINESS_CHIPS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'] as const;
+const SLEEP_QUALITY_CHIPS = ['1', '2', '3', '4', '5'] as const;
+const SAVED_FLASH_MS = 2000;
 
 function Field({
   label,
@@ -59,6 +62,86 @@ function Field({
         multiline={multiline}
         style={multiline ? { minHeight: 88, textAlignVertical: 'top' } : undefined}
       />
+    </View>
+  );
+}
+
+function ChipRow({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: readonly string[];
+  value: string;
+  onChange: (next: string) => void;
+}) {
+  return (
+    <View className="mt-4">
+      <Text className="mb-2 text-sm text-ink-muted">{label}</Text>
+      <View className="flex-row flex-wrap gap-2">
+        {options.map((option) => {
+          const active = value === option;
+          return (
+            <Pressable
+              key={option}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+              className={`min-w-[40px] items-center rounded-full border px-3 py-2 ${
+                active ? 'border-brand bg-brand/10' : 'border-zinc-700'
+              }`}
+              onPress={() => onChange(active ? '' : option)}
+            >
+              <Text className={`text-xs font-semibold ${active ? 'text-brand' : 'text-white'}`}>
+                {option}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+function SleepHoursField({
+  value,
+  onChangeText,
+  onStep,
+}: {
+  value: string;
+  onChangeText: (v: string) => void;
+  onStep: (delta: number) => void;
+}) {
+  return (
+    <View className="mt-4">
+      <Text className="mb-2 text-sm text-ink-muted">Sleep hours</Text>
+      <View className="flex-row items-center gap-2">
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Decrease sleep hours by 0.5"
+          className="h-12 w-12 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 active:opacity-80"
+          onPress={() => onStep(-0.5)}
+        >
+          <Text className="text-lg font-semibold text-white">−</Text>
+        </Pressable>
+        <TextInput
+          className="min-h-12 flex-1 rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-center text-base text-white"
+          placeholderTextColor={Colors.textMuted}
+          placeholder="7.5"
+          value={value}
+          onChangeText={onChangeText}
+          keyboardType="decimal-pad"
+        />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Increase sleep hours by 0.5"
+          className="h-12 w-12 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 active:opacity-80"
+          onPress={() => onStep(0.5)}
+        >
+          <Text className="text-lg font-semibold text-white">+</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -93,15 +176,25 @@ function parseLogSection(value: string | string[] | undefined): LogSection | nul
   return null;
 }
 
+function stepSleepHours(current: string, delta: number): string {
+  const parsed = Number(current.trim());
+  const base = Number.isFinite(parsed) ? parsed : 0;
+  const next = Math.max(0, Math.round((base + delta) * 10) / 10);
+  return String(next);
+}
+
 export default function LogScreen() {
   const params = useLocalSearchParams<{ section?: string | string[] }>();
   const targetSection = parseLogSection(params.section);
   const scrollRef = useRef<ScrollView>(null);
   const sectionOffsets = useRef<Partial<Record<LogSection, number>>>({});
   const scrolledForSection = useRef<string | null>(null);
+  const savedFlashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { containerRef, overlap } = useKeyboardOverlap();
 
   const { data: athleteProfile } = useAthleteProfileQuery();
   const nutritionEnabled = isNutritionTrackingEnabled(athleteProfile);
+  const weightUnitLabel = weightUnit(athleteProfile);
   const resolvedSection =
     targetSection === 'nutrition' && !nutritionEnabled ? null : targetSection;
 
@@ -116,13 +209,22 @@ export default function LogScreen() {
   const saveMutation = useSaveWellnessCheckin();
   const [values, setValues] = useState<LogFormValues>(emptyLogForm());
   const [error, setError] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
+  const [wasPrefilled, setWasPrefilled] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
 
   useEffect(() => {
     if (todayWellness) {
-      setValues(formFromWellness(todayWellness));
+      const next = formFromWellness(todayWellness);
+      setValues(next);
+      setWasPrefilled(formHasContent(next));
     }
   }, [todayWellness]);
+
+  useEffect(() => {
+    return () => {
+      if (savedFlashTimer.current) clearTimeout(savedFlashTimer.current);
+    };
+  }, []);
 
   useEffect(() => {
     scrolledForSection.current = null;
@@ -139,10 +241,23 @@ export default function LogScreen() {
     });
   }, [resolvedSection, wellnessLoading, activeRecovery, todayWellness, nutritionEnabled]);
 
-  const update = (key: keyof LogFormValues) => (text: string) => {
-    setSaved(false);
+  const touchForm = () => {
+    setJustSaved(false);
     setError(null);
+    if (savedFlashTimer.current) {
+      clearTimeout(savedFlashTimer.current);
+      savedFlashTimer.current = null;
+    }
+  };
+
+  const update = (key: keyof LogFormValues) => (text: string) => {
+    touchForm();
     setValues((prev) => ({ ...prev, [key]: text }));
+  };
+
+  const onStepSleepHours = (delta: number) => {
+    touchForm();
+    setValues((prev) => ({ ...prev, sleepHours: stepSleepHours(prev.sleepHours, delta) }));
   };
 
   const onSave = async () => {
@@ -153,7 +268,13 @@ export default function LogScreen() {
     setError(null);
     try {
       await saveMutation.mutateAsync(toWellnessPayload(values));
-      setSaved(true);
+      setWasPrefilled(true);
+      setJustSaved(true);
+      if (savedFlashTimer.current) clearTimeout(savedFlashTimer.current);
+      savedFlashTimer.current = setTimeout(() => {
+        setJustSaved(false);
+        savedFlashTimer.current = null;
+      }, SAVED_FLASH_MS);
     } catch (err) {
       setError(friendlyError(err, 'Save failed'));
     }
@@ -185,19 +306,24 @@ export default function LogScreen() {
     );
   }
 
+  const saveLabel = justSaved
+    ? '✓ Saved'
+    : wasPrefilled
+      ? 'Update check-in'
+      : 'Save check-in';
+
   return (
     <SafeAreaView
       edges={{ top: true }}
       style={{ flex: 1, backgroundColor: Colors.background }}
     >
-    <KeyboardAvoidingView
-      className="flex-1 bg-surface-dark"
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <View ref={containerRef} className="flex-1 bg-surface-dark">
       <ScrollView
         ref={scrollRef}
         className="flex-1"
-        contentContainerClassName="px-6 pb-12 pt-4"
+        contentContainerClassName="px-6 pt-4"
+        contentContainerStyle={{ paddingBottom: 48 + overlap }}
+        keyboardShouldPersistTaps="handled"
       >
         <Text className="text-2xl font-semibold text-white">Log</Text>
         <Text className="mt-2 text-base text-ink-muted">
@@ -255,26 +381,22 @@ export default function LogScreen() {
           </Text>
           <Text className="text-sm text-ink-muted">Sleep, feel, and notes for today.</Text>
 
-          <Field
+          <ChipRow
             label="Feel / readiness (1–10)"
+            options={READINESS_CHIPS}
             value={values.readiness}
-            onChangeText={update('readiness')}
-            placeholder="7"
-            keyboardType="number-pad"
+            onChange={update('readiness')}
           />
-          <Field
-            label="Sleep hours"
+          <SleepHoursField
             value={values.sleepHours}
             onChangeText={update('sleepHours')}
-            placeholder="7.5"
-            keyboardType="decimal-pad"
+            onStep={onStepSleepHours}
           />
-          <Field
+          <ChipRow
             label="Sleep quality (1–5)"
+            options={SLEEP_QUALITY_CHIPS}
             value={values.sleepQuality}
-            onChangeText={update('sleepQuality')}
-            placeholder="4"
-            keyboardType="number-pad"
+            onChange={update('sleepQuality')}
           />
           <Field
             label="Notes"
@@ -284,22 +406,22 @@ export default function LogScreen() {
             multiline
           />
           <Field
-            label="Weight (optional)"
+            label={`Weight (${weightUnitLabel}, optional)`}
             value={values.weight}
             onChangeText={update('weight')}
-            placeholder="kg"
+            placeholder={weightUnitLabel}
             keyboardType="decimal-pad"
           />
 
           {error ? <Text className="mt-4 text-sm text-red-400">{error}</Text> : null}
-          {saved ? (
-            <Text className="mt-4 text-sm font-semibold text-green-400">Saved for today.</Text>
-          ) : null}
 
           <Button
             className="mt-6"
-            label="Save check-in"
-            onPress={() => void onSave()}
+            label={saveLabel}
+            onPress={() => {
+              if (justSaved) return;
+              void onSave();
+            }}
             loading={saveMutation.isPending}
             disabled={!formHasContent(values)}
           />
@@ -318,7 +440,7 @@ export default function LogScreen() {
           onPress={() => router.push('/(app)/(tabs)/today')}
         />
       </ScrollView>
-    </KeyboardAvoidingView>
+    </View>
     </SafeAreaView>
   );
 }

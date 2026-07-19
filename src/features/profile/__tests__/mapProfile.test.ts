@@ -10,6 +10,7 @@ import {
   patchHasFields,
   profileSettingsWebPath,
   toAthleteMetricsPatch,
+  weightUnit,
   weightUnitLabel,
 } from '../mapProfile';
 import type { AthleteProfile } from '../types';
@@ -66,6 +67,13 @@ describe('mapProfile', () => {
     expect(kgToDisplayWeight(72.5748, 'Pounds')).toBe(160);
     expect(kgToDisplayWeight(72.2, 'Kilograms')).toBe(72.2);
     expect(weightUnitLabel('Pounds')).toBe('lbs');
+  });
+
+  it('exposes weightUnit with kg fallback', () => {
+    expect(weightUnit(undefined)).toBe('kg');
+    expect(weightUnit(null)).toBe('kg');
+    expect(weightUnit(sampleProfile)).toBe('kg');
+    expect(weightUnit({ ...sampleProfile, weightUnits: 'Pounds' })).toBe('lbs');
   });
 
   it('prefills form from profile using display units', () => {
