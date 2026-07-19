@@ -1,10 +1,14 @@
 import {
   ACTIVE_TURN_STATUSES,
   NUTRITION_TOOL_NAMES,
+  RECOVERY_TOOL_NAMES,
   TERMINAL_TURN_STATUSES,
+  WELLNESS_TOOL_NAMES,
   type CoachUIMessage,
   type PendingChatApproval,
   type StoredChatMessage,
+  type ToolOutcomeStatus,
+  type ToolOutcomeSummary,
 } from './types';
 
 export function isActiveTurnStatus(status: string | null | undefined): boolean {
@@ -171,8 +175,14 @@ export function shouldHideAssistantBubble(message: CoachUIMessage): boolean {
   if (message.metadata?.hiddenBecauseEmptyFailure) return true;
   const hasImages = messageImageParts(message).length > 0;
   const hasApprovals = extractPendingApprovals(message).length > 0;
-  const hasNutrition = nutritionToolSummaries(message).length > 0;
-  if (message.metadata?.hideUntilContent && !messageText(message).trim() && !hasImages && !hasApprovals && !hasNutrition) {
+  const hasToolOutcomes = toolOutcomeSummaries(message).length > 0;
+  if (
+    message.metadata?.hideUntilContent &&
+    !messageText(message).trim() &&
+    !hasImages &&
+    !hasApprovals &&
+    !hasToolOutcomes
+  ) {
     return true;
   }
   return false;
@@ -230,38 +240,142 @@ export function extractPendingApprovals(message: CoachUIMessage): PendingChatApp
   return [...byId.values()];
 }
 
-export function nutritionToolSummaries(message: CoachUIMessage): string[] {
-  const summaries: string[] = [];
-  for (const part of message.parts || []) {
+export function humanizeToolName(toolName: string): string {
+  return toolName
+    .replace(/^tool-/, '')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function resolveToolPartName(part: {
+  type?: string;
+  toolName?: string;
+}): string | null {
+  if (typeof part.toolName === 'string' && part.toolName.trim()) return part.toolName;
+  if (typeof part.type === 'string' && part.type.startsWith('tool-')) {
+    const name = part.type.slice('tool-'.length);
+    if (name && name !== 'approval-request' && name !== 'approval-response') return name;
+  }
+  return null;
+}
+
+function resolveToolPartStatus(part: {
+  state?: string;
+  output?: unknown;
+  result?: unknown;
+  error?: unknown;
+  errorText?: unknown;
+}): ToolOutcomeStatus | null {
+  const state = String(part.state || '');
+  if (
+    state === 'approval-requested' ||
+    state === 'input-streaming' ||
+    state === 'input-available' ||
+    state === 'partial-call' ||
+    state === 'call'
+  ) {
+    return null;
+  }
+  if (state === 'output-denied' || state === 'denied' || state === 'approval-denied') {
+    return 'denied';
+  }
+  if (state === 'error' || state === 'output-error' || state === 'failed') {
+    return 'failure';
+  }
+  const output = part.output ?? part.result;
+  if (
+    output &&
+    typeof output === 'object' &&
+    (('error' in output && (output as { error?: unknown }).error) ||
+      (output as { success?: unknown }).success === false)
+  ) {
+    return 'failure';
+  }
+  if (part.error != null || (typeof part.errorText === 'string' && part.errorText.trim())) {
+    return 'failure';
+  }
+  const completed =
+    !state ||
+    ['output-available', 'result', 'completed', 'success'].includes(state) ||
+    part.output != null ||
+    part.result != null;
+  return completed ? 'success' : null;
+}
+
+function curatedSuccessCopy(toolName: string): string | null {
+  if (toolName === 'log_nutrition_meal') return 'Meal logged to your nutrition diary.';
+  if (toolName === 'log_hydration_intake') return 'Hydration updated.';
+  if (NUTRITION_TOOL_NAMES.has(toolName)) return 'Nutrition log updated.';
+  if (toolName === 'record_wellness_event') return 'Recovery event logged.';
+  if (toolName === 'update_wellness_event') return 'Recovery event updated.';
+  if (toolName === 'delete_wellness_event') return 'Recovery event removed.';
+  if (RECOVERY_TOOL_NAMES.has(toolName)) return 'Recovery context updated.';
+  if (toolName === 'get_wellness_metrics') return 'Checked your recovery metrics.';
+  if (toolName === 'get_wellness_events') return 'Checked your recovery events.';
+  if (WELLNESS_TOOL_NAMES.has(toolName)) return 'Wellness check saved.';
+  return null;
+}
+
+function outcomeMessage(toolName: string, status: ToolOutcomeStatus): string {
+  const label = humanizeToolName(toolName);
+  if (status === 'denied') {
+    return `${label} was not applied.`;
+  }
+  if (status === 'failure') {
+    return `Couldn't complete ${label}. Try again in chat or use Log.`;
+  }
+  return curatedSuccessCopy(toolName) || `Coach updated ${label}.`;
+}
+
+/**
+ * Compact in-thread tool outcomes for nutrition, recovery/wellness, and generic tools.
+ * Part shapes mirror coach-wattz web chat (`output-available` / `output-error` / `output-denied`).
+ */
+export function toolOutcomeSummaries(message: CoachUIMessage): ToolOutcomeSummary[] {
+  const summaries: ToolOutcomeSummary[] = [];
+  const seen = new Set<string>();
+
+  for (const [index, part] of (message.parts || []).entries()) {
     if (!part || typeof part !== 'object') continue;
     const typed = part as {
       type?: string;
       state?: string;
       toolName?: string;
+      toolCallId?: string;
       output?: unknown;
       result?: unknown;
+      error?: unknown;
+      errorText?: unknown;
     };
-    let toolName = typed.toolName;
-    if (!toolName && typeof typed.type === 'string' && typed.type.startsWith('tool-')) {
-      toolName = typed.type.slice('tool-'.length);
+    if (typed.type === 'tool-approval-request' || typed.type === 'tool-approval-response') {
+      continue;
     }
-    if (!toolName || !NUTRITION_TOOL_NAMES.has(toolName)) continue;
-    const state = typed.state || '';
-    const completed =
-      !state ||
-      ['output-available', 'result', 'completed', 'success'].includes(state) ||
-      typed.output != null ||
-      typed.result != null;
-    if (!completed || state === 'approval-requested' || state === 'input-streaming') continue;
-    if (toolName === 'log_nutrition_meal') {
-      summaries.push('Meal logged to your nutrition diary.');
-    } else if (toolName === 'log_hydration_intake') {
-      summaries.push('Hydration updated.');
-    } else if (toolName.startsWith('delete') || toolName.startsWith('patch')) {
-      summaries.push('Nutrition log updated.');
-    }
+    const toolName = resolveToolPartName(typed);
+    if (!toolName) continue;
+    const status = resolveToolPartStatus(typed);
+    if (!status) continue;
+
+    const id = typed.toolCallId || `${toolName}-${index}-${status}`;
+    if (seen.has(id)) continue;
+    seen.add(id);
+    summaries.push({
+      id,
+      toolName,
+      status,
+      message: outcomeMessage(toolName, status),
+    });
   }
   return summaries;
+}
+
+/** @deprecated Prefer `toolOutcomeSummaries` — kept for nutrition-only call sites/tests. */
+export function nutritionToolSummaries(message: CoachUIMessage): string[] {
+  return toolOutcomeSummaries(message)
+    .filter(
+      (outcome) =>
+        outcome.status === 'success' && NUTRITION_TOOL_NAMES.has(outcome.toolName)
+    )
+    .map((outcome) => outcome.message);
 }
 
 export function mergeRealtimeMessage(

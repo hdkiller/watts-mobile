@@ -4,6 +4,10 @@ export type StarterPrompt = {
   text: string;
 };
 
+/** Prefill/send text when Today’s “Discuss with Coach” opens an empty room. */
+export const DISCUSS_TODAY_PROMPT =
+  'Can we discuss today’s recommendation? I’m considering modifying or resting — what do you think?';
+
 /** Brand-aligned empty-state prompts for the Coach tab. */
 export const COACH_STARTER_PROMPTS: StarterPrompt[] = [
   {

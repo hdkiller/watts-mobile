@@ -112,4 +112,23 @@ export const NUTRITION_TOOL_NAMES = new Set([
   'delete_hydration',
 ]);
 
+/** Journey / recovery-event write tools from coach-wattz `ai-tools/journey`. */
+export const RECOVERY_TOOL_NAMES = new Set([
+  'record_wellness_event',
+  'update_wellness_event',
+  'delete_wellness_event',
+]);
+
+/** Wellness metrics tools from coach-wattz `ai-tools/wellness`. */
+export const WELLNESS_TOOL_NAMES = new Set(['get_wellness_metrics', 'get_wellness_events']);
+
+export type ToolOutcomeStatus = 'success' | 'failure' | 'denied';
+
+export type ToolOutcomeSummary = {
+  id: string;
+  toolName: string;
+  status: ToolOutcomeStatus;
+  message: string;
+};
+
 export const MAX_CHAT_ATTACHMENTS = 4;

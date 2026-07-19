@@ -11,22 +11,22 @@ Already shipped from that review (not tracked here): shared `Button` (variants, 
 | ID | Issue | Area | Priority | Effort | Status |
 |----|-------|------|----------|--------|--------|
 | [001](./issues/001.md) | Friendly error copy instead of raw API messages | cross-cutting | high | S | done |
-| [002](./issues/002.md) | Haptic feedback on key moments | cross-cutting | medium | S | open |
+| [002](./issues/002.md) | Haptic feedback on key moments | cross-cutting | medium | S | done |
 | [003](./issues/003.md) | Recommendation hero: state color, confidence visual, accepted state | Today | high | M | done |
-| [004](./issues/004.md) | Modify/Rest affordance: "Discuss with Coach" | Today | medium | M | open |
-| [005](./issues/005.md) | Recovery glance polish: sentiment dots + band header rename | Today | medium | S | open |
+| [004](./issues/004.md) | Modify/Rest affordance: "Discuss with Coach" | Today | medium | M | done |
+| [005](./issues/005.md) | Recovery glance polish: sentiment dots + band header rename | Today | medium | S | done |
 | [006](./issues/006.md) | Faster check-in: tap controls, save feedback, weight unit | Log | high | M | in progress |
-| [007](./issues/007.md) | Log cleanup: drop "Back to Today", read-only chip icon | Log | low | XS | open |
+| [007](./issues/007.md) | Log cleanup: drop "Back to Today", read-only chip icon | Log | low | XS | done |
 | [008](./issues/008.md) | Workout structure silhouette on planned detail | detail | high | M | done |
 | [009](./issues/009.md) | Zone color ramp (Z1–Z5) across zones UI | detail/charts | high | S | done |
-| [010](./issues/010.md) | Hero stat blocks on detail screens | detail | medium | S | open |
-| [011](./issues/011.md) | Live refresh while workout analysis runs | detail | medium | M | open |
-| [012](./issues/012.md) | Coach input bar: icons + native attach sheet | Coach | medium | S | open |
-| [013](./issues/013.md) | Render markdown in coach replies | Coach | high | M | open |
-| [014](./issues/014.md) | Simplify coach header status line | Coach | low | XS | open |
-| [015](./issues/015.md) | Restructure More tab: sections, icons, chevrons, version | More | medium | M | open |
+| [010](./issues/010.md) | Hero stat blocks on detail screens | detail | medium | S | done |
+| [011](./issues/011.md) | Live refresh while workout analysis runs | detail | medium | M | done |
+| [012](./issues/012.md) | Coach input bar: icons + native attach sheet | Coach | medium | S | done |
+| [013](./issues/013.md) | Render markdown in coach replies | Coach | high | M | done |
+| [014](./issues/014.md) | Simplify coach header status line | Coach | low | XS | done |
+| [015](./issues/015.md) | Restructure More tab: sections, icons, chevrons, version | More | medium | M | done |
 | [016](./issues/016.md) | Notification preferences screen | More | high | M | open |
-| [017](./issues/017.md) | Unread badge on More tab icon | More | low | XS | open |
+| [017](./issues/017.md) | Unread badge on More tab icon | More | low | XS | done |
 | [018](./issues/018.md) | Login polish: hide dev plumbing, add wordmark | auth | high | S | done |
 
 ## Companion expansion (beyond current scope)

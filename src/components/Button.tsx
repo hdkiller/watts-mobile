@@ -1,6 +1,7 @@
 import { ActivityIndicator, Text } from 'react-native';
 
 import { AnimatedPressable } from '@/src/components/AnimatedPressable';
+import { hapticLight } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
 
 type ButtonVariant = 'primary' | 'secondary' | 'danger';
@@ -11,6 +12,8 @@ type ButtonProps = {
   variant?: ButtonVariant;
   loading?: boolean;
   disabled?: boolean;
+  /** Light impact on press. Defaults to true. */
+  haptic?: boolean;
   className?: string;
 };
 
@@ -38,6 +41,7 @@ export function Button({
   variant = 'primary',
   loading = false,
   disabled = false,
+  haptic = true,
   className = '',
 }: ButtonProps) {
   const blocked = disabled || loading;
@@ -49,7 +53,10 @@ export function Button({
       className={`items-center rounded-xl py-3.5 ${containerByVariant[variant]} ${
         disabled && !loading ? 'opacity-50' : ''
       } ${className}`}
-      onPress={onPress}
+      onPress={() => {
+        if (haptic) hapticLight();
+        onPress();
+      }}
       disabled={blocked}
     >
       {loading ? (

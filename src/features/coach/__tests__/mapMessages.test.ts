@@ -4,11 +4,13 @@ import {
   applyAssistantTextDelta,
   extractPendingApprovals,
   hasActiveTurn,
+  humanizeToolName,
   hydrateCoachMessages,
   mergeLoadedMessages,
   messageImageParts,
   messageText,
   nutritionToolSummaries,
+  toolOutcomeSummaries,
   transformStoredMessage,
 } from '../mapMessages';
 import type { CoachUIMessage } from '../types';
@@ -122,5 +124,82 @@ describe('mapMessages', () => {
       ],
     };
     expect(nutritionToolSummaries(message)[0]).toMatch(/Meal logged/i);
+    expect(toolOutcomeSummaries(message)[0]?.status).toBe('success');
+  });
+
+  it('summarizes recovery and wellness tool successes', () => {
+    const message: CoachUIMessage = {
+      id: 'a3',
+      role: 'assistant',
+      parts: [
+        {
+          type: 'tool-record_wellness_event',
+          state: 'output-available',
+          toolCallId: 'call-3',
+          output: { ok: true },
+        } as unknown as CoachUIMessage['parts'][number],
+        {
+          type: 'tool-get_wellness_metrics',
+          state: 'result',
+          toolCallId: 'call-4',
+          result: { count: 1 },
+        } as unknown as CoachUIMessage['parts'][number],
+      ],
+    };
+    const outcomes = toolOutcomeSummaries(message);
+    expect(outcomes.find((o) => o.toolName === 'record_wellness_event')?.message).toMatch(
+      /Recovery event logged/i
+    );
+    expect(outcomes.find((o) => o.toolName === 'get_wellness_metrics')?.message).toMatch(
+      /recovery metrics/i
+    );
+  });
+
+  it('uses a generic success fallback for unknown tools', () => {
+    const message: CoachUIMessage = {
+      id: 'a4',
+      role: 'assistant',
+      parts: [
+        {
+          type: 'tool-create_planned_workout',
+          state: 'output-available',
+          toolCallId: 'call-5',
+          output: { id: 'pw-1' },
+        } as unknown as CoachUIMessage['parts'][number],
+      ],
+    };
+    const outcome = toolOutcomeSummaries(message)[0];
+    expect(outcome?.status).toBe('success');
+    expect(outcome?.message).toMatch(/Coach updated Create Planned Workout/i);
+    expect(humanizeToolName('create_planned_workout')).toBe('Create Planned Workout');
+  });
+
+  it('surfaces failed and denied tool states', () => {
+    const message: CoachUIMessage = {
+      id: 'a5',
+      role: 'assistant',
+      parts: [
+        {
+          type: 'tool-log_nutrition_meal',
+          state: 'output-error',
+          toolCallId: 'call-6',
+          errorText: 'quota',
+        } as unknown as CoachUIMessage['parts'][number],
+        {
+          type: 'tool-record_wellness_event',
+          state: 'output-denied',
+          toolCallId: 'call-7',
+        } as unknown as CoachUIMessage['parts'][number],
+      ],
+    };
+    const outcomes = toolOutcomeSummaries(message);
+    expect(outcomes.find((o) => o.toolName === 'log_nutrition_meal')).toMatchObject({
+      status: 'failure',
+      message: expect.stringMatching(/Couldn't complete/i),
+    });
+    expect(outcomes.find((o) => o.toolName === 'record_wellness_event')).toMatchObject({
+      status: 'denied',
+      message: expect.stringMatching(/was not applied/i),
+    });
   });
 });

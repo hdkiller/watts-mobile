@@ -6,9 +6,9 @@ import { Platform } from 'react-native';
 
 import { useAuth } from '@/src/auth/AuthContext';
 
+import { invalidateQueriesForPush } from './invalidateFromPush';
 import { registerPushForAuthenticatedSession } from './pushRegistration';
 import { pushDataFromNotificationContent, resolvePushOpen } from './resolvePushOpen';
-import { NOTIFICATIONS_QUERY_KEY } from './useNotifications';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -51,8 +51,11 @@ export function PushNotificationsBootstrap() {
       }
     })();
 
-    const receivedSub = Notifications.addNotificationReceivedListener(() => {
-      void queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
+    const receivedSub = Notifications.addNotificationReceivedListener((notification) => {
+      void invalidateQueriesForPush(
+        queryClient,
+        notification.request.content.data as Record<string, unknown> | undefined
+      );
     });
 
     const responseSub = Notifications.addNotificationResponseReceivedListener((response) => {

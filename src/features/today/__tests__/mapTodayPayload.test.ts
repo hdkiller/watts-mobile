@@ -3,10 +3,14 @@ import { describe, expect, it } from 'vitest';
 import {
   confidenceBucket,
   confidenceFilledCount,
+  fatigueSentimentFromLabel,
   formatDuration,
   heroToneForAction,
   mapTodayPayload,
   normalizeConfidence,
+  recoverySentimentFromLabel,
+  recoverySentimentFromNumber,
+  recoverySentimentFromValue,
 } from '../mapTodayPayload';
 import type { ActivityRecommendationApi } from '../types';
 
@@ -100,6 +104,30 @@ describe('mapTodayPayload', () => {
     expect(view.recovery.sleepLabel).toBe('78');
     expect(view.recovery.hrvLabel).toBe('62');
     expect(view.recovery.feelLabel).toBe('7');
+    expect(view.recovery.sleepSentiment).toBe('good');
+    expect(view.recovery.hrvSentiment).toBe('ok');
+    expect(view.recovery.feelSentiment).toBe('good');
+  });
+
+  it('maps recovery_analysis labels and readiness into the glance strip', () => {
+    const view = mapTodayPayload({
+      id: 'rec-ra',
+      recommendation: 'rest',
+      analysisJson: {
+        recovery_analysis: {
+          sleep_quality: 'poor',
+          hrv_status: 'green',
+          fatigue_level: 'elevated',
+          readiness_score: 4,
+        },
+      },
+    });
+    expect(view.recovery.sleepLabel).toBe('poor');
+    expect(view.recovery.hrvLabel).toBe('green');
+    expect(view.recovery.feelLabel).toBe('4');
+    expect(view.recovery.sleepSentiment).toBe('poor');
+    expect(view.recovery.hrvSentiment).toBe('good');
+    expect(view.recovery.feelSentiment).toBe('poor');
   });
 
   it('disables accept when already accepted', () => {
@@ -122,5 +150,42 @@ describe('formatDuration', () => {
     expect(formatDuration(1800)).toBe('30 min');
     expect(formatDuration(5400)).toBe('1h 30m');
     expect(formatDuration(7200)).toBe('2h');
+  });
+});
+
+describe('recovery sentiment helpers', () => {
+  it('maps status words to good/ok/poor', () => {
+    expect(recoverySentimentFromLabel('green')).toBe('good');
+    expect(recoverySentimentFromLabel('Excellent recovery')).toBe('good');
+    expect(recoverySentimentFromLabel('moderate')).toBe('ok');
+    expect(recoverySentimentFromLabel('yellow')).toBe('ok');
+    expect(recoverySentimentFromLabel('poor')).toBe('poor');
+    expect(recoverySentimentFromLabel('under-recovered')).toBe('poor');
+    expect(recoverySentimentFromLabel('7.5h')).toBeNull();
+    expect(recoverySentimentFromLabel(null)).toBeNull();
+  });
+
+  it('buckets numeric scores on 0–10 and 0–100 scales', () => {
+    expect(recoverySentimentFromNumber(8)).toBe('good');
+    expect(recoverySentimentFromNumber(5.5)).toBe('ok');
+    expect(recoverySentimentFromNumber(3)).toBe('poor');
+    expect(recoverySentimentFromNumber(82)).toBe('good');
+    expect(recoverySentimentFromNumber(60)).toBe('ok');
+    expect(recoverySentimentFromNumber(40)).toBe('poor');
+    expect(recoverySentimentFromNumber(null)).toBeNull();
+  });
+
+  it('accepts numeric strings and mixed values', () => {
+    expect(recoverySentimentFromValue('78')).toBe('good');
+    expect(recoverySentimentFromValue('green')).toBe('good');
+    expect(recoverySentimentFromValue(6)).toBe('ok');
+    expect(recoverySentimentFromValue(null)).toBeNull();
+  });
+
+  it('inverts fatigue wording for feel', () => {
+    expect(fatigueSentimentFromLabel('high')).toBe('poor');
+    expect(fatigueSentimentFromLabel('elevated')).toBe('poor');
+    expect(fatigueSentimentFromLabel('low')).toBe('good');
+    expect(fatigueSentimentFromLabel('moderate')).toBe('ok');
   });
 });

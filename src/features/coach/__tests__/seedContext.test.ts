@@ -29,6 +29,9 @@ const baseToday = (): TodayViewModel => ({
     sleepLabel: '7.5h',
     hrvLabel: 'green',
     feelLabel: '8',
+    sleepSentiment: null,
+    hrvSentiment: 'good',
+    feelSentiment: 'good',
   },
   raw: null,
 });

@@ -23,7 +23,7 @@ Auth: OAuth 2.0 + PKCE · tokens in Secure Store · `offline_access` for refresh
 2. **Log** — daily wellness (sleep, readiness/feel, notes, weight if already in flows) **and** recovery events (illness, fatigue, sleep disruption, etc. — parity with web “Log recovery event”)
 3. **Session detail** — today’s planned structure; completed-workout AI analysis + stream/zone/power-curve charts in-app; map / explorer depth → open web
 4. **Recent activity** — last few workouts with sync/analysis status (not full calendar)
-5. **Coach chat** — short Q&A seeded with today + recovery
+5. **Coach chat** — short Q&A seeded with today + recovery; markdown-lite assistant replies; multi-tool feedback cards (nutrition, recovery/wellness, generic) with approve/deny — not nutrition-only
 6. **Notifications** — push + in-app inbox
 7. **Account glue** — instance URL, sign-in, notification prefs, open web
 
