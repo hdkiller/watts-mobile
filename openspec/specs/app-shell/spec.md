@@ -11,11 +11,15 @@ The system SHALL provide an Expo Router + TypeScript application at the reposito
 - **THEN** the Expo Router root layout initializes and navigates according to auth/instance state
 
 ### Requirement: Four-tab authenticated navigation
-When the user is authenticated, the system SHALL present bottom tabs labeled Today, Log, Coach, and More as placeholder screens suitable for later feature work.
+When the user is authenticated, the system SHALL present bottom tabs labeled Today, Log, Coach, and More, where More hosts account/settings destinations (notifications, instance, open web, sign out) rather than remaining a permanent placeholder.
 
 #### Scenario: Authenticated user sees tabs
 - **WHEN** a valid session exists
 - **THEN** the user can navigate among Today, Log, Coach, and More tabs
+
+#### Scenario: More is account hub
+- **WHEN** the authenticated user opens More
+- **THEN** they can reach account glue actions required for the store candidate
 
 ### Requirement: Open web escape hatch
 The authenticated More (or Settings) surface SHALL offer an action that opens the configured Coach Watts instance in the system browser.

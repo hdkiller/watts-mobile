@@ -15,15 +15,7 @@ This app is the **field companion**: today’s recommendation, check-in, light c
 | [docs/oauth-setup.md](docs/oauth-setup.md) | Public OAuth client + redirect URI registration |
 | [docs/deep-links.md](docs/deep-links.md) | Scheme / universal link path map + host association |
 | coach-wattz `docs/06-plans/mobile-companion-app.md` | Full living baseline (PR [#239](https://github.com/hdkiller/coach/pull/239); merge pending) |
-| OpenSpec archive `2026-07-19-phase-0/1/2-log-*` | Auth, Today, Log check-in (done) |
-| OpenSpec `phase-2-log-recovery-event` | Log recovery event (journey) parity with web |
-| OpenSpec `phase-2-notifications-push` | Inbox + Expo push registration/handling |
-| OpenSpec `phase-3-coach-chat` | Coach tab chat (polling-first) |
-| OpenSpec `phase-3-recent-activity` | Workouts glance: recent + upcoming planned + detail |
-| OpenSpec `phase-3-deep-links` | Scheme / universal links + push paths |
-| OpenSpec `phase-3-store-polish` | Store chrome + More account glue (E2E deferred) |
-| OpenSpec `phase-4-athlete-profile-edit` | Athlete metrics edit (v1.5) |
-| OpenSpec `phase-4-nutrition-quick-log` | Nutrition quick-log on Log (v1.5) |
+| OpenSpec archive `2026-07-19-phase-0/1/2/3/4-*` | Auth → Today → Log → push → chat → activity → deep links → store → profile → nutrition (done) |
 
 When the coach-wattz PR merges, prefer that file for product/API narrative and keep this repo’s docs focused on **implementation**.
 

@@ -4,9 +4,8 @@ Phased delivery for this repository. Product detail: [product-baseline.md](./pro
 
 ## Current state
 
-- Phase 0–1 and Log check-in shipped; OpenSpecs archived under `openspec/changes/archive/2026-07-19-*`.
-- Active OpenSpecs (apply-ready): `phase-2-log-recovery-event` → `phase-2-notifications-push` → `phase-3-coach-chat` → `phase-3-recent-activity` (workouts glance: recent + upcoming) → `phase-3-deep-links` → `phase-3-store-polish` (E2E deferred).
-- Phase 4 / v1.5 OpenSpecs proposed: `phase-4-athlete-profile-edit`, `phase-4-nutrition-quick-log` (after store candidate).
+- Phase 0–4 companion OpenSpecs shipped and archived under `openspec/changes/archive/2026-07-19-*` (auth, Today, Log, notifications/push, coach chat, recent/upcoming, deep links, store polish, athlete metrics, nutrition quick-log).
+- No active OpenSpec changes. Follow-ups: prod redeploy of coach-wattz Bearer notifications/push APIs if inbox still 401s; AASA/assetlinks host association for https deep links.
 - coach-wattz baseline PR [#239](https://github.com/hdkiller/coach/pull/239) still draft — merge when ready.
 - OAuth client registered as **Official Mobile App** in local + production; wire `EXPO_PUBLIC_OAUTH_CLIENT_ID` from [oauth-setup.md](./oauth-setup.md).
 

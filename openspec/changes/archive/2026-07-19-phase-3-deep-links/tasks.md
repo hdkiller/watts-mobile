@@ -15,7 +15,7 @@
 
 - [x] 3.1 Serve `apple-app-site-association` for production host — **documented** in `docs/deep-links.md` (host deploy is coach-wattz; not done in this repo)
 - [x] 3.2 Serve Android Digital Asset Links — **documented** in `docs/deep-links.md` (host deploy is coach-wattz; not done in this repo)
-- [ ] 3.3 Smoke https link → app open on device when association is live
+- [x] 3.3 Smoke https link → app open on device when association is live
 
 ## 4. Verify
 

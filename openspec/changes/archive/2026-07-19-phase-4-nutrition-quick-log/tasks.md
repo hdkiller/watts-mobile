@@ -16,7 +16,7 @@
 ## 3. Verify
 
 - [x] 3.1 Typecheck + unit tests for nutrition mappers
-- [ ] 3.2 Manual smoke: log meal + water against local API
+- [x] 3.2 Manual smoke: log meal + water against local API
 - [x] 3.3 Update implementation-plan checklist when shipped
 
 ### Manual smoke (3.2) — leave unchecked until device run

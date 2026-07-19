@@ -2,7 +2,7 @@
 
 - [x] 1.1 Add Coach Watts icon + splash assets
 - [x] 1.2 Wire assets in app config for iOS/Android
-- [ ] 1.3 Verify launch branding on device build
+- [x] 1.3 Verify launch branding on device build
   - Steps: build a dev client or preview (`eas build -p ios --profile development` / `npx expo run:ios`), cold-start the app, confirm Coach Watts shield splash on `#09090b` (not Expo chevron), and confirm home-screen / adaptive icon matches `assets/images/icon.png`.
 
 ## 2. Account / More polish

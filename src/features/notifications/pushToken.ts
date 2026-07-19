@@ -1,5 +1,4 @@
 import Constants from 'expo-constants';
-import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
@@ -67,10 +66,6 @@ export async function acquireExpoPushToken(): Promise<string | null> {
   }
 
   if (status !== 'granted') {
-    return null;
-  }
-
-  if (!Device.isDevice && Platform.OS === 'android') {
     return null;
   }
 

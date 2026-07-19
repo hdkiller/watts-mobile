@@ -23,6 +23,6 @@
 ## 4. Verify
 
 - [x] 4.1 Typecheck + unit tests for seed/mapper helpers
-- [ ] 4.2 Manual smoke: open Coach → send → see **streaming** reply (WS path)
-- [ ] 4.3 Manual smoke: WS unavailable → poll path still completes the turn
+- [x] 4.2 Manual smoke: open Coach → send → see **streaming** reply (WS path)
+- [x] 4.3 Manual smoke: WS unavailable → poll path still completes the turn
 - [x] 4.4 Update implementation-plan Phase 3 chat checkboxes + open-questions decision log

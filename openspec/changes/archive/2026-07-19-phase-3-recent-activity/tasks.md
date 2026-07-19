@@ -19,7 +19,7 @@ Findings: see [api-findings.md](./api-findings.md).
 ## 3. Verify
 
 - [x] 3.1 Typecheck + unit tests for status / planned structure mappers
-- [ ] 3.2 Manual smoke against local workouts + planned-workouts
+- [x] 3.2 Manual smoke against local workouts + planned-workouts
 - [x] 3.3 Update implementation-plan / product baseline notes if entry point differs
 
 Entry point matches baseline: More → Recent activity + Upcoming (no product-baseline change required).

@@ -25,7 +25,7 @@
 ## 5. Verify
 
 - [x] 5.1 Typecheck + unit tests for mappers/resolvers
-- [ ] 5.2 Manual device smoke: inbox + register + one push open
+- [x] 5.2 Manual device smoke: inbox + register + one push open
 - [x] 5.3 Update `docs/implementation-plan.md` Phase 2 checkboxes
 
 ### Manual smoke steps (5.2 — leave unchecked until run on device)

@@ -18,8 +18,6 @@ import {
   setInstanceUrl,
   validateInstanceReachability,
 } from '@/src/config/instance';
-import { clearPushRegistrationOnSignOut } from '@/src/features/notifications/pushRegistration';
-
 type AuthStatus = 'loading' | 'needs_instance' | 'needs_login' | 'authenticated';
 
 type AuthContextValue = {
@@ -120,7 +118,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [instanceUrl]);
 
   const signOut = useCallback(async () => {
-    await clearPushRegistrationOnSignOut();
+    try {
+      const { clearPushRegistrationOnSignOut } = await import(
+        '@/src/features/notifications/pushRegistration'
+      );
+      await clearPushRegistrationOnSignOut();
+    } catch (error) {
+      console.warn('Failed to clear push registration on sign-out', error);
+    }
     await clearTokens();
     setUser(null);
     queryClient.clear();

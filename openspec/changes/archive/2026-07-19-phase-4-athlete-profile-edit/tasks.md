@@ -15,7 +15,7 @@
 ## 3. Verify
 
 - [x] 3.1 Typecheck + unit tests for profile mappers
-- [ ] 3.2 Manual smoke: load metrics, save FTP/weight against local IdP
+- [x] 3.2 Manual smoke: load metrics, save FTP/weight against local IdP
   - Sign in against local coach-wattz (`http://localhost:3099`) so the token includes `profile:write` (re-login if scopes were expanded after an older session)
   - More → Athlete: confirm weight, FTP, max HR, LTHR load
   - Change FTP and/or weight; Save metrics → success toast/copy; reopen screen and confirm values stuck
