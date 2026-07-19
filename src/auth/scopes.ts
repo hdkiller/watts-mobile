@@ -1,10 +1,12 @@
-/** REST OAuth scopes for companion v1 (coach-wattz REST_OAUTH_SCOPES). */
+/** REST OAuth scopes for companion v1 / v1.5 (coach-wattz REST_OAUTH_SCOPES). */
 export const COMPANION_SCOPES = [
   'profile:read',
   'profile:write',
   'workout:read',
   'health:read',
   'health:write',
+  'nutrition:read',
+  'nutrition:write',
   'recommendation:read',
   'plan:read',
   'chat:read',
