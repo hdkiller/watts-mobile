@@ -37,6 +37,9 @@ export function useRecentActivityQuery() {
   });
 }
 
+/** Look back a week so Recently can pair plan-vs-done; Upcoming UI filters to today+. */
+const PLANNED_LOOKBACK_DAYS = 7;
+
 export function useUpcomingPlannedQuery() {
   return useQuery({
     queryKey: UPCOMING_PLANNED_QUERY_KEY,
@@ -44,6 +47,7 @@ export function useUpcomingPlannedQuery() {
       fetchUpcomingPlanned({
         limit: UPCOMING_PLANNED_LIMIT,
         windowDays: UPCOMING_WINDOW_DAYS,
+        lookbackDays: PLANNED_LOOKBACK_DAYS,
       }),
   });
 }

@@ -25,6 +25,7 @@ import {
   useActivitySummaryQuery,
   useRequestWorkoutAnalysis,
 } from '@/src/features/activity/useActivity';
+import { markAnalysisSeen } from '@/src/features/today/analysisReadyStore';
 import { hapticError, hapticSuccess } from '@/src/lib/haptics';
 
 function activityHeroStats(data: ActivitySummary): HeroStat[] {
@@ -191,6 +192,11 @@ export default function ActivitySummaryScreen() {
     }
     prevAnalysisPhase.current = phase;
   }, [data?.analysis.phase]);
+
+  useEffect(() => {
+    if (!id || data?.analysis.phase !== 'ready') return;
+    void markAnalysisSeen(id);
+  }, [id, data?.analysis.phase]);
 
   const openWeb = async () => {
     if (!instanceUrl) return;

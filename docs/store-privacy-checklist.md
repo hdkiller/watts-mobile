@@ -16,7 +16,7 @@ Coach Watts is an AI-powered endurance coaching companion. The mobile app helps 
 |----------|------------|------------------------|
 | Contact info (email, name) | Yes | Via OAuth identity from your Coach Watts instance |
 | User ID | Yes | Account identifier from the instance |
-| Health & fitness | Yes | Wellness check-in (e.g. sleep, readiness/feel, optional weight) and recovery events (illness, fatigue, sleep disruption, etc.) — athlete-reported training context, **not** medical diagnosis |
+| Health & fitness | Yes | Wellness check-in (e.g. sleep, readiness/feel, optional weight) and recovery events (illness, fatigue, sleep disruption, etc.) — athlete-reported training context, **not** medical diagnosis. Optional on-device read of Apple Health / Health Connect sleep + weight to **prefill** the check-in (user confirms before save); health samples are not sent to analytics |
 | Other user content | Yes | Coach chat messages; optional notes on check-ins |
 | Product interaction / diagnostics | Yes (limited) | Crash/performance via Sentry when configured; no health metrics in analytics |
 | Device identifiers | Yes (when push enabled) | Expo push token for coaching notifications |
@@ -32,6 +32,10 @@ Coach Watts is an AI-powered endurance coaching companion. The mobile app helps 
 ### Wellness check-in & recovery events
 
 > You can log daily wellness (such as sleep quality, how you feel / readiness, notes, and weight when you choose) and recovery events (for example illness, fatigue, or sleep disruption). This information is training and recovery context for coaching. Coach Watts is not a medical device and does not diagnose, treat, or prevent disease.
+
+### Apple Health / Health Connect (optional prefill)
+
+> With your permission, Coach Watts can read last night’s sleep duration and your latest body weight from Apple Health (iOS) or Health Connect (Android) to prefill today’s wellness check-in. Values stay on your device until you review and save the check-in to your Coach Watts instance. We do not write health data back to Apple Health or Health Connect, and we do not send health samples to crash analytics.
 
 ### Notifications
 
@@ -53,7 +57,7 @@ Avoid phrases like “diagnoses injury”, “medical advice”, “treats illne
 
 - [ ] Privacy Nutrition Labels / Data safety form filled using the table above
 - [ ] Privacy policy URL set for the listing (hosted or operator URL)
-- [ ] Health / fitness declarations match athlete-reported wellness + recovery only (no HealthKit ingest in v1)
+- [ ] Health / fitness declarations match athlete-reported wellness + recovery, plus optional HealthKit / Health Connect read for check-in prefill (sleep + weight only)
 - [ ] Push notification purpose string matches “coaching notifications” copy above
 - [ ] No medical claims in store description or screenshots captions
 

@@ -1,4 +1,5 @@
 import { router, Stack, type Href } from 'expo-router';
+import { useMemo } from 'react';
 import {
   FlatList,
   Pressable,
@@ -16,8 +17,13 @@ import {
   formatActivityDate,
   formatDuration,
 } from '@/src/features/activity/mapActivity';
+import { buildComplianceIndex, type ComplianceMark } from '@/src/features/activity/compliance';
+import { ComplianceMarkView } from '@/src/features/activity/ComplianceMark';
 import type { ActivityListItem } from '@/src/features/activity/types';
-import { useRecentActivityQuery } from '@/src/features/activity/useActivity';
+import {
+  useRecentActivityQuery,
+  useUpcomingPlannedQuery,
+} from '@/src/features/activity/useActivity';
 import { Colors } from '@/src/theme/colors';
 
 function statusColor(kind: ActivityListItem['status']['kind']): string {
@@ -33,7 +39,15 @@ function statusColor(kind: ActivityListItem['status']['kind']): string {
   }
 }
 
-function ActivityRow({ item, index }: { item: ActivityListItem; index: number }) {
+function ActivityRow({
+  item,
+  index,
+  mark,
+}: {
+  item: ActivityListItem;
+  index: number;
+  mark: ComplianceMark | undefined;
+}) {
   const meta = [
     formatActivityDate(item.date),
     item.type,
@@ -53,7 +67,12 @@ function ActivityRow({ item, index }: { item: ActivityListItem; index: number })
         <SportIcon type={item.type} size={14} />
         <View className="min-w-0 flex-1">
           <View className="flex-row items-start justify-between gap-3">
-            <Text className="flex-1 text-base font-semibold text-white">{item.title}</Text>
+            <View className="min-w-0 flex-1 flex-row items-center">
+              <Text className="shrink text-base font-semibold text-white" numberOfLines={1}>
+                {item.title}
+              </Text>
+              <ComplianceMarkView mark={mark} />
+            </View>
             <Text className={`text-xs font-medium ${statusColor(item.status.kind)}`}>
               {item.status.label}
             </Text>
@@ -67,13 +86,18 @@ function ActivityRow({ item, index }: { item: ActivityListItem; index: number })
 
 export default function RecentActivityScreen() {
   const { data, isLoading, isError, error, refetch, isRefetching } = useRecentActivityQuery();
+  const upcoming = useUpcomingPlannedQuery();
+  const compliance = useMemo(
+    () => buildComplianceIndex(data, upcoming.data),
+    [data, upcoming.data]
+  );
 
   return (
     <>
       <Stack.Screen options={{ title: 'Recent activity', headerShown: true }} />
       {isLoading && !data ? (
         <ListSkeleton />
-      ) : isError ? (
+      ) : isError && !data ? (
         <View className="flex-1 bg-surface-dark px-6 pt-6">
           <Text className="text-red-400">
             {friendlyError(error, 'Failed to load recent activity')}
@@ -102,7 +126,13 @@ export default function RecentActivityScreen() {
               </Text>
             </View>
           }
-          renderItem={({ item, index }) => <ActivityRow item={item} index={index} />}
+          renderItem={({ item, index }) => (
+            <ActivityRow
+              item={item}
+              index={index}
+              mark={compliance.forActivity.get(item.id)}
+            />
+          )}
         />
       )}
     </>

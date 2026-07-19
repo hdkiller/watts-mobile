@@ -90,12 +90,15 @@ nutrition:read
 nutrition:write
 recommendation:read
 plan:read
+goal:read
 chat:read
 chat:write
 offline_access
 ```
 
 These match Coach Watts **REST** OAuth scope names (`recommendation:read`, `plan:read` — not the MCP `recommendations:*` / `planning:*` names).
+
+`goal:read` authorizes Bearer `GET /api/events` (race/life calendar countdown on Today). Re-consent on next login after this scope is added.
 
 `profile:write`, `nutrition:read`, `nutrition:write`, and `workout:write` (completed-workout AI analyze/regenerate) are in `REST_OAUTH_SCOPES` (no separate Official Mobile App allowlist). Re-consent on next login if the IdP requires incremental consent.
 

@@ -1,18 +1,33 @@
 import { router, type Href } from 'expo-router';
+import { useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import {
   formatActivityDate,
   formatDuration,
 } from '@/src/features/activity/mapActivity';
+import {
+  buildComplianceIndex,
+  type ComplianceMark,
+} from '@/src/features/activity/compliance';
+import { ComplianceMarkView } from '@/src/features/activity/ComplianceMark';
 import { SportIcon } from '@/src/components/SportIcon';
 import type { ActivityListItem } from '@/src/features/activity/types';
-import { useRecentActivityQuery } from '@/src/features/activity/useActivity';
+import {
+  useRecentActivityQuery,
+  useUpcomingPlannedQuery,
+} from '@/src/features/activity/useActivity';
 
 const TEASER_LIMIT = 2;
 
 export function RecentlyTeaser() {
   const { data, isError } = useRecentActivityQuery();
+  const upcoming = useUpcomingPlannedQuery();
+
+  const compliance = useMemo(
+    () => buildComplianceIndex(data, upcoming.data),
+    [data, upcoming.data]
+  );
 
   if (isError) return null;
 
@@ -38,7 +53,11 @@ export function RecentlyTeaser() {
       ) : (
         <View className="mt-2">
           {rows.map((item) => (
-            <RecentRow key={item.id} item={item} />
+            <RecentRow
+              key={item.id}
+              item={item}
+              mark={compliance.forActivity.get(item.id)}
+            />
           ))}
         </View>
       )}
@@ -46,7 +65,13 @@ export function RecentlyTeaser() {
   );
 }
 
-function RecentRow({ item }: { item: ActivityListItem }) {
+function RecentRow({
+  item,
+  mark,
+}: {
+  item: ActivityListItem;
+  mark: ComplianceMark | undefined;
+}) {
   const meta = [
     formatActivityDate(item.date),
     item.type,
@@ -63,9 +88,12 @@ function RecentRow({ item }: { item: ActivityListItem }) {
       <SportIcon type={item.type} size={13} />
       <View className="min-w-0 flex-1">
         <View className="flex-row items-start justify-between gap-3">
-          <Text className="flex-1 text-base font-medium text-white" numberOfLines={1}>
-            {item.title}
-          </Text>
+          <View className="min-w-0 flex-1 flex-row items-center">
+            <Text className="shrink text-base font-medium text-white" numberOfLines={1}>
+              {item.title}
+            </Text>
+            <ComplianceMarkView mark={mark} />
+          </View>
           <Text className="text-xs text-ink-muted">{item.status.label}</Text>
         </View>
         {meta ? <Text className="mt-1 text-sm text-ink-muted">{meta}</Text> : null}

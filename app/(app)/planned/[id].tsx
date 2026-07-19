@@ -6,6 +6,7 @@ import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
 import { HeroStatTiles, type HeroStat } from '@/src/components/HeroStatTiles';
+import { formatLastUpdated, OfflineBanner } from '@/src/components/OfflineBanner';
 import { DetailSkeleton } from '@/src/components/Skeleton';
 import { SportIcon } from '@/src/components/SportIcon';
 import { StructureProfile } from '@/src/features/activity/charts/StructureProfile';
@@ -40,7 +41,8 @@ function plannedHeroStats(data: {
 export default function PlannedWorkoutDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { instanceUrl } = useAuth();
-  const { data, isLoading, isError, error } = usePlannedDetailQuery(id);
+  const { data, isLoading, isError, error, dataUpdatedAt } = usePlannedDetailQuery(id);
+  const showCachedOffline = Boolean(isError && data);
 
   const openWeb = async () => {
     if (!instanceUrl) return;
@@ -55,9 +57,9 @@ export default function PlannedWorkoutDetailScreen() {
   return (
     <>
       <Stack.Screen options={{ title: 'Workout', headerShown: true }} />
-      {isLoading ? (
+      {isLoading && !data ? (
         <DetailSkeleton />
-      ) : isError ? (
+      ) : isError && !data ? (
         <View className="flex-1 bg-surface-dark px-6 pt-6">
           <Text className="text-red-400">
             {friendlyError(error, 'Failed to load workout')}
@@ -65,6 +67,10 @@ export default function PlannedWorkoutDetailScreen() {
         </View>
       ) : data ? (
         <ScrollView className="flex-1 bg-surface-dark" contentContainerClassName="px-6 pb-10 pt-4">
+          <OfflineBanner
+            visible={showCachedOffline}
+            lastUpdatedLabel={formatLastUpdated(dataUpdatedAt)}
+          />
           <View className="flex-row items-center gap-3">
             <SportIcon type={data.type} size={18} />
             <Text className="min-w-0 flex-1 text-2xl font-semibold text-white">{data.title}</Text>

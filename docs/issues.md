@@ -15,7 +15,7 @@ Already shipped from that review (not tracked here): shared `Button` (variants, 
 | [003](./issues/003.md) | Recommendation hero: state color, confidence visual, accepted state | Today | high | M | done |
 | [004](./issues/004.md) | Modify/Rest affordance: "Discuss with Coach" | Today | medium | M | done |
 | [005](./issues/005.md) | Recovery glance polish: sentiment dots + band header rename | Today | medium | S | done |
-| [006](./issues/006.md) | Faster check-in: tap controls, save feedback, weight unit | Log | high | M | in progress |
+| [006](./issues/006.md) | Faster check-in: tap controls, save feedback, weight unit | Log | high | M | done |
 | [007](./issues/007.md) | Log cleanup: drop "Back to Today", read-only chip icon | Log | low | XS | done |
 | [008](./issues/008.md) | Workout structure silhouette on planned detail | detail | high | M | done |
 | [009](./issues/009.md) | Zone color ramp (Z1–Z5) across zones UI | detail/charts | high | S | done |
@@ -33,14 +33,14 @@ Already shipped from that review (not tracked here): shared `Button` (variants, 
 
 | ID | Issue | Area | Priority | Effort | Status |
 |----|-------|------|----------|--------|--------|
-| [019](./issues/019.md) | Weekly glance strip on Today | expansion | medium | M | open |
-| [020](./issues/020.md) | Plan-vs-done compliance marks on lists | expansion | medium | M | open |
-| [021](./issues/021.md) | Day-grouped Upcoming list | expansion | low | S | open |
-| [022](./issues/022.md) | "Analysis ready" card on Today | expansion | medium | S | open |
-| [023](./issues/023.md) | Home-screen widget / Live Activity | expansion | high | L | open |
-| [024](./issues/024.md) | Offline-first Today and planned detail | expansion | medium | M | open |
-| [025](./issues/025.md) | HealthKit / Health Connect prefill for check-in | expansion | medium | L | open |
-| [026](./issues/026.md) | Race/event countdown chip on Today | expansion | low | S | open |
+| [019](./issues/019.md) | Weekly glance strip on Today | expansion | medium | M | done |
+| [020](./issues/020.md) | Plan-vs-done compliance marks on lists | expansion | medium | M | done |
+| [021](./issues/021.md) | Day-grouped Upcoming list | expansion | low | S | done |
+| [022](./issues/022.md) | "Analysis ready" card on Today | expansion | medium | S | done |
+| [023](./issues/023.md) | Home-screen widget / Live Activity | expansion | high | L | done |
+| [024](./issues/024.md) | Offline-first Today and planned detail | expansion | medium | M | done |
+| [025](./issues/025.md) | HealthKit / Health Connect prefill for check-in | expansion | medium | L | done |
+| [026](./issues/026.md) | Race/event countdown chip on Today | expansion | low | S | done |
 
 ## Suggested first batch
 

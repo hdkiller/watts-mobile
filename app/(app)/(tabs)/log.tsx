@@ -19,6 +19,8 @@ import {
   formHasContent,
   toWellnessPayload,
 } from '@/src/features/log/mapLogForm';
+import { applyHealthPrefill } from '@/src/features/log/applyHealthPrefill';
+import { fetchHealthPrefill } from '@/src/features/log/healthPrefill';
 import { Button } from '@/src/components/Button';
 import { useSaveWellnessCheckin, useTodayWellnessQuery } from '@/src/features/log/useLog';
 import type { LogFormValues } from '@/src/features/log/types';
@@ -228,6 +230,8 @@ export default function LogScreen() {
   const [error, setError] = useState<string | null>(null);
   const [wasPrefilled, setWasPrefilled] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
+  const [healthBusy, setHealthBusy] = useState(false);
+  const [healthHint, setHealthHint] = useState<string | null>(null);
 
   useEffect(() => {
     if (todayWellness) {
@@ -275,6 +279,30 @@ export default function LogScreen() {
   const onStepSleepHours = (delta: number) => {
     touchForm();
     setValues((prev) => ({ ...prev, sleepHours: stepSleepHours(prev.sleepHours, delta) }));
+  };
+
+  const onPrefillFromHealth = async () => {
+    setHealthBusy(true);
+    setHealthHint(null);
+    setError(null);
+    try {
+      const prefill = await fetchHealthPrefill();
+      if (!prefill) {
+        setHealthHint('No sleep or weight found in Health, or permission was denied.');
+        return;
+      }
+      touchForm();
+      setValues((prev) =>
+        applyHealthPrefill(prev, prefill, {
+          weightUnit: weightUnitLabel === 'lbs' ? 'lb' : 'kg',
+        })
+      );
+      setHealthHint('Prefilled from Health — review and save when ready.');
+    } catch (err) {
+      setError(friendlyError(err, 'Could not read Health data'));
+    } finally {
+      setHealthBusy(false);
+    }
   };
 
   const onSave = async () => {
@@ -400,6 +428,20 @@ export default function LogScreen() {
             Daily wellness
           </Text>
           <Text className="text-sm text-ink-muted">Sleep, feel, and notes for today.</Text>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Prefill sleep and weight from Health"
+            className="mt-3 self-start py-1 active:opacity-70"
+            hitSlop={8}
+            disabled={healthBusy}
+            onPress={() => void onPrefillFromHealth()}
+          >
+            <Text className="text-sm font-semibold text-brand">
+              {healthBusy ? 'Reading Health…' : 'Prefill from Health'}
+            </Text>
+          </Pressable>
+          {healthHint ? <Text className="mt-1 text-sm text-ink-muted">{healthHint}</Text> : null}
 
           <ChipRow
             label="Feel / readiness (1–10)"

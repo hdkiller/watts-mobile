@@ -1,6 +1,6 @@
 import { router, type Href } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   Pressable,
   RefreshControl,
@@ -14,6 +14,7 @@ import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { AnimatedPressable } from '@/src/components/AnimatedPressable';
 import { Button } from '@/src/components/Button';
+import { formatLastUpdated, OfflineBanner } from '@/src/components/OfflineBanner';
 import { Skeleton, SkeletonScreen } from '@/src/components/Skeleton';
 import { SportIcon } from '@/src/components/SportIcon';
 import { useRecentActivityQuery, useUpcomingPlannedQuery } from '@/src/features/activity/useActivity';
@@ -23,7 +24,9 @@ import { isNutritionTrackingEnabled } from '@/src/features/profile/mapProfile';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { useActiveRecoveryQuery } from '@/src/features/recovery/useRecovery';
 import { ActiveRecoveryBand } from '@/src/features/today/active-recovery-band';
+import { AnalysisReadyCard } from '@/src/features/today/analysis-ready-card';
 import { ComingUpStrip } from '@/src/features/today/coming-up-strip';
+import { EventCountdownChip } from '@/src/features/today/event-countdown-chip';
 import {
   confidenceFilledCount,
   formatDuration,
@@ -31,8 +34,10 @@ import {
   type HeroTone,
 } from '@/src/features/today/mapTodayPayload';
 import { RecentlyTeaser } from '@/src/features/today/recently-teaser';
+import { syncTodayWidget } from '@/src/features/today/syncTodayWidget';
 import type { RecoverySentiment, TodayPlannedWorkout } from '@/src/features/today/types';
 import { useAcceptRecommendation, useTodayQuery } from '@/src/features/today/useToday';
+import { WeekGlanceStrip } from '@/src/features/today/week-glance-strip';
 import { hapticError, hapticSuccess } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
 
@@ -181,7 +186,7 @@ function EnterSection({ order, children }: { order: number; children: ReactNode 
 
 export default function TodayScreen() {
   const { instanceUrl } = useAuth();
-  const { data, isLoading, isError, error, refetch, isRefetching } = useTodayQuery();
+  const { data, isLoading, isError, error, refetch, isRefetching, dataUpdatedAt } = useTodayQuery();
   const {
     data: activeRecovery,
     isError: recoveryError,
@@ -196,6 +201,11 @@ export default function TodayScreen() {
   const nutritionQuery = useTodayNutritionQuery({ enabled: nutritionEnabled });
   const acceptMutation = useAcceptRecommendation();
   const [actionError, setActionError] = useState<string | null>(null);
+  const showCachedOffline = Boolean(isError && data);
+
+  useEffect(() => {
+    void syncTodayWidget(data);
+  }, [data]);
 
   const onAccept = async () => {
     if (!data?.recommendationId || !data.canAccept) return;
@@ -252,10 +262,12 @@ export default function TodayScreen() {
     data?.recovery.sleepLabel || data?.recovery.hrvLabel || data?.recovery.feelLabel;
   const hasRecommendation = Boolean(data?.recommendationId);
   const planned = data?.plannedWorkout ?? null;
-  const plannedOnlyHero = !isError && !hasRecommendation && Boolean(planned);
-  const emptyNoDecision = !isError && !hasRecommendation && !planned;
+  const hardError = isError && !data;
+  const plannedOnlyHero = !hardError && !hasRecommendation && Boolean(planned);
+  const emptyNoDecision = !hardError && !hasRecommendation && !planned;
   const heroTone = heroToneForAction(data?.action);
   const heroToneClasses = HERO_TONE_CLASSES[heroTone];
+  const lastUpdatedLabel = formatLastUpdated(dataUpdatedAt);
 
   return (
     <ScrollView
@@ -281,7 +293,9 @@ export default function TodayScreen() {
         <Text className="mt-1 text-2xl font-semibold text-white">{greetingForNow()}</Text>
       </EnterSection>
 
-      {isError ? (
+      <OfflineBanner visible={showCachedOffline} lastUpdatedLabel={lastUpdatedLabel} />
+
+      {hardError ? (
         <View className="mt-6 rounded-xl border border-red-900/50 bg-red-950/40 p-4">
           <Text className="text-base text-red-300">
             {friendlyError(error, 'Could not load today')}
@@ -291,6 +305,8 @@ export default function TodayScreen() {
           </Pressable>
         </View>
       ) : null}
+
+      <AnalysisReadyCard recent={recentQuery.data} />
 
       {emptyNoDecision ? (
         <View className="mt-6 rounded-xl border border-zinc-800 bg-zinc-900/80 p-5">
@@ -435,6 +451,7 @@ export default function TodayScreen() {
               onPress={openDiscussWithCoach}
             />
           </View>
+          <EventCountdownChip />
         </EnterSection>
       ) : null}
 
@@ -446,10 +463,14 @@ export default function TodayScreen() {
               <Button variant="secondary" label="Open web" onPress={() => void openWeb()} />
             ) : null}
           </View>
+          <EventCountdownChip />
         </EnterSection>
       ) : null}
 
+      {!hasRecommendation && !plannedOnlyHero ? <EventCountdownChip /> : null}
+
       <EnterSection order={5}>
+        <WeekGlanceStrip recent={recentQuery.data} planned={upcomingQuery.data} />
         <ComingUpStrip excludePlannedId={planned?.id} />
         <RecentlyTeaser />
         <NutritionGlance />

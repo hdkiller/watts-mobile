@@ -10,6 +10,7 @@ export const COMPANION_SCOPES = [
   'nutrition:write',
   'recommendation:read',
   'plan:read',
+  'goal:read',
   'chat:read',
   'chat:write',
   'offline_access',
