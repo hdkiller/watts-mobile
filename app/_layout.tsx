@@ -8,12 +8,17 @@ import { ActivityIndicator, View } from 'react-native';
 import 'react-native-gesture-handler';
 import 'react-native-reanimated';
 
+import type { ErrorBoundaryProps } from 'expo-router';
+
 import { AuthProvider, useAuth } from '@/src/auth/AuthContext';
+import { ErrorFallback } from '@/src/components/ErrorFallback';
 import { useDeepLinkReturn } from '@/src/linking/useDeepLinkReturn';
 import { initSentry } from '@/src/sentry';
 import { Colors } from '@/src/theme/colors';
 
-export { ErrorBoundary } from 'expo-router';
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  return <ErrorFallback error={error} retry={retry} />;
+}
 
 SplashScreen.preventAutoHideAsync();
 initSentry();
