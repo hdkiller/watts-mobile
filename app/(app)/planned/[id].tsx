@@ -23,6 +23,10 @@ export default function PlannedWorkoutDetailScreen() {
     await WebBrowser.openBrowserAsync(absoluteInstanceUrl(instanceUrl, path));
   };
 
+  const statusLine = data
+    ? [data.completionLabel, data.syncLabel].filter(Boolean).join(' · ')
+    : null;
+
   return (
     <>
       <Stack.Screen options={{ title: 'Workout', headerShown: true }} />
@@ -45,10 +49,21 @@ export default function PlannedWorkoutDetailScreen() {
               data.type,
               formatDuration(data.durationSec),
               data.tss != null ? `TSS ${Math.round(data.tss)}` : null,
+              data.workIntensityLabel,
             ]
               .filter(Boolean)
               .join(' · ')}
           </Text>
+          {statusLine ? (
+            <Text className="mt-3 text-sm text-ink-muted">{statusLine}</Text>
+          ) : null}
+
+          {data.coachInstructions ? (
+            <View className="mt-6">
+              <Text className="text-xs uppercase tracking-wide text-ink-muted">Coach cues</Text>
+              <Text className="mt-2 text-base leading-6 text-zinc-200">{data.coachInstructions}</Text>
+            </View>
+          ) : null}
 
           {data.structureSteps.length > 0 ? (
             <View className="mt-6">
@@ -70,9 +85,26 @@ export default function PlannedWorkoutDetailScreen() {
             </View>
           ) : null}
 
+          {data.zoneSummary ? (
+            <View className="mt-6">
+              <Text className="text-xs uppercase tracking-wide text-ink-muted">
+                Zones · {data.zoneSummary.channelLabel}
+              </Text>
+              {data.zoneSummary.bands.map((band) => (
+                <View
+                  key={`${band.name}-${band.rangeLabel}`}
+                  className="mt-3 flex-row items-baseline justify-between border-b border-zinc-800 pb-3"
+                >
+                  <Text className="text-base text-zinc-100">{band.name}</Text>
+                  <Text className="text-sm text-ink-muted">{band.rangeLabel}</Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
+
           {data.description ? (
             <Text className="mt-6 text-base leading-6 text-zinc-200">{data.description}</Text>
-          ) : data.structureSteps.length === 0 ? (
+          ) : data.structureSteps.length === 0 && !data.coachInstructions ? (
             <Text className="mt-6 text-sm text-ink-muted">
               No structure summary available. Open the web app for full planned-workout detail.
             </Text>
