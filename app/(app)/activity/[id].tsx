@@ -6,7 +6,8 @@ import { ScrollView, Text, View } from 'react-native';
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
-import { DetailSkeleton } from '@/src/components/Skeleton';
+import { HeroStatTiles, type HeroStat } from '@/src/components/HeroStatTiles';
+import { DetailSkeleton, Skeleton } from '@/src/components/Skeleton';
 import { SportIcon } from '@/src/components/SportIcon';
 import { ActivityCharts } from '@/src/features/activity/ActivityCharts';
 import {
@@ -15,12 +16,33 @@ import {
   formatDuration,
   workoutWebPath,
 } from '@/src/features/activity/mapActivity';
-import type { ActivityAnalysis, AnalysisPhase } from '@/src/features/activity/types';
+import type {
+  ActivityAnalysis,
+  ActivitySummary,
+  AnalysisPhase,
+} from '@/src/features/activity/types';
 import {
   useActivitySummaryQuery,
   useRequestWorkoutAnalysis,
 } from '@/src/features/activity/useActivity';
 import { hapticError, hapticSuccess } from '@/src/lib/haptics';
+
+function activityHeroStats(data: ActivitySummary): HeroStat[] {
+  const stats: HeroStat[] = [];
+  const duration = formatDuration(data.durationSec);
+  if (duration) stats.push({ label: 'Duration', value: duration });
+  if (data.tss != null && Number.isFinite(data.tss)) {
+    stats.push({ label: 'TSS', value: String(Math.round(data.tss)) });
+  } else if (data.loadLabel) {
+    stats.push({ label: 'Load', value: data.loadLabel });
+  }
+  const intensity = data.metrics.find((metric) => metric.key === 'intensity');
+  if (intensity) {
+    const ifValue = intensity.value.replace(/^IF\s+/i, '').trim();
+    stats.push({ label: 'IF', value: ifValue || intensity.value });
+  }
+  return stats.slice(0, 3);
+}
 
 function AnalysisBlock({
   analysis,
@@ -33,9 +55,10 @@ function AnalysisBlock({
   analyzeError: string | null;
   onAnalyze: () => void;
 }) {
+  const waiting = analyzing || analysis.phase === 'analyzing';
   const ctaLabel =
     analysis.phase === 'ready' || analysis.hasContent ? 'Regenerate analysis' : 'Analyze workout';
-  const showCta = analysis.phase !== 'analyzing' && !analyzing;
+  const showCta = !waiting;
 
   return (
     <View className="mt-6">
@@ -47,10 +70,18 @@ function AnalysisBlock({
             : 'text-ink-muted'
         }`}
       >
-        {analyzing || analysis.phase === 'analyzing' ? 'Analyzing…' : analysis.statusLabel}
+        {waiting ? 'Analyzing…' : analysis.statusLabel}
       </Text>
 
-      {analysis.scores.length > 0 ? (
+      {waiting ? (
+        <View className="mt-3" accessibilityLabel="Analysis in progress">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="mt-2 h-4 w-4/5" />
+          <Skeleton className="mt-2 h-4 w-3/5" />
+        </View>
+      ) : null}
+
+      {!waiting && analysis.scores.length > 0 ? (
         <View className="mt-3 flex-row flex-wrap">
           {analysis.scores.map((score) => (
             <View key={score.key} className="mb-2 mr-3 min-w-[64px]">
@@ -61,29 +92,31 @@ function AnalysisBlock({
         </View>
       ) : null}
 
-      {analysis.executiveSummary ? (
+      {!waiting && analysis.executiveSummary ? (
         <Text className="mt-3 text-base leading-6 text-zinc-200">{analysis.executiveSummary}</Text>
       ) : null}
 
-      {analysis.markdownFallback && !analysis.executiveSummary ? (
+      {!waiting && analysis.markdownFallback && !analysis.executiveSummary ? (
         <Text className="mt-3 text-base leading-6 text-zinc-200">{analysis.markdownFallback}</Text>
       ) : null}
 
-      {analysis.sections.map((section) => (
-        <View key={section.title} className="mt-4 border-b border-zinc-800 pb-3">
-          <Text className="text-base font-medium text-zinc-100">{section.title}</Text>
-          {section.statusLabel ? (
-            <Text className="mt-1 text-xs text-ink-muted">{section.statusLabel}</Text>
-          ) : null}
-          {section.points.map((point) => (
-            <Text key={point} className="mt-1.5 text-sm leading-5 text-zinc-300">
-              • {point}
-            </Text>
-          ))}
-        </View>
-      ))}
+      {!waiting
+        ? analysis.sections.map((section) => (
+            <View key={section.title} className="mt-4 border-b border-zinc-800 pb-3">
+              <Text className="text-base font-medium text-zinc-100">{section.title}</Text>
+              {section.statusLabel ? (
+                <Text className="mt-1 text-xs text-ink-muted">{section.statusLabel}</Text>
+              ) : null}
+              {section.points.map((point) => (
+                <Text key={point} className="mt-1.5 text-sm leading-5 text-zinc-300">
+                  • {point}
+                </Text>
+              ))}
+            </View>
+          ))
+        : null}
 
-      {analysis.recommendations.length > 0 ? (
+      {!waiting && analysis.recommendations.length > 0 ? (
         <View className="mt-4">
           <Text className="text-xs uppercase tracking-wide text-ink-muted">Recommendations</Text>
           {analysis.recommendations.map((rec) => (
@@ -97,7 +130,7 @@ function AnalysisBlock({
         </View>
       ) : null}
 
-      {analysis.strengths.length > 0 ? (
+      {!waiting && analysis.strengths.length > 0 ? (
         <View className="mt-4">
           <Text className="text-xs uppercase tracking-wide text-ink-muted">Strengths</Text>
           {analysis.strengths.map((item) => (
@@ -108,7 +141,7 @@ function AnalysisBlock({
         </View>
       ) : null}
 
-      {analysis.weaknesses.length > 0 ? (
+      {!waiting && analysis.weaknesses.length > 0 ? (
         <View className="mt-4">
           <Text className="text-xs uppercase tracking-wide text-ink-muted">Focus areas</Text>
           {analysis.weaknesses.map((item) => (
@@ -119,13 +152,13 @@ function AnalysisBlock({
         </View>
       ) : null}
 
-      {!analysis.hasContent && analysis.phase === 'not_started' ? (
+      {!waiting && !analysis.hasContent && analysis.phase === 'not_started' ? (
         <Text className="mt-3 text-sm text-ink-muted">
           Run analysis to get scores and coaching takeaways for this workout.
         </Text>
       ) : null}
 
-      {analysis.phase === 'quota' ? (
+      {!waiting && analysis.phase === 'quota' ? (
         <Text className="mt-3 text-sm text-red-400">
           Analysis quota exceeded. Open Coach Watts on the web to review plan limits.
         </Text>
@@ -193,15 +226,9 @@ export default function ActivitySummaryScreen() {
             <Text className="min-w-0 flex-1 text-2xl font-semibold text-white">{data.title}</Text>
           </View>
           <Text className="mt-2 text-sm text-ink-muted">
-            {[
-              formatActivityDate(data.date),
-              data.type,
-              formatDuration(data.durationSec),
-              data.loadLabel,
-            ]
-              .filter(Boolean)
-              .join(' · ')}
+            {[formatActivityDate(data.date), data.type].filter(Boolean).join(' · ')}
           </Text>
+          <HeroStatTiles stats={activityHeroStats(data)} />
           <Text className={`mt-3 text-sm ${data.status.kind === 'failed' ? 'text-red-400' : 'text-ink-muted'}`}>
             {data.status.label}
           </Text>

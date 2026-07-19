@@ -5,6 +5,7 @@ import { ScrollView, Text, View } from 'react-native';
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
+import { HeroStatTiles, type HeroStat } from '@/src/components/HeroStatTiles';
 import { DetailSkeleton } from '@/src/components/Skeleton';
 import { SportIcon } from '@/src/components/SportIcon';
 import { StructureProfile } from '@/src/features/activity/charts/StructureProfile';
@@ -17,6 +18,24 @@ import {
 } from '@/src/features/activity/mapActivity';
 import { usePlannedDetailQuery } from '@/src/features/activity/useActivity';
 import { zoneColor } from '@/src/theme/colors';
+
+function plannedHeroStats(data: {
+  durationSec: number | null;
+  tss: number | null;
+  workIntensityLabel: string | null;
+}): HeroStat[] {
+  const stats: HeroStat[] = [];
+  const duration = formatDuration(data.durationSec);
+  if (duration) stats.push({ label: 'Duration', value: duration });
+  if (data.tss != null && Number.isFinite(data.tss)) {
+    stats.push({ label: 'TSS', value: String(Math.round(data.tss)) });
+  }
+  if (data.workIntensityLabel) {
+    const ifValue = data.workIntensityLabel.replace(/^IF\s+/i, '').trim();
+    stats.push({ label: 'IF', value: ifValue || data.workIntensityLabel });
+  }
+  return stats.slice(0, 3);
+}
 
 export default function PlannedWorkoutDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -51,16 +70,9 @@ export default function PlannedWorkoutDetailScreen() {
             <Text className="min-w-0 flex-1 text-2xl font-semibold text-white">{data.title}</Text>
           </View>
           <Text className="mt-2 text-sm text-ink-muted">
-            {[
-              formatActivityDate(data.date),
-              data.type,
-              formatDuration(data.durationSec),
-              data.tss != null ? `TSS ${Math.round(data.tss)}` : null,
-              data.workIntensityLabel,
-            ]
-              .filter(Boolean)
-              .join(' · ')}
+            {[formatActivityDate(data.date), data.type].filter(Boolean).join(' · ')}
           </Text>
+          <HeroStatTiles stats={plannedHeroStats(data)} />
           {statusLine ? (
             <Text className="mt-3 text-sm text-ink-muted">{statusLine}</Text>
           ) : null}
