@@ -1,58 +1,53 @@
-import { Tabs } from 'expo-router';
-import { Text } from 'react-native';
+import { NativeTabs } from 'expo-router/unstable-native-tabs';
 
 import { Colors } from '@/src/theme/colors';
 
-function TabLabel({ label, focused }: { label: string; focused: boolean }) {
-  return (
-    <Text style={{ color: focused ? Colors.brand : Colors.textMuted, fontSize: 12, fontWeight: '600' }}>
-      {label}
-    </Text>
-  );
-}
+const tabContentStyle = { backgroundColor: Colors.background };
 
 export default function TabsLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        headerStyle: { backgroundColor: Colors.background },
-        headerTintColor: Colors.text,
-        tabBarStyle: {
-          backgroundColor: Colors.background,
-          borderTopColor: Colors.border,
-        },
-        tabBarActiveTintColor: Colors.brand,
-        tabBarInactiveTintColor: Colors.textMuted,
+    <NativeTabs
+      tintColor={Colors.brand}
+      backgroundColor={Colors.background}
+      iconColor={{ default: Colors.textMuted, selected: Colors.brand }}
+      labelStyle={{
+        default: { color: Colors.textMuted },
+        selected: { color: Colors.brand },
       }}
+      minimizeBehavior="onScrollDown"
     >
-      <Tabs.Screen
-        name="today"
-        options={{
-          title: 'Today',
-          tabBarLabel: ({ focused }) => <TabLabel label="Today" focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
-        name="log"
-        options={{
-          title: 'Log',
-          tabBarLabel: ({ focused }) => <TabLabel label="Log" focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
+      <NativeTabs.Trigger name="today" contentStyle={tabContentStyle}>
+        <NativeTabs.Trigger.Icon
+          sf={{ default: 'sun.max', selected: 'sun.max.fill' }}
+          md="sunny"
+        />
+        <NativeTabs.Trigger.Label>Today</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="log" contentStyle={tabContentStyle}>
+        <NativeTabs.Trigger.Icon
+          sf={{ default: 'square.and.pencil', selected: 'square.and.pencil' }}
+          md="edit_note"
+        />
+        <NativeTabs.Trigger.Label>Log</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger
         name="coach"
-        options={{
-          title: 'Coach',
-          tabBarLabel: ({ focused }) => <TabLabel label="Coach" focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
-        name="more"
-        options={{
-          title: 'More',
-          tabBarLabel: ({ focused }) => <TabLabel label="More" focused={focused} />,
-        }}
-      />
-    </Tabs>
+        disableAutomaticContentInsets
+        contentStyle={tabContentStyle}
+      >
+        <NativeTabs.Trigger.Icon
+          sf={{ default: 'bubble.left.and.bubble.right', selected: 'bubble.left.and.bubble.right.fill' }}
+          md="forum"
+        />
+        <NativeTabs.Trigger.Label>Coach</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="more" role="more" contentStyle={tabContentStyle}>
+        <NativeTabs.Trigger.Icon
+          sf={{ default: 'ellipsis.circle', selected: 'ellipsis.circle.fill' }}
+          md="more_horiz"
+        />
+        <NativeTabs.Trigger.Label>More</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+    </NativeTabs>
   );
 }

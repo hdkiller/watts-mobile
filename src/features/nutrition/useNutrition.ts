@@ -6,10 +6,11 @@ import type { HydrationQuickAddPayload, NutritionUploadPayload } from './types';
 
 export const TODAY_NUTRITION_KEY = ['nutrition', 'today'] as const;
 
-export function useTodayNutritionQuery() {
+export function useTodayNutritionQuery(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: TODAY_NUTRITION_KEY,
     queryFn: () => fetchTodayNutrition(localDateYmd()),
+    enabled: options?.enabled ?? true,
   });
 }
 

@@ -1,4 +1,5 @@
 import { router, type Href } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -9,22 +10,23 @@ import {
   View,
 } from 'react-native';
 
+import { useAuth } from '@/src/auth/AuthContext';
+import { useRecentActivityQuery, useUpcomingPlannedQuery } from '@/src/features/activity/useActivity';
+import { NutritionGlance } from '@/src/features/nutrition/NutritionGlance';
+import { useTodayNutritionQuery } from '@/src/features/nutrition/useNutrition';
+import { isNutritionTrackingEnabled } from '@/src/features/profile/mapProfile';
+import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { useActiveRecoveryQuery } from '@/src/features/recovery/useRecovery';
-import type { RecoveryContextItem } from '@/src/features/recovery/types';
+import { ActiveRecoveryBand } from '@/src/features/today/active-recovery-band';
+import { ComingUpStrip } from '@/src/features/today/coming-up-strip';
 import { formatDuration } from '@/src/features/today/mapTodayPayload';
+import { RecentlyTeaser } from '@/src/features/today/recently-teaser';
+import type { TodayPlannedWorkout } from '@/src/features/today/types';
 import { useAcceptRecommendation, useTodayQuery } from '@/src/features/today/useToday';
 import { Colors } from '@/src/theme/colors';
 
 function openPlannedWorkout(id: string) {
   router.push(`/(app)/planned/${id}` as Href);
-}
-
-function openRecoveryEvent(item?: RecoveryContextItem) {
-  if (item) {
-    router.push(`/(app)/recovery-event?id=${encodeURIComponent(item.sourceRecordId)}` as Href);
-    return;
-  }
-  router.push('/(app)/recovery-event' as Href);
 }
 
 function greetingForNow(): string {
@@ -34,13 +36,58 @@ function greetingForNow(): string {
   return 'Good evening';
 }
 
+function PlannedSummaryCard({
+  planned,
+  hero = false,
+}: {
+  planned: TodayPlannedWorkout;
+  hero?: boolean;
+}) {
+  return (
+    <Pressable
+      className={`${hero ? 'mt-6 rounded-2xl' : 'mt-4 rounded-xl'} border border-zinc-800 bg-zinc-900/80 p-4 active:opacity-80`}
+      onPress={() => openPlannedWorkout(planned.id)}
+    >
+      <Text className="text-xs uppercase tracking-wide text-ink-muted">
+        {hero ? 'Today’s planned workout' : 'Planned workout'}
+      </Text>
+      <Text className={`${hero ? 'mt-2 text-2xl' : 'mt-1 text-lg'} font-semibold text-white`}>
+        {planned.title}
+      </Text>
+      <Text className="mt-2 text-sm text-ink-muted">
+        {[
+          planned.type,
+          formatDuration(planned.durationSec),
+          planned.tss != null ? `TSS ${Math.round(planned.tss)}` : null,
+          planned.structureSummary,
+        ]
+          .filter(Boolean)
+          .join(' · ')}
+      </Text>
+      {hero && planned.description ? (
+        <Text className="mt-3 text-base leading-6 text-zinc-200" numberOfLines={3}>
+          {planned.description}
+        </Text>
+      ) : null}
+    </Pressable>
+  );
+}
+
 export default function TodayScreen() {
+  const { instanceUrl } = useAuth();
   const { data, isLoading, isError, error, refetch, isRefetching } = useTodayQuery();
   const {
     data: activeRecovery,
+    isError: recoveryError,
+    error: recoveryErr,
     refetch: refetchRecovery,
     isRefetching: recoveryRefetching,
   } = useActiveRecoveryQuery();
+  const upcomingQuery = useUpcomingPlannedQuery();
+  const recentQuery = useRecentActivityQuery();
+  const profileQuery = useAthleteProfileQuery();
+  const nutritionEnabled = isNutritionTrackingEnabled(profileQuery.data);
+  const nutritionQuery = useTodayNutritionQuery({ enabled: nutritionEnabled });
   const acceptMutation = useAcceptRecommendation();
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -54,9 +101,18 @@ export default function TodayScreen() {
     }
   };
 
+  const openWeb = async () => {
+    if (!instanceUrl) return;
+    await WebBrowser.openBrowserAsync(instanceUrl);
+  };
+
   const onRefresh = () => {
     void refetch();
     void refetchRecovery();
+    void upcomingQuery.refetch();
+    void recentQuery.refetch();
+    void profileQuery.refetch();
+    if (nutritionEnabled) void nutritionQuery.refetch();
   };
 
   if (isLoading && !data) {
@@ -75,7 +131,10 @@ export default function TodayScreen() {
 
   const hasRecoveryMetrics =
     data?.recovery.sleepLabel || data?.recovery.hrvLabel || data?.recovery.feelLabel;
-  const hasActiveContext = Boolean(activeRecovery?.length);
+  const hasRecommendation = Boolean(data?.recommendationId);
+  const planned = data?.plannedWorkout ?? null;
+  const plannedOnlyHero = !isError && !hasRecommendation && Boolean(planned);
+  const emptyNoDecision = !isError && !hasRecommendation && !planned;
 
   return (
     <ScrollView
@@ -83,7 +142,14 @@ export default function TodayScreen() {
       contentContainerClassName="px-6 pb-10 pt-4"
       refreshControl={
         <RefreshControl
-          refreshing={isRefetching || recoveryRefetching}
+          refreshing={
+            isRefetching ||
+            recoveryRefetching ||
+            upcomingQuery.isRefetching ||
+            recentQuery.isRefetching ||
+            profileQuery.isRefetching ||
+            nutritionQuery.isRefetching
+          }
           onRefresh={onRefresh}
           tintColor={Colors.brand}
         />
@@ -103,58 +169,52 @@ export default function TodayScreen() {
         </View>
       ) : null}
 
-      {!isError && data && !data.recommendationId ? (
+      {emptyNoDecision ? (
         <View className="mt-6 rounded-xl border border-zinc-800 bg-zinc-900/80 p-5">
           <Text className="text-lg font-semibold text-white">No recommendation yet</Text>
           <Text className="mt-2 text-sm leading-5 text-ink-muted">
             Waiting for today’s AI recommendation (or sync). Pull to refresh, or open the web app to
             generate guidance.
           </Text>
+          <View className="mt-4 flex-row flex-wrap gap-x-4 gap-y-2">
+            <Pressable className="py-1 active:opacity-70" onPress={() => void refetch()}>
+              <Text className="font-semibold text-brand">Retry</Text>
+            </Pressable>
+            {instanceUrl ? (
+              <Pressable className="py-1 active:opacity-70" onPress={() => void openWeb()}>
+                <Text className="font-semibold text-brand">Open web</Text>
+              </Pressable>
+            ) : null}
+          </View>
         </View>
       ) : null}
 
-      {data?.recommendationId ? (
+      {hasRecommendation ? (
         <View className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
           <Text className="text-xs uppercase tracking-wide text-ink-muted">Today’s call</Text>
-          <Text className="mt-2 text-2xl font-semibold text-brand">{data.actionLabel}</Text>
-          {data.rationale ? (
-            <Text className="mt-3 text-base leading-6 text-zinc-200">{data.rationale}</Text>
+          <Text className="mt-2 text-2xl font-semibold text-brand">{data!.actionLabel}</Text>
+          {data!.rationale ? (
+            <Text className="mt-3 text-base leading-6 text-zinc-200">{data!.rationale}</Text>
           ) : null}
-          {data.confidence != null ? (
+          {data!.confidence != null ? (
             <Text className="mt-3 text-xs text-ink-muted">
-              Confidence {Math.round(data.confidence * (data.confidence <= 1 ? 100 : 1))}%
+              Confidence {Math.round(data!.confidence * (data!.confidence <= 1 ? 100 : 1))}%
             </Text>
           ) : null}
-          {data.userAccepted ? (
+          {data!.userAccepted ? (
             <Text className="mt-3 text-sm font-semibold text-green-400">Accepted</Text>
           ) : null}
-          {data.modificationSummary && !data.userAccepted ? (
+          {data!.modificationSummary && !data!.userAccepted ? (
             <Text className="mt-3 text-sm text-zinc-400">
-              Proposed change: {data.modificationSummary}
+              Proposed change: {data!.modificationSummary}
             </Text>
           ) : null}
         </View>
       ) : null}
 
-      {data?.plannedWorkout ? (
-        <Pressable
-          className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900/80 p-4 active:opacity-80"
-          onPress={() => openPlannedWorkout(data.plannedWorkout!.id)}
-        >
-          <Text className="text-xs uppercase tracking-wide text-ink-muted">Planned workout</Text>
-          <Text className="mt-1 text-lg font-semibold text-white">{data.plannedWorkout.title}</Text>
-          <Text className="mt-2 text-sm text-ink-muted">
-            {[
-              data.plannedWorkout.type,
-              formatDuration(data.plannedWorkout.durationSec),
-              data.plannedWorkout.tss != null ? `TSS ${Math.round(data.plannedWorkout.tss)}` : null,
-              data.plannedWorkout.structureSummary,
-            ]
-              .filter(Boolean)
-              .join(' · ')}
-          </Text>
-        </Pressable>
-      ) : null}
+      {plannedOnlyHero && planned ? <PlannedSummaryCard planned={planned} hero /> : null}
+
+      {hasRecommendation && planned ? <PlannedSummaryCard planned={planned} /> : null}
 
       {hasRecoveryMetrics ? (
         <View className="mt-4 flex-row gap-2">
@@ -179,28 +239,20 @@ export default function TodayScreen() {
         </View>
       ) : null}
 
-      {hasActiveContext ? (
-        <View className="mt-3 flex-row flex-wrap">
-          {activeRecovery!.map((item) => (
-            <Pressable
-              key={item.id}
-              className="mr-2 mt-2 rounded-full border border-zinc-700 bg-zinc-900/80 px-3 py-1.5 active:opacity-80"
-              onPress={() => openRecoveryEvent(item)}
-            >
-              <Text className="text-xs font-semibold text-zinc-200">
-                {item.label}
-                {item.severity != null ? ` · ${item.severity}/10` : ''}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-      ) : null}
+      <ActiveRecoveryBand
+        items={activeRecovery}
+        isError={recoveryError}
+        errorMessage={
+          recoveryErr instanceof Error ? recoveryErr.message : 'Could not load recovery context'
+        }
+        onRetry={() => void refetchRecovery()}
+      />
 
       {actionError ? <Text className="mt-4 text-sm text-red-400">{actionError}</Text> : null}
 
-      {data?.recommendationId ? (
+      {hasRecommendation ? (
         <View className="mt-6 gap-3">
-          {data.canAccept ? (
+          {data?.canAccept ? (
             <Pressable
               className="items-center rounded-xl bg-brand-action py-3.5 active:opacity-80"
               onPress={() => void onAccept()}
@@ -216,10 +268,10 @@ export default function TodayScreen() {
             </Pressable>
           ) : null}
 
-          {data.plannedWorkout ? (
+          {planned ? (
             <Pressable
               className="items-center rounded-xl border border-zinc-700 py-3.5"
-              onPress={() => openPlannedWorkout(data.plannedWorkout!.id)}
+              onPress={() => openPlannedWorkout(planned.id)}
             >
               <Text className="text-base font-semibold text-white">View workout details</Text>
             </Pressable>
@@ -227,12 +279,28 @@ export default function TodayScreen() {
         </View>
       ) : null}
 
-      <Pressable
-        className="mt-5 self-start py-1 active:opacity-70"
-        onPress={() => openRecoveryEvent()}
-      >
-        <Text className="text-sm font-semibold text-brand">Log recovery event</Text>
-      </Pressable>
+      {plannedOnlyHero && planned ? (
+        <View className="mt-6 gap-3">
+          <Pressable
+            className="items-center rounded-xl bg-brand-action py-3.5 active:opacity-80"
+            onPress={() => openPlannedWorkout(planned.id)}
+          >
+            <Text className="text-base font-semibold text-ink">View workout details</Text>
+          </Pressable>
+          {instanceUrl ? (
+            <Pressable
+              className="items-center rounded-xl border border-zinc-700 py-3.5"
+              onPress={() => void openWeb()}
+            >
+              <Text className="text-base font-semibold text-white">Open web</Text>
+            </Pressable>
+          ) : null}
+        </View>
+      ) : null}
+
+      <ComingUpStrip excludePlannedId={planned?.id} />
+      <RecentlyTeaser />
+      <NutritionGlance />
     </ScrollView>
   );
 }

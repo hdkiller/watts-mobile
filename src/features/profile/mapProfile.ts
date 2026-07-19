@@ -63,7 +63,16 @@ export function parseAthleteProfile(json: unknown): AthleteProfile {
     ftp: asFiniteNumber(profile.ftp),
     maxHr: asFiniteNumber(profile.maxHr),
     lthr: asFiniteNumber(profile.lthr),
+    // Web treats missing/null as enabled (`!== false`).
+    nutritionTrackingEnabled: profile.nutritionTrackingEnabled !== false,
   };
+}
+
+/** Same gate as coach-wattz dashboard / nav. */
+export function isNutritionTrackingEnabled(
+  profile: Pick<AthleteProfile, 'nutritionTrackingEnabled'> | null | undefined
+): boolean {
+  return profile?.nutritionTrackingEnabled !== false;
 }
 
 export function emptyAthleteForm(): AthleteMetricsFormValues {
