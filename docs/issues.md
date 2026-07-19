@@ -21,9 +21,9 @@ Already shipped from that review (not tracked here): shared `Button` (variants, 
 | [009](./issues/009.md) | Zone color ramp (Z1–Z5) across zones UI | detail/charts | high | S | done |
 | [010](./issues/010.md) | Hero stat blocks on detail screens | detail | medium | S | done |
 | [011](./issues/011.md) | Live refresh while workout analysis runs | detail | medium | M | done |
-| [012](./issues/012.md) | Coach input bar: icons + native attach sheet | Coach | medium | S | open |
-| [013](./issues/013.md) | Render markdown in coach replies | Coach | high | M | open |
-| [014](./issues/014.md) | Simplify coach header status line | Coach | low | XS | open |
+| [012](./issues/012.md) | Coach input bar: icons + native attach sheet | Coach | medium | S | done |
+| [013](./issues/013.md) | Render markdown in coach replies | Coach | high | M | done |
+| [014](./issues/014.md) | Simplify coach header status line | Coach | low | XS | done |
 | [015](./issues/015.md) | Restructure More tab: sections, icons, chevrons, version | More | medium | M | done |
 | [016](./issues/016.md) | Notification preferences screen | More | high | M | open |
 | [017](./issues/017.md) | Unread badge on More tab icon | More | low | XS | done |

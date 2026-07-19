@@ -138,6 +138,17 @@ There is no separate approval HTTP endpoint. Mobile posts to `POST /api/chat/mes
 
 Pending approvals arrive on assistant messages as `metadata.pendingApprovals` (and/or `tool-*-approval-requested` parts).
 
+Tool result parts on assistant messages use the same AI SDK shapes as web chat (Bearer WS upserts and `GET /api/chat/messages` poll):
+
+| `state` | Mobile treatment |
+|---------|------------------|
+| `approval-requested` | Approve/deny controls |
+| `output-available` / `result` / completed with output | Success card (curated nutrition/recovery/wellness copy, else generic) |
+| `output-error` / `error` / `failed` | Failure card |
+| `output-denied` / `denied` | Denied card |
+
+Curated companion tools (coach-wattz): nutrition `log_nutrition_meal`, `log_hydration_intake`, `patch_nutrition_items`, `delete_nutrition_item`, `delete_hydration`; recovery `record_wellness_event`, `update_wellness_event`, `delete_wellness_event`; wellness `get_wellness_metrics`, `get_wellness_events`. No Bearer gaps found for these part shapes.
+
 ## Deep links vs OAuth callback
 
 `coachwatts://oauth/callback` is reserved for PKCE and is **not** rewritten by the product deep-link resolver. All other `coachwatts://…` paths (and https `https://coachwatts.com/go/…` when hosted) use the shared map in [deep-links.md](./deep-links.md).

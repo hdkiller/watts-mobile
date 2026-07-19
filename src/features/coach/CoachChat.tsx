@@ -1,28 +1,68 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
+  ActionSheetIOS,
   ActivityIndicator,
-  Alert,
   FlatList,
   Image,
+  Modal,
+  Platform,
   Pressable,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import { SymbolView, type SFSymbol } from 'expo-symbols';
 import { Button } from '@/src/components/Button';
-import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
 import { Colors } from '@/src/theme/colors';
 
 import {
   extractPendingApprovals,
   messageImageParts,
   messageText,
-  nutritionToolSummaries,
+  toolOutcomeSummaries,
 } from './mapMessages';
+import { MarkdownLite } from './markdownLite';
 import { RoomListSheet } from './RoomListSheet';
 import { COACH_STARTER_PROMPTS, DISCUSS_TODAY_PROMPT } from './starterPrompts';
-import type { CoachUIMessage } from './types';
+import type { CoachUIMessage, ToolOutcomeSummary } from './types';
 import { useCoachChat } from './useCoachChat';
+
+function ChatGlyph({
+  sf,
+  emoji,
+  size = 18,
+  tint = '#fafafa',
+}: {
+  sf: SFSymbol;
+  emoji: string;
+  size?: number;
+  tint?: string;
+}) {
+  if (Platform.OS === 'ios') {
+    return <SymbolView name={sf} size={size} tintColor={tint} />;
+  }
+  return <Text style={{ fontSize: size - 2, color: tint }}>{emoji}</Text>;
+}
+
+function ToolOutcomeCard({ outcome }: { outcome: ToolOutcomeSummary }) {
+  const containerClass =
+    outcome.status === 'success'
+      ? 'border-green-700/50 bg-green-950/30'
+      : outcome.status === 'denied'
+        ? 'border-zinc-600 bg-zinc-900'
+        : 'border-red-800/50 bg-red-950/30';
+  const textClass =
+    outcome.status === 'success'
+      ? 'text-green-400'
+      : outcome.status === 'denied'
+        ? 'text-ink-muted'
+        : 'text-red-300';
+  return (
+    <View className={`mt-2 rounded-xl border px-3 py-2 ${containerClass}`}>
+      <Text className={`text-sm font-medium ${textClass}`}>{outcome.message}</Text>
+    </View>
+  );
+}
 
 function Bubble({
   message,
@@ -36,7 +76,7 @@ function Bubble({
   const text = messageText(message).trim();
   const images = messageImageParts(message);
   const approvals = extractPendingApprovals(message);
-  const nutritionNotes = nutritionToolSummaries(message);
+  const toolNotes = toolOutcomeSummaries(message);
 
   return (
     <View className={`mb-3 max-w-[88%] ${isUser ? 'self-end' : 'self-start'}`}>
@@ -58,9 +98,11 @@ function Bubble({
               />
             ))}
             {text ? (
-              <Text className={`text-base leading-6 ${isUser ? 'text-zinc-950' : 'text-white'}`}>
-                {text}
-              </Text>
+              isUser ? (
+                <Text className="text-base leading-6 text-zinc-950">{text}</Text>
+              ) : (
+                <MarkdownLite text={text} className="text-base leading-6 text-white" />
+              )
             ) : null}
             {!text && images.length === 0 && !typing ? (
               <Text className={`text-base ${isUser ? 'text-zinc-950' : 'text-white'}`}>…</Text>
@@ -69,10 +111,8 @@ function Bubble({
         )}
       </View>
 
-      {nutritionNotes.map((note) => (
-        <Text key={note} className="mt-2 text-sm font-medium text-green-400">
-          {note}
-        </Text>
+      {toolNotes.map((note) => (
+        <ToolOutcomeCard key={note.id} outcome={note} />
       ))}
 
       {approvals.map((approval) => (
@@ -103,6 +143,58 @@ function Bubble({
   );
 }
 
+function AttachSheet({
+  visible,
+  onClose,
+  onCamera,
+  onLibrary,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  onCamera: () => void;
+  onLibrary: () => void;
+}) {
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <Pressable className="flex-1 justify-end bg-black/50" onPress={onClose}>
+        <Pressable
+          className="rounded-t-3xl border-t border-zinc-700 bg-zinc-900 px-5 pb-10 pt-4"
+          onPress={(event) => event.stopPropagation()}
+        >
+          <View className="mb-4 items-center">
+            <View className="h-1 w-10 rounded-full bg-zinc-600" />
+          </View>
+          <Text className="text-lg font-semibold text-white">Attach photo</Text>
+          <Text className="mt-1 text-sm text-ink-muted">
+            Send a meal or context photo to Coach.
+          </Text>
+          <Pressable
+            className="mt-5 rounded-xl border border-zinc-700 px-4 py-3.5 active:opacity-80"
+            onPress={() => {
+              onClose();
+              onCamera();
+            }}
+          >
+            <Text className="text-base font-semibold text-white">Camera</Text>
+          </Pressable>
+          <Pressable
+            className="mt-2 rounded-xl border border-zinc-700 px-4 py-3.5 active:opacity-80"
+            onPress={() => {
+              onClose();
+              onLibrary();
+            }}
+          >
+            <Text className="text-base font-semibold text-white">Photo library</Text>
+          </Pressable>
+          <Pressable className="mt-3 px-4 py-3 active:opacity-80" onPress={onClose}>
+            <Text className="text-center text-base font-semibold text-ink-muted">Cancel</Text>
+          </Pressable>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
 export function CoachChat({
   targetRoomId,
   autoAttach,
@@ -116,6 +208,7 @@ export function CoachChat({
   const listRef = useRef<FlatList<CoachUIMessage>>(null);
   const autoAttachHandled = useRef(false);
   const discussHandled = useRef(false);
+  const [attachSheetOpen, setAttachSheetOpen] = useState(false);
   const chat = useCoachChat({ targetRoomId });
 
   useEffect(() => {
@@ -156,11 +249,22 @@ export function CoachChat({
 
   const openAttachMenu = () => {
     if (chat.isReadOnly || chat.sending) return;
-    Alert.alert('Attach photo', 'Send a meal or context photo to Coach.', [
-      { text: 'Camera', onPress: () => void chat.attachFromCamera() },
-      { text: 'Photo library', onPress: () => void chat.attachFromLibrary() },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          title: 'Attach photo',
+          message: 'Send a meal or context photo to Coach.',
+          options: ['Cancel', 'Camera', 'Photo library'],
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1) void chat.attachFromCamera();
+          if (buttonIndex === 2) void chat.attachFromLibrary();
+        }
+      );
+      return;
+    }
+    setAttachSheetOpen(true);
   };
 
   if (chat.loading && chat.displayMessages.length === 0) {
@@ -187,31 +291,44 @@ export function CoachChat({
     !chat.sending &&
     (Boolean(chat.input.trim()) || chat.pendingAttachments.length > 0);
 
+  const statusLine = chat.streaming
+    ? chat.isRealtimeConnected
+      ? 'Streaming reply…'
+      : chat.usingPollFallback
+        ? 'Waiting for reply (polling)…'
+        : 'Waiting for reply…'
+    : null;
+
   return (
     <View className="flex-1 bg-surface-dark">
       <View className="border-b border-zinc-800 px-5 pb-3 pt-2">
         <View className="flex-row items-center justify-between gap-3">
           <Pressable
             className="min-w-0 flex-1 active:opacity-80"
+            accessibilityRole="button"
+            accessibilityLabel={`Switch chats. Current: ${chat.roomName || 'Coach Watts'}`}
             onPress={() => {
               void chat.refreshRooms();
               chat.setRoomListOpen(true);
             }}
           >
-            <Text className="text-2xl font-semibold text-white" numberOfLines={1}>
-              {chat.roomName || 'Coach Watts'}
-            </Text>
-            <Text className="mt-1 text-sm text-ink-muted">
-              {chat.streaming
-                ? chat.isRealtimeConnected
-                  ? 'Streaming reply…'
-                  : chat.usingPollFallback
-                    ? 'Waiting for reply (polling)…'
-                    : 'Waiting for reply…'
-                : chat.isRealtimeConnected
-                  ? 'Live · Tap to switch chats'
-                  : 'Connected · Tap to switch chats'}
-            </Text>
+            <View className="flex-row items-center gap-2">
+              <View
+                className={`h-2.5 w-2.5 rounded-full ${
+                  chat.isRealtimeConnected ? 'bg-green-400' : 'bg-zinc-500'
+                }`}
+                accessibilityLabel={
+                  chat.isRealtimeConnected ? 'Live connection' : 'Polling connection'
+                }
+              />
+              <Text className="min-w-0 flex-shrink text-2xl font-semibold text-white" numberOfLines={1}>
+                {chat.roomName || 'Coach Watts'}
+              </Text>
+              <ChatGlyph sf="chevron.down" emoji="▾" size={14} tint="#a1a1aa" />
+            </View>
+            {statusLine ? (
+              <Text className="mt-1 text-sm text-ink-muted">{statusLine}</Text>
+            ) : null}
           </Pressable>
           <Pressable
             className="rounded-xl border border-zinc-600 px-3 py-2 active:opacity-80"
@@ -331,13 +448,15 @@ export function CoachChat({
 
       <View className="flex-row items-end gap-2 border-t border-zinc-800 px-4 py-3">
         <Pressable
-          className={`rounded-2xl border border-zinc-700 px-3 py-3 ${
+          className={`h-12 w-12 items-center justify-center rounded-full border border-zinc-700 ${
             chat.isReadOnly || chat.sending ? 'opacity-40' : 'active:opacity-80'
           }`}
           disabled={chat.isReadOnly || chat.sending}
+          accessibilityRole="button"
+          accessibilityLabel="Attach photo"
           onPress={openAttachMenu}
         >
-          <Text className="text-base font-semibold text-white">Photo</Text>
+          <ChatGlyph sf="plus" emoji="＋" size={20} />
         </Pressable>
         <TextInput
           className="max-h-28 flex-1 rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-base text-white"
@@ -349,17 +468,33 @@ export function CoachChat({
           editable={!chat.sending && !chat.isReadOnly}
         />
         <Pressable
-          className={`rounded-2xl px-4 py-3 ${canSend ? 'bg-brand' : 'bg-zinc-700'}`}
+          className={`h-12 w-12 items-center justify-center rounded-full ${
+            canSend ? 'bg-brand' : 'bg-zinc-700'
+          }`}
           disabled={!canSend}
+          accessibilityRole="button"
+          accessibilityLabel="Send message"
           onPress={() => void chat.send()}
         >
           {chat.sending ? (
             <ActivityIndicator color={Colors.background} />
           ) : (
-            <Text className="text-base font-semibold text-zinc-950">Send</Text>
+            <ChatGlyph
+              sf="arrow.up"
+              emoji="↑"
+              size={18}
+              tint={canSend ? '#09090b' : '#a1a1aa'}
+            />
           )}
         </Pressable>
       </View>
+
+      <AttachSheet
+        visible={attachSheetOpen}
+        onClose={() => setAttachSheetOpen(false)}
+        onCamera={() => void chat.attachFromCamera()}
+        onLibrary={() => void chat.attachFromLibrary()}
+      />
 
       <RoomListSheet
         visible={chat.roomListOpen}
