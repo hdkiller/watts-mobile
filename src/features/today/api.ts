@@ -41,10 +41,5 @@ export async function acceptRecommendation(id: string): Promise<void> {
   }
 }
 
-export async function fetchPlannedWorkout(id: string): Promise<Record<string, unknown>> {
-  const response = await apiFetch(`/api/planned-workouts/${id}`);
-  if (!response.ok) {
-    throw new Error(`Failed to load planned workout (${response.status})`);
-  }
-  return (await response.json()) as Record<string, unknown>;
-}
+/** Re-export — planned detail owned by activity glance module. */
+export { fetchPlannedWorkout } from '@/src/features/activity/api';

@@ -7,25 +7,25 @@ import {
   absoluteInstanceUrl,
   formatActivityDate,
   formatDuration,
-  plannedWorkoutWebPath,
+  workoutWebPath,
 } from '@/src/features/activity/mapActivity';
-import { usePlannedDetailQuery } from '@/src/features/activity/useActivity';
+import { useActivitySummaryQuery } from '@/src/features/activity/useActivity';
 import { Colors } from '@/src/theme/colors';
 
-export default function PlannedWorkoutDetailScreen() {
+export default function ActivitySummaryScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { instanceUrl } = useAuth();
-  const { data, isLoading, isError, error } = usePlannedDetailQuery(id);
+  const { data, isLoading, isError, error } = useActivitySummaryQuery(id);
 
   const openWeb = async () => {
     if (!instanceUrl) return;
-    const path = id ? plannedWorkoutWebPath(id) : '/';
+    const path = id ? workoutWebPath(id) : '/';
     await WebBrowser.openBrowserAsync(absoluteInstanceUrl(instanceUrl, path));
   };
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Workout', headerShown: true }} />
+      <Stack.Screen options={{ title: 'Activity', headerShown: true }} />
       {isLoading ? (
         <View className="flex-1 items-center justify-center bg-surface-dark">
           <ActivityIndicator color={Colors.brand} />
@@ -33,7 +33,7 @@ export default function PlannedWorkoutDetailScreen() {
       ) : isError ? (
         <View className="flex-1 bg-surface-dark px-6 pt-6">
           <Text className="text-red-400">
-            {error instanceof Error ? error.message : 'Failed to load workout'}
+            {error instanceof Error ? error.message : 'Failed to load activity'}
           </Text>
         </View>
       ) : data ? (
@@ -44,40 +44,21 @@ export default function PlannedWorkoutDetailScreen() {
               formatActivityDate(data.date),
               data.type,
               formatDuration(data.durationSec),
-              data.tss != null ? `TSS ${Math.round(data.tss)}` : null,
+              data.loadLabel,
             ]
               .filter(Boolean)
               .join(' · ')}
           </Text>
-
-          {data.structureSteps.length > 0 ? (
-            <View className="mt-6">
-              <Text className="text-xs uppercase tracking-wide text-ink-muted">Structure</Text>
-              {data.structureSteps.map((step, index) => {
-                const meta = [formatDuration(step.durationSec), step.intensityLabel]
-                  .filter(Boolean)
-                  .join(' · ');
-                return (
-                  <View
-                    key={`${step.name}-${index}`}
-                    className="mt-3 border-b border-zinc-800 pb-3"
-                  >
-                    <Text className="text-base text-zinc-100">{step.name}</Text>
-                    {meta ? <Text className="mt-1 text-sm text-ink-muted">{meta}</Text> : null}
-                  </View>
-                );
-              })}
-            </View>
-          ) : null}
-
+          <Text className={`mt-3 text-sm ${data.status.kind === 'failed' ? 'text-red-400' : 'text-ink-muted'}`}>
+            {data.status.label}
+          </Text>
           {data.description ? (
             <Text className="mt-6 text-base leading-6 text-zinc-200">{data.description}</Text>
-          ) : data.structureSteps.length === 0 ? (
+          ) : (
             <Text className="mt-6 text-sm text-ink-muted">
-              No structure summary available. Open the web app for full planned-workout detail.
+              Lite summary only. Open the web app for charts and full analysis.
             </Text>
-          ) : null}
-
+          )}
           <Pressable
             className="mt-8 items-center rounded-xl border border-zinc-700 py-3.5 active:opacity-80"
             onPress={() => void openWeb()}

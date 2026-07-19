@@ -36,6 +36,6 @@ Existing `app/(app)/planned/[id].tsx` is thin (title, duration, TSS, description
 
 ## Open Questions
 
-- Exact workout DTO fields for analysis/sync status (confirm against coach-wattz types when implementing)
-- Whether planned detail returns interval structure or needs a secondary endpoint (e.g. intervals-preview) — confirm when implementing
+- ~~Exact workout DTO fields for analysis/sync status~~ → Resolved: `aiAnalysisStatus` on list; no workout `syncStatus` on list DTO (see [api-findings.md](./api-findings.md))
+- ~~Whether planned detail returns interval structure or needs a secondary endpoint~~ → Resolved: `structuredWorkout` on `GET /api/planned-workouts/:id`; no secondary endpoint for lite summary
 - Whether Today teaser is in or out for first ship (default: More-only)

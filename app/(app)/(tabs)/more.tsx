@@ -1,3 +1,4 @@
+import { router, type Href } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { useState } from 'react';
@@ -37,7 +38,23 @@ export default function MoreScreen() {
       </View>
 
       <Pressable
-        className="mt-4 items-center rounded-xl border border-zinc-700 py-3.5 active:opacity-80"
+        className="mt-4 flex-row items-center justify-between rounded-xl border border-zinc-700 px-4 py-3.5 active:opacity-80"
+        onPress={() => router.push('/(app)/activity' as Href)}
+      >
+        <Text className="text-base font-semibold text-white">Recent activity</Text>
+        <Text className="text-sm text-ink-muted">Workouts</Text>
+      </Pressable>
+
+      <Pressable
+        className="mt-3 flex-row items-center justify-between rounded-xl border border-zinc-700 px-4 py-3.5 active:opacity-80"
+        onPress={() => router.push('/(app)/upcoming' as Href)}
+      >
+        <Text className="text-base font-semibold text-white">Upcoming</Text>
+        <Text className="text-sm text-ink-muted">Planned</Text>
+      </Pressable>
+
+      <Pressable
+        className="mt-3 items-center rounded-xl border border-zinc-700 py-3.5 active:opacity-80"
         onPress={() => void openWeb()}
       >
         <Text className="text-base font-semibold text-white">Open web</Text>
