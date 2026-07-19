@@ -39,6 +39,14 @@ export default function MoreScreen() {
 
       <Pressable
         className="mt-4 flex-row items-center justify-between rounded-xl border border-zinc-700 px-4 py-3.5 active:opacity-80"
+        onPress={() => router.push('/(app)/athlete' as Href)}
+      >
+        <Text className="text-base font-semibold text-white">Athlete</Text>
+        <Text className="text-sm text-ink-muted">Metrics</Text>
+      </Pressable>
+
+      <Pressable
+        className="mt-3 flex-row items-center justify-between rounded-xl border border-zinc-700 px-4 py-3.5 active:opacity-80"
         onPress={() => router.push('/(app)/activity' as Href)}
       >
         <Text className="text-base font-semibold text-white">Recent activity</Text>
