@@ -13,6 +13,7 @@ This app is the **field companion**: today’s recommendation, check-in, light c
 | [docs/implementation-plan.md](docs/implementation-plan.md) | Delivery phases and checklist for this repo |
 | [docs/open-questions.md](docs/open-questions.md) | Decisions to resolve before/during Phase 0–1 |
 | [docs/oauth-setup.md](docs/oauth-setup.md) | Public OAuth client + redirect URI registration |
+| [docs/deep-links.md](docs/deep-links.md) | Scheme / universal link path map + host association |
 | coach-wattz `docs/06-plans/mobile-companion-app.md` | Full living baseline (PR [#239](https://github.com/hdkiller/coach/pull/239); merge pending) |
 | OpenSpec archive `2026-07-19-phase-0/1/2-log-*` | Auth, Today, Log check-in (done) |
 | OpenSpec `phase-2-log-recovery-event` | Log recovery event (journey) parity with web |

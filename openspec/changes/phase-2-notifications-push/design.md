@@ -26,7 +26,7 @@ Phase 0–2 Log are done. coach-wattz has `GET /api/notifications` and `PATCH /a
 
 3. **Initial push event types** (server taxonomy):  
    `RECOMMENDATION_READY`, `WORKOUT_ANALYSIS_READY`, `SYNC_COMPLETED`, `COACH_MESSAGE`.  
-   Client maps `data.type` + optional `data.path` to a stub navigator until deep-links change lands.
+   Client maps `data.type` + optional `data.path` via `resolvePushNavigation` in `src/linking/resolveDeepLink.ts` (from `phase-3-deep-links`) — do not invent a second route map.
 
 4. **Permission UX**  
    Request notification permission after authenticated shell is ready (not during OAuth). Soft-deny: inbox still works; show gentle enable CTA in inbox/More.

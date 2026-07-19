@@ -1,6 +1,7 @@
 import { Redirect } from 'expo-router';
 
 import { useAuth } from '@/src/auth/AuthContext';
+import { AuthenticatedEntry } from '@/src/linking/AuthenticatedEntry';
 
 export default function Index() {
   const { status } = useAuth();
@@ -14,7 +15,7 @@ export default function Index() {
   }
 
   if (status === 'authenticated') {
-    return <Redirect href="/(app)/(tabs)/today" />;
+    return <AuthenticatedEntry />;
   }
 
   return null;

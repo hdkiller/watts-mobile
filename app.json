@@ -15,7 +15,10 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.coachwatts.mobile",
-      "icon": "./assets/images/icon.png"
+      "icon": "./assets/images/icon.png",
+      "associatedDomains": [
+        "applinks:coachwatts.com"
+      ]
     },
     "android": {
       "adaptiveIcon": {
@@ -25,7 +28,24 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "package": "com.coachwatts.mobile",
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ],
+          "data": [
+            {
+              "scheme": "https",
+              "host": "coachwatts.com",
+              "pathPrefix": "/go"
+            }
+          ]
+        }
+      ]
     },
     "web": {
       "bundler": "metro",

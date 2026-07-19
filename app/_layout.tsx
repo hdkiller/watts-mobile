@@ -9,6 +9,7 @@ import 'react-native-gesture-handler';
 import 'react-native-reanimated';
 
 import { AuthProvider, useAuth } from '@/src/auth/AuthContext';
+import { useDeepLinkReturn } from '@/src/linking/useDeepLinkReturn';
 import { initSentry } from '@/src/sentry';
 import { Colors } from '@/src/theme/colors';
 
@@ -19,6 +20,7 @@ initSentry();
 
 function RootNavigator() {
   const { status } = useAuth();
+  useDeepLinkReturn();
 
   useEffect(() => {
     if (status !== 'loading') {
