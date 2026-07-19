@@ -61,6 +61,14 @@ export default function AppLayout() {
         }}
       />
       <Stack.Screen
+        name="athlete"
+        options={{
+          headerShown: true,
+          title: 'Athlete',
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
         name="recovery-event"
         options={{
           headerShown: true,

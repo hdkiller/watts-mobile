@@ -106,7 +106,8 @@ Checklist:
 
 - [x] Upcoming planned workouts (More → Upcoming, capped 7–14 days) — shipped with Phase 3 glance
 - [x] Richer planned workout detail (structure summary) + lite activity summary — shipped with Phase 3 glance
-- [ ] Athlete metrics editor (`profile:write`, `GET/PATCH /api/profile`)
+- [x] Athlete metrics editor (`profile:write`, `GET/PATCH /api/profile`) — `phase-4-athlete-profile-edit`
+
 - [ ] Nutrition quick-log on Log (`nutrition:read` / `nutrition:write`)
 - [ ] Soft offline queue for check-in (harden)
 - [ ] Stronger offline Today cache
@@ -118,7 +119,8 @@ Checklist:
 
 1. ~~Bearer on `GET /api/planned-workouts/:id`~~ — done (`requireAuth` + `workout:read`; list already Bearer)
 2. ~~Confirm planned structure / intervals fields~~ — `structuredWorkout` on detail; no secondary endpoint for lite summary
-3. Official Mobile App allowlist: `profile:write`, `nutrition:read`, `nutrition:write`
+3. Official Mobile App allowlist: `profile:write` confirmed in `REST_OAUTH_SCOPES` (no separate per-app list); still need `nutrition:read` / `nutrition:write` for Phase 4 nutrition
+
 4. Bearer on nutrition hydration quick-add (and any session-only nutrition routes used by mobile)
 
 **Exit:** athlete can browse upcoming + recent, edit core metrics, and quick-log nutrition without opening web for the happy path.
