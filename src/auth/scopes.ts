@@ -3,6 +3,7 @@ export const COMPANION_SCOPES = [
   'profile:read',
   'profile:write',
   'workout:read',
+  'workout:write',
   'health:read',
   'health:write',
   'nutrition:read',
