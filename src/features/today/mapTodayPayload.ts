@@ -1,4 +1,9 @@
-import type { ActivityRecommendationApi, TodayViewModel } from './types';
+import type {
+  ActivityRecommendationApi,
+  RecoverySentiment,
+  TodayRecoveryStrip,
+  TodayViewModel,
+} from './types';
 
 /** Visual category for the Today recommendation hero accent. */
 export type HeroTone = 'train' | 'rest' | 'modify';
@@ -78,19 +83,173 @@ function structureSummary(structure: unknown): string | null {
   return null;
 }
 
-function pickRecoveryLabel(
-  analysis: ActivityRecommendationApi['analysisJson'],
+function pickCtxValue(
+  ctx: Record<string, unknown> | null | undefined,
   keys: string[]
-): string | null {
-  const ctx = analysis?.recovery_context;
-  if (!ctx || typeof ctx !== 'object') return null;
+): unknown {
+  if (!ctx) return null;
   for (const key of keys) {
-    const value = (ctx as Record<string, unknown>)[key];
-    if (value == null) continue;
-    if (typeof value === 'number' || typeof value === 'string') return String(value);
+    const value = ctx[key];
+    if (value != null && value !== '') return value;
   }
   return null;
 }
+
+function labelFromValue(value: unknown): string | null {
+  if (value == null) return null;
+  if (typeof value === 'number' || typeof value === 'string') {
+    const s = String(value).trim();
+    return s || null;
+  }
+  return null;
+}
+
+/**
+ * Map a free-text recovery status label to good/ok/poor when it encodes sentiment.
+ * Returns null when the label is only a raw number or unrecognized wording.
+ */
+export function recoverySentimentFromLabel(
+  label: string | null | undefined
+): RecoverySentiment | null {
+  if (label == null) return null;
+  const s = label.toLowerCase().trim();
+  if (!s) return null;
+
+  if (
+    /\b(poor|bad|low|weak|deficient|under-?recovered|compromised|elevated)\b/.test(s) ||
+    s === 'red' ||
+    s.includes('fatigue high') ||
+    s.includes('high fatigue')
+  ) {
+    return 'poor';
+  }
+  if (
+    /\b(excellent|great|good|optimal|strong|fresh|recovered|solid)\b/.test(s) ||
+    s === 'green' ||
+    s === 'high'
+  ) {
+    return 'good';
+  }
+  if (
+    /\b(ok|okay|fair|moderate|average|normal|adequate|amber|yellow)\b/.test(s) ||
+    s === 'yellow' ||
+    s === 'amber'
+  ) {
+    return 'ok';
+  }
+  return null;
+}
+
+/**
+ * Bucket a numeric recovery metric. Values above 10 use a 0–100 scale;
+ * otherwise a 0–10 scale (readiness / feel).
+ */
+export function recoverySentimentFromNumber(
+  value: number | null | undefined
+): RecoverySentiment | null {
+  if (value == null || Number.isNaN(value)) return null;
+  if (value > 10) {
+    if (value >= 75) return 'good';
+    if (value >= 50) return 'ok';
+    return 'poor';
+  }
+  if (value >= 7) return 'good';
+  if (value >= 5) return 'ok';
+  return 'poor';
+}
+
+/** Derive sentiment from a label, numeric string, or number. */
+export function recoverySentimentFromValue(value: unknown): RecoverySentiment | null {
+  if (value == null || value === '') return null;
+  if (typeof value === 'number') return recoverySentimentFromNumber(value);
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    if (/^-?\d+(\.\d+)?$/.test(trimmed)) {
+      return recoverySentimentFromNumber(Number(trimmed));
+    }
+    return recoverySentimentFromLabel(trimmed);
+  }
+  return null;
+}
+
+/**
+ * Fatigue wording is inverted vs readiness: high/elevated → poor, low/minimal → good.
+ */
+export function fatigueSentimentFromLabel(
+  label: string | null | undefined
+): RecoverySentiment | null {
+  if (label == null) return null;
+  const s = label.toLowerCase().trim();
+  if (!s) return null;
+  if (/\b(high|elevated|severe|heavy|significant)\b/.test(s)) return 'poor';
+  if (/\b(low|minimal|none|light)\b/.test(s)) return 'good';
+  if (/\b(moderate|medium|mild|ok|okay|fair)\b/.test(s)) return 'ok';
+  return recoverySentimentFromLabel(s);
+}
+
+function mapRecoveryStrip(
+  analysis: ActivityRecommendationApi['analysisJson']
+): TodayRecoveryStrip {
+  const ctx = analysis?.recovery_context ?? null;
+  const ra = analysis?.recovery_analysis ?? null;
+
+  const sleepRaw =
+    pickCtxValue(ctx, ['sleep', 'sleepScore', 'sleep_hours', 'sleepQuality', 'sleep_quality']) ??
+    ra?.sleep_quality ??
+    null;
+  const hrvRaw =
+    pickCtxValue(ctx, ['hrv', 'hrvStatus', 'hrv_delta', 'hrv_status']) ?? ra?.hrv_status ?? null;
+  const feelRaw =
+    pickCtxValue(ctx, ['feel', 'readiness', 'subjective', 'readiness_score']) ??
+    (ra?.readiness_score != null ? ra.readiness_score : null) ??
+    ra?.fatigue_level ??
+    null;
+
+  const sleepLabel = labelFromValue(sleepRaw);
+  const hrvLabel = labelFromValue(hrvRaw);
+  const feelLabel = labelFromValue(feelRaw);
+
+  const sleepSentiment =
+    recoverySentimentFromValue(
+      pickCtxValue(ctx, ['sleepRating', 'sleep_status', 'sleepStatus', 'sleep_quality'])
+    ) ?? recoverySentimentFromValue(sleepRaw);
+
+  const hrvSentiment =
+    recoverySentimentFromValue(
+      pickCtxValue(ctx, ['hrvRating', 'hrv_status', 'hrvStatus'])
+    ) ?? recoverySentimentFromValue(hrvRaw);
+
+  const feelFromCtx = recoverySentimentFromValue(
+    pickCtxValue(ctx, ['feelRating', 'feel_status', 'readiness', 'feel'])
+  );
+  const feelFromScore =
+    ra?.readiness_score != null ? recoverySentimentFromNumber(ra.readiness_score) : null;
+  const feelFromFatigue =
+    feelLabel && ra?.fatigue_level && feelLabel === String(ra.fatigue_level)
+      ? fatigueSentimentFromLabel(ra.fatigue_level)
+      : null;
+  const feelSentiment =
+    feelFromCtx ?? feelFromScore ?? feelFromFatigue ?? recoverySentimentFromValue(feelRaw);
+
+  return {
+    sleepLabel,
+    hrvLabel,
+    feelLabel,
+    sleepSentiment,
+    hrvSentiment,
+    feelSentiment,
+  };
+}
+
+const EMPTY_RECOVERY: TodayRecoveryStrip = {
+  sleepLabel: null,
+  hrvLabel: null,
+  feelLabel: null,
+  sleepSentiment: null,
+  hrvSentiment: null,
+  feelSentiment: null,
+};
 
 export function mapTodayPayload(raw: ActivityRecommendationApi | null): TodayViewModel {
   if (!raw) {
@@ -105,7 +264,7 @@ export function mapTodayPayload(raw: ActivityRecommendationApi | null): TodayVie
       canAccept: false,
       modificationSummary: null,
       plannedWorkout: null,
-      recovery: { sleepLabel: null, hrvLabel: null, feelLabel: null },
+      recovery: { ...EMPTY_RECOVERY },
       raw: null,
     };
   }
@@ -135,11 +294,7 @@ export function mapTodayPayload(raw: ActivityRecommendationApi | null): TodayVie
           structureSummary: structureSummary(planned.structure),
         }
       : null,
-    recovery: {
-      sleepLabel: pickRecoveryLabel(raw.analysisJson, ['sleep', 'sleepScore', 'sleep_hours']),
-      hrvLabel: pickRecoveryLabel(raw.analysisJson, ['hrv', 'hrvStatus', 'hrv_delta']),
-      feelLabel: pickRecoveryLabel(raw.analysisJson, ['feel', 'readiness', 'subjective']),
-    },
+    recovery: mapRecoveryStrip(raw.analysisJson),
     raw,
   };
 }

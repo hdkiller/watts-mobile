@@ -10,18 +10,27 @@ function firstParam(value: string | string[] | undefined): string | null {
 }
 
 export default function CoachScreen() {
-  const params = useLocalSearchParams<{ roomId?: string | string[]; attach?: string | string[] }>();
+  const params = useLocalSearchParams<{
+    roomId?: string | string[];
+    attach?: string | string[];
+    discuss?: string | string[];
+  }>();
   const roomId = firstParam(params.roomId);
   const attachRaw = firstParam(params.attach);
   const autoAttach =
     attachRaw === 'camera' || attachRaw === 'library' ? attachRaw : null;
+  const discussToday = firstParam(params.discuss) === '1';
 
   return (
     <SafeAreaView
       edges={{ top: true, bottom: true }}
       style={{ flex: 1, backgroundColor: Colors.background }}
     >
-      <CoachChat targetRoomId={roomId} autoAttach={autoAttach} />
+      <CoachChat
+        targetRoomId={roomId}
+        autoAttach={autoAttach}
+        discussToday={discussToday}
+      />
     </SafeAreaView>
   );
 }

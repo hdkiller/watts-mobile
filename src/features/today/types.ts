@@ -11,10 +11,16 @@ export type TodayPlannedWorkout = {
   structureSummary: string | null;
 };
 
+/** Glance sentiment for sleep / HRV / feel tiles. */
+export type RecoverySentiment = 'good' | 'ok' | 'poor';
+
 export type TodayRecoveryStrip = {
   sleepLabel: string | null;
   hrvLabel: string | null;
   feelLabel: string | null;
+  sleepSentiment: RecoverySentiment | null;
+  hrvSentiment: RecoverySentiment | null;
+  feelSentiment: RecoverySentiment | null;
 };
 
 export type TodayViewModel = {
@@ -46,6 +52,12 @@ export type ActivityRecommendationApi = {
       new_title?: string;
     } | null;
     recovery_context?: Record<string, unknown> | null;
+    recovery_analysis?: {
+      hrv_status?: string | null;
+      sleep_quality?: string | null;
+      fatigue_level?: string | null;
+      readiness_score?: number | null;
+    } | null;
   } | null;
   plannedWorkout?: {
     id: string;

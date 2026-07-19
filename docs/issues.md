@@ -13,8 +13,8 @@ Already shipped from that review (not tracked here): shared `Button` (variants, 
 | [001](./issues/001.md) | Friendly error copy instead of raw API messages | cross-cutting | high | S | done |
 | [002](./issues/002.md) | Haptic feedback on key moments | cross-cutting | medium | S | open |
 | [003](./issues/003.md) | Recommendation hero: state color, confidence visual, accepted state | Today | high | M | done |
-| [004](./issues/004.md) | Modify/Rest affordance: "Discuss with Coach" | Today | medium | M | open |
-| [005](./issues/005.md) | Recovery glance polish: sentiment dots + band header rename | Today | medium | S | open |
+| [004](./issues/004.md) | Modify/Rest affordance: "Discuss with Coach" | Today | medium | M | done |
+| [005](./issues/005.md) | Recovery glance polish: sentiment dots + band header rename | Today | medium | S | done |
 | [006](./issues/006.md) | Faster check-in: tap controls, save feedback, weight unit | Log | high | M | in progress |
 | [007](./issues/007.md) | Log cleanup: drop "Back to Today", read-only chip icon | Log | low | XS | open |
 | [008](./issues/008.md) | Workout structure silhouette on planned detail | detail | high | M | done |

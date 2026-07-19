@@ -29,7 +29,7 @@ export function ActiveRecoveryBand({
   return (
     <View className="mt-6">
       <Text className="text-xs font-semibold uppercase tracking-widest text-ink-muted">
-        Active Recovery Context
+        How you're doing
       </Text>
       <Text className="mt-1.5 text-sm leading-5 text-ink-muted">
         Coach Watts will use this when generating today’s guidance.

@@ -20,7 +20,7 @@ import {
   nutritionToolSummaries,
 } from './mapMessages';
 import { RoomListSheet } from './RoomListSheet';
-import { COACH_STARTER_PROMPTS } from './starterPrompts';
+import { COACH_STARTER_PROMPTS, DISCUSS_TODAY_PROMPT } from './starterPrompts';
 import type { CoachUIMessage } from './types';
 import { useCoachChat } from './useCoachChat';
 
@@ -106,12 +106,16 @@ function Bubble({
 export function CoachChat({
   targetRoomId,
   autoAttach,
+  discussToday = false,
 }: {
   targetRoomId?: string | null;
   autoAttach?: 'camera' | 'library' | null;
+  /** When true, start (or open a new) chat seeded with today’s recommendation context. */
+  discussToday?: boolean;
 }) {
   const listRef = useRef<FlatList<CoachUIMessage>>(null);
   const autoAttachHandled = useRef(false);
+  const discussHandled = useRef(false);
   const chat = useCoachChat({ targetRoomId });
 
   useEffect(() => {
@@ -133,6 +137,22 @@ export function CoachChat({
     // Only trigger once when Coach finishes initial load for this mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoAttach, chat.loading, chat.isReadOnly]);
+
+  useEffect(() => {
+    if (!discussToday || discussHandled.current || chat.loading || chat.isReadOnly || chat.sending) {
+      return;
+    }
+    discussHandled.current = true;
+    void (async () => {
+      if (chat.displayMessages.length > 0) {
+        await chat.createRoom();
+      }
+      chat.applyStarter(DISCUSS_TODAY_PROMPT);
+      await chat.send(DISCUSS_TODAY_PROMPT);
+    })();
+    // One-shot when Coach finishes load for a discuss deep-link from Today.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [discussToday, chat.loading, chat.isReadOnly, chat.sending]);
 
   const openAttachMenu = () => {
     if (chat.isReadOnly || chat.sending) return;
