@@ -16,14 +16,15 @@ OAuth already uses `coachwatts://oauth/callback`. Push Phase 2 will stub routes.
 
 ## Decisions
 
-1. **Path map (initial)**  
-   - `/today` → Today tab  
-   - `/recommendations/:id` or `/today/recommendation` → Today / recommendation context  
-   - `/planned/:id` → planned workout detail  
-   - `/activities/:id` → activity summary  
-   - `/coach` or `/chat/:roomId?` → Coach tab  
-   - `/notifications` → inbox  
-   Exact paths finalized to match Expo Router file routes when implementing; keep aliases stable once shipped.
+1. **Path map (finalized against Expo Router)**  
+   - `/today`, `/today/recommendation`, `/recommendations/:id` → `/(app)/(tabs)/today`  
+   - `/planned/:id` → `/(app)/planned/:id`  
+   - `/activities` → `/(app)/activity`; `/activities/:id` → `/(app)/activity/:id`  
+   - `/upcoming` → `/(app)/upcoming`  
+   - `/coach`, `/chat`, `/chat/:roomId` → `/(app)/(tabs)/coach`  
+   - `/notifications` → `/(app)/notifications` (stub until Phase 2 inbox)  
+   - HTTPS uses `https://coachwatts.com/go/*` (same path map after stripping `/go`)  
+   Keep aliases stable once the first store build ships. See `docs/deep-links.md`.
 
 2. **Custom scheme always; https universal links when hosted**  
    Ship scheme routing in the app immediately. Universal Links / App Links require team ID, package name, and hosted JSON — tracked as coach-wattz/infra tasks.
@@ -42,6 +43,6 @@ OAuth already uses `coachwatts://oauth/callback`. Push Phase 2 will stub routes.
 
 ## Open Questions
 
-- Production host for AASA (`coachwatts.com` vs www / api subdomain)
-- Android applicationId / SHA-256 cert fingerprints for assetlinks
-- Whether recommendation modify links open chat or a future detail screen
+- ~~Production host for AASA (`coachwatts.com` vs www / api subdomain)~~ → **`coachwatts.com` + `/go/*`**
+- Android SHA-256 cert fingerprints for assetlinks (fill when Play App Signing is configured)
+- Whether recommendation modify links open chat or a future detail screen (today: Today tab)

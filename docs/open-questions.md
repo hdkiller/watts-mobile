@@ -49,5 +49,6 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 2026-07-19 | Week strip on Today | Thin next ~7 days below CTAs; Upcoming keeps full capped list; no month grid or drag-reschedule |
 | 2026-07-19 | Session notes = `description` | Show planned/activity description prominently; no per-workout comment thread in v1 (Coach tab for Q&A) |
 | 2026-07-19 | Store-candidate offline floor | Cache last successful Today + today’s planned detail read-only; writes queue or honest offline — not full offline-first |
+| 2026-07-19 | Universal link host = `coachwatts.com` with `/go/*` prefix | Same production host as the web app; `/go` avoids Nuxt route collisions; AASA/assetlinks still to deploy on coach-wattz |
 
 When a row above is decided, move it here and update [product-baseline.md](./product-baseline.md) / [implementation-plan.md](./implementation-plan.md) if scope changes.
