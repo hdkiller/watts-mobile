@@ -83,9 +83,9 @@ OpenSpecs (suggested apply order after Phase 2 push):
 - [x] Recent activity (lite) from More (`/(app)/activity`)
 - [x] Upcoming planned list from More (`/(app)/upcoming`, same change / workouts glance)
 - [x] Richer planned + activity detail (interval/step summary when available)
-- [ ] Universal links / scheme for Today, recommendation, activity, planned, chat
-- [ ] i18n (Tolgee keys / shared locales where practical)
-- [ ] Store prep: icons, splash, privacy strings
+- [x] Universal links / scheme for Today, recommendation, activity, planned, chat — OpenSpec `phase-3-deep-links` ([deep-links.md](./deep-links.md); https host association still on coach-wattz)
+- [x] i18n footing (English-first keys; Tolgee/shared locales later)
+- [x] Store prep: icons, splash, privacy strings, More account glue, Sentry env/EAS — OpenSpec `phase-3-store-polish` (device splash verify + listing paste still manual; see [store-checklist.md](./store-checklist.md))
 - [ ] ~~E2E smoke (Maestro or Detox)~~ deferred
 
 **Exit:** chat usable; deep links land correctly; store checklist started (E2E not required for this exit).
@@ -108,7 +108,7 @@ Checklist:
 - [x] Richer planned workout detail (structure summary) + lite activity summary — shipped with Phase 3 glance
 - [x] Athlete metrics editor (`profile:write`, `GET/PATCH /api/profile`) — `phase-4-athlete-profile-edit`
 
-- [ ] Nutrition quick-log on Log (`nutrition:read` / `nutrition:write`)
+- [x] Nutrition quick-log on Log (`nutrition:read` / `nutrition:write`) — `phase-4-nutrition-quick-log`
 - [ ] Soft offline queue for check-in (harden)
 - [ ] Stronger offline Today cache
 - [ ] Weekly glance (lite load/form — not CTL)
@@ -119,9 +119,8 @@ Checklist:
 
 1. ~~Bearer on `GET /api/planned-workouts/:id`~~ — done (`requireAuth` + `workout:read`; list already Bearer)
 2. ~~Confirm planned structure / intervals fields~~ — `structuredWorkout` on detail; no secondary endpoint for lite summary
-3. Official Mobile App allowlist: `profile:write` confirmed in `REST_OAUTH_SCOPES` (no separate per-app list); still need `nutrition:read` / `nutrition:write` for Phase 4 nutrition
-
-4. Bearer on nutrition hydration quick-add (and any session-only nutrition routes used by mobile)
+3. ~~Official Mobile App allowlist: `profile:write`, `nutrition:read`, `nutrition:write`~~ — all in `REST_OAUTH_SCOPES` (no separate per-app list)
+4. ~~Bearer on nutrition hydration quick-add~~ — coach-wattz branch `fix/nutrition-hydration-bearer-oauth` (`requireAuth` + `nutrition:write`; oauth POST append)
 
 **Exit:** athlete can browse upcoming + recent, edit core metrics, and quick-log nutrition without opening web for the happy path.
 
@@ -149,7 +148,7 @@ Track separately (or as paired PRs) — mobile UI polish should not wait forever
 2. ~~Chat: Bearer `websocket-token` + room `state` + resume/retry; Official Mobile App `chat:*`~~ **done in coach-wattz**
 3. `GET /api/mobile/today` (or composition docs)
 4. `POST /api/mobile/devices` + push send path
-5. Deep-link / universal link host association
+5. Deep-link / universal link host association — AASA + assetlinks for `coachwatts.com/go/*` (contract in [deep-links.md](./deep-links.md); app stubs already in `app.json`)
 6. Bearer + structure docs for planned workout detail; `profile:write` / `nutrition:*` on Official Mobile App (Phase 4)
 
 ## Definition of done (v1 store candidate)

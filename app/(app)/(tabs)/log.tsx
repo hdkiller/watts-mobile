@@ -19,6 +19,7 @@ import {
 } from '@/src/features/log/mapLogForm';
 import { useSaveWellnessCheckin, useTodayWellnessQuery } from '@/src/features/log/useLog';
 import type { LogFormValues } from '@/src/features/log/types';
+import { NutritionSection } from '@/src/features/nutrition/NutritionSection';
 import { useActiveRecoveryQuery } from '@/src/features/recovery/useRecovery';
 import type { RecoveryContextItem } from '@/src/features/recovery/types';
 import { Colors } from '@/src/theme/colors';
@@ -135,7 +136,7 @@ export default function LogScreen() {
       <ScrollView className="flex-1" contentContainerClassName="px-6 pb-12 pt-4">
         <Text className="text-2xl font-semibold text-white">Log</Text>
         <Text className="mt-2 text-base text-ink-muted">
-          Check in for today, or log a recovery event that explains how you feel.
+          Check in for today, log recovery context, or quick-log nutrition and hydration.
         </Text>
 
         <Text className="mb-1 mt-8 text-xs font-semibold uppercase tracking-widest text-ink-muted">
@@ -239,8 +240,10 @@ export default function LogScreen() {
           )}
         </Pressable>
 
+        <NutritionSection />
+
         <Pressable
-          className="mt-3 items-center rounded-xl border border-zinc-700 py-3.5"
+          className="mt-6 items-center rounded-xl border border-zinc-700 py-3.5"
           onPress={() => router.push('/(app)/(tabs)/today')}
         >
           <Text className="text-base font-semibold text-white">Back to Today</Text>

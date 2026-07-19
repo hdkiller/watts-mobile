@@ -77,13 +77,16 @@ Release builds fall back to production via `app.json` `extra` when env vars are 
 
 Note: iOS Simulator can reach `localhost`; physical devices need your machine’s LAN IP.
 
-## Scopes requested (Phase 0/1)
+## Scopes requested (Phase 0/1 + v1.5 field writes)
 
 ```
 profile:read
+profile:write
 workout:read
 health:read
 health:write
+nutrition:read
+nutrition:write
 recommendation:read
 plan:read
 chat:read
@@ -93,7 +96,11 @@ offline_access
 
 These match Coach Watts **REST** OAuth scope names (`recommendation:read`, `plan:read` — not the MCP `recommendations:*` / `planning:*` names).
 
-**v1.5 additions** (when applying `phase-4-athlete-profile-edit` / `phase-4-nutrition-quick-log`): `profile:write`, `nutrition:read`, `nutrition:write` — confirm Official Mobile App allowlist in coach-wattz.
+`profile:write`, `nutrition:read`, and `nutrition:write` are in `REST_OAUTH_SCOPES` (no separate Official Mobile App allowlist). Re-consent on next login if the IdP requires incremental consent.
+
+## Deep links vs OAuth callback
+
+`coachwatts://oauth/callback` is reserved for PKCE and is **not** rewritten by the product deep-link resolver. All other `coachwatts://…` paths (and https `https://coachwatts.com/go/…` when hosted) use the shared map in [deep-links.md](./deep-links.md).
 
 ## Verify
 
