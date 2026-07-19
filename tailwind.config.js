@@ -10,6 +10,8 @@ module.exports = {
           action: '#00C16A',
           deep: '#00A155',
         },
+        recovery: '#38bdf8',
+        modify: '#f59e0b',
         ink: {
           DEFAULT: '#09090b',
           muted: '#71717a',

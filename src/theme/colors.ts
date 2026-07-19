@@ -3,6 +3,10 @@ export const Colors = {
   brand: '#00DC82',
   brandAction: '#00C16A',
   brandDeep: '#00A155',
+  /** Rest / recovery hero accent — calm sky on dark surfaces */
+  recovery: '#38bdf8',
+  /** Modify hero accent */
+  modify: '#f59e0b',
   background: '#09090b',
   backgroundLight: '#FFFFFF',
   text: '#FAFAFA',
