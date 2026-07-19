@@ -19,8 +19,8 @@ Already shipped from that review (not tracked here): shared `Button` (variants, 
 | [007](./issues/007.md) | Log cleanup: drop "Back to Today", read-only chip icon | Log | low | XS | open |
 | [008](./issues/008.md) | Workout structure silhouette on planned detail | detail | high | M | done |
 | [009](./issues/009.md) | Zone color ramp (Z1–Z5) across zones UI | detail/charts | high | S | done |
-| [010](./issues/010.md) | Hero stat blocks on detail screens | detail | medium | S | open |
-| [011](./issues/011.md) | Live refresh while workout analysis runs | detail | medium | M | open |
+| [010](./issues/010.md) | Hero stat blocks on detail screens | detail | medium | S | done |
+| [011](./issues/011.md) | Live refresh while workout analysis runs | detail | medium | M | done |
 | [012](./issues/012.md) | Coach input bar: icons + native attach sheet | Coach | medium | S | open |
 | [013](./issues/013.md) | Render markdown in coach replies | Coach | high | M | open |
 | [014](./issues/014.md) | Simplify coach header status line | Coach | low | XS | open |

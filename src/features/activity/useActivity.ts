@@ -55,7 +55,8 @@ export function useActivitySummaryQuery(id: string | undefined) {
     enabled: Boolean(id),
     refetchInterval: (query) => {
       const phase = query.state.data?.analysis.phase;
-      return phase === 'analyzing' ? 3000 : false;
+      // Keep the detail screen fresh while server-side analysis runs.
+      return phase === 'analyzing' ? 5000 : false;
     },
   });
 }
