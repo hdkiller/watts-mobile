@@ -83,6 +83,7 @@ Note: iOS Simulator can reach `localhost`; physical devices need your machine’
 profile:read
 profile:write
 workout:read
+workout:write
 health:read
 health:write
 nutrition:read
@@ -96,7 +97,46 @@ offline_access
 
 These match Coach Watts **REST** OAuth scope names (`recommendation:read`, `plan:read` — not the MCP `recommendations:*` / `planning:*` names).
 
-`profile:write`, `nutrition:read`, and `nutrition:write` are in `REST_OAUTH_SCOPES` (no separate Official Mobile App allowlist). Re-consent on next login if the IdP requires incremental consent.
+`profile:write`, `nutrition:read`, `nutrition:write`, and `workout:write` (completed-workout AI analyze/regenerate) are in `REST_OAUTH_SCOPES` (no separate Official Mobile App allowlist). Re-consent on next login if the IdP requires incremental consent.
+
+### Chat media upload (Bearer)
+
+`POST /api/storage/upload` accepts Bearer tokens with **`chat:write`** (same scope as sending messages). Multipart field name: `file`. Response: `{ success, url, filename }`.
+
+Smoke (replace token/instance):
+
+```bash
+curl -sS -X POST "$INSTANCE/api/storage/upload" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -F "file=@./meal.jpg;type=image/jpeg"
+```
+
+### Tool approval submit path
+
+There is no separate approval HTTP endpoint. Mobile posts to `POST /api/chat/messages` with `chat:write`:
+
+```json
+{
+  "roomId": "<roomId>",
+  "messages": [
+    {
+      "id": "<client-id>",
+      "role": "tool",
+      "parts": [
+        {
+          "type": "tool-approval-response",
+          "toolCallId": "<approvalId>",
+          "approvalId": "<approvalId>",
+          "approved": true,
+          "reason": "User confirmed action."
+        }
+      ]
+    }
+  ]
+}
+```
+
+Pending approvals arrive on assistant messages as `metadata.pendingApprovals` (and/or `tool-*-approval-requested` parts).
 
 ## Deep links vs OAuth callback
 

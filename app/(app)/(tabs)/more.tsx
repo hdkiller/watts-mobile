@@ -2,6 +2,7 @@ import { router, type Href } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { useState } from 'react';
+import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { useAuth } from '@/src/auth/AuthContext';
 import { useUnreadNotificationsCount } from '@/src/features/notifications/useNotifications';
@@ -27,6 +28,10 @@ export default function MoreScreen() {
   };
 
   return (
+    <SafeAreaView
+      edges={{ top: true }}
+      style={{ flex: 1, backgroundColor: Colors.background }}
+    >
     <View className="flex-1 bg-surface-dark px-6 pt-4">
       <Text className="text-2xl font-semibold text-white">More</Text>
 
@@ -95,5 +100,6 @@ export default function MoreScreen() {
 
       <Text className="mt-6 text-xs text-ink-muted">Instance: {instanceUrl}</Text>
     </View>
+    </SafeAreaView>
   );
 }

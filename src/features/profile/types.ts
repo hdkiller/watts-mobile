@@ -9,6 +9,8 @@ export type AthleteProfile = {
   ftp: number | null;
   maxHr: number | null;
   lthr: number | null;
+  /** Matches web: omit/undefined treated as enabled. */
+  nutritionTrackingEnabled: boolean;
 };
 
 export type AthleteMetricsFormValues = {

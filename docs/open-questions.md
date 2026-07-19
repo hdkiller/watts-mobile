@@ -11,7 +11,7 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 5 | **Streaming chat** | ~~SSE / WebSocket / polling~~ → **Bearer WebSocket primary**; poll degraded only | **Decided** |
 | 6 | **Companion aggregate API** | New `/api/mobile/*` vs document composition of existing endpoints | Open |
 | 7 | **App package location** | Expo at repo root (this repo) vs later sync with coach-wattz `clients/mobile` | Lean: **this repo is the app**; coach-wattz keeps API/docs | Proposed |
-| 8 | **Expo channel** | Managed Expo vs early dev client (needed for HealthKit in v1.5+) | Open — start managed; add dev client when native modules land |
+| 8 | **Expo channel** | Managed Expo vs early dev client (needed for HealthKit in v1.5+) | **Decided:** `expo-dev-client` early; rebuild after native deps ([native-modules.md](./native-modules.md)) |
 | 9 | **Nutrition entry IA** | Log tab section vs More → Nutrition | **Decided:** Log (write surface) |
 | 10 | **Athlete metrics vs full settings** | Metrics-only editor vs port Profile Settings tabs | **Decided:** metrics-only (weight, FTP, max HR, LTHR); rest → Open web |
 | 11 | **Planned detail Bearer + structure** | Session-only `GET /api/planned-workouts/:id` vs `requireAuth` + structure fields for intervals | **Decided** |
@@ -22,6 +22,7 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 16 | **Session notes / coach comments** | Planned `description` only vs per-workout comment thread | **Decided** |
 | 17 | **Store-candidate offline floor** | Online-only v1 vs cache last Today + planned read-only | **Decided** |
 | 18 | **Skip/miss API shape** | Reuse PATCH/`completionStatus` vs new mobile endpoint | Open — pair with coach-wattz; complete path already exists |
+| 19 | **Today Coming up: planned vs calendar events** | Planned workouts only vs also race/life calendar events | **Decided:** planned workouts for now; separate events later |
 
 ## Decision log
 
@@ -50,5 +51,10 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 2026-07-19 | Session notes = `description` | Show planned/activity description prominently; no per-workout comment thread in v1 (Coach tab for Q&A) |
 | 2026-07-19 | Store-candidate offline floor | Cache last successful Today + today’s planned detail read-only; writes queue or honest offline — not full offline-first |
 | 2026-07-19 | Universal link host = `coachwatts.com` with `/go/*` prefix | Same production host as the web app; `/go` avoids Nuxt route collisions; AASA/assetlinks still to deploy on coach-wattz |
+| 2026-07-19 | Today Coming up = planned workouts only | Want both planned + race/life calendar events eventually; ship planned teaser first; calendar/life events deferred |
+| 2026-07-19 | Today nutrition glance when tracking on | Gate on `nutritionTrackingEnabled` (same as web); totals + Log meal → Log; hide Log nutrition section when off |
+| 2026-07-19 | Coach sessions = web 15-minute reuse | Open last room if `index` ≤ 15m else `POST /rooms`; room list + New chat on mobile |
+| 2026-07-19 | Chat photo attach via `chat:write` upload | Bearer `POST /api/storage/upload`; no separate storage scope; tool approvals via `tool-approval-response` on messages POST |
+| 2026-07-19 | Early `expo-dev-client` (not Expo Go) | Push, image picker, and future HealthKit need a custom binary; document rebuild-after-native-dep in [native-modules.md](./native-modules.md) |
 
 When a row above is decided, move it here and update [product-baseline.md](./product-baseline.md) / [implementation-plan.md](./implementation-plan.md) if scope changes.

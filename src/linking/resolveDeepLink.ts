@@ -113,8 +113,13 @@ export function resolveDeepLinkPath(pathname: string): ResolvedDeepLink {
   }
 
   const chatMatch = path.match(/^\/chat\/([^/]+)$/);
-  if (chatMatch) {
-    return { kind: 'app', href: '/(app)/(tabs)/coach', canonicalPath: path };
+  if (chatMatch?.[1]) {
+    const roomId = decodeURIComponent(chatMatch[1]);
+    return {
+      kind: 'app',
+      href: `/(app)/(tabs)/coach?roomId=${encodeURIComponent(roomId)}`,
+      canonicalPath: path,
+    };
   }
 
   if (path === '/notifications') {

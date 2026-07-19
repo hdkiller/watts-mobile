@@ -78,6 +78,7 @@ OpenSpecs (suggested apply order after Phase 2 push):
 | `phase-3-store-polish` | Icons/splash, privacy strings, More account glue, Sentry |
 
 - [x] Coach tab threaded chat with today/recovery context seeding — OpenSpec `phase-3-coach-chat` (device smoke pending)
+- [x] Coach sessions + photo media + tool feedback — OpenSpec `coach-chat-sessions-and-media` (15m reuse, room list, Bearer upload, approvals; device smoke pending)
 - [x] Starter prompts — same change
 - [x] Recent activity (lite) from More (`/(app)/activity`)
 - [x] Upcoming planned list from More (`/(app)/upcoming`, same change / workouts glance)

@@ -20,7 +20,8 @@ Coach Watts is an AI-powered endurance coaching companion. The mobile app helps 
 | Other user content | Yes | Coach chat messages; optional notes on check-ins |
 | Product interaction / diagnostics | Yes (limited) | Crash/performance via Sentry when configured; no health metrics in analytics |
 | Device identifiers | Yes (when push enabled) | Expo push token for coaching notifications |
-| Location / financial / contacts / photos | No (v1) | Not used by the companion |
+| Photos / camera | Yes (optional) | Coach chat attachments for meal / context photos (nutrition logging). User-initiated only. |
+| Location / financial / contacts | No | Not used by the companion |
 
 ## Questionnaire strings (paste-ready)
 
@@ -35,6 +36,10 @@ Coach Watts is an AI-powered endurance coaching companion. The mobile app helps 
 ### Notifications
 
 > With your permission, Coach Watts can send push notifications about coaching events (for example a new daily recommendation, workout analysis, sync completion, or coach message). You can change system notification permission in your device settings. Richer notification preferences may also be managed on the web app for your instance.
+
+### Camera & photos (Coach chat)
+
+> With your permission, Coach Watts can use the camera or photo library so you can attach photos in Coach chat—especially meal photos for nutrition logging. Photos are uploaded to your Coach Watts instance and included in the chat turn. You can deny permission and continue using text chat and the Log nutrition form.
 
 ### Privacy policy pointer
 

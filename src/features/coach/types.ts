@@ -15,12 +15,28 @@ export const TERMINAL_TURN_STATUSES = [
   'CANCELLED',
 ] as const;
 
+export type ChatRoomLastMessage = {
+  content?: string | null;
+  senderId?: string | null;
+  username?: string | null;
+  timestamp?: string | null;
+};
+
 export type ChatRoomSummary = {
   roomId: string;
   roomName: string;
   avatar?: string | null;
   unreadCount?: number;
   isReadOnly?: boolean;
+  /** Last activity timestamp in ms (`lastMessageAt` / `createdAt` from API). */
+  index?: number;
+  lastMessage?: ChatRoomLastMessage | null;
+};
+
+export type PendingChatApproval = {
+  toolCallId: string;
+  toolName: string;
+  args?: unknown;
 };
 
 export type ChatMessageMetadata = {
@@ -35,7 +51,7 @@ export type ChatMessageMetadata = {
   syntheticTyping?: boolean;
   hiddenBecauseEmptyFailure?: boolean;
   hideUntilContent?: boolean;
-  pendingApprovals?: unknown[];
+  pendingApprovals?: PendingChatApproval[];
   [key: string]: unknown;
 };
 
@@ -71,3 +87,29 @@ export type ChatRoomStateSnapshot = {
 export type WebsocketTokenResponse = {
   token: string;
 };
+
+export type PendingAttachment = {
+  id: string;
+  localUri: string;
+  mediaType: string;
+  filename: string;
+  uploadedUrl?: string;
+  uploading?: boolean;
+  error?: string | null;
+};
+
+export type StorageUploadResponse = {
+  success?: boolean;
+  url: string;
+  filename?: string;
+};
+
+export const NUTRITION_TOOL_NAMES = new Set([
+  'log_nutrition_meal',
+  'log_hydration_intake',
+  'patch_nutrition_items',
+  'delete_nutrition_item',
+  'delete_hydration',
+]);
+
+export const MAX_CHAT_ATTACHMENTS = 4;

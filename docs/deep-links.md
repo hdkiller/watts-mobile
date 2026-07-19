@@ -15,8 +15,9 @@ Paths are path-only. Scheme form: `coachwatts://today`. HTTPS form: `https://coa
 | `/activities` | `/(app)/activity` | Recent activity list |
 | `/activities/:id` | `/(app)/activity/:id` | Activity summary |
 | `/upcoming` | `/(app)/upcoming` | Upcoming planned list |
-| `/coach` | `/(app)/(tabs)/coach` | Coach tab |
-| `/chat` / `/chat/:roomId` | `/(app)/(tabs)/coach` | Alias; multi-room later |
+| `/coach` | `/(app)/(tabs)/coach` | Coach tab (session policy picks/creates room) |
+| `/chat` | `/(app)/(tabs)/coach` | Alias for Coach tab |
+| `/chat/:roomId` | `/(app)/(tabs)/coach?roomId=` | Opens that chat room when it exists |
 | `/notifications` | `/(app)/notifications` | Inbox (stub until Phase 2 push) |
 | `/log` | `/(app)/(tabs)/log` | Optional convenience |
 | `/oauth/callback` | — | Handled by expo-auth-session; **not** rewritten |

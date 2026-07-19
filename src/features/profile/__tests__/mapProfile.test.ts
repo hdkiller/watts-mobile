@@ -4,6 +4,7 @@ import {
   emptyAthleteForm,
   formFromAthleteProfile,
   formHasInvalidNumbers,
+  isNutritionTrackingEnabled,
   kgToDisplayWeight,
   parseAthleteProfile,
   patchHasFields,
@@ -22,6 +23,7 @@ const sampleProfile: AthleteProfile = {
   ftp: 250,
   maxHr: 185,
   lthr: 165,
+  nutritionTrackingEnabled: true,
 };
 
 describe('mapProfile', () => {
@@ -111,5 +113,22 @@ describe('mapProfile', () => {
 
   it('exports profile settings web path', () => {
     expect(profileSettingsWebPath()).toBe('/profile/settings');
+  });
+
+  it('defaults nutritionTrackingEnabled to true when omitted', () => {
+    const profile = parseAthleteProfile({
+      profile: { name: 'Ada', weight: 70, weightUnits: 'Kilograms' },
+    });
+    expect(profile.nutritionTrackingEnabled).toBe(true);
+    expect(isNutritionTrackingEnabled(profile)).toBe(true);
+    expect(isNutritionTrackingEnabled(undefined)).toBe(true);
+  });
+
+  it('respects nutritionTrackingEnabled false', () => {
+    const profile = parseAthleteProfile({
+      profile: { nutritionTrackingEnabled: false },
+    });
+    expect(profile.nutritionTrackingEnabled).toBe(false);
+    expect(isNutritionTrackingEnabled(profile)).toBe(false);
   });
 });

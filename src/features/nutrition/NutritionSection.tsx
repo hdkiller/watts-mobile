@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
 import {
@@ -59,6 +60,7 @@ function MacroField({
 }
 
 export function NutritionSection() {
+  const router = useRouter();
   const { instanceUrl } = useAuth();
   const {
     data: today,
@@ -241,6 +243,19 @@ export function NutritionSection() {
         ) : (
           <Text className="text-base font-semibold text-ink">Log meal</Text>
         )}
+      </Pressable>
+
+      <Pressable
+        className="mt-3 items-center rounded-xl border border-zinc-700 py-3.5 active:opacity-80"
+        onPress={() =>
+          router.push({
+            pathname: '/(app)/(tabs)/coach',
+            params: { attach: 'camera' },
+          })
+        }
+      >
+        <Text className="text-base font-semibold text-white">Log with photo</Text>
+        <Text className="mt-1 text-xs text-ink-muted">Opens Coach camera for meal estimate</Text>
       </Pressable>
 
       <Text className="mb-2 mt-6 text-sm text-ink-muted">Hydration</Text>
