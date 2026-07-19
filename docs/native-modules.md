@@ -6,7 +6,7 @@ This app uses **`expo-dev-client`**, not Expo Go as the daily runtime. Adding or
 
 Rebuild after any of:
 
-- `pnpm add` / `expo install` of a package with iOS/Android native code (e.g. `expo-haptics`, `expo-image-picker`, `expo-notifications`, `@sentry/react-native`, `react-native-svg`, HealthKit later)
+- `pnpm add` / `expo install` of a package with iOS/Android native code (e.g. `expo-haptics`, `expo-image-picker`, `expo-notifications`, `expo-widgets`, `@kingstinct/react-native-healthkit`, `react-native-health-connect`, `@sentry/react-native`, `react-native-svg`)
 - New or changed **config plugin** entries in `app.json` (permissions, associated domains, splash, etc.)
 - Changes under `ios/` / `android/` that aren’t pure JS
 
@@ -70,7 +70,20 @@ usually means the **JS bundle imports a module the current binary never linked**
 
 Prefer lazy/`require` + a friendly “rebuild needed” message for optional media APIs so a missing native module does not crash an entire tab on import (see `src/features/coach/attachments.ts`). Still rebuild before calling the feature done.
 
+## Expansion modules (2026-07)
+
+| Package | Why rebuild |
+|---------|-------------|
+| `expo-haptics` | Key-moment haptics (PR #2) |
+| `expo-widgets` + `@expo/ui` | iOS Today session home-screen widget (`TodaySessionWidget`) |
+| `@kingstinct/react-native-healthkit` + `react-native-nitro-modules` | Log “Prefill from Health” (sleep + weight) on iOS |
+| `react-native-health-connect` | Same prefill on Android |
+| `@react-native-async-storage/async-storage` | Query persist + analysis-seen store (JS-native bridge; rebuild if autolinking misses it) |
+
+Widget App Group: `group.com.coachwatts.mobile`. Health data is never sent to Sentry/analytics — only to the wellness check-in when the athlete saves.
+
 ## Related
 
 - [deep-links.md](./deep-links.md) — rebuild after associated domains / intent filters change
 - [coach-chat-sessions-smoke.md](./coach-chat-sessions-smoke.md) — photo attach needs a binary that includes `expo-image-picker`
+- [store-privacy-checklist.md](./store-privacy-checklist.md) — HealthKit / Health Connect declarations

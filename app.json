@@ -21,7 +21,13 @@
       ],
       "infoPlist": {
         "NSCameraUsageDescription": "Coach Watts uses the camera so you can photograph meals and share them in Coach chat for nutrition logging.",
-        "NSPhotoLibraryUsageDescription": "Coach Watts accesses your photo library so you can attach meal photos in Coach chat for nutrition logging."
+        "NSPhotoLibraryUsageDescription": "Coach Watts accesses your photo library so you can attach meal photos in Coach chat for nutrition logging.",
+        "NSHealthShareUsageDescription": "Coach Watts reads last night’s sleep and your latest weight so you can prefill today’s wellness check-in. Health data stays on your device until you save the check-in.",
+        "NSHealthUpdateUsageDescription": "Coach Watts does not write health data to Apple Health."
+      },
+      "entitlements": {
+        "com.apple.developer.healthkit": true,
+        "com.apple.developer.healthkit.access": []
       }
     },
     "android": {
@@ -32,6 +38,10 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "package": "com.coachwatts.mobile",
+      "permissions": [
+        "android.permission.health.READ_SLEEP",
+        "android.permission.health.READ_WEIGHT"
+      ],
       "predictiveBackGestureEnabled": false,
       "intentFilters": [
         {
@@ -87,7 +97,30 @@
             "backgroundColor": "#09090b"
           }
         }
-      ]
+      ],
+      [
+        "expo-widgets",
+        {
+          "bundleIdentifier": "com.coachwatts.mobile.widgets",
+          "groupIdentifier": "group.com.coachwatts.mobile",
+          "widgets": [
+            {
+              "name": "TodaySessionWidget",
+              "displayName": "Today’s session",
+              "description": "Today’s Coach Watts recommendation and planned session.",
+              "supportedFamilies": ["systemSmall", "systemMedium"]
+            }
+          ]
+        }
+      ],
+      [
+        "@kingstinct/react-native-healthkit",
+        {
+          "NSHealthShareUsageDescription": "Coach Watts reads last night’s sleep and your latest weight so you can prefill today’s wellness check-in. Health data stays on your device until you save the check-in.",
+          "NSHealthUpdateUsageDescription": "Coach Watts does not write health data to Apple Health."
+        }
+      ],
+      "react-native-health-connect"
     ],
     "experiments": {
       "typedRoutes": true

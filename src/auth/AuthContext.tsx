@@ -1,4 +1,5 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import {
   createContext,
   useCallback,
@@ -19,6 +20,8 @@ import {
   setInstanceUrl,
   validateInstanceReachability,
 } from '@/src/config/instance';
+import { queryPersister, shouldPersistQuery } from '@/src/query/persist';
+
 type AuthStatus = 'loading' | 'needs_instance' | 'needs_login' | 'authenticated';
 
 type AuthContextValue = {
@@ -41,6 +44,8 @@ const queryClient = new QueryClient({
     queries: {
       retry: 1,
       staleTime: 30_000,
+      // Keep cached Today/planned readable offline between launches.
+      gcTime: 1000 * 60 * 60 * 24 * 7,
     },
   },
 });
@@ -155,9 +160,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{
+        persister: queryPersister,
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+        dehydrateOptions: {
+          shouldDehydrateQuery: shouldPersistQuery,
+        },
+      }}
+    >
       <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   );
 }
 

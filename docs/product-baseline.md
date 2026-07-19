@@ -52,9 +52,9 @@ HealthKit / Health Connect · structured workout push to devices · stronger off
 
 **Stacks:** recommendation detail, planned workout detail, activity summary, upcoming planned list, notification inbox, athlete metrics, nutrition log (Log stack), sign-in / instance setup, settings.
 
-**Today (top → bottom):** greeting → recommendation hero (or planned-only hero) → planned summary when with a recommendation → optional recovery metrics → named **Active Recovery Context** band (chips + Log event / Check in / History) → Accept / Modify / Rest → thin **Coming up** (planned workouts only) → **Recently** teaser → optional **Nutrition** glance (when `nutritionTrackingEnabled`) → optional “Ask coach”.
+**Today (top → bottom):** greeting → optional analysis-ready card → recommendation hero (or planned-only hero) → planned summary when with a recommendation → optional recovery metrics → named **Active Recovery Context** band (chips + Log event / Check in / History) → Accept / Discuss with Coach → optional race/life **event countdown** chip → **This week** glance strip → thin **Coming up** (planned primary; quiet next-event line) → **Recently** teaser → optional **Nutrition** glance (when `nutritionTrackingEnabled`).
 
-Recovery **writes** stay Log-first; Today shows named active context and secondary actions (not a second hero CTA). Coming up is planned workouts for now — race/life calendar events later. Nutrition glance is totals-only; meal/hydration writes stay on Log.
+Recovery **writes** stay Log-first; Today shows named active context and secondary actions (not a second hero CTA). Coming up stays planned-first; race/life events are a countdown chip + optional line (not a calendar). Nutrition glance is totals-only; meal/hydration writes stay on Log. Offline: last cached Today + planned detail with a “last updated” stamp.
 
 **Log writes:** wellness + recovery events (+ nutrition quick-log in v1.5 when tracking enabled).
 

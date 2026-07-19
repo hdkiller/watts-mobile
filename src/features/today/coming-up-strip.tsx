@@ -1,4 +1,5 @@
 import { router, type Href } from 'expo-router';
+import { useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import {
@@ -8,6 +9,9 @@ import {
 import { SportIcon } from '@/src/components/SportIcon';
 import type { PlannedListItem } from '@/src/features/activity/types';
 import { useUpcomingPlannedQuery } from '@/src/features/activity/useActivity';
+import { pickNextEvent } from '@/src/features/events/mapEvents';
+import { useUpcomingEventsQuery } from '@/src/features/events/useEvents';
+import { localDateKey } from '@/src/features/today/weekGlance';
 
 const TEASER_LIMIT = 3;
 
@@ -16,14 +20,28 @@ type ComingUpStripProps = {
   excludePlannedId?: string | null;
 };
 
+function isOnOrAfterToday(date: string | null): boolean {
+  const key = localDateKey(date);
+  const today = localDateKey(new Date());
+  if (!key || !today) return false;
+  return key >= today;
+}
+
 export function ComingUpStrip({ excludePlannedId }: ComingUpStripProps) {
   const { data, isError } = useUpcomingPlannedQuery();
+  const eventsQuery = useUpcomingEventsQuery();
+  const nextEvent = pickNextEvent(eventsQuery.data);
+
+  const rows = useMemo(
+    () =>
+      (data ?? [])
+        .filter((item) => isOnOrAfterToday(item.date))
+        .filter((item) => !excludePlannedId || item.id !== excludePlannedId)
+        .slice(0, TEASER_LIMIT),
+    [data, excludePlannedId]
+  );
 
   if (isError) return null;
-
-  const rows = (data ?? [])
-    .filter((item) => !excludePlannedId || item.id !== excludePlannedId)
-    .slice(0, TEASER_LIMIT);
 
   return (
     <View className="mt-8">
@@ -49,6 +67,12 @@ export function ComingUpStrip({ excludePlannedId }: ComingUpStripProps) {
           ))}
         </View>
       )}
+
+      {nextEvent ? (
+        <Text className="mt-3 text-sm text-ink-muted" numberOfLines={1}>
+          Next event: {nextEvent.title} — {nextEvent.countdownLabel}
+        </Text>
+      ) : null}
     </View>
   );
 }

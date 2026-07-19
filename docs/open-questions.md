@@ -22,7 +22,7 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 16 | **Session notes / coach comments** | Planned `description` only vs per-workout comment thread | **Decided** |
 | 17 | **Store-candidate offline floor** | Online-only v1 vs cache last Today + planned read-only | **Decided** |
 | 18 | **Skip/miss API shape** | Reuse PATCH/`completionStatus` vs new mobile endpoint | Open — pair with coach-wattz; complete path already exists |
-| 19 | **Today Coming up: planned vs calendar events** | Planned workouts only vs also race/life calendar events | **Decided:** planned workouts for now; separate events later |
+| 19 | **Today Coming up: planned vs calendar events** | Planned workouts only vs also race/life calendar events | **Decided:** planned primary; race/life countdown via `GET /api/events` + `goal:read` |
 
 ## Decision log
 
@@ -52,6 +52,7 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 2026-07-19 | Store-candidate offline floor | Cache last successful Today + today’s planned detail read-only; writes queue or honest offline — not full offline-first |
 | 2026-07-19 | Universal link host = `coachwatts.com` with `/go/*` prefix | Same production host as the web app; `/go` avoids Nuxt route collisions; AASA/assetlinks still to deploy on coach-wattz |
 | 2026-07-19 | Today Coming up = planned workouts only | Want both planned + race/life calendar events eventually; ship planned teaser first; calendar/life events deferred |
+| 2026-07-19 | Race/life events via `GET /api/events` + `goal:read` | Bearer-read events; Today countdown chip + quiet Coming up line; no in-app event CRUD |
 | 2026-07-19 | Today nutrition glance when tracking on | Gate on `nutritionTrackingEnabled` (same as web); totals + Log meal → Log; hide Log nutrition section when off |
 | 2026-07-19 | Coach sessions = web 15-minute reuse | Open last room if `index` ≤ 15m else `POST /rooms`; room list + New chat on mobile |
 | 2026-07-19 | Chat photo attach via `chat:write` upload | Bearer `POST /api/storage/upload`; no separate storage scope; tool approvals via `tool-approval-response` on messages POST |

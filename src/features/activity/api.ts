@@ -50,6 +50,8 @@ export async function fetchUpcomingPlanned(
   options: {
     limit?: number;
     windowDays?: number;
+    /** Include this many local days before today (for plan-vs-done pairing). */
+    lookbackDays?: number;
   } = {}
 ): Promise<PlannedListItem[]> {
   const limit = Math.min(
@@ -57,10 +59,13 @@ export async function fetchUpcomingPlanned(
     UPCOMING_PLANNED_LIMIT
   );
   const windowDays = options.windowDays ?? UPCOMING_WINDOW_DAYS;
+  const lookbackDays = Math.max(options.lookbackDays ?? 0, 0);
 
   const start = new Date();
   start.setHours(0, 0, 0, 0);
-  const end = new Date(start);
+  start.setDate(start.getDate() - lookbackDays);
+  const end = new Date();
+  end.setHours(0, 0, 0, 0);
   end.setDate(end.getDate() + windowDays);
   end.setHours(23, 59, 59, 999);
 
