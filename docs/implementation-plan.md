@@ -55,13 +55,13 @@ Goal: the morning decision surface.
 - [x] Log tab wellness form → `POST /api/wellness` (`health:write`)
 - [x] Log recovery event (journey) parity with web — OpenSpec `phase-2-log-recovery-event`
 - [ ] Soft offline queue for check-in (nice-to-have in Phase 2; harden in 4)
-- [ ] Notifications list + mark read — OpenSpec `phase-2-notifications-push`
-- [ ] `POST` device registration + Expo push token — same change
-- [ ] Handle first push event types (deep-link stubs OK) — same change
+- [x] Notifications list + mark read — OpenSpec `phase-2-notifications-push`
+- [x] `POST` device registration + Expo push token — same change
+- [x] Handle first push event types (deep-link stubs OK) — same change
 
 **Also done:** `POST /api/checkin/answer` Bearer fix in coach-wattz; Log slice archived as `phase-2-log-checkin`.
 
-**Backend:** Recovery-event APIs already Bearer (`health:read` / `health:write`). Notifications still need Bearer + `POST /api/mobile/devices` + push send hooks.
+**Backend (coach-wattz, verified on master):** Notifications `GET/PATCH` use `requireAuth` (Bearer); `POST/DELETE /api/mobile/devices` (scopes `profile:write`); Expo push helper + `RECOMMENDATION_READY` send hook on recommend-today. Device smoke (inbox + register + one push open) still manual.
 
 **Exit:** check-in + recovery event save; inbox works; at least one push path verified on device.
 
@@ -147,7 +147,7 @@ Track separately (or as paired PRs) — mobile UI polish should not wait forever
 1. Official companion OAuth client + redirect URIs
 2. ~~Chat: Bearer `websocket-token` + room `state` + resume/retry; Official Mobile App `chat:*`~~ **done in coach-wattz**
 3. `GET /api/mobile/today` (or composition docs)
-4. `POST /api/mobile/devices` + push send path
+4. ~~`POST /api/mobile/devices` + push send path~~ **done in coach-wattz**
 5. Deep-link / universal link host association — AASA + assetlinks for `coachwatts.com/go/*` (contract in [deep-links.md](./deep-links.md); app stubs already in `app.json`)
 6. Bearer + structure docs for planned workout detail; `profile:write` / `nutrition:*` on Official Mobile App (Phase 4)
 

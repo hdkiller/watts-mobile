@@ -18,6 +18,7 @@ import {
   setInstanceUrl,
   validateInstanceReachability,
 } from '@/src/config/instance';
+import { clearPushRegistrationOnSignOut } from '@/src/features/notifications/pushRegistration';
 
 type AuthStatus = 'loading' | 'needs_instance' | 'needs_login' | 'authenticated';
 
@@ -119,6 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [instanceUrl]);
 
   const signOut = useCallback(async () => {
+    await clearPushRegistrationOnSignOut();
     await clearTokens();
     setUser(null);
     queryClient.clear();

@@ -145,6 +145,10 @@ export type PushNavigationData = {
 export function resolvePushNavigation(data: PushNavigationData): ResolvedDeepLink {
   const fromPath = data.path?.trim();
   if (fromPath) {
+    // Server may send Expo Router hrefs (e.g. recommend-today RECOMMENDATION_READY).
+    if (fromPath.startsWith('/(app)')) {
+      return { kind: 'app', href: fromPath, canonicalPath: fromPath };
+    }
     return resolveDeepLink(fromPath);
   }
 

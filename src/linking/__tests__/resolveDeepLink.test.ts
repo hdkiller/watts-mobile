@@ -142,4 +142,12 @@ describe('resolvePushNavigation', () => {
       href: '/(app)/notifications',
     });
   });
+
+  it('accepts Expo Router hrefs from server push payloads', () => {
+    expect(resolvePushNavigation({ path: '/(app)/(tabs)/today' })).toEqual({
+      kind: 'app',
+      href: '/(app)/(tabs)/today',
+      canonicalPath: '/(app)/(tabs)/today',
+    });
+  });
 });

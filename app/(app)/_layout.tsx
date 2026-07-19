@@ -1,6 +1,7 @@
 import { Redirect, Stack } from 'expo-router';
 
 import { useAuth } from '@/src/auth/AuthContext';
+import { PushNotificationsBootstrap } from '@/src/features/notifications/PushNotificationsBootstrap';
 import { Colors } from '@/src/theme/colors';
 
 export default function AppLayout() {
@@ -19,7 +20,9 @@ export default function AppLayout() {
   }
 
   return (
-    <Stack
+    <>
+      <PushNotificationsBootstrap />
+      <Stack
       screenOptions={{
         headerShown: false,
         headerStyle: { backgroundColor: Colors.background },
@@ -85,5 +88,6 @@ export default function AppLayout() {
         }}
       />
     </Stack>
+    </>
   );
 }
