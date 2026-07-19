@@ -4,13 +4,13 @@ import {
   Alert,
   FlatList,
   Image,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import { Button } from '@/src/components/Button';
+import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
 import { Colors } from '@/src/theme/colors';
 
 import {
@@ -156,12 +156,7 @@ export function CoachChat({
     return (
       <View className="flex-1 items-center justify-center bg-surface-dark px-6">
         <Text className="text-center text-base text-white">{chat.error}</Text>
-        <Pressable
-          className="mt-4 rounded-xl bg-brand px-5 py-3 active:opacity-80"
-          onPress={() => void chat.refresh()}
-        >
-          <Text className="text-base font-semibold text-zinc-950">Try again</Text>
-        </Pressable>
+        <Button className="mt-4 self-stretch" label="Try again" onPress={() => void chat.refresh()} />
       </View>
     );
   }
@@ -173,11 +168,7 @@ export function CoachChat({
     (Boolean(chat.input.trim()) || chat.pendingAttachments.length > 0);
 
   return (
-    <KeyboardAvoidingView
-      className="flex-1 bg-surface-dark"
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={0}
-    >
+    <View className="flex-1 bg-surface-dark">
       <View className="border-b border-zinc-800 px-5 pb-3 pt-2">
         <View className="flex-row items-center justify-between gap-3">
           <Pressable
@@ -220,7 +211,7 @@ export function CoachChat({
           <Text className="text-sm text-ink-muted">
             This chat is read-only. Start a new chat to keep talking with Coach.
           </Text>
-          <Pressable className="mt-2" onPress={() => void chat.createRoom()}>
+          <Pressable className="mt-2" hitSlop={8} onPress={() => void chat.createRoom()}>
             <Text className="text-sm font-semibold text-brand">New chat</Text>
           </Pressable>
         </View>
@@ -306,6 +297,9 @@ export function CoachChat({
               ) : null}
               <Pressable
                 className="absolute -right-1 -top-1 h-5 w-5 items-center justify-center rounded-full bg-zinc-800"
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="Remove attachment"
                 onPress={() => chat.removeAttachment(attachment.id)}
               >
                 <Text className="text-xs text-white">×</Text>
@@ -357,6 +351,6 @@ export function CoachChat({
         onCreate={() => void chat.createRoom()}
         onRefresh={() => void chat.refreshRooms()}
       />
-    </KeyboardAvoidingView>
+    </View>
   );
 }

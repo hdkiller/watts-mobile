@@ -1,13 +1,16 @@
 import { router, Stack, type Href } from 'expo-router';
 import {
-  ActivityIndicator,
   FlatList,
   Pressable,
   RefreshControl,
   Text,
   View,
 } from 'react-native';
+import { FadeInDown } from 'react-native-reanimated';
 
+import { AnimatedPressable } from '@/src/components/AnimatedPressable';
+import { ListSkeleton } from '@/src/components/Skeleton';
+import { SportIcon } from '@/src/components/SportIcon';
 import {
   formatActivityDate,
   formatDuration,
@@ -29,7 +32,7 @@ function statusColor(kind: ActivityListItem['status']['kind']): string {
   }
 }
 
-function ActivityRow({ item }: { item: ActivityListItem }) {
+function ActivityRow({ item, index }: { item: ActivityListItem; index: number }) {
   const meta = [
     formatActivityDate(item.date),
     item.type,
@@ -39,18 +42,25 @@ function ActivityRow({ item }: { item: ActivityListItem }) {
     .join(' · ');
 
   return (
-    <Pressable
-      className="mb-3 rounded-xl border border-zinc-800 bg-zinc-900/80 px-4 py-3.5 active:opacity-80"
+    <AnimatedPressable
+      // Stagger only the initially visible rows; rows mounted while scrolling appear immediately.
+      entering={FadeInDown.duration(250).delay(index < 10 ? index * 45 : 0)}
+      className="mb-3 rounded-xl border border-zinc-800 bg-zinc-900/80 px-4 py-3.5"
       onPress={() => router.push(`/(app)/activity/${item.id}` as Href)}
     >
-      <View className="flex-row items-start justify-between gap-3">
-        <Text className="flex-1 text-base font-semibold text-white">{item.title}</Text>
-        <Text className={`text-xs font-medium ${statusColor(item.status.kind)}`}>
-          {item.status.label}
-        </Text>
+      <View className="flex-row items-center gap-3">
+        <SportIcon type={item.type} size={14} />
+        <View className="min-w-0 flex-1">
+          <View className="flex-row items-start justify-between gap-3">
+            <Text className="flex-1 text-base font-semibold text-white">{item.title}</Text>
+            <Text className={`text-xs font-medium ${statusColor(item.status.kind)}`}>
+              {item.status.label}
+            </Text>
+          </View>
+          {meta ? <Text className="mt-1.5 text-sm text-ink-muted">{meta}</Text> : null}
+        </View>
       </View>
-      {meta ? <Text className="mt-1.5 text-sm text-ink-muted">{meta}</Text> : null}
-    </Pressable>
+    </AnimatedPressable>
   );
 }
 
@@ -61,15 +71,13 @@ export default function RecentActivityScreen() {
     <>
       <Stack.Screen options={{ title: 'Recent activity', headerShown: true }} />
       {isLoading && !data ? (
-        <View className="flex-1 items-center justify-center bg-surface-dark">
-          <ActivityIndicator color={Colors.brand} size="large" />
-        </View>
+        <ListSkeleton />
       ) : isError ? (
         <View className="flex-1 bg-surface-dark px-6 pt-6">
           <Text className="text-red-400">
             {error instanceof Error ? error.message : 'Failed to load recent activity'}
           </Text>
-          <Pressable className="mt-4" onPress={() => void refetch()}>
+          <Pressable className="mt-4" hitSlop={8} onPress={() => void refetch()}>
             <Text className="text-sm font-medium text-brand">Try again</Text>
           </Pressable>
         </View>
@@ -93,7 +101,7 @@ export default function RecentActivityScreen() {
               </Text>
             </View>
           }
-          renderItem={({ item }) => <ActivityRow item={item} />}
+          renderItem={({ item, index }) => <ActivityRow item={item} index={index} />}
         />
       )}
     </>

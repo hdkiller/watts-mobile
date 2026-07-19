@@ -1,8 +1,11 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 
 import { useAuth } from '@/src/auth/AuthContext';
+import { Button } from '@/src/components/Button';
+import { DetailSkeleton } from '@/src/components/Skeleton';
+import { SportIcon } from '@/src/components/SportIcon';
 import { ActivityCharts } from '@/src/features/activity/ActivityCharts';
 import { AnalyzeWorkoutError } from '@/src/features/activity/api';
 import {
@@ -16,7 +19,6 @@ import {
   useActivitySummaryQuery,
   useRequestWorkoutAnalysis,
 } from '@/src/features/activity/useActivity';
-import { Colors } from '@/src/theme/colors';
 
 function AnalysisBlock({
   analysis,
@@ -130,13 +132,7 @@ function AnalysisBlock({
       {analyzeError ? <Text className="mt-3 text-sm text-red-400">{analyzeError}</Text> : null}
 
       {showCta ? (
-        <Pressable
-          className="mt-4 items-center rounded-xl bg-brand py-3.5 active:opacity-80"
-          onPress={onAnalyze}
-          disabled={analyzing}
-        >
-          <Text className="text-base font-semibold text-white">{ctaLabel}</Text>
-        </Pressable>
+        <Button className="mt-4" label={ctaLabel} onPress={onAnalyze} loading={analyzing} />
       ) : null}
     </View>
   );
@@ -165,9 +161,7 @@ export default function ActivitySummaryScreen() {
     <>
       <Stack.Screen options={{ title: 'Activity', headerShown: true }} />
       {isLoading ? (
-        <View className="flex-1 items-center justify-center bg-surface-dark">
-          <ActivityIndicator color={Colors.brand} />
-        </View>
+        <DetailSkeleton />
       ) : isError ? (
         <View className="flex-1 bg-surface-dark px-6 pt-6">
           <Text className="text-red-400">
@@ -176,7 +170,10 @@ export default function ActivitySummaryScreen() {
         </View>
       ) : data ? (
         <ScrollView className="flex-1 bg-surface-dark" contentContainerClassName="px-6 pb-10 pt-4">
-          <Text className="text-2xl font-semibold text-white">{data.title}</Text>
+          <View className="flex-row items-center gap-3">
+            <SportIcon type={data.type} size={18} />
+            <Text className="min-w-0 flex-1 text-2xl font-semibold text-white">{data.title}</Text>
+          </View>
           <Text className="mt-2 text-sm text-ink-muted">
             {[
               formatActivityDate(data.date),
@@ -218,14 +215,12 @@ export default function ActivitySummaryScreen() {
             <Text className="mt-6 text-base leading-6 text-zinc-200">{data.description}</Text>
           ) : null}
 
-          <Pressable
-            className="mt-8 items-center rounded-xl border border-zinc-700 py-3.5 active:opacity-80"
+          <Button
+            variant="secondary"
+            className="mt-8"
+            label="Open in Coach Watts for map & more"
             onPress={() => void openWeb()}
-          >
-            <Text className="text-base font-semibold text-white">
-              Open in Coach Watts for map & more
-            </Text>
-          </Pressable>
+          />
         </ScrollView>
       ) : null}
     </>

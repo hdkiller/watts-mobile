@@ -18,6 +18,7 @@ import {
   formHasContent,
   toWellnessPayload,
 } from '@/src/features/log/mapLogForm';
+import { Button } from '@/src/components/Button';
 import { useSaveWellnessCheckin, useTodayWellnessQuery } from '@/src/features/log/useLog';
 import type { LogFormValues } from '@/src/features/log/types';
 import { NutritionSection } from '@/src/features/nutrition/NutritionSection';
@@ -223,7 +224,7 @@ export default function LogScreen() {
                   ? recoveryErr.message
                   : 'Could not load recovery context'}
               </Text>
-              <Pressable className="mt-2" onPress={() => void refetchRecovery()}>
+              <Pressable className="mt-2" hitSlop={8} onPress={() => void refetchRecovery()}>
                 <Text className="font-semibold text-brand">Retry</Text>
               </Pressable>
             </View>
@@ -241,12 +242,12 @@ export default function LogScreen() {
             </View>
           ) : null}
 
-          <Pressable
-            className="mt-4 items-center rounded-xl border border-zinc-700 py-3.5 active:opacity-80"
+          <Button
+            variant="secondary"
+            className="mt-4"
+            label="Log recovery event"
             onPress={() => openRecoveryEvent()}
-          >
-            <Text className="text-base font-semibold text-white">Log recovery event</Text>
-          </Pressable>
+          />
         </View>
 
         <View onLayout={rememberSectionOffset('wellness')}>
@@ -296,17 +297,13 @@ export default function LogScreen() {
             <Text className="mt-4 text-sm font-semibold text-green-400">Saved for today.</Text>
           ) : null}
 
-          <Pressable
-            className="mt-6 items-center rounded-xl bg-brand-action py-3.5 active:opacity-80"
+          <Button
+            className="mt-6"
+            label="Save check-in"
             onPress={() => void onSave()}
-            disabled={saveMutation.isPending || !formHasContent(values)}
-          >
-            {saveMutation.isPending ? (
-              <ActivityIndicator color="#09090b" />
-            ) : (
-              <Text className="text-base font-semibold text-ink">Save check-in</Text>
-            )}
-          </Pressable>
+            loading={saveMutation.isPending}
+            disabled={!formHasContent(values)}
+          />
         </View>
 
         {nutritionEnabled ? (
@@ -315,12 +312,12 @@ export default function LogScreen() {
           </View>
         ) : null}
 
-        <Pressable
-          className="mt-6 items-center rounded-xl border border-zinc-700 py-3.5"
+        <Button
+          variant="secondary"
+          className="mt-6"
+          label="Back to Today"
           onPress={() => router.push('/(app)/(tabs)/today')}
-        >
-          <Text className="text-base font-semibold text-white">Back to Today</Text>
-        </Pressable>
+        />
       </ScrollView>
     </KeyboardAvoidingView>
     </SafeAreaView>

@@ -1,10 +1,11 @@
 import { router, type Href } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useState } from 'react';
 import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { useAuth } from '@/src/auth/AuthContext';
+import { Button } from '@/src/components/Button';
 import { useUnreadNotificationsCount } from '@/src/features/notifications/useNotifications';
 import { Colors } from '@/src/theme/colors';
 
@@ -39,7 +40,7 @@ export default function MoreScreen() {
         <Text className="text-xs uppercase tracking-wide text-ink-muted">Signed in as</Text>
         <Text className="mt-1 text-lg text-white">{user?.name || user?.email || 'Athlete'}</Text>
         {user?.email ? <Text className="mt-1 text-sm text-ink-muted">{user.email}</Text> : null}
-        <Pressable className="mt-3 self-start" onPress={() => void refreshUser()}>
+        <Pressable className="mt-3 self-start" hitSlop={8} onPress={() => void refreshUser()}>
           <Text className="text-sm font-medium text-brand">Refresh profile</Text>
         </Pressable>
       </View>
@@ -79,24 +80,15 @@ export default function MoreScreen() {
         <Text className="text-sm text-ink-muted">Planned</Text>
       </Pressable>
 
-      <Pressable
-        className="mt-3 items-center rounded-xl border border-zinc-700 py-3.5 active:opacity-80"
-        onPress={() => void openWeb()}
-      >
-        <Text className="text-base font-semibold text-white">Open web</Text>
-      </Pressable>
+      <Button variant="secondary" className="mt-3" label="Open web" onPress={() => void openWeb()} />
 
-      <Pressable
-        className="mt-3 items-center rounded-xl bg-zinc-800 py-3.5 active:opacity-80"
+      <Button
+        variant="danger"
+        className="mt-3"
+        label="Sign out"
         onPress={() => void onSignOut()}
-        disabled={busy}
-      >
-        {busy ? (
-          <ActivityIndicator color={Colors.brand} />
-        ) : (
-          <Text className="text-base font-semibold text-red-400">Sign out</Text>
-        )}
-      </Pressable>
+        loading={busy}
+      />
 
       <Text className="mt-6 text-xs text-ink-muted">Instance: {instanceUrl}</Text>
     </View>

@@ -5,6 +5,7 @@ import {
   formatActivityDate,
   formatDuration,
 } from '@/src/features/activity/mapActivity';
+import { SportIcon } from '@/src/components/SportIcon';
 import type { ActivityListItem } from '@/src/features/activity/types';
 import { useRecentActivityQuery } from '@/src/features/activity/useActivity';
 
@@ -25,6 +26,7 @@ export function RecentlyTeaser() {
         </Text>
         <Pressable
           className="py-1 active:opacity-70"
+          hitSlop={8}
           onPress={() => router.push('/(app)/activity' as Href)}
         >
           <Text className="text-sm font-semibold text-brand">See all</Text>
@@ -55,16 +57,19 @@ function RecentRow({ item }: { item: ActivityListItem }) {
 
   return (
     <Pressable
-      className="border-b border-zinc-800/80 py-3 active:opacity-80"
+      className="flex-row items-center gap-3 border-b border-zinc-800/80 py-3 active:opacity-80"
       onPress={() => router.push(`/(app)/activity/${item.id}` as Href)}
     >
-      <View className="flex-row items-start justify-between gap-3">
-        <Text className="flex-1 text-base font-medium text-white" numberOfLines={1}>
-          {item.title}
-        </Text>
-        <Text className="text-xs text-ink-muted">{item.status.label}</Text>
+      <SportIcon type={item.type} size={13} />
+      <View className="min-w-0 flex-1">
+        <View className="flex-row items-start justify-between gap-3">
+          <Text className="flex-1 text-base font-medium text-white" numberOfLines={1}>
+            {item.title}
+          </Text>
+          <Text className="text-xs text-ink-muted">{item.status.label}</Text>
+        </View>
+        {meta ? <Text className="mt-1 text-sm text-ink-muted">{meta}</Text> : null}
       </View>
-      {meta ? <Text className="mt-1 text-sm text-ink-muted">{meta}</Text> : null}
     </Pressable>
   );
 }

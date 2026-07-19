@@ -38,6 +38,7 @@ import type {
   SeverityPresetId,
   TimePresetId,
 } from '@/src/features/recovery/types';
+import { Button } from '@/src/components/Button';
 import { Colors } from '@/src/theme/colors';
 
 const TIME_PRESETS: { id: TimePresetId; label: string }[] = [
@@ -151,7 +152,7 @@ export default function RecoveryEventScreen() {
         <Text className="text-center text-base text-ink-muted">
           This recovery event is no longer available.
         </Text>
-        <Pressable className="mt-4" onPress={() => router.back()}>
+        <Pressable className="mt-4" hitSlop={8} onPress={() => router.back()}>
           <Text className="font-semibold text-brand">Go back</Text>
         </Pressable>
       </View>
@@ -168,12 +169,7 @@ export default function RecoveryEventScreen() {
         <Text className="mt-4 text-base text-zinc-200">
           {existing.description || 'No additional context provided.'}
         </Text>
-        <Pressable
-          className="mt-8 items-center rounded-xl border border-zinc-700 py-3.5"
-          onPress={() => router.back()}
-        >
-          <Text className="text-base font-semibold text-white">Close</Text>
-        </Pressable>
+        <Button variant="secondary" className="mt-8" label="Close" onPress={() => router.back()} />
       </View>
     );
   }
@@ -292,19 +288,13 @@ export default function RecoveryEventScreen() {
 
         {error ? <Text className="mt-4 text-sm text-red-400">{error}</Text> : null}
 
-        <Pressable
-          className="mt-6 items-center rounded-xl bg-brand-action py-3.5 active:opacity-80"
+        <Button
+          className="mt-6"
+          label={isEdit ? 'Save changes' : 'Log event'}
           onPress={() => void onSave()}
+          loading={createMutation.isPending || updateMutation.isPending}
           disabled={!canSave}
-        >
-          {createMutation.isPending || updateMutation.isPending ? (
-            <ActivityIndicator color="#09090b" />
-          ) : (
-            <Text className="text-base font-semibold text-ink">
-              {isEdit ? 'Save changes' : 'Log event'}
-            </Text>
-          )}
-        </Pressable>
+        />
 
         {isEdit && existing?.deletable ? (
           <Pressable

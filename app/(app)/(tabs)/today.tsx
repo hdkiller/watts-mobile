@@ -1,16 +1,20 @@
 import { router, type Href } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
-  ActivityIndicator,
   Pressable,
   RefreshControl,
   ScrollView,
   Text,
   View,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { useAuth } from '@/src/auth/AuthContext';
+import { AnimatedPressable } from '@/src/components/AnimatedPressable';
+import { Button } from '@/src/components/Button';
+import { Skeleton, SkeletonScreen } from '@/src/components/Skeleton';
+import { SportIcon } from '@/src/components/SportIcon';
 import { useRecentActivityQuery, useUpcomingPlannedQuery } from '@/src/features/activity/useActivity';
 import { NutritionGlance } from '@/src/features/nutrition/NutritionGlance';
 import { useTodayNutritionQuery } from '@/src/features/nutrition/useNutrition';
@@ -44,32 +48,44 @@ function PlannedSummaryCard({
   hero?: boolean;
 }) {
   return (
-    <Pressable
-      className={`${hero ? 'mt-6 rounded-2xl' : 'mt-4 rounded-xl'} border border-zinc-800 bg-zinc-900/80 p-4 active:opacity-80`}
+    <AnimatedPressable
+      className={`${hero ? 'mt-6 rounded-2xl' : 'mt-4 rounded-xl'} border border-zinc-800 bg-zinc-900/80 p-4`}
       onPress={() => openPlannedWorkout(planned.id)}
     >
-      <Text className="text-xs uppercase tracking-wide text-ink-muted">
-        {hero ? 'Today’s planned workout' : 'Planned workout'}
-      </Text>
-      <Text className={`${hero ? 'mt-2 text-2xl' : 'mt-1 text-lg'} font-semibold text-white`}>
-        {planned.title}
-      </Text>
-      <Text className="mt-2 text-sm text-ink-muted">
-        {[
-          planned.type,
-          formatDuration(planned.durationSec),
-          planned.tss != null ? `TSS ${Math.round(planned.tss)}` : null,
-          planned.structureSummary,
-        ]
-          .filter(Boolean)
-          .join(' · ')}
-      </Text>
-      {hero && planned.description ? (
-        <Text className="mt-3 text-base leading-6 text-zinc-200" numberOfLines={3}>
-          {planned.description}
-        </Text>
-      ) : null}
-    </Pressable>
+      <View className="flex-row items-start gap-3">
+        <SportIcon type={planned.type} size={hero ? 18 : 14} />
+        <View className="min-w-0 flex-1">
+          <Text className="text-xs uppercase tracking-wide text-ink-muted">
+            {hero ? 'Today’s planned workout' : 'Planned workout'}
+          </Text>
+          <Text className={`${hero ? 'mt-2 text-2xl' : 'mt-1 text-lg'} font-semibold text-white`}>
+            {planned.title}
+          </Text>
+          <Text className="mt-2 text-sm text-ink-muted">
+            {[
+              planned.type,
+              formatDuration(planned.durationSec),
+              planned.tss != null ? `TSS ${Math.round(planned.tss)}` : null,
+              planned.structureSummary,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+          </Text>
+          {hero && planned.description ? (
+            <Text className="mt-3 text-base leading-6 text-zinc-200" numberOfLines={3}>
+              {planned.description}
+            </Text>
+          ) : null}
+        </View>
+      </View>
+    </AnimatedPressable>
+  );
+}
+
+/** Staggered fade-in-up used for the Today sections; `order` sets the delay slot. */
+function EnterSection({ order, children }: { order: number; children: ReactNode }) {
+  return (
+    <Animated.View entering={FadeInDown.duration(300).delay(order * 60)}>{children}</Animated.View>
   );
 }
 
@@ -117,9 +133,20 @@ export default function TodayScreen() {
 
   if (isLoading && !data) {
     return (
-      <View className="flex-1 items-center justify-center bg-surface-dark">
-        <ActivityIndicator color={Colors.brand} size="large" />
-      </View>
+      <SkeletonScreen>
+        <View className="flex-1 bg-surface-dark px-6 pt-4">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="mt-2 h-7 w-48" />
+          <Skeleton className="mt-6 h-44 rounded-2xl" />
+          <View className="mt-4 flex-row gap-2">
+            <Skeleton className="h-14 flex-1" />
+            <Skeleton className="h-14 flex-1" />
+            <Skeleton className="h-14 flex-1" />
+          </View>
+          <Skeleton className="mt-6 h-12 rounded-xl" />
+          <Skeleton className="mt-3 h-12 rounded-xl" />
+        </View>
+      </SkeletonScreen>
     );
   }
 
@@ -155,15 +182,17 @@ export default function TodayScreen() {
         />
       }
     >
-      <Text className="text-sm text-ink-muted">{dateLabel}</Text>
-      <Text className="mt-1 text-2xl font-semibold text-white">{greetingForNow()}</Text>
+      <EnterSection order={0}>
+        <Text className="text-sm text-ink-muted">{dateLabel}</Text>
+        <Text className="mt-1 text-2xl font-semibold text-white">{greetingForNow()}</Text>
+      </EnterSection>
 
       {isError ? (
         <View className="mt-6 rounded-xl border border-red-900/50 bg-red-950/40 p-4">
           <Text className="text-base text-red-300">
             {error instanceof Error ? error.message : 'Could not load today'}
           </Text>
-          <Pressable className="mt-3" onPress={() => void refetch()}>
+          <Pressable className="mt-3" hitSlop={8} onPress={() => void refetch()}>
             <Text className="font-semibold text-brand">Retry</Text>
           </Pressable>
         </View>
@@ -177,11 +206,11 @@ export default function TodayScreen() {
             generate guidance.
           </Text>
           <View className="mt-4 flex-row flex-wrap gap-x-4 gap-y-2">
-            <Pressable className="py-1 active:opacity-70" onPress={() => void refetch()}>
+            <Pressable className="py-1 active:opacity-70" hitSlop={8} onPress={() => void refetch()}>
               <Text className="font-semibold text-brand">Retry</Text>
             </Pressable>
             {instanceUrl ? (
-              <Pressable className="py-1 active:opacity-70" onPress={() => void openWeb()}>
+              <Pressable className="py-1 active:opacity-70" hitSlop={8} onPress={() => void openWeb()}>
                 <Text className="font-semibold text-brand">Open web</Text>
               </Pressable>
             ) : null}
@@ -190,6 +219,7 @@ export default function TodayScreen() {
       ) : null}
 
       {hasRecommendation ? (
+        <EnterSection order={1}>
         <View className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
           <Text className="text-xs uppercase tracking-wide text-ink-muted">Today’s call</Text>
           <Text className="mt-2 text-2xl font-semibold text-brand">{data!.actionLabel}</Text>
@@ -210,13 +240,23 @@ export default function TodayScreen() {
             </Text>
           ) : null}
         </View>
+        </EnterSection>
       ) : null}
 
-      {plannedOnlyHero && planned ? <PlannedSummaryCard planned={planned} hero /> : null}
+      {plannedOnlyHero && planned ? (
+        <EnterSection order={1}>
+          <PlannedSummaryCard planned={planned} hero />
+        </EnterSection>
+      ) : null}
 
-      {hasRecommendation && planned ? <PlannedSummaryCard planned={planned} /> : null}
+      {hasRecommendation && planned ? (
+        <EnterSection order={2}>
+          <PlannedSummaryCard planned={planned} />
+        </EnterSection>
+      ) : null}
 
       {hasRecoveryMetrics ? (
+        <EnterSection order={3}>
         <View className="mt-4 flex-row gap-2">
           {data?.recovery.sleepLabel ? (
             <View className="flex-1 rounded-lg border border-zinc-800 px-3 py-2">
@@ -237,6 +277,7 @@ export default function TodayScreen() {
             </View>
           ) : null}
         </View>
+        </EnterSection>
       ) : null}
 
       <ActiveRecoveryBand
@@ -251,56 +292,43 @@ export default function TodayScreen() {
       {actionError ? <Text className="mt-4 text-sm text-red-400">{actionError}</Text> : null}
 
       {hasRecommendation ? (
+        <EnterSection order={4}>
         <View className="mt-6 gap-3">
           {data?.canAccept ? (
-            <Pressable
-              className="items-center rounded-xl bg-brand-action py-3.5 active:opacity-80"
+            <Button
+              label={data.action === 'rest' ? 'Accept rest day' : 'Accept recommendation'}
               onPress={() => void onAccept()}
-              disabled={acceptMutation.isPending}
-            >
-              {acceptMutation.isPending ? (
-                <ActivityIndicator color="#09090b" />
-              ) : (
-                <Text className="text-base font-semibold text-ink">
-                  {data.action === 'rest' ? 'Accept rest day' : 'Accept recommendation'}
-                </Text>
-              )}
-            </Pressable>
+              loading={acceptMutation.isPending}
+            />
           ) : null}
 
           {planned ? (
-            <Pressable
-              className="items-center rounded-xl border border-zinc-700 py-3.5"
+            <Button
+              variant="secondary"
+              label="View workout details"
               onPress={() => openPlannedWorkout(planned.id)}
-            >
-              <Text className="text-base font-semibold text-white">View workout details</Text>
-            </Pressable>
+            />
           ) : null}
         </View>
+        </EnterSection>
       ) : null}
 
       {plannedOnlyHero && planned ? (
-        <View className="mt-6 gap-3">
-          <Pressable
-            className="items-center rounded-xl bg-brand-action py-3.5 active:opacity-80"
-            onPress={() => openPlannedWorkout(planned.id)}
-          >
-            <Text className="text-base font-semibold text-ink">View workout details</Text>
-          </Pressable>
-          {instanceUrl ? (
-            <Pressable
-              className="items-center rounded-xl border border-zinc-700 py-3.5"
-              onPress={() => void openWeb()}
-            >
-              <Text className="text-base font-semibold text-white">Open web</Text>
-            </Pressable>
-          ) : null}
-        </View>
+        <EnterSection order={2}>
+          <View className="mt-6 gap-3">
+            <Button label="View workout details" onPress={() => openPlannedWorkout(planned.id)} />
+            {instanceUrl ? (
+              <Button variant="secondary" label="Open web" onPress={() => void openWeb()} />
+            ) : null}
+          </View>
+        </EnterSection>
       ) : null}
 
-      <ComingUpStrip excludePlannedId={planned?.id} />
-      <RecentlyTeaser />
-      <NutritionGlance />
+      <EnterSection order={5}>
+        <ComingUpStrip excludePlannedId={planned?.id} />
+        <RecentlyTeaser />
+        <NutritionGlance />
+      </EnterSection>
     </ScrollView>
   );
 }

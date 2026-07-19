@@ -1,6 +1,5 @@
 import { router, Stack, type Href } from 'expo-router';
 import {
-  ActivityIndicator,
   FlatList,
   Pressable,
   RefreshControl,
@@ -8,6 +7,8 @@ import {
   View,
 } from 'react-native';
 
+import { ListSkeleton } from '@/src/components/Skeleton';
+import { SportIcon } from '@/src/components/SportIcon';
 import {
   formatActivityDate,
   formatDuration,
@@ -31,8 +32,13 @@ function PlannedRow({ item }: { item: PlannedListItem }) {
       className="mb-3 rounded-xl border border-zinc-800 bg-zinc-900/80 px-4 py-3.5 active:opacity-80"
       onPress={() => router.push(`/(app)/planned/${item.id}` as Href)}
     >
-      <Text className="text-base font-semibold text-white">{item.title}</Text>
-      {meta ? <Text className="mt-1.5 text-sm text-ink-muted">{meta}</Text> : null}
+      <View className="flex-row items-center gap-3">
+        <SportIcon type={item.type} size={14} />
+        <View className="min-w-0 flex-1">
+          <Text className="text-base font-semibold text-white">{item.title}</Text>
+          {meta ? <Text className="mt-1.5 text-sm text-ink-muted">{meta}</Text> : null}
+        </View>
+      </View>
     </Pressable>
   );
 }
@@ -44,15 +50,13 @@ export default function UpcomingPlannedScreen() {
     <>
       <Stack.Screen options={{ title: 'Upcoming', headerShown: true }} />
       {isLoading && !data ? (
-        <View className="flex-1 items-center justify-center bg-surface-dark">
-          <ActivityIndicator color={Colors.brand} size="large" />
-        </View>
+        <ListSkeleton />
       ) : isError ? (
         <View className="flex-1 bg-surface-dark px-6 pt-6">
           <Text className="text-red-400">
             {error instanceof Error ? error.message : 'Failed to load upcoming workouts'}
           </Text>
-          <Pressable className="mt-4" onPress={() => void refetch()}>
+          <Pressable className="mt-4" hitSlop={8} onPress={() => void refetch()}>
             <Text className="text-sm font-medium text-brand">Try again</Text>
           </Pressable>
         </View>

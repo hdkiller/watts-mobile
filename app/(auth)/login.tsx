@@ -1,11 +1,11 @@
 import { Link } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getRedirectUri, isExpoGoRuntime } from '@/src/auth/oauth';
 import { useAuth } from '@/src/auth/AuthContext';
-import { Colors } from '@/src/theme/colors';
+import { Button } from '@/src/components/Button';
 
 export default function LoginScreen() {
   const { instanceUrl, signIn, error, clearError } = useAuth();
@@ -39,7 +39,7 @@ export default function LoginScreen() {
           <Text className="text-xs uppercase tracking-wide text-ink-muted">Instance</Text>
           <Text className="mt-1 text-base text-white">{instanceUrl}</Text>
           <Link href="/(auth)/instance" asChild>
-            <Pressable className="mt-3 self-start">
+            <Pressable className="mt-3 self-start" hitSlop={8}>
               <Text className="text-sm font-medium text-brand">Change instance</Text>
             </Pressable>
           </Link>
@@ -47,17 +47,12 @@ export default function LoginScreen() {
 
         {message ? <Text className="mt-4 text-sm text-red-400">{message}</Text> : null}
 
-        <Pressable
-          className="mt-6 items-center rounded-xl bg-brand-action py-3.5 active:opacity-80"
+        <Button
+          className="mt-6"
+          label="Sign in with Coach Watts"
           onPress={() => void onSignIn()}
-          disabled={busy}
-        >
-          {busy ? (
-            <ActivityIndicator color="#09090b" />
-          ) : (
-            <Text className="text-base font-semibold text-ink">Sign in with Coach Watts</Text>
-          )}
-        </Pressable>
+          loading={busy}
+        />
 
         <Text className="mt-6 text-xs leading-5 text-ink-muted">
           Redirect URI for OAuth app registration:{'\n'}

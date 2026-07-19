@@ -41,7 +41,7 @@ export function ActiveRecoveryBand({
             {errorMessage || 'Could not load recovery context'}
           </Text>
           {onRetry ? (
-            <Pressable className="mt-2" onPress={onRetry}>
+            <Pressable className="mt-2" hitSlop={8} onPress={onRetry}>
               <Text className="font-semibold text-brand">Retry</Text>
             </Pressable>
           ) : null}
@@ -70,17 +70,19 @@ export function ActiveRecoveryBand({
       ) : null}
 
       <View className="mt-4 flex-row flex-wrap items-center gap-x-4 gap-y-2">
-        <Pressable className="py-1 active:opacity-70" onPress={() => openRecoveryEvent()}>
+        <Pressable className="py-1 active:opacity-70" hitSlop={8} onPress={() => openRecoveryEvent()}>
           <Text className="text-sm font-semibold text-brand">Log event</Text>
         </Pressable>
         <Pressable
           className="py-1 active:opacity-70"
+          hitSlop={8}
           onPress={() => router.push('/(app)/(tabs)/log?section=wellness' as Href)}
         >
           <Text className="text-sm font-semibold text-brand">Check in</Text>
         </Pressable>
         <Pressable
           className="py-1 active:opacity-70"
+          hitSlop={8}
           onPress={() => router.push('/(app)/(tabs)/log?section=recovery' as Href)}
         >
           <Text className="text-sm text-ink-muted">History</Text>

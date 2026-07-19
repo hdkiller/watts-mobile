@@ -10,7 +10,8 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "lint": "expo lint"
   },
   "dependencies": {
     "@ai-sdk/react": "^4.0.18",
@@ -49,6 +50,8 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.17",
+    "eslint": "^9.0.0",
+    "eslint-config-expo": "~57.0.0",
     "typescript": "~6.0.3",
     "vitest": "^4.1.10"
   }

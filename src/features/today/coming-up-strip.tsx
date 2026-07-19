@@ -5,6 +5,7 @@ import {
   formatActivityDate,
   formatDuration,
 } from '@/src/features/activity/mapActivity';
+import { SportIcon } from '@/src/components/SportIcon';
 import type { PlannedListItem } from '@/src/features/activity/types';
 import { useUpcomingPlannedQuery } from '@/src/features/activity/useActivity';
 
@@ -32,6 +33,7 @@ export function ComingUpStrip({ excludePlannedId }: ComingUpStripProps) {
         </Text>
         <Pressable
           className="py-1 active:opacity-70"
+          hitSlop={8}
           onPress={() => router.push('/(app)/upcoming' as Href)}
         >
           <Text className="text-sm font-semibold text-brand">See all</Text>
@@ -62,13 +64,16 @@ function ComingUpRow({ item }: { item: PlannedListItem }) {
 
   return (
     <Pressable
-      className="border-b border-zinc-800/80 py-3 active:opacity-80"
+      className="flex-row items-center gap-3 border-b border-zinc-800/80 py-3 active:opacity-80"
       onPress={() => router.push(`/(app)/planned/${item.id}` as Href)}
     >
-      <Text className="text-base font-medium text-white" numberOfLines={1}>
-        {item.title}
-      </Text>
-      {meta ? <Text className="mt-1 text-sm text-ink-muted">{meta}</Text> : null}
+      <SportIcon type={item.type} size={13} />
+      <View className="min-w-0 flex-1">
+        <Text className="text-base font-medium text-white" numberOfLines={1}>
+          {item.title}
+        </Text>
+        {meta ? <Text className="mt-1 text-sm text-ink-muted">{meta}</Text> : null}
+      </View>
     </Pressable>
   );
 }

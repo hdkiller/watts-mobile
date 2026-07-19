@@ -5,6 +5,8 @@ Implementation docs for the native companion app. Product narrative originally d
 | Doc | Purpose |
 |-----|---------|
 | [product-baseline.md](./product-baseline.md) | Positioning, stack, v1 scope, IA, auth/API contract |
+| [DESIGN.md](./DESIGN.md) | UI conventions: tokens, type scale, shared components, states |
+| [issues.md](./issues.md) | UX/UI backlog index → per-issue files in `issues/` |
 | [implementation-plan.md](./implementation-plan.md) | Phased delivery + checklist for this repo |
 | [open-questions.md](./open-questions.md) | Decisions that block or shape Phase 0–1 |
 | [oauth-setup.md](./oauth-setup.md) | Register public OAuth client + redirect URIs |

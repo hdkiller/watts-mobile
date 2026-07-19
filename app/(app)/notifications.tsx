@@ -117,7 +117,7 @@ export default function NotificationsScreen() {
           <Text className="text-red-400">
             {error instanceof Error ? error.message : 'Failed to load notifications'}
           </Text>
-          <Pressable className="mt-4" onPress={() => void refetch()}>
+          <Pressable className="mt-4" hitSlop={8} onPress={() => void refetch()}>
             <Text className="text-sm font-medium text-brand">Try again</Text>
           </Pressable>
         </View>
