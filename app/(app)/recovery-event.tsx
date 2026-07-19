@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 
+import { friendlyError } from '@/src/api/errors';
 import {
   applyTimePreset,
   emptyRecoveryEventForm,
@@ -113,7 +114,7 @@ export default function RecoveryEventScreen() {
       }
       router.back();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Save failed');
+      setError(friendlyError(err, 'Save failed'));
     }
   };
 
@@ -130,7 +131,7 @@ export default function RecoveryEventScreen() {
               await deleteMutation.mutateAsync(sourceRecordId);
               router.back();
             } catch (err) {
-              setError(err instanceof Error ? err.message : 'Delete failed');
+              setError(friendlyError(err, 'Delete failed'));
             }
           })();
         },

@@ -2,12 +2,12 @@ import { Stack, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { ScrollView, Text, View } from 'react-native';
 
+import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
 import { DetailSkeleton } from '@/src/components/Skeleton';
 import { SportIcon } from '@/src/components/SportIcon';
 import { ActivityCharts } from '@/src/features/activity/ActivityCharts';
-import { AnalyzeWorkoutError } from '@/src/features/activity/api';
 import {
   absoluteInstanceUrl,
   formatActivityDate,
@@ -150,12 +150,9 @@ export default function ActivitySummaryScreen() {
     await WebBrowser.openBrowserAsync(absoluteInstanceUrl(instanceUrl, path));
   };
 
-  const analyzeError =
-    analyzeMutation.error instanceof AnalyzeWorkoutError
-      ? analyzeMutation.error.message
-      : analyzeMutation.error instanceof Error
-        ? analyzeMutation.error.message
-        : null;
+  const analyzeError = analyzeMutation.error
+    ? friendlyError(analyzeMutation.error, 'Failed to start analysis')
+    : null;
 
   return (
     <>
@@ -165,7 +162,7 @@ export default function ActivitySummaryScreen() {
       ) : isError ? (
         <View className="flex-1 bg-surface-dark px-6 pt-6">
           <Text className="text-red-400">
-            {error instanceof Error ? error.message : 'Failed to load activity'}
+            {friendlyError(error, 'Failed to load activity')}
           </Text>
         </View>
       ) : data ? (

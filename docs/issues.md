@@ -10,7 +10,7 @@ Already shipped from that review (not tracked here): shared `Button` (variants, 
 
 | ID | Issue | Area | Priority | Effort | Status |
 |----|-------|------|----------|--------|--------|
-| [001](./issues/001.md) | Friendly error copy instead of raw API messages | cross-cutting | high | S | open |
+| [001](./issues/001.md) | Friendly error copy instead of raw API messages | cross-cutting | high | S | done |
 | [002](./issues/002.md) | Haptic feedback on key moments | cross-cutting | medium | S | open |
 | [003](./issues/003.md) | Recommendation hero: state color, confidence visual, accepted state | Today | high | M | open |
 | [004](./issues/004.md) | Modify/Rest affordance: "Discuss with Coach" | Today | medium | M | open |
@@ -27,7 +27,7 @@ Already shipped from that review (not tracked here): shared `Button` (variants, 
 | [015](./issues/015.md) | Restructure More tab: sections, icons, chevrons, version | More | medium | M | open |
 | [016](./issues/016.md) | Notification preferences screen | More | high | M | open |
 | [017](./issues/017.md) | Unread badge on More tab icon | More | low | XS | open |
-| [018](./issues/018.md) | Login polish: hide dev plumbing, add wordmark | auth | high | S | open |
+| [018](./issues/018.md) | Login polish: hide dev plumbing, add wordmark | auth | high | S | done |
 
 ## Companion expansion (beyond current scope)
 

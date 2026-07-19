@@ -10,6 +10,7 @@ import {
 } from 'react';
 
 import { fetchUserInfo, setAuthFailureHandler, type UserInfo } from '@/src/api/client';
+import { friendlyError } from '@/src/api/errors';
 import { loginWithPkce } from '@/src/auth/oauth';
 import { clearTokens, loadTokens } from '@/src/auth/tokenStorage';
 import {
@@ -76,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setStatus('needs_login');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to start app');
+      setError(friendlyError(err, 'Failed to start app'));
       setStatus('needs_instance');
     }
   }, []);

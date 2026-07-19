@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
+import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { AnimatedPressable } from '@/src/components/AnimatedPressable';
 import { Button } from '@/src/components/Button';
@@ -113,7 +114,7 @@ export default function TodayScreen() {
     try {
       await acceptMutation.mutateAsync(data.recommendationId);
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Accept failed');
+      setActionError(friendlyError(err, 'Accept failed'));
     }
   };
 
@@ -190,7 +191,7 @@ export default function TodayScreen() {
       {isError ? (
         <View className="mt-6 rounded-xl border border-red-900/50 bg-red-950/40 p-4">
           <Text className="text-base text-red-300">
-            {error instanceof Error ? error.message : 'Could not load today'}
+            {friendlyError(error, 'Could not load today')}
           </Text>
           <Pressable className="mt-3" hitSlop={8} onPress={() => void refetch()}>
             <Text className="font-semibold text-brand">Retry</Text>
@@ -283,9 +284,7 @@ export default function TodayScreen() {
       <ActiveRecoveryBand
         items={activeRecovery}
         isError={recoveryError}
-        errorMessage={
-          recoveryErr instanceof Error ? recoveryErr.message : 'Could not load recovery context'
-        }
+        errorMessage={friendlyError(recoveryErr, 'Could not load recovery context')}
         onRetry={() => void refetchRecovery()}
       />
 

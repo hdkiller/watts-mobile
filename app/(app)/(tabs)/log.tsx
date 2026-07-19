@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-screens/experimental';
 
+import { friendlyError } from '@/src/api/errors';
 import {
   emptyLogForm,
   formFromWellness,
@@ -154,7 +155,7 @@ export default function LogScreen() {
       await saveMutation.mutateAsync(toWellnessPayload(values));
       setSaved(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Save failed');
+      setError(friendlyError(err, 'Save failed'));
     }
   };
 
@@ -220,9 +221,7 @@ export default function LogScreen() {
           {recoveryError ? (
             <View className="mt-3 rounded-xl border border-red-900/50 bg-red-950/40 p-3">
               <Text className="text-sm text-red-300">
-                {recoveryErr instanceof Error
-                  ? recoveryErr.message
-                  : 'Could not load recovery context'}
+                {friendlyError(recoveryErr, 'Could not load recovery context')}
               </Text>
               <Pressable className="mt-2" hitSlop={8} onPress={() => void refetchRecovery()}>
                 <Text className="font-semibold text-brand">Retry</Text>

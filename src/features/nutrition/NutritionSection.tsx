@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 
+import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { absoluteInstanceUrl } from '@/src/features/activity/mapActivity';
 import { Colors } from '@/src/theme/colors';
@@ -103,7 +104,7 @@ export function NutritionSection() {
       setForm(emptyQuickLogForm(form.meal));
       setSaved(true);
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Save failed');
+      setFormError(friendlyError(err, 'Save failed'));
     }
   };
 
@@ -114,7 +115,7 @@ export function NutritionSection() {
       await hydrationMutation.mutateAsync({ date: localDateYmd(), volumeMl });
       setHydrationSaved(`Added ${volumeMl} ml`);
     } catch (err) {
-      setHydrationError(err instanceof Error ? err.message : 'Hydration save failed');
+      setHydrationError(friendlyError(err, 'Hydration save failed'));
     }
   };
 
@@ -139,7 +140,7 @@ export function NutritionSection() {
       {isError ? (
         <View className="mt-3 rounded-xl border border-red-900/50 bg-red-950/40 p-3">
           <Text className="text-sm text-red-300">
-            {error instanceof Error ? error.message : 'Could not load nutrition'}
+            {friendlyError(error, 'Could not load nutrition')}
           </Text>
           <Pressable className="mt-2" onPress={() => void refetch()}>
             <Text className="font-semibold text-brand">Retry</Text>

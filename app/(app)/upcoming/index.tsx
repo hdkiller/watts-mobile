@@ -7,6 +7,7 @@ import {
   View,
 } from 'react-native';
 
+import { friendlyError } from '@/src/api/errors';
 import { ListSkeleton } from '@/src/components/Skeleton';
 import { SportIcon } from '@/src/components/SportIcon';
 import {
@@ -54,7 +55,7 @@ export default function UpcomingPlannedScreen() {
       ) : isError ? (
         <View className="flex-1 bg-surface-dark px-6 pt-6">
           <Text className="text-red-400">
-            {error instanceof Error ? error.message : 'Failed to load upcoming workouts'}
+            {friendlyError(error, 'Failed to load upcoming workouts')}
           </Text>
           <Pressable className="mt-4" hitSlop={8} onPress={() => void refetch()}>
             <Text className="text-sm font-medium text-brand">Try again</Text>
