@@ -34,5 +34,7 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 2026-07-19 | v1.5: upcoming planned + richer details | Field companion needs “what’s next”, not only today; More → Upcoming (no heatmap) |
 | 2026-07-19 | v1.5: athlete metrics edit on More | `profile:write` / `PATCH /api/profile`; not full Profile Settings |
 | 2026-07-19 | v1.5: nutrition quick-log on Log | Tracking handy on mobile; planning/grocery stay web; scopes `nutrition:read` / `nutrition:write` |
+| 2026-07-19 | Mobile Coach client: `useChat` + Bearer WS | `@ai-sdk/react` + `expo/fetch` to `POST /api/chat/messages`; WS deltas primary; poll while turn active if WS down; seed from Today/recovery query cache |
+
 
 When a row above is decided, move it here and update [product-baseline.md](./product-baseline.md) / [implementation-plan.md](./implementation-plan.md) if scope changes.
