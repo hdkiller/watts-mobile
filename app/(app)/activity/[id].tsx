@@ -1,5 +1,6 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
+import { useEffect, useRef } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
@@ -14,11 +15,12 @@ import {
   formatDuration,
   workoutWebPath,
 } from '@/src/features/activity/mapActivity';
-import type { ActivityAnalysis } from '@/src/features/activity/types';
+import type { ActivityAnalysis, AnalysisPhase } from '@/src/features/activity/types';
 import {
   useActivitySummaryQuery,
   useRequestWorkoutAnalysis,
 } from '@/src/features/activity/useActivity';
+import { hapticError, hapticSuccess } from '@/src/lib/haptics';
 
 function AnalysisBlock({
   analysis,
@@ -143,11 +145,30 @@ export default function ActivitySummaryScreen() {
   const { instanceUrl } = useAuth();
   const { data, isLoading, isError, error } = useActivitySummaryQuery(id);
   const analyzeMutation = useRequestWorkoutAnalysis(id);
+  const prevAnalysisPhase = useRef<AnalysisPhase | undefined>(undefined);
+
+  useEffect(() => {
+    const phase = data?.analysis.phase;
+    if (
+      prevAnalysisPhase.current === 'analyzing' &&
+      (phase === 'ready' || phase === 'failed' || phase === 'quota')
+    ) {
+      if (phase === 'ready') hapticSuccess();
+      else hapticError();
+    }
+    prevAnalysisPhase.current = phase;
+  }, [data?.analysis.phase]);
 
   const openWeb = async () => {
     if (!instanceUrl) return;
     const path = id ? workoutWebPath(id) : '/';
     await WebBrowser.openBrowserAsync(absoluteInstanceUrl(instanceUrl, path));
+  };
+
+  const onAnalyze = () => {
+    analyzeMutation.mutate(undefined, {
+      onError: () => hapticError(),
+    });
   };
 
   const analyzeError = analyzeMutation.error
@@ -203,7 +224,7 @@ export default function ActivitySummaryScreen() {
             analysis={data.analysis}
             analyzing={analyzeMutation.isPending}
             analyzeError={analyzeError}
-            onAnalyze={() => analyzeMutation.mutate()}
+            onAnalyze={onAnalyze}
           />
 
           {id ? <ActivityCharts workoutId={id} /> : null}

@@ -1,7 +1,9 @@
 import { router, useLocalSearchParams, type Href } from 'expo-router';
+import { SymbolView } from 'expo-symbols';
 import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -26,6 +28,7 @@ import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { useActiveRecoveryQuery } from '@/src/features/recovery/useRecovery';
 import type { RecoveryContextItem } from '@/src/features/recovery/types';
 import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
+import { hapticError, hapticSuccess } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
 
 type LogSection = 'recovery' | 'wellness' | 'nutrition';
@@ -158,14 +161,28 @@ function RecoveryChip({ item }: { item: RecoveryContextItem }) {
   const readOnly = item.sourceType === 'imported' || !item.editable;
   return (
     <Pressable
-      className="mr-2 mt-2 rounded-full border border-zinc-700 bg-zinc-900 px-3 py-2 active:opacity-80"
+      accessibilityRole="button"
+      accessibilityLabel={
+        readOnly
+          ? `${item.label}${item.severity != null ? `, severity ${item.severity} of 10` : ''}, read-only`
+          : undefined
+      }
+      className="mr-2 mt-2 flex-row items-center rounded-full border border-zinc-700 bg-zinc-900 px-3 py-2 active:opacity-80"
       onPress={() => openRecoveryEvent(item)}
     >
       <Text className="text-xs font-semibold text-white">
         {item.label}
         {item.severity != null ? ` · ${item.severity}/10` : ''}
-        {readOnly ? ' · view' : ''}
       </Text>
+      {readOnly ? (
+        Platform.OS === 'ios' ? (
+          <SymbolView name="eye" size={11} tintColor={Colors.textMuted} style={{ marginLeft: 5 }} />
+        ) : (
+          <Text className="ml-1 text-[10px] text-ink-muted" accessibilityElementsHidden>
+            👁
+          </Text>
+        )
+      ) : null}
     </Pressable>
   );
 }
@@ -262,12 +279,14 @@ export default function LogScreen() {
 
   const onSave = async () => {
     if (!formHasContent(values)) {
+      hapticError();
       setError('Enter at least one field before saving.');
       return;
     }
     setError(null);
     try {
       await saveMutation.mutateAsync(toWellnessPayload(values));
+      hapticSuccess();
       setWasPrefilled(true);
       setJustSaved(true);
       if (savedFlashTimer.current) clearTimeout(savedFlashTimer.current);
@@ -276,6 +295,7 @@ export default function LogScreen() {
         savedFlashTimer.current = null;
       }, SAVED_FLASH_MS);
     } catch (err) {
+      hapticError();
       setError(friendlyError(err, 'Save failed'));
     }
   };
@@ -432,13 +452,6 @@ export default function LogScreen() {
             <NutritionSection />
           </View>
         ) : null}
-
-        <Button
-          variant="secondary"
-          className="mt-6"
-          label="Back to Today"
-          onPress={() => router.push('/(app)/(tabs)/today')}
-        />
       </ScrollView>
     </View>
     </SafeAreaView>
