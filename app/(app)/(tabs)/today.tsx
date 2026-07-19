@@ -33,6 +33,7 @@ import {
 import { RecentlyTeaser } from '@/src/features/today/recently-teaser';
 import type { TodayPlannedWorkout } from '@/src/features/today/types';
 import { useAcceptRecommendation, useTodayQuery } from '@/src/features/today/useToday';
+import { hapticError, hapticSuccess } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
 
 function openPlannedWorkout(id: string) {
@@ -166,7 +167,9 @@ export default function TodayScreen() {
     setActionError(null);
     try {
       await acceptMutation.mutateAsync(data.recommendationId);
+      hapticSuccess();
     } catch (err) {
+      hapticError();
       setActionError(friendlyError(err, 'Accept failed'));
     }
   };
