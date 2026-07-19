@@ -4,10 +4,12 @@ import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { useState } from 'react';
 
 import { useAuth } from '@/src/auth/AuthContext';
+import { useUnreadNotificationsCount } from '@/src/features/notifications/useNotifications';
 import { Colors } from '@/src/theme/colors';
 
 export default function MoreScreen() {
   const { user, instanceUrl, signOut, refreshUser } = useAuth();
+  const unreadCount = useUnreadNotificationsCount();
   const [busy, setBusy] = useState(false);
 
   const openWeb = async () => {
@@ -37,8 +39,19 @@ export default function MoreScreen() {
         </Pressable>
       </View>
 
+
       <Pressable
         className="mt-4 flex-row items-center justify-between rounded-xl border border-zinc-700 px-4 py-3.5 active:opacity-80"
+        onPress={() => router.push('/(app)/notifications' as Href)}
+      >
+        <Text className="text-base font-semibold text-white">Notifications</Text>
+        <Text className="text-sm text-ink-muted">
+          {unreadCount > 0 ? `${unreadCount} unread` : 'Inbox'}
+        </Text>
+      </Pressable>
+
+      <Pressable
+        className="mt-3 flex-row items-center justify-between rounded-xl border border-zinc-700 px-4 py-3.5 active:opacity-80"
         onPress={() => router.push('/(app)/athlete' as Href)}
       >
         <Text className="text-base font-semibold text-white">Athlete</Text>
