@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { Colors } from '@/src/theme/colors';
 
@@ -27,7 +28,7 @@ export default function InstanceScreen() {
       await saveInstance(url);
       router.replace('/(auth)/login');
     } catch (err) {
-      setLocalError(err instanceof Error ? err.message : 'Could not save instance');
+      setLocalError(friendlyError(err, 'Could not save instance'));
     } finally {
       setBusy(false);
     }

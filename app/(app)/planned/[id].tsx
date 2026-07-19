@@ -2,6 +2,7 @@ import { Stack, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { ScrollView, Text, View } from 'react-native';
 
+import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
 import { DetailSkeleton } from '@/src/components/Skeleton';
@@ -37,7 +38,7 @@ export default function PlannedWorkoutDetailScreen() {
       ) : isError ? (
         <View className="flex-1 bg-surface-dark px-6 pt-6">
           <Text className="text-red-400">
-            {error instanceof Error ? error.message : 'Failed to load workout'}
+            {friendlyError(error, 'Failed to load workout')}
           </Text>
         </View>
       ) : data ? (

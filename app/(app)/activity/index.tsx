@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { FadeInDown } from 'react-native-reanimated';
 
+import { friendlyError } from '@/src/api/errors';
 import { AnimatedPressable } from '@/src/components/AnimatedPressable';
 import { ListSkeleton } from '@/src/components/Skeleton';
 import { SportIcon } from '@/src/components/SportIcon';
@@ -75,7 +76,7 @@ export default function RecentActivityScreen() {
       ) : isError ? (
         <View className="flex-1 bg-surface-dark px-6 pt-6">
           <Text className="text-red-400">
-            {error instanceof Error ? error.message : 'Failed to load recent activity'}
+            {friendlyError(error, 'Failed to load recent activity')}
           </Text>
           <Pressable className="mt-4" hitSlop={8} onPress={() => void refetch()}>
             <Text className="text-sm font-medium text-brand">Try again</Text>

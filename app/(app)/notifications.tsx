@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 
+import { friendlyError } from '@/src/api/errors';
 import { resolvePushOpen } from '@/src/features/notifications/resolvePushOpen';
 import type { InboxNotification } from '@/src/features/notifications/types';
 import {
@@ -115,7 +116,7 @@ export default function NotificationsScreen() {
       ) : isError ? (
         <View className="flex-1 bg-surface-dark px-6 pt-6">
           <Text className="text-red-400">
-            {error instanceof Error ? error.message : 'Failed to load notifications'}
+            {friendlyError(error, 'Failed to load notifications')}
           </Text>
           <Pressable className="mt-4" hitSlop={8} onPress={() => void refetch()}>
             <Text className="text-sm font-medium text-brand">Try again</Text>
