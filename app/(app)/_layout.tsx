@@ -37,6 +37,30 @@ export default function AppLayout() {
         }}
       />
       <Stack.Screen
+        name="activity/index"
+        options={{
+          headerShown: true,
+          title: 'Recent activity',
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="activity/[id]"
+        options={{
+          headerShown: true,
+          title: 'Activity',
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="upcoming/index"
+        options={{
+          headerShown: true,
+          title: 'Upcoming',
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
         name="recovery-event"
         options={{
           headerShown: true,

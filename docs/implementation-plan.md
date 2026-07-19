@@ -80,9 +80,9 @@ OpenSpecs (suggested apply order after Phase 2 push):
 
 - [ ] Coach tab threaded chat with today/recovery context seeding
 - [ ] Starter prompts
-- [ ] Recent activity (lite) from More
-- [ ] Upcoming planned list from More (same change / workouts glance)
-- [ ] Richer planned + activity detail (interval/step summary when available)
+- [x] Recent activity (lite) from More (`/(app)/activity`)
+- [x] Upcoming planned list from More (`/(app)/upcoming`, same change / workouts glance)
+- [x] Richer planned + activity detail (interval/step summary when available)
 - [ ] Universal links / scheme for Today, recommendation, activity, planned, chat
 - [ ] i18n (Tolgee keys / shared locales where practical)
 - [ ] Store prep: icons, splash, privacy strings
@@ -104,8 +104,8 @@ OpenSpecs (suggested):
 
 Checklist:
 
-- [ ] Upcoming planned workouts (More → Upcoming, capped 7–14 days)
-- [ ] Richer planned workout detail (structure summary) + lite activity summary
+- [x] Upcoming planned workouts (More → Upcoming, capped 7–14 days) — shipped with Phase 3 glance
+- [x] Richer planned workout detail (structure summary) + lite activity summary — shipped with Phase 3 glance
 - [ ] Athlete metrics editor (`profile:write`, `GET/PATCH /api/profile`)
 - [ ] Nutrition quick-log on Log (`nutrition:read` / `nutrition:write`)
 - [ ] Soft offline queue for check-in (harden)
@@ -116,8 +116,8 @@ Checklist:
 
 **coach-wattz prerequisites (Phase 4 / workouts glance):**
 
-1. Bearer on `GET /api/planned-workouts/:id` (list already `workout:read`; detail may still be session-only)
-2. Confirm planned structure / intervals fields for mobile summary (compose or document)
+1. ~~Bearer on `GET /api/planned-workouts/:id`~~ — done (`requireAuth` + `workout:read`; list already Bearer)
+2. ~~Confirm planned structure / intervals fields~~ — `structuredWorkout` on detail; no secondary endpoint for lite summary
 3. Official Mobile App allowlist: `profile:write`, `nutrition:read`, `nutrition:write`
 4. Bearer on nutrition hydration quick-add (and any session-only nutrition routes used by mobile)
 

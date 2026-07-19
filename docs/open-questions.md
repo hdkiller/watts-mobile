@@ -14,8 +14,8 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 8 | **Expo channel** | Managed Expo vs early dev client (needed for HealthKit in v1.5+) | Open — start managed; add dev client when native modules land |
 | 9 | **Nutrition entry IA** | Log tab section vs More → Nutrition | **Decided:** Log (write surface) |
 | 10 | **Athlete metrics vs full settings** | Metrics-only editor vs port Profile Settings tabs | **Decided:** metrics-only (weight, FTP, max HR, LTHR); rest → Open web |
-| 11 | **Planned detail Bearer + structure** | Session-only `GET /api/planned-workouts/:id` vs `requireAuth` + structure fields for intervals | Open (list is Bearer; detail/structure to confirm in coach-wattz) |
-| 12 | **Upcoming vs Recent More entries** | Single “Workouts” hub vs separate Upcoming + Recent links | Lean: separate More rows in one glance package (`phase-3-recent-activity`) |
+| 11 | **Planned detail Bearer + structure** | Session-only `GET /api/planned-workouts/:id` vs `requireAuth` + structure fields for intervals | **Decided** |
+| 12 | **Upcoming vs Recent More entries** | Single “Workouts” hub vs separate Upcoming + Recent links | **Decided:** separate More rows (Recent activity + Upcoming) |
 
 ## Decision log
 
@@ -34,5 +34,7 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 2026-07-19 | v1.5: upcoming planned + richer details | Field companion needs “what’s next”, not only today; More → Upcoming (no heatmap) |
 | 2026-07-19 | v1.5: athlete metrics edit on More | `profile:write` / `PATCH /api/profile`; not full Profile Settings |
 | 2026-07-19 | v1.5: nutrition quick-log on Log | Tracking handy on mobile; planning/grocery stay web; scopes `nutrition:read` / `nutrition:write` |
+| 2026-07-19 | Planned detail Bearer + `structuredWorkout` | `GET /api/planned-workouts/:id` uses `requireAuth` + `workout:read`; structure from `structuredWorkout` (no intervals-preview for mobile lite) |
+| 2026-07-19 | More → Recent + Upcoming (separate rows) | Workouts glance package; not a fifth tab or calendar heatmap |
 
 When a row above is decided, move it here and update [product-baseline.md](./product-baseline.md) / [implementation-plan.md](./implementation-plan.md) if scope changes.
