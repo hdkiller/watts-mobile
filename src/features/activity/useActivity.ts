@@ -1,10 +1,13 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
+  fetchActivityPowerCurve,
+  fetchActivityStreamCharts,
   fetchActivitySummary,
   fetchPlannedWorkoutDetail,
   fetchRecentActivities,
   fetchUpcomingPlanned,
+  requestWorkoutAnalysis,
 } from './api';
 import { RECENT_ACTIVITY_LIMIT, UPCOMING_PLANNED_LIMIT, UPCOMING_WINDOW_DAYS } from './types';
 
@@ -13,6 +16,14 @@ export const UPCOMING_PLANNED_QUERY_KEY = ['activity', 'upcoming'] as const;
 
 export function activityDetailQueryKey(id: string) {
   return ['activity', 'detail', id] as const;
+}
+
+export function activityStreamsQueryKey(id: string) {
+  return ['activity', 'streams', id] as const;
+}
+
+export function activityPowerCurveQueryKey(id: string) {
+  return ['activity', 'power-curve', id] as const;
 }
 
 export function plannedDetailQueryKey(id: string) {
@@ -42,6 +53,41 @@ export function useActivitySummaryQuery(id: string | undefined) {
     queryKey: activityDetailQueryKey(id ?? ''),
     queryFn: () => fetchActivitySummary(id!),
     enabled: Boolean(id),
+    refetchInterval: (query) => {
+      const phase = query.state.data?.analysis.phase;
+      return phase === 'analyzing' ? 3000 : false;
+    },
+  });
+}
+
+export function useRequestWorkoutAnalysis(id: string | undefined) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => requestWorkoutAnalysis(id!),
+    onSuccess: async () => {
+      if (!id) return;
+      await queryClient.invalidateQueries({ queryKey: activityDetailQueryKey(id) });
+      await queryClient.invalidateQueries({ queryKey: RECENT_ACTIVITY_QUERY_KEY });
+    },
+  });
+}
+
+export function useActivityStreamsQuery(id: string | undefined) {
+  return useQuery({
+    queryKey: activityStreamsQueryKey(id ?? ''),
+    queryFn: () => fetchActivityStreamCharts(id!),
+    enabled: Boolean(id),
+    staleTime: 60_000,
+  });
+}
+
+export function useActivityPowerCurveQuery(id: string | undefined) {
+  return useQuery({
+    queryKey: activityPowerCurveQueryKey(id ?? ''),
+    queryFn: () => fetchActivityPowerCurve(id!),
+    enabled: Boolean(id),
+    staleTime: 60_000,
   });
 }
 

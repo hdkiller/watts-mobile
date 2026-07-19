@@ -1,6 +1,13 @@
 import { apiFetch } from '@/src/api/client';
 
+import type {
+  ActivityStreamCharts,
+  PowerCurveApi,
+  PowerCurveCharts,
+  WorkoutStreamsApi,
+} from './chartTypes';
 import { mapPlannedDetail, mapPlannedListItem, mapWorkoutListItem, mapWorkoutSummary } from './mapActivity';
+import { mapActivityStreamCharts, mapPowerCurveCharts } from './mapCharts';
 import type {
   ActivityListItem,
   ActivitySummary,
@@ -9,6 +16,7 @@ import type {
   PlannedListItem,
   PlannedListItemApi,
   WorkoutListItemApi,
+  WorkoutSummaryApi,
 } from './types';
 import { RECENT_ACTIVITY_LIMIT, UPCOMING_PLANNED_LIMIT, UPCOMING_WINDOW_DAYS } from './types';
 
@@ -78,8 +86,56 @@ export async function fetchActivitySummary(id: string): Promise<ActivitySummary>
   if (!response.ok) {
     throw new Error(await readErrorMessage(response, `Failed to load workout (${response.status})`));
   }
-  const json = (await response.json()) as WorkoutListItemApi & { description?: string | null };
+  const json = (await response.json()) as WorkoutSummaryApi;
   return mapWorkoutSummary(json);
+}
+
+export class AnalyzeWorkoutError extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'AnalyzeWorkoutError';
+    this.status = status;
+  }
+}
+
+export async function fetchActivityStreamCharts(id: string): Promise<ActivityStreamCharts | null> {
+  const response = await apiFetch(`/api/workouts/${encodeURIComponent(id)}/streams`);
+  if (response.status === 404) return null;
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response, `Failed to load streams (${response.status})`));
+  }
+  const json = (await response.json()) as WorkoutStreamsApi;
+  return mapActivityStreamCharts(json);
+}
+
+export async function fetchActivityPowerCurve(id: string): Promise<PowerCurveCharts | null> {
+  const response = await apiFetch(`/api/workouts/${encodeURIComponent(id)}/power-curve`);
+  if (response.status === 404) return null;
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, `Failed to load power curve (${response.status})`)
+    );
+  }
+  const json = (await response.json()) as PowerCurveApi;
+  return mapPowerCurveCharts(json);
+}
+
+/** Start or regenerate AI analysis (async job). Requires Bearer `workout:write`. */
+export async function requestWorkoutAnalysis(id: string): Promise<void> {
+  const response = await apiFetch(`/api/workouts/${encodeURIComponent(id)}/analyze`, {
+    method: 'POST',
+  });
+  if (!response.ok) {
+    const message = await readErrorMessage(
+      response,
+      response.status === 403
+        ? 'Analysis requires workout write permission. Sign out and sign in again.'
+        : `Failed to start analysis (${response.status})`
+    );
+    throw new AnalyzeWorkoutError(message, response.status);
+  }
 }
 
 export async function fetchPlannedWorkoutDetail(id: string): Promise<PlannedDetail> {
