@@ -78,8 +78,8 @@ OpenSpecs (suggested apply order after Phase 2 push):
 | `phase-3-deep-links` | Scheme/universal link map + push path alignment |
 | `phase-3-store-polish` | Icons/splash, privacy strings, More account glue, Sentry |
 
-- [ ] Coach tab threaded chat with today/recovery context seeding
-- [ ] Starter prompts
+- [x] Coach tab threaded chat with today/recovery context seeding — OpenSpec `phase-3-coach-chat` (device smoke pending)
+- [x] Starter prompts — same change
 - [ ] Recent activity (lite) from More
 - [ ] Upcoming planned list from More (same change / workouts glance)
 - [ ] Richer planned + activity detail (interval/step summary when available)
