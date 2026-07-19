@@ -13,10 +13,14 @@ pnpm install
 cp .env.example .env
 # Defaults to local coach-wattz (localhost:3099). Production pair is commented in .env.
 
+# First run / after adding native packages: build the expo-dev-client binary
+pnpm ios    # or: pnpm android
+
+# Day-to-day JS iteration (binary already installed)
 pnpm start
 ```
 
-Then open iOS Simulator, Android emulator, or Expo Go.
+Use the **dev client** binary (`expo-dev-client`), not Expo Go. After `pnpm add` of a native module (e.g. `expo-image-picker`) or an `app.json` plugin change, rebuild with `pnpm ios` / `pnpm android` — see [docs/native-modules.md](./docs/native-modules.md).
 
 ### OAuth client registration (coach-wattz)
 

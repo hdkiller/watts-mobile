@@ -69,9 +69,10 @@ describe('resolveDeepLinkPath', () => {
       kind: 'app',
       href: '/(app)/(tabs)/coach',
     });
-    expect(resolveDeepLinkPath('/chat/room-1')).toMatchObject({
+    expect(resolveDeepLinkPath('/chat/room-1')).toEqual({
       kind: 'app',
-      href: '/(app)/(tabs)/coach',
+      href: '/(app)/(tabs)/coach?roomId=room-1',
+      canonicalPath: '/chat/room-1',
     });
     expect(resolveDeepLinkPath('/notifications')).toMatchObject({
       kind: 'app',

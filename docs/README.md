@@ -9,6 +9,7 @@ Implementation docs for the native companion app. Product narrative originally d
 | [open-questions.md](./open-questions.md) | Decisions that block or shape Phase 0–1 |
 | [oauth-setup.md](./oauth-setup.md) | Register public OAuth client + redirect URIs |
 | [deep-links.md](./deep-links.md) | Scheme / universal link path map, AASA + assetlinks hosting, push `path` |
+| [native-modules.md](./native-modules.md) | Rebuild the dev client after native package / plugin changes |
 | [store-checklist.md](./store-checklist.md) | Icons, splash, Sentry, listing chrome |
 | [store-privacy-checklist.md](./store-privacy-checklist.md) | Privacy / health questionnaire strings |
 

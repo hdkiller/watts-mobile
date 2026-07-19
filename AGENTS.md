@@ -14,6 +14,7 @@ This app is the **field companion**: today’s recommendation, check-in, light c
 | [docs/open-questions.md](docs/open-questions.md) | Decisions to resolve before/during Phase 0–1 |
 | [docs/oauth-setup.md](docs/oauth-setup.md) | Public OAuth client + redirect URI registration |
 | [docs/deep-links.md](docs/deep-links.md) | Scheme / universal link path map + host association |
+| [docs/native-modules.md](docs/native-modules.md) | When adding Expo native deps: rebuild the dev client |
 | coach-wattz `docs/06-plans/mobile-companion-app.md` | Full living baseline (PR [#239](https://github.com/hdkiller/coach/pull/239); merge pending) |
 | OpenSpec archive `2026-07-19-phase-0/1/2/3/4-*` | Auth → Today → Log → push → chat → activity → deep links → store → profile → nutrition (done) |
 
@@ -23,7 +24,7 @@ When the coach-wattz PR merges, prefer that file for product/API narrative and k
 
 | Layer | Choice |
 |-------|--------|
-| Runtime | **Expo (React Native) + TypeScript** (dev client when native modules needed) |
+| Runtime | **Expo (React Native) + TypeScript** + **`expo-dev-client`** (not Expo Go for day-to-day) |
 | Navigation | **Expo Router** |
 | UI | React Native + **NativeWind** (or adapted design tokens) |
 | Server state | **TanStack Query** |
@@ -65,3 +66,4 @@ IA: bottom tabs **Today · Log · Coach · More**.
 5. Secrets stay out of git (tokens, client secrets, `.env`).
 6. Follow [BRANDING.md](../coach-wattz/BRANDING.md) in coach-wattz — companion is Coach Watts, not a generic fitness shell.
 7. Update [docs/open-questions.md](docs/open-questions.md) when a decision lands.
+8. After adding/upgrading a **native** Expo module or changing its `app.json` plugin, **rebuild the binary** (`pnpm ios` / `pnpm android` or EAS). Metro alone will not link it — see [docs/native-modules.md](docs/native-modules.md). Symptom: `Cannot find native module '…'`.

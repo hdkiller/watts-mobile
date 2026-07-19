@@ -3,6 +3,7 @@ import { apiFetch } from '@/src/api/client';
 import type {
   ChatRoomStateSnapshot,
   ChatRoomSummary,
+  StorageUploadResponse,
   StoredChatMessage,
   WebsocketTokenResponse,
 } from './types';
@@ -13,6 +14,106 @@ export async function fetchChatRooms(): Promise<ChatRoomSummary[]> {
     throw new Error(`Failed to load chat rooms (${response.status})`);
   }
   return (await response.json()) as ChatRoomSummary[];
+}
+
+export async function createChatRoom(): Promise<ChatRoomSummary> {
+  const response = await apiFetch('/api/chat/rooms', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({}),
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to create chat room (${response.status})`);
+  }
+  return (await response.json()) as ChatRoomSummary;
+}
+
+/** Submit tool approve/deny (web parity — no dedicated approval endpoint). */
+export async function submitChatToolApproval(params: {
+  roomId: string;
+  approvalId: string;
+  approved: boolean;
+  reason?: string;
+}): Promise<void> {
+  const response = await apiFetch('/api/chat/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'text/event-stream, application/json',
+    },
+    body: JSON.stringify({
+      roomId: params.roomId,
+      messages: [
+        {
+          id: `approval-${params.approvalId}-${Date.now()}`,
+          role: 'tool',
+          parts: [
+            {
+              type: 'tool-approval-response',
+              toolCallId: params.approvalId,
+              approvalId: params.approvalId,
+              approved: params.approved,
+              reason:
+                params.reason ||
+                (params.approved ? 'User confirmed action.' : 'User cancelled action.'),
+            },
+          ],
+        },
+      ],
+    }),
+  });
+  if (!response.ok) {
+    let message = `Tool approval failed (${response.status})`;
+    try {
+      const body = (await response.json()) as { message?: string; statusMessage?: string };
+      message = body.message || body.statusMessage || message;
+    } catch {
+      // ignore non-JSON error bodies (SSE)
+    }
+    throw new Error(message);
+  }
+  // Drain SSE/body so the connection can close cleanly.
+  try {
+    await response.text();
+  } catch {
+    // ignore
+  }
+}
+
+export async function uploadChatImage(file: {
+  uri: string;
+  mediaType: string;
+  filename: string;
+}): Promise<StorageUploadResponse> {
+  const form = new FormData();
+  form.append(
+    'file',
+    {
+      uri: file.uri,
+      type: file.mediaType,
+      name: file.filename,
+    } as unknown as Blob
+  );
+
+  const response = await apiFetch('/api/storage/upload', {
+    method: 'POST',
+    body: form,
+  });
+  if (!response.ok) {
+    let message = `Upload failed (${response.status})`;
+    try {
+      const body = (await response.json()) as { message?: string; statusMessage?: string };
+      message = body.message || body.statusMessage || message;
+    } catch {
+      // ignore
+    }
+    throw new Error(message);
+  }
+  const body = (await response.json()) as StorageUploadResponse;
+  if (!body?.url) {
+    throw new Error('Upload response missing url');
+  }
+  return body;
 }
 
 export async function fetchChatMessages(roomId: string): Promise<StoredChatMessage[]> {

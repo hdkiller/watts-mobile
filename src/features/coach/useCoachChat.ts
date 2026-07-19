@@ -10,14 +10,18 @@ import type { TodayViewModel } from '@/src/features/today/types';
 import { TODAY_QUERY_KEY } from '@/src/features/today/useToday';
 
 import {
+  createChatRoom,
   fetchChatMessages,
   fetchChatRooms,
   fetchRoomState,
   fetchWebsocketToken,
   resumeChatTurn,
   retryChatTurn,
+  submitChatToolApproval,
+  uploadChatImage,
   websocketUrlFromInstance,
 } from './api';
+import { captureChatPhoto, pickChatImagesFromLibrary } from './attachments';
 import { coachChatFetch, resolveChatMessagesApiUrl } from './coachFetch';
 import {
   applyAssistantTextDelta,
@@ -31,20 +35,31 @@ import {
   visibleCoachMessages,
 } from './mapMessages';
 import { buildCoachSeedContext, withSeedPrefix } from './seedContext';
-import type { CoachUIMessage, StoredChatMessage } from './types';
+import { decideSessionOpen, findRoomById } from './sessionPolicy';
+import type { ChatRoomSummary, CoachUIMessage, PendingAttachment, StoredChatMessage } from './types';
 
 const POLL_INTERVAL_MS = 1500;
 const POLL_GRACE_MS = 15000;
 const WS_RECONNECT_MS = 3000;
 const WS_PING_MS = 30000;
 
+export type UseCoachChatOptions = {
+  targetRoomId?: string | null;
+};
+
 type UseCoachChatResult = {
   roomId: string | null;
   roomName: string | null;
+  isReadOnly: boolean;
+  rooms: ChatRoomSummary[];
+  roomsLoading: boolean;
+  roomListOpen: boolean;
+  setRoomListOpen: (open: boolean) => void;
   messages: CoachUIMessage[];
   displayMessages: CoachUIMessage[];
   input: string;
   setInput: (value: string) => void;
+  pendingAttachments: PendingAttachment[];
   loading: boolean;
   sending: boolean;
   streaming: boolean;
@@ -53,6 +68,7 @@ type UseCoachChatResult = {
   usingPollFallback: boolean;
   error: string | null;
   sendError: string | null;
+  notice: string | null;
   send: (text?: string) => Promise<void>;
   applyStarter: (text: string) => void;
   resumeTurn: () => Promise<void>;
@@ -60,16 +76,35 @@ type UseCoachChatResult = {
   recoverableTurnId: string | null;
   recoverableStatus: string | null;
   refresh: () => Promise<void>;
+  selectRoom: (roomId: string) => Promise<void>;
+  createRoom: () => Promise<void>;
+  refreshRooms: () => Promise<void>;
+  attachFromLibrary: () => Promise<void>;
+  attachFromCamera: () => Promise<void>;
+  removeAttachment: (id: string) => void;
+  submitToolApproval: (approval: {
+    approvalId: string;
+    approved: boolean;
+    reason?: string;
+  }) => Promise<void>;
 };
 
-export function useCoachChat(): UseCoachChatResult {
+export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatResult {
   const queryClient = useQueryClient();
+  const targetRoomId = options.targetRoomId ?? null;
+
   const [roomId, setRoomId] = useState<string | null>(null);
   const [roomName, setRoomName] = useState<string | null>(null);
+  const [isReadOnly, setIsReadOnly] = useState(false);
+  const [rooms, setRooms] = useState<ChatRoomSummary[]>([]);
+  const [roomsLoading, setRoomsLoading] = useState(false);
+  const [roomListOpen, setRoomListOpen] = useState(false);
   const [input, setInput] = useState('');
+  const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [awaitingTurnStart, setAwaitingTurnStart] = useState(false);
   const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
   const [usingPollFallback, setUsingPollFallback] = useState(false);
@@ -94,6 +129,8 @@ export function useCoachChat(): UseCoachChatResult {
     async () => {}
   );
   const isRealtimeConnectedRef = useRef(false);
+  const approvalInFlight = useRef(new Set<string>());
+  const bootstrappedForTarget = useRef<string | null | undefined>(undefined);
 
   useEffect(() => {
     roomIdRef.current = roomId;
@@ -443,25 +480,115 @@ export function useCoachChat(): UseCoachChatResult {
     };
   }, []);
 
+  const applyActiveRoom = useCallback(
+    async (room: ChatRoomSummary, options?: { clearMessages?: boolean }) => {
+      setRoomId(room.roomId);
+      setRoomName(room.roomName || 'Coach Watts');
+      setIsReadOnly(Boolean(room.isReadOnly));
+      roomIdRef.current = room.roomId;
+      setSeedUsed(false);
+      setPendingAttachments([]);
+      setSendError(null);
+      setInput('');
+      if (options?.clearMessages !== false) {
+        setMessagesRef.current([]);
+      }
+      await loadMessages(room.roomId);
+    },
+    [loadMessages]
+  );
+
+  const refreshRooms = useCallback(async () => {
+    setRoomsLoading(true);
+    try {
+      const loaded = await fetchChatRooms();
+      if (!activeRef.current) return;
+      setRooms(loaded);
+    } finally {
+      if (activeRef.current) setRoomsLoading(false);
+    }
+  }, []);
+
+  const selectRoom = useCallback(
+    async (nextRoomId: string) => {
+      const room = rooms.find((item) => item.roomId === nextRoomId);
+      if (!room) {
+        const loaded = await fetchChatRooms();
+        setRooms(loaded);
+        const found = findRoomById(loaded, nextRoomId);
+        if (!found) {
+          setNotice('Chat not found. Opening a session instead.');
+          const decision = decideSessionOpen(loaded);
+          if (decision.action === 'select') {
+            await applyActiveRoom(decision.room);
+          } else {
+            const created = await createChatRoom();
+            setRooms((prev) => [created, ...prev.filter((r) => r.roomId !== created.roomId)]);
+            await applyActiveRoom(created);
+          }
+          setRoomListOpen(false);
+          return;
+        }
+        await applyActiveRoom(found);
+        setRoomListOpen(false);
+        return;
+      }
+      await applyActiveRoom(room);
+      setRoomListOpen(false);
+    },
+    [applyActiveRoom, rooms]
+  );
+
+  const createRoom = useCallback(async () => {
+    setSendError(null);
+    try {
+      const created = await createChatRoom();
+      setRooms((prev) => [created, ...prev.filter((r) => r.roomId !== created.roomId)]);
+      await applyActiveRoom(created);
+      setRoomListOpen(false);
+      setNotice(null);
+    } catch (err) {
+      setSendError(err instanceof Error ? err.message : 'Failed to create chat');
+    }
+  }, [applyActiveRoom]);
+
   useEffect(() => {
     let cancelled = false;
 
     async function bootstrap() {
+      // Avoid re-bootstrapping the same target repeatedly (e.g. focus), but re-run when target changes.
+      if (bootstrappedForTarget.current === targetRoomId && roomIdRef.current) {
+        return;
+      }
+      bootstrappedForTarget.current = targetRoomId;
+
       setLoading(true);
       setError(null);
+      setNotice(null);
       try {
-        const rooms = await fetchChatRooms();
+        const loadedRooms = await fetchChatRooms();
         if (cancelled || !activeRef.current) return;
-        const primary = rooms[0];
-        if (!primary?.roomId) {
-          setError('No chat room available');
-          setLoading(false);
-          return;
+        setRooms(loadedRooms);
+
+        if (targetRoomId) {
+          const targeted = findRoomById(loadedRooms, targetRoomId);
+          if (targeted) {
+            await applyActiveRoom(targeted);
+            void connectWebSocket();
+            return;
+          }
+          setNotice('Chat not found. Starting a session instead.');
         }
-        setRoomId(primary.roomId);
-        setRoomName(primary.roomName || 'Coach Watts');
-        roomIdRef.current = primary.roomId;
-        await loadMessages(primary.roomId);
+
+        const decision = decideSessionOpen(loadedRooms);
+        if (decision.action === 'select') {
+          await applyActiveRoom(decision.room);
+        } else {
+          const created = await createChatRoom();
+          if (cancelled || !activeRef.current) return;
+          setRooms((prev) => [created, ...prev.filter((r) => r.roomId !== created.roomId)]);
+          await applyActiveRoom(created);
+        }
         void connectWebSocket();
       } catch (err) {
         if (!cancelled) {
@@ -475,10 +602,17 @@ export function useCoachChat(): UseCoachChatResult {
 
     return () => {
       cancelled = true;
+    };
+    // Intentionally re-run when deep-link room target changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetRoomId]);
+
+  useEffect(() => {
+    return () => {
       stopTurnPolling();
       cleanupWebSocket();
     };
-  }, [cleanupWebSocket, connectWebSocket, loadMessages, stopTurnPolling]);
+  }, [cleanupWebSocket, stopTurnPolling]);
 
   const streaming = status === 'streaming' || hasActiveTurn(messages) || awaitingTurnStart;
   const sending = status === 'submitted' || status === 'streaming';
@@ -497,41 +631,176 @@ export function useCoachChat(): UseCoachChatResult {
     };
   }, [messages]);
 
+  const ensureAttachmentsUploaded = useCallback(async (): Promise<PendingAttachment[]> => {
+    const next = [...pendingAttachments];
+    for (let i = 0; i < next.length; i += 1) {
+      const item = next[i];
+      if (!item || item.uploadedUrl) continue;
+      next[i] = { ...item, uploading: true, error: null };
+      setPendingAttachments([...next]);
+      try {
+        const uploaded = await uploadChatImage({
+          uri: item.localUri,
+          mediaType: item.mediaType,
+          filename: item.filename,
+        });
+        next[i] = {
+          ...item,
+          uploading: false,
+          uploadedUrl: uploaded.url,
+          filename: uploaded.filename || item.filename,
+          error: null,
+        };
+      } catch (err) {
+        next[i] = {
+          ...item,
+          uploading: false,
+          error: err instanceof Error ? err.message : 'Upload failed',
+        };
+        setPendingAttachments([...next]);
+        throw new Error(next[i]?.error || 'Upload failed');
+      }
+      setPendingAttachments([...next]);
+    }
+    return next;
+  }, [pendingAttachments]);
+
   const send = useCallback(
     async (rawText?: string) => {
       const text = (rawText ?? input).trim();
-      if (!text || !roomIdRef.current || !apiUrl) return;
+      if (!roomIdRef.current || !apiUrl) return;
+      if (isReadOnly) {
+        setSendError('This chat is read-only. Start a new chat to continue.');
+        return;
+      }
+      if (!text && pendingAttachments.length === 0) return;
 
       setSendError(null);
       clearError();
 
+      let uploaded: PendingAttachment[] = [];
+      try {
+        uploaded = await ensureAttachmentsUploaded();
+      } catch (err) {
+        setSendError(err instanceof Error ? err.message : 'Failed to upload photo');
+        return;
+      }
+
       let outbound = text;
-      if (!seedUsedRef.current && messagesRef.current.length === 0) {
+      if (!seedUsedRef.current && messagesRef.current.length === 0 && text) {
         const today = queryClient.getQueryData<TodayViewModel>(TODAY_QUERY_KEY);
         const recovery = queryClient.getQueryData<RecoveryContextItem[]>(ACTIVE_RECOVERY_KEY);
         const seed = buildCoachSeedContext({ today, activeRecovery: recovery });
         outbound = withSeedPrefix(text, seed);
         setSeedUsed(true);
+      } else if (!seedUsedRef.current && messagesRef.current.length === 0) {
+        setSeedUsed(true);
+      }
+
+      const parts: Array<Record<string, unknown>> = [];
+      if (outbound) {
+        parts.push({ type: 'text', text: outbound });
+      }
+      for (const attachment of uploaded) {
+        if (!attachment.uploadedUrl) continue;
+        parts.push({
+          type: 'file',
+          url: attachment.uploadedUrl,
+          mediaType: attachment.mediaType,
+          filename: attachment.filename,
+        });
       }
 
       setInput('');
+      setPendingAttachments([]);
       setAwaitingTurnStart(true);
       restartTurnPolling({ forceForMs: POLL_GRACE_MS });
 
       try {
-        await sendMessage({ text: outbound });
+        if (parts.length > 0) {
+          await sendMessage({
+            role: 'user',
+            parts,
+          } as Parameters<typeof sendMessage>[0]);
+        } else {
+          await sendMessage({ text: outbound || ' ' });
+        }
       } catch (err) {
         setAwaitingTurnStart(false);
         setSendError(err instanceof Error ? err.message : 'Failed to send message');
         setInput(text);
+        setPendingAttachments(uploaded.map((item) => ({ ...item, uploading: false })));
       }
     },
-    [apiUrl, clearError, input, queryClient, restartTurnPolling, sendMessage]
+    [
+      apiUrl,
+      clearError,
+      ensureAttachmentsUploaded,
+      input,
+      isReadOnly,
+      pendingAttachments.length,
+      queryClient,
+      restartTurnPolling,
+      sendMessage,
+    ]
   );
 
   const applyStarter = useCallback((text: string) => {
     setInput(text);
   }, []);
+
+  const attachFromLibrary = useCallback(async () => {
+    if (isReadOnly) return;
+    const result = await pickChatImagesFromLibrary(pendingAttachments.length);
+    if (!result.ok) {
+      if (result.reason !== 'cancelled') setSendError(result.message);
+      return;
+    }
+    setSendError(null);
+    setPendingAttachments((prev) => [...prev, ...result.attachments]);
+  }, [isReadOnly, pendingAttachments.length]);
+
+  const attachFromCamera = useCallback(async () => {
+    if (isReadOnly) return;
+    const result = await captureChatPhoto(pendingAttachments.length);
+    if (!result.ok) {
+      if (result.reason !== 'cancelled') setSendError(result.message);
+      return;
+    }
+    setSendError(null);
+    setPendingAttachments((prev) => [...prev, ...result.attachments]);
+  }, [isReadOnly, pendingAttachments.length]);
+
+  const removeAttachment = useCallback((id: string) => {
+    setPendingAttachments((prev) => prev.filter((item) => item.id !== id));
+  }, []);
+
+  const submitToolApproval = useCallback(
+    async (approval: { approvalId: string; approved: boolean; reason?: string }) => {
+      const currentRoomId = roomIdRef.current;
+      if (!currentRoomId) return;
+      if (approvalInFlight.current.has(approval.approvalId)) return;
+      approvalInFlight.current.add(approval.approvalId);
+      setSendError(null);
+
+      try {
+        await submitChatToolApproval({
+          roomId: currentRoomId,
+          approvalId: approval.approvalId,
+          approved: approval.approved,
+          reason: approval.reason,
+        });
+        setAwaitingTurnStart(true);
+        restartTurnPolling({ forceForMs: POLL_GRACE_MS });
+        await loadMessages(currentRoomId, { silent: true });
+      } catch (err) {
+        approvalInFlight.current.delete(approval.approvalId);
+        setSendError(err instanceof Error ? err.message : 'Tool approval failed');
+        throw err;
+      }
+    },
+    [loadMessages, restartTurnPolling]
+  );
 
   const resumeTurn = useCallback(async () => {
     if (!recoverable.turnId) return;
@@ -589,10 +858,16 @@ export function useCoachChat(): UseCoachChatResult {
   return {
     roomId,
     roomName,
+    isReadOnly,
+    rooms,
+    roomsLoading,
+    roomListOpen,
+    setRoomListOpen,
     messages,
     displayMessages,
     input,
     setInput,
+    pendingAttachments,
     loading: loading || !apiUrl,
     sending,
     streaming,
@@ -601,6 +876,7 @@ export function useCoachChat(): UseCoachChatResult {
     usingPollFallback,
     error: error || (chatError ? chatError.message : null),
     sendError,
+    notice,
     send,
     applyStarter,
     resumeTurn,
@@ -608,6 +884,13 @@ export function useCoachChat(): UseCoachChatResult {
     recoverableTurnId: recoverable.turnId,
     recoverableStatus: recoverable.status,
     refresh,
+    selectRoom,
+    createRoom,
+    refreshRooms,
+    attachFromLibrary,
+    attachFromCamera,
+    removeAttachment,
+    submitToolApproval,
   };
 }
 

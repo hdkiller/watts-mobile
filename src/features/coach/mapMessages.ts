@@ -1,7 +1,9 @@
 import {
   ACTIVE_TURN_STATUSES,
+  NUTRITION_TOOL_NAMES,
   TERMINAL_TURN_STATUSES,
   type CoachUIMessage,
+  type PendingChatApproval,
   type StoredChatMessage,
 } from './types';
 
@@ -30,18 +32,105 @@ export function messageText(message: CoachUIMessage | StoredChatMessage | null |
     .join('');
 }
 
+export function messageImageParts(
+  message: CoachUIMessage | StoredChatMessage | null | undefined
+): Array<{ url: string; mediaType?: string; filename?: string }> {
+  const parts = Array.isArray(message?.parts) ? message.parts : [];
+  const images: Array<{ url: string; mediaType?: string; filename?: string }> = [];
+  for (const part of parts) {
+    if (!part || typeof part !== 'object') continue;
+    const typed = part as {
+      type?: string;
+      url?: string;
+      mediaType?: string;
+      filename?: string;
+    };
+    if (typed.type !== 'file' || !typed.url) continue;
+    const mediaType = typed.mediaType || '';
+    if (mediaType.startsWith('image/') || /\.(jpe?g|png|gif|webp|heic|heif)$/i.test(typed.url)) {
+      images.push({
+        url: typed.url,
+        mediaType: typed.mediaType,
+        filename: typed.filename,
+      });
+    }
+  }
+  return images;
+}
+
+function synthesizeApprovalParts(
+  existingParts: CoachUIMessage['parts'],
+  pendingApprovals: PendingChatApproval[] | undefined
+): CoachUIMessage['parts'] {
+  if (!pendingApprovals?.length) return existingParts;
+  const parts = Array.isArray(existingParts) ? [...existingParts] : [];
+  const existingIds = new Set(
+    parts
+      .map((part) => {
+        if (!part || typeof part !== 'object') return null;
+        const typed = part as {
+          type?: string;
+          approvalId?: string;
+          toolCallId?: string;
+          approval?: { id?: string };
+          state?: string;
+        };
+        if (
+          typed.type === 'tool-approval-request' ||
+          (typeof typed.type === 'string' &&
+            typed.type.startsWith('tool-') &&
+            typed.state === 'approval-requested')
+        ) {
+          return typed.approvalId || typed.approval?.id || typed.toolCallId || null;
+        }
+        return null;
+      })
+      .filter(Boolean)
+  );
+
+  for (const approval of pendingApprovals) {
+    if (!approval?.toolCallId || existingIds.has(approval.toolCallId)) continue;
+    parts.push({
+      type: 'tool-approval-request',
+      approvalId: approval.toolCallId,
+      toolCall: {
+        toolName: approval.toolName,
+        args: approval.args,
+      },
+    } as unknown as CoachUIMessage['parts'][number]);
+  }
+  return parts;
+}
+
 export function transformStoredMessage(msg: StoredChatMessage): CoachUIMessage {
-  const textParts: CoachUIMessage['parts'] = [];
+  const keptParts: CoachUIMessage['parts'] = [];
   if (Array.isArray(msg.parts)) {
     for (const part of msg.parts) {
-      if (part?.type === 'text' && typeof part.text === 'string') {
-        textParts.push({ type: 'text', text: part.text });
+      if (!part?.type) continue;
+      if (part.type === 'text' && typeof part.text === 'string') {
+        keptParts.push({ type: 'text', text: part.text });
+        continue;
+      }
+      if (part.type === 'file' && typeof (part as { url?: unknown }).url === 'string') {
+        keptParts.push(part as CoachUIMessage['parts'][number]);
+        continue;
+      }
+      if (
+        part.type === 'tool-approval-request' ||
+        (typeof part.type === 'string' && part.type.startsWith('tool-'))
+      ) {
+        keptParts.push(part as CoachUIMessage['parts'][number]);
       }
     }
   }
-  if (textParts.length === 0 && msg.content) {
-    textParts.push({ type: 'text', text: msg.content });
+  if (keptParts.length === 0 && msg.content) {
+    keptParts.push({ type: 'text', text: msg.content });
   }
+
+  const parts = synthesizeApprovalParts(
+    keptParts,
+    msg.metadata?.pendingApprovals as PendingChatApproval[] | undefined
+  );
 
   const role: CoachUIMessage['role'] =
     msg.role === 'assistant' || msg.role === 'system' ? msg.role : 'user';
@@ -50,14 +139,14 @@ export function transformStoredMessage(msg: StoredChatMessage): CoachUIMessage {
     id: msg.id,
     role,
     content: msg.content,
-    parts: textParts,
+    parts,
     createdAt: new Date(msg.createdAt || msg.metadata?.createdAt || Date.now()),
     updatedAt: msg.updatedAt || msg.metadata?.updatedAt || null,
     metadata: { ...(msg.metadata || {}) },
   };
 }
 
-/** Keep user/assistant rows for `useChat`; drop tool/system noise in v1. */
+/** Keep user/assistant rows for `useChat`; drop tool/system noise except via synthesized parts. */
 export function hydrateCoachMessages(stored: StoredChatMessage[]): CoachUIMessage[] {
   return stored
     .filter((msg) => msg.role === 'user' || msg.role === 'assistant')
@@ -80,7 +169,12 @@ export function getLatestAssistantMessage(
 
 export function shouldHideAssistantBubble(message: CoachUIMessage): boolean {
   if (message.metadata?.hiddenBecauseEmptyFailure) return true;
-  if (message.metadata?.hideUntilContent && !messageText(message).trim()) return true;
+  const hasImages = messageImageParts(message).length > 0;
+  const hasApprovals = extractPendingApprovals(message).length > 0;
+  const hasNutrition = nutritionToolSummaries(message).length > 0;
+  if (message.metadata?.hideUntilContent && !messageText(message).trim() && !hasImages && !hasApprovals && !hasNutrition) {
+    return true;
+  }
   return false;
 }
 
@@ -88,6 +182,86 @@ export function hasActiveTurn(messages: CoachUIMessage[]): boolean {
   return isActiveTurnStatus(
     getLatestAssistantMessage(messages, { includeHidden: true })?.metadata?.turnStatus
   );
+}
+
+export function extractPendingApprovals(message: CoachUIMessage): PendingChatApproval[] {
+  const fromMeta = Array.isArray(message.metadata?.pendingApprovals)
+    ? (message.metadata.pendingApprovals as PendingChatApproval[])
+    : [];
+  const fromParts: PendingChatApproval[] = [];
+  for (const part of message.parts || []) {
+    if (!part || typeof part !== 'object') continue;
+    const typed = part as {
+      type?: string;
+      approvalId?: string;
+      toolCallId?: string;
+      state?: string;
+      toolCall?: { toolName?: string; args?: unknown };
+      approval?: { id?: string };
+      input?: unknown;
+    };
+    if (typed.type === 'tool-approval-request' && typed.approvalId) {
+      fromParts.push({
+        toolCallId: typed.approvalId,
+        toolName: typed.toolCall?.toolName || 'tool',
+        args: typed.toolCall?.args,
+      });
+      continue;
+    }
+    if (
+      typeof typed.type === 'string' &&
+      typed.type.startsWith('tool-') &&
+      typed.state === 'approval-requested'
+    ) {
+      const id = typed.approval?.id || typed.toolCallId;
+      if (!id) continue;
+      fromParts.push({
+        toolCallId: id,
+        toolName: typed.type.replace(/^tool-/, '') || 'tool',
+        args: typed.input,
+      });
+    }
+  }
+
+  const byId = new Map<string, PendingChatApproval>();
+  for (const item of [...fromMeta, ...fromParts]) {
+    if (item?.toolCallId) byId.set(item.toolCallId, item);
+  }
+  return [...byId.values()];
+}
+
+export function nutritionToolSummaries(message: CoachUIMessage): string[] {
+  const summaries: string[] = [];
+  for (const part of message.parts || []) {
+    if (!part || typeof part !== 'object') continue;
+    const typed = part as {
+      type?: string;
+      state?: string;
+      toolName?: string;
+      output?: unknown;
+      result?: unknown;
+    };
+    let toolName = typed.toolName;
+    if (!toolName && typeof typed.type === 'string' && typed.type.startsWith('tool-')) {
+      toolName = typed.type.slice('tool-'.length);
+    }
+    if (!toolName || !NUTRITION_TOOL_NAMES.has(toolName)) continue;
+    const state = typed.state || '';
+    const completed =
+      !state ||
+      ['output-available', 'result', 'completed', 'success'].includes(state) ||
+      typed.output != null ||
+      typed.result != null;
+    if (!completed || state === 'approval-requested' || state === 'input-streaming') continue;
+    if (toolName === 'log_nutrition_meal') {
+      summaries.push('Meal logged to your nutrition diary.');
+    } else if (toolName === 'log_hydration_intake') {
+      summaries.push('Hydration updated.');
+    } else if (toolName.startsWith('delete') || toolName.startsWith('patch')) {
+      summaries.push('Nutrition log updated.');
+    }
+  }
+  return summaries;
 }
 
 export function mergeRealtimeMessage(
