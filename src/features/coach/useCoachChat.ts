@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { DefaultChatTransport } from 'ai';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { friendlyError } from '@/src/api/errors';
 import { getInstanceUrl } from '@/src/config/instance';
 import type { RecoveryContextItem } from '@/src/features/recovery/types';
 import { ACTIVE_RECOVERY_KEY } from '@/src/features/recovery/useRecovery';
@@ -159,7 +160,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
     void resolveChatMessagesApiUrl()
       .then(setApiUrl)
       .catch((err) => {
-        setError(err instanceof Error ? err.message : 'Could not resolve chat API');
+        setError(friendlyError(err, 'Could not resolve chat API'));
       });
   }, []);
 
@@ -197,7 +198,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
     },
     onError: (err) => {
       setAwaitingTurnStart(false);
-      setSendError(err.message || 'Failed to send message');
+      setSendError(friendlyError(err, 'Failed to send message'));
     },
   });
 
@@ -241,7 +242,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
       restartTurnPollingRef.current();
     } catch (err) {
       if (!silent) {
-        setError(err instanceof Error ? err.message : 'Failed to load messages');
+        setError(friendlyError(err, 'Failed to load messages'));
       }
     } finally {
       loadInFlight.current = false;
@@ -548,7 +549,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
       setRoomListOpen(false);
       setNotice(null);
     } catch (err) {
-      setSendError(err instanceof Error ? err.message : 'Failed to create chat');
+      setSendError(friendlyError(err, 'Failed to create chat'));
     }
   }, [applyActiveRoom]);
 
@@ -592,7 +593,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
         void connectWebSocket();
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to open Coach chat');
+          setError(friendlyError(err, 'Failed to open Coach chat'));
           setLoading(false);
         }
       }
@@ -655,7 +656,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
         next[i] = {
           ...item,
           uploading: false,
-          error: err instanceof Error ? err.message : 'Upload failed',
+          error: friendlyError(err, 'Upload failed'),
         };
         setPendingAttachments([...next]);
         throw new Error(next[i]?.error || 'Upload failed');
@@ -682,7 +683,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
       try {
         uploaded = await ensureAttachmentsUploaded();
       } catch (err) {
-        setSendError(err instanceof Error ? err.message : 'Failed to upload photo');
+        setSendError(friendlyError(err, 'Failed to upload photo'));
         return;
       }
 
@@ -727,7 +728,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
         }
       } catch (err) {
         setAwaitingTurnStart(false);
-        setSendError(err instanceof Error ? err.message : 'Failed to send message');
+        setSendError(friendlyError(err, 'Failed to send message'));
         setInput(text);
         setPendingAttachments(uploaded.map((item) => ({ ...item, uploading: false })));
       }
@@ -795,7 +796,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
         await loadMessages(currentRoomId, { silent: true });
       } catch (err) {
         approvalInFlight.current.delete(approval.approvalId);
-        setSendError(err instanceof Error ? err.message : 'Tool approval failed');
+        setSendError(friendlyError(err, 'Tool approval failed'));
         throw err;
       }
     },
@@ -811,7 +812,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
       restartTurnPolling({ forceForMs: POLL_GRACE_MS });
       if (roomIdRef.current) await loadMessages(roomIdRef.current, { silent: true });
     } catch (err) {
-      setSendError(err instanceof Error ? err.message : 'Resume failed');
+      setSendError(friendlyError(err, 'Resume failed'));
     }
   }, [loadMessages, recoverable.turnId, restartTurnPolling]);
 
@@ -824,7 +825,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
       restartTurnPolling({ forceForMs: POLL_GRACE_MS });
       if (roomIdRef.current) await loadMessages(roomIdRef.current, { silent: true });
     } catch (err) {
-      setSendError(err instanceof Error ? err.message : 'Retry failed');
+      setSendError(friendlyError(err, 'Retry failed'));
     }
   }, [loadMessages, recoverable.turnId, restartTurnPolling]);
 
@@ -874,7 +875,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
     awaitingReply: streaming,
     isRealtimeConnected,
     usingPollFallback,
-    error: error || (chatError ? chatError.message : null),
+    error: error || (chatError ? friendlyError(chatError, 'Chat error') : null),
     sendError,
     notice,
     send,

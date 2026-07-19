@@ -15,13 +15,29 @@ Source of truth: [`src/theme/colors.ts`](../src/theme/colors.ts) (JS access) and
 
 | Token | Value | Tailwind | Use |
 |-------|-------|----------|-----|
-| brand | `#00DC82` | `text-brand` / `bg-brand` | Accents, links, active states, spinner tint |
+| brand | `#00DC82` | `text-brand` / `bg-brand` | Accents, links, active states, spinner tint; train hero tone |
 | brand action | `#00C16A` | `bg-brand-action` | Primary button fill only |
 | brand deep | `#00A155` | `brand-deep` | Chart accent |
+| recovery | `#38bdf8` | `text-recovery` / `bg-recovery` | Rest-day hero accent (sky on dark; not violet) |
+| modify | `#f59e0b` | `text-modify` / `bg-modify` | Modify hero accent |
 | background | `#09090b` | `bg-surface-dark` | Screen background |
 | ink | `#09090b` | `text-ink` | Text **on** brand green |
 | ink muted | `#71717a` | `text-ink-muted` | Secondary text, labels, metadata |
 | danger | `#ef4444` | `text-red-400` etc. | Errors, destructive |
+
+### Zone ramp (Z1→Z7)
+
+Shared by activity zone bars, planned zone rows, and the structure-profile silhouette. Access via `Colors.zones` / `zoneColor(index)` (0-based, clamps to last) or Tailwind `bg-zone-1` … `bg-zone-7`. Unknown intensity uses `Colors.zoneNeutral` / `bg-zone-neutral`.
+
+| Zone | Hex | Tailwind | Note |
+|------|-----|----------|------|
+| Z1 | `#3b82f6` | `zone-1` | Blue |
+| Z2 | `#14b8a6` | `zone-2` | Teal — distinct from brand green |
+| Z3 | `#eab308` | `zone-3` | Yellow |
+| Z4 | `#f97316` | `zone-4` | Orange |
+| Z5 | `#ef4444` | `zone-5` | Red |
+| Z6 | `#a855f7` | `zone-6` | Purple |
+| Z7 | `#52525b` | `zone-7` | Zinc |
 
 Neutral surfaces use zinc: cards `bg-zinc-900(/80)` with `border-zinc-800`, input/button borders `border-zinc-700`, hairline row dividers `border-zinc-800/80`.
 

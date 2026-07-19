@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 
+import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import {
   absoluteInstanceUrl,
@@ -85,7 +86,7 @@ export default function AthleteMetricsScreen() {
         // userinfo refresh is best-effort; save already succeeded
       }
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Failed to save metrics');
+      setFormError(friendlyError(err, 'Failed to save metrics'));
     }
   };
 
@@ -102,7 +103,7 @@ export default function AthleteMetricsScreen() {
       ) : isError && !data ? (
         <View className="flex-1 bg-surface-dark px-6 pt-6">
           <Text className="text-red-400">
-            {error instanceof Error ? error.message : 'Failed to load profile'}
+            {friendlyError(error, 'Failed to load profile')}
           </Text>
           <Pressable
             className="mt-4 items-center rounded-xl border border-zinc-700 py-3.5 active:opacity-80"

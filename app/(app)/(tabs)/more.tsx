@@ -1,4 +1,6 @@
+import Constants from 'expo-constants';
 import { router, type Href } from 'expo-router';
+import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { Pressable, Text, View } from 'react-native';
 import { useState } from 'react';
@@ -6,8 +8,24 @@ import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
+import {
+  PRIVACY_POLICY_URL,
+  SUPPORT_URL,
+  TERMS_OF_SERVICE_URL,
+} from '@/src/features/account/paths';
 import { useUnreadNotificationsCount } from '@/src/features/notifications/useNotifications';
 import { Colors } from '@/src/theme/colors';
+
+function appVersionLabel(): string {
+  const version = Constants.expoConfig?.version ?? '0.1.0';
+  const build =
+    Constants.nativeBuildVersion ??
+    Constants.expoConfig?.ios?.buildNumber ??
+    (Constants.expoConfig?.android?.versionCode != null
+      ? String(Constants.expoConfig.android.versionCode)
+      : undefined);
+  return build ? `v${version} (${build})` : `v${version}`;
+}
 
 export default function MoreScreen() {
   const { user, instanceUrl, signOut, refreshUser } = useAuth();
@@ -17,6 +35,14 @@ export default function MoreScreen() {
   const openWeb = async () => {
     if (!instanceUrl) return;
     await WebBrowser.openBrowserAsync(instanceUrl);
+  };
+
+  const openExternal = async (url: string) => {
+    if (url.startsWith('mailto:')) {
+      await Linking.openURL(url);
+      return;
+    }
+    await WebBrowser.openBrowserAsync(url);
   };
 
   const onSignOut = async () => {
@@ -89,6 +115,38 @@ export default function MoreScreen() {
         onPress={() => void onSignOut()}
         loading={busy}
       />
+
+      <View className="mt-8">
+        <Text className="text-xs uppercase tracking-wide text-ink-muted">About</Text>
+        <Text className="mt-2 text-sm text-ink-muted">{appVersionLabel()}</Text>
+
+        {PRIVACY_POLICY_URL ? (
+          <Pressable
+            className="mt-3 flex-row items-center justify-between rounded-xl border border-zinc-700 px-4 py-3.5 active:opacity-80"
+            onPress={() => void openExternal(PRIVACY_POLICY_URL)}
+          >
+            <Text className="text-base font-semibold text-white">Privacy policy</Text>
+          </Pressable>
+        ) : null}
+
+        {TERMS_OF_SERVICE_URL ? (
+          <Pressable
+            className="mt-3 flex-row items-center justify-between rounded-xl border border-zinc-700 px-4 py-3.5 active:opacity-80"
+            onPress={() => void openExternal(TERMS_OF_SERVICE_URL)}
+          >
+            <Text className="text-base font-semibold text-white">Terms</Text>
+          </Pressable>
+        ) : null}
+
+        {SUPPORT_URL ? (
+          <Pressable
+            className="mt-3 flex-row items-center justify-between rounded-xl border border-zinc-700 px-4 py-3.5 active:opacity-80"
+            onPress={() => void openExternal(SUPPORT_URL)}
+          >
+            <Text className="text-base font-semibold text-white">Support</Text>
+          </Pressable>
+        ) : null}
+      </View>
 
       <Text className="mt-6 text-xs text-ink-muted">Instance: {instanceUrl}</Text>
     </View>

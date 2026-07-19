@@ -35,6 +35,92 @@ export function formatDuration(durationSec: number | null | undefined): string |
   return m ? `${h}h ${m}m` : `${h}h`;
 }
 
+export type StepIntensity = {
+  /** 0-based zone index when confidently known */
+  zoneIndex?: number;
+  /** 0–1+ intensity fraction for profile height when known */
+  fraction?: number;
+};
+
+/** Coggan-style %FTP → 0-based zone index. */
+function zoneIndexFromFtpPercent(pct: number): number {
+  if (pct < 55) return 0;
+  if (pct < 75) return 1;
+  if (pct < 90) return 2;
+  if (pct < 105) return 3;
+  if (pct < 120) return 4;
+  if (pct < 150) return 5;
+  return 6;
+}
+
+const NAMED_ZONE_INDEX: Record<string, number> = {
+  recovery: 0,
+  'active recovery': 0,
+  endurance: 1,
+  easy: 1,
+  tempo: 2,
+  'sweet spot': 2,
+  sst: 2,
+  threshold: 3,
+  ftp: 3,
+  lt: 3,
+  vo2: 4,
+  vo2max: 4,
+  'vo2 max': 4,
+  anaerobic: 5,
+  neuromuscular: 6,
+};
+
+/**
+ * Best-effort intensity from a structure step's label.
+ * Only confident matches (`Z<n>`, `%FTP` / bare `%`, named zones) get color/height hints.
+ */
+export function stepIntensity(step: {
+  intensityLabel?: string | null;
+}): StepIntensity {
+  const raw = step.intensityLabel?.trim();
+  if (!raw) return {};
+
+  const zoneMatch = /^Z\s*(\d+)\b/i.exec(raw);
+  if (zoneMatch) {
+    const n = Number(zoneMatch[1]);
+    if (Number.isFinite(n) && n >= 1 && n <= 9) {
+      const zoneIndex = n - 1;
+      return { zoneIndex, fraction: Math.min(n / 7, 1) };
+    }
+  }
+
+  const ftpMatch = /^(\d+(?:\.\d+)?)\s*%(?:\s*FTP)?(?:\b|$)/i.exec(raw);
+  if (ftpMatch) {
+    const pct = Number(ftpMatch[1]);
+    if (Number.isFinite(pct) && pct > 0 && pct <= 250) {
+      return {
+        zoneIndex: zoneIndexFromFtpPercent(pct),
+        fraction: Math.min(pct / 100, 1.2) / 1.2,
+      };
+    }
+  }
+
+  const named = NAMED_ZONE_INDEX[raw.toLowerCase()];
+  if (named != null) {
+    return { zoneIndex: named, fraction: Math.min((named + 1) / 7, 1) };
+  }
+
+  return {};
+}
+
+/** Resolve a 0-based zone index from a zone band name (`Z2`, `Zone 3`, etc.). */
+export function zoneIndexFromBandName(name: string, fallbackIndex: number): number {
+  const fromLabel = stepIntensity({ intensityLabel: name }).zoneIndex;
+  if (fromLabel != null) return fromLabel;
+  const digits = /(\d+)/.exec(name);
+  if (digits) {
+    const n = Number(digits[1]);
+    if (Number.isFinite(n) && n >= 1 && n <= 9) return n - 1;
+  }
+  return fallbackIndex;
+}
+
 /** Format IF-like intensity (workout `intensity` / planned `workIntensity`). */
 export function formatIntensityFactor(value: unknown): string | null {
   if (typeof value !== 'number' || !Number.isFinite(value)) return null;

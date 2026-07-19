@@ -13,6 +13,8 @@ import {
   mapWorkoutSummary,
   mapWorkoutSummaryMetrics,
   mapZoneSummary,
+  stepIntensity,
+  zoneIndexFromBandName,
 } from '../mapActivity';
 
 describe('mapWorkoutStatus', () => {
@@ -321,5 +323,49 @@ describe('formatDuration', () => {
     expect(formatDuration(7200)).toBe('2h');
     expect(formatDuration(5400)).toBe('1h 30m');
     expect(formatDuration(null)).toBeNull();
+  });
+});
+
+describe('stepIntensity', () => {
+  it('parses Z<n> labels', () => {
+    expect(stepIntensity({ intensityLabel: 'Z2' })).toEqual({
+      zoneIndex: 1,
+      fraction: expect.any(Number),
+    });
+    expect(stepIntensity({ intensityLabel: 'z5' }).zoneIndex).toBe(4);
+    expect(stepIntensity({ intensityLabel: 'Z 3 Steady' }).zoneIndex).toBe(2);
+  });
+
+  it('parses %FTP and bare percent labels', () => {
+    expect(stepIntensity({ intensityLabel: '85% FTP' })).toMatchObject({
+      zoneIndex: 2,
+      fraction: expect.any(Number),
+    });
+    expect(stepIntensity({ intensityLabel: '95%' }).zoneIndex).toBe(3);
+    expect(stepIntensity({ intensityLabel: '110% FTP' }).zoneIndex).toBe(4);
+  });
+
+  it('parses named zones', () => {
+    expect(stepIntensity({ intensityLabel: 'Tempo' }).zoneIndex).toBe(2);
+    expect(stepIntensity({ intensityLabel: 'Threshold' }).zoneIndex).toBe(3);
+    expect(stepIntensity({ intensityLabel: 'Endurance' }).zoneIndex).toBe(1);
+    expect(stepIntensity({ intensityLabel: 'Sweet Spot' }).zoneIndex).toBe(2);
+  });
+
+  it('returns empty for unparseable or absent labels', () => {
+    expect(stepIntensity({ intensityLabel: '150 W' })).toEqual({});
+    expect(stepIntensity({ intensityLabel: 'RPE 7' })).toEqual({});
+    expect(stepIntensity({ intensityLabel: '250–280 W' })).toEqual({});
+    expect(stepIntensity({ intensityLabel: null })).toEqual({});
+    expect(stepIntensity({})).toEqual({});
+  });
+});
+
+describe('zoneIndexFromBandName', () => {
+  it('prefers Z labels over fallback index', () => {
+    expect(zoneIndexFromBandName('Z4', 0)).toBe(3);
+    expect(zoneIndexFromBandName('Zone 2', 0)).toBe(1);
+    expect(zoneIndexFromBandName('Endurance', 5)).toBe(1);
+    expect(zoneIndexFromBandName('Custom', 2)).toBe(2);
   });
 });

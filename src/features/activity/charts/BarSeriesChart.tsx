@@ -1,7 +1,7 @@
 import { Text, View } from 'react-native';
 
 import type { ZoneBar } from '../chartTypes';
-import { Colors } from '@/src/theme/colors';
+import { Colors, zoneColor } from '@/src/theme/colors';
 
 type BarItem = {
   key: string;
@@ -9,6 +9,8 @@ type BarItem = {
   detail?: string;
   valueLabel: string;
   fraction: number;
+  /** Per-bar fill; falls back to chart `accent` when omitted. */
+  color?: string;
 };
 
 type Props = {
@@ -35,7 +37,7 @@ export function BarSeriesChart({ items, accent = Colors.brand }: Props) {
               className="h-2 rounded-full"
               style={{
                 width: `${Math.max(Math.round(item.fraction * 100), item.fraction > 0 ? 2 : 0)}%`,
-                backgroundColor: accent,
+                backgroundColor: item.color ?? accent,
               }}
             />
           </View>
@@ -46,12 +48,13 @@ export function BarSeriesChart({ items, accent = Colors.brand }: Props) {
 }
 
 export function zoneBarsToItems(bars: ZoneBar[]): BarItem[] {
-  return bars.map((b) => ({
+  return bars.map((b, index) => ({
     key: b.key,
     label: b.label,
     detail: b.detail,
     valueLabel: `${b.minutes < 10 ? b.minutes.toFixed(1) : Math.round(b.minutes)} min`,
     fraction: b.fraction,
+    color: zoneColor(index),
   }));
 }
 

@@ -1,5 +1,55 @@
 import type { ActivityRecommendationApi, TodayViewModel } from './types';
 
+/** Visual category for the Today recommendation hero accent. */
+export type HeroTone = 'train' | 'rest' | 'modify';
+
+/** Normalized confidence strength for the three-dot indicator. */
+export type ConfidenceBucket = 'low' | 'medium' | 'high';
+
+/**
+ * Maps an API recommendation action to a hero accent tone.
+ * Known train-like actions and unrecognized values use brand (train).
+ */
+export function heroToneForAction(action: string | null | undefined): HeroTone {
+  switch ((action ?? '').toLowerCase().trim()) {
+    case 'rest':
+      return 'rest';
+    case 'modify':
+    case 'reduce_intensity':
+      return 'modify';
+    case 'proceed':
+    case 'train':
+      return 'train';
+    default:
+      return 'train';
+  }
+}
+
+/** Coerce API confidence (0–1 or 0–100) into a 0–1 unit interval, or null. */
+export function normalizeConfidence(confidence: number | null | undefined): number | null {
+  if (confidence == null || Number.isNaN(confidence)) return null;
+  const unit = confidence <= 1 ? confidence : confidence / 100;
+  return Math.min(1, Math.max(0, unit));
+}
+
+/** Bucket normalized confidence for the three-dot strength indicator. */
+export function confidenceBucket(confidence: number | null | undefined): ConfidenceBucket | null {
+  const unit = normalizeConfidence(confidence);
+  if (unit == null) return null;
+  if (unit < 0.45) return 'low';
+  if (unit < 0.75) return 'medium';
+  return 'high';
+}
+
+/** Filled-dot count (1–3) for the strength indicator; null when confidence absent. */
+export function confidenceFilledCount(confidence: number | null | undefined): number | null {
+  const bucket = confidenceBucket(confidence);
+  if (bucket == null) return null;
+  if (bucket === 'low') return 1;
+  if (bucket === 'medium') return 2;
+  return 3;
+}
+
 function actionLabel(action: string | null | undefined): string {
   switch (action) {
     case 'proceed':
