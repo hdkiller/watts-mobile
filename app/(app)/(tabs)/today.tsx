@@ -31,13 +31,48 @@ import {
   type HeroTone,
 } from '@/src/features/today/mapTodayPayload';
 import { RecentlyTeaser } from '@/src/features/today/recently-teaser';
-import type { TodayPlannedWorkout } from '@/src/features/today/types';
+import type { RecoverySentiment, TodayPlannedWorkout } from '@/src/features/today/types';
 import { useAcceptRecommendation, useTodayQuery } from '@/src/features/today/useToday';
 import { hapticError, hapticSuccess } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
 
 function openPlannedWorkout(id: string) {
   router.push(`/(app)/planned/${id}` as Href);
+}
+
+function openDiscussWithCoach() {
+  router.push('/(app)/(tabs)/coach?discuss=1' as Href);
+}
+
+const SENTIMENT_DOT: Record<RecoverySentiment, string> = {
+  good: 'bg-green-400',
+  ok: 'bg-modify',
+  poor: 'bg-red-400',
+};
+
+function RecoveryMetricTile({
+  label,
+  value,
+  sentiment,
+}: {
+  label: string;
+  value: string;
+  sentiment: RecoverySentiment | null | undefined;
+}) {
+  return (
+    <View className="flex-1 rounded-lg border border-zinc-800 px-3 py-2">
+      <View className="flex-row items-center gap-1.5">
+        {sentiment ? (
+          <View
+            accessibilityLabel={`${label} ${sentiment}`}
+            className={`h-1.5 w-1.5 rounded-full ${SENTIMENT_DOT[sentiment]}`}
+          />
+        ) : null}
+        <Text className="text-[10px] uppercase text-ink-muted">{label}</Text>
+      </View>
+      <Text className="mt-0.5 text-sm text-white">{value}</Text>
+    </View>
+  );
 }
 
 const HERO_TONE_CLASSES: Record<
@@ -317,26 +352,29 @@ export default function TodayScreen() {
 
       {hasRecoveryMetrics ? (
         <EnterSection order={3}>
-        <View className="mt-4 flex-row gap-2">
-          {data?.recovery.sleepLabel ? (
-            <View className="flex-1 rounded-lg border border-zinc-800 px-3 py-2">
-              <Text className="text-[10px] uppercase text-ink-muted">Sleep</Text>
-              <Text className="text-sm text-white">{data.recovery.sleepLabel}</Text>
-            </View>
-          ) : null}
-          {data?.recovery.hrvLabel ? (
-            <View className="flex-1 rounded-lg border border-zinc-800 px-3 py-2">
-              <Text className="text-[10px] uppercase text-ink-muted">HRV</Text>
-              <Text className="text-sm text-white">{data.recovery.hrvLabel}</Text>
-            </View>
-          ) : null}
-          {data?.recovery.feelLabel ? (
-            <View className="flex-1 rounded-lg border border-zinc-800 px-3 py-2">
-              <Text className="text-[10px] uppercase text-ink-muted">Feel</Text>
-              <Text className="text-sm text-white">{data.recovery.feelLabel}</Text>
-            </View>
-          ) : null}
-        </View>
+          <View className="mt-4 flex-row gap-2">
+            {data?.recovery.sleepLabel ? (
+              <RecoveryMetricTile
+                label="Sleep"
+                value={data.recovery.sleepLabel}
+                sentiment={data.recovery.sleepSentiment}
+              />
+            ) : null}
+            {data?.recovery.hrvLabel ? (
+              <RecoveryMetricTile
+                label="HRV"
+                value={data.recovery.hrvLabel}
+                sentiment={data.recovery.hrvSentiment}
+              />
+            ) : null}
+            {data?.recovery.feelLabel ? (
+              <RecoveryMetricTile
+                label="Feel"
+                value={data.recovery.feelLabel}
+                sentiment={data.recovery.feelSentiment}
+              />
+            ) : null}
+          </View>
         </EnterSection>
       ) : null}
 
@@ -391,6 +429,11 @@ export default function TodayScreen() {
                 ) : null}
               </>
             )}
+            <Button
+              variant="secondary"
+              label="Discuss with Coach"
+              onPress={openDiscussWithCoach}
+            />
           </View>
         </EnterSection>
       ) : null}
