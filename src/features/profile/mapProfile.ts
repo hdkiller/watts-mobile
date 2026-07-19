@@ -34,6 +34,13 @@ export function weightUnitLabel(units: WeightUnits): string {
   return units === 'Pounds' ? 'lbs' : 'kg';
 }
 
+/** Display unit for weight fields; falls back to kg when profile is missing. */
+export function weightUnit(
+  profile: Pick<AthleteProfile, 'weightUnits'> | null | undefined
+): string {
+  return weightUnitLabel(profile?.weightUnits ?? 'Kilograms');
+}
+
 function asFiniteNumber(value: unknown): number | null {
   if (typeof value !== 'number' || !Number.isFinite(value)) return null;
   return value;
