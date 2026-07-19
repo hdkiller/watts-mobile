@@ -1,10 +1,19 @@
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 
+import { useUnreadNotificationsCount } from '@/src/features/notifications/useNotifications';
 import { Colors } from '@/src/theme/colors';
 
 const tabContentStyle = { backgroundColor: Colors.background };
 
+function moreBadgeLabel(count: number): string | null {
+  if (count <= 0) return null;
+  return count > 9 ? '9+' : String(count);
+}
+
 export default function TabsLayout() {
+  const unreadCount = useUnreadNotificationsCount();
+  const moreBadge = moreBadgeLabel(unreadCount);
+
   return (
     <NativeTabs
       tintColor={Colors.brand}
@@ -47,6 +56,7 @@ export default function TabsLayout() {
           md="more_horiz"
         />
         <NativeTabs.Trigger.Label>More</NativeTabs.Trigger.Label>
+        {moreBadge ? <NativeTabs.Trigger.Badge>{moreBadge}</NativeTabs.Trigger.Badge> : null}
       </NativeTabs.Trigger>
     </NativeTabs>
   );

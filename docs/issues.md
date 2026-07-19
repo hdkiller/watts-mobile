@@ -24,9 +24,9 @@ Already shipped from that review (not tracked here): shared `Button` (variants, 
 | [012](./issues/012.md) | Coach input bar: icons + native attach sheet | Coach | medium | S | open |
 | [013](./issues/013.md) | Render markdown in coach replies | Coach | high | M | open |
 | [014](./issues/014.md) | Simplify coach header status line | Coach | low | XS | open |
-| [015](./issues/015.md) | Restructure More tab: sections, icons, chevrons, version | More | medium | M | open |
+| [015](./issues/015.md) | Restructure More tab: sections, icons, chevrons, version | More | medium | M | done |
 | [016](./issues/016.md) | Notification preferences screen | More | high | M | open |
-| [017](./issues/017.md) | Unread badge on More tab icon | More | low | XS | open |
+| [017](./issues/017.md) | Unread badge on More tab icon | More | low | XS | done |
 | [018](./issues/018.md) | Login polish: hide dev plumbing, add wordmark | auth | high | S | done |
 
 ## Companion expansion (beyond current scope)
