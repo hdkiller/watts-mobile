@@ -18,7 +18,7 @@ The mobile app SHALL identify itself with a configured `client_id` and MUST NOT 
 - **THEN** the token request includes `client_id`, `code`, `redirect_uri`, and `code_verifier` and does not require a compiled-in client secret
 
 ### Requirement: Request least-privilege scopes including offline access
-The authorization request SHALL include at least `profile:read`, `profile:write`, `workout:read`, `health:read`, `health:write`, `nutrition:read`, `nutrition:write`, `offline_access`, and recommendation/planning read scopes when available, matching the product baseline for Phase 1 readiness and v1.5 field writes (athlete metrics + nutrition quick-log).
+The authorization request SHALL include at least `profile:read`, `profile:write`, `workout:read`, `workout:write`, `health:read`, `health:write`, `nutrition:read`, `nutrition:write`, `offline_access`, and recommendation/planning read scopes when available, matching the product baseline for Phase 1 readiness, v1.5 field writes (athlete metrics + nutrition quick-log), and completed-workout AI analysis mutations.
 
 #### Scenario: Offline access requested
 - **WHEN** the user starts login
@@ -27,6 +27,10 @@ The authorization request SHALL include at least `profile:read`, `profile:write`
 #### Scenario: Nutrition scopes requested
 - **WHEN** the user starts login
 - **THEN** the authorize URL includes `nutrition:read` and `nutrition:write` in the scope list
+
+#### Scenario: Workout write scope requested
+- **WHEN** the user starts login
+- **THEN** the authorize URL includes `workout:write` in the scope list
 
 ### Requirement: Secure token storage
 The system SHALL store access and refresh tokens in the platform secure store and MUST NOT log token values.

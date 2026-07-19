@@ -48,4 +48,4 @@
 - [x] 7.2 Update `docs/store-privacy-checklist.md` and privacy copy for camera/photos
 - [x] 7.3 Update `docs/open-questions.md` / implementation-plan note for this change
 - [x] 7.4 Unit tests for session policy helper and file-part mapping
-- [ ] 7.5 Manual device smoke: idle >15m new room; room switch; photo meal log; deep link room
+- [x] 7.5 Manual device smoke: idle >15m new room; room switch; photo meal log; deep link room

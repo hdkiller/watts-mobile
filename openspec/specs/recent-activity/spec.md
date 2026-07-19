@@ -22,16 +22,52 @@ Each list row SHALL show an honest sync/analysis status when the API provides it
 - **THEN** the row displays a corresponding human-readable status
 
 ### Requirement: Lite activity summary
-Tapping a workout SHALL open a lite summary stack screen with core fields (title, date, duration, load/TSS when present).
+Tapping a workout SHALL open a summary stack screen with core fields (title, date, duration, load/TSS when present), optional lite summary metrics when present, and the AI analysis section when analysis data or status requires athlete attention. Deep charts/streams MAY still use Open web.
 
 #### Scenario: Open summary
 - **WHEN** the user taps a workout row
 - **THEN** the app navigates to that workout’s summary screen
 
+#### Scenario: Core fields still shown
+- **WHEN** the summary screen loads successfully
+- **THEN** the user sees title and available date/duration/load fields even if summary metrics or analysis are absent
+
+#### Scenario: Analysis visible when ready
+- **WHEN** the workout detail includes completed AI analysis content
+- **THEN** the summary screen shows that analysis in-app rather than requiring Open web solely to read it
+
 ### Requirement: Web escape for deep analysis
-The summary screen SHALL offer Open web (or equivalent) for deeper analysis rather than porting explorer UI.
+The summary screen SHALL offer Open web (or equivalent) for charts, streams, maps, and other explorer depth rather than porting those surfaces. AI analysis write-up and scores are in-app per `activity-ai-analysis`.
 
 #### Scenario: Open web from summary
 - **WHEN** the user chooses Open web from activity summary
 - **THEN** the system browser opens the instance URL for that workout or the instance home if a specific URL is unavailable
+
+### Requirement: Today Recently entry point
+Recent activity SHALL be reachable from a thin Recently teaser on the Today tab that reuses the same recent-activity query (`GET /api/workouts` with Bearer `workout:read`) and deep-links “See all” into the existing Recent activity list screen.
+
+#### Scenario: See all from Today
+- **WHEN** the user taps See all on Today’s Recently teaser
+- **THEN** the app navigates to the Recent activity list screen
+
+#### Scenario: Shared query cache
+- **WHEN** Today loads the Recently teaser
+- **THEN** it uses the same recent-activity query key/contract as the Recent activity screen (no separate invent endpoint)
+
+### Requirement: Lite activity summary metrics
+The lite activity summary screen SHALL show a compact summary of completed-workout metrics when `GET /api/workouts/:id?includeStreams=false` includes them, without loading streams or porting analysis charts.
+
+Displayed metrics MAY include distance (`distanceMeters`), average power (`averageWatts`), normalized power (`normalizedPower`), average heart rate (`averageHr`), elevation gain (`elevationGain`), and intensity factor (`intensity`) when each value is present and finite. The system MUST omit individual metrics that are absent and MUST omit the entire summary-metrics section when none are present. The system MUST NOT invent placeholder zeros.
+
+#### Scenario: Metrics present
+- **WHEN** the workout payload includes one or more of distance, average/normalized power, average HR, elevation, or intensity
+- **THEN** the summary screen shows those present metrics in a compact labeled layout
+
+#### Scenario: Metrics absent
+- **WHEN** the workout payload has none of the summary metric fields
+- **THEN** the summary screen does not show an empty metrics section
+
+#### Scenario: Streams remain off
+- **WHEN** the app loads activity summary
+- **THEN** it requests the workout with `includeStreams=false` (or equivalent) and does not render stream charts
 
