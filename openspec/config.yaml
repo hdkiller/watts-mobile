@@ -1,0 +1,18 @@
+schema: spec-driven
+
+context: |
+  Coach Watts native companion (iOS/Android). Not a full web port.
+  Stack: Expo + TypeScript, Expo Router, NativeWind, TanStack Query,
+  expo-secure-store, Expo Notifications, Sentry RN.
+  Auth: OAuth 2.0 Authorization Code + PKCE against coach-wattz IdP.
+  Product: Today / Log / Coach / More — daily athlete loop only.
+  See AGENTS.md and docs/ for scope, phases, and open questions.
+  Backend/API source of truth: ~/Develop/coach-wattz
+
+rules:
+  proposal:
+    - Respect v1 non-goals (no plan architect, analytics explorer, teams, billing)
+    - Call out coach-wattz backend dependencies explicitly
+  tasks:
+    - Prefer Phase 0 → 1 → 2 → 3 order from docs/implementation-plan.md
+    - Keep mobile free of server business logic beyond presentation/optimistic UI
