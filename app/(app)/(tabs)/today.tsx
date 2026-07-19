@@ -9,12 +9,22 @@ import {
   View,
 } from 'react-native';
 
+import { useActiveRecoveryQuery } from '@/src/features/recovery/useRecovery';
+import type { RecoveryContextItem } from '@/src/features/recovery/types';
 import { formatDuration } from '@/src/features/today/mapTodayPayload';
 import { useAcceptRecommendation, useTodayQuery } from '@/src/features/today/useToday';
 import { Colors } from '@/src/theme/colors';
 
 function openPlannedWorkout(id: string) {
   router.push(`/(app)/planned/${id}` as Href);
+}
+
+function openRecoveryEvent(item?: RecoveryContextItem) {
+  if (item) {
+    router.push(`/(app)/recovery-event?id=${encodeURIComponent(item.sourceRecordId)}` as Href);
+    return;
+  }
+  router.push('/(app)/recovery-event' as Href);
 }
 
 function greetingForNow(): string {
@@ -26,6 +36,11 @@ function greetingForNow(): string {
 
 export default function TodayScreen() {
   const { data, isLoading, isError, error, refetch, isRefetching } = useTodayQuery();
+  const {
+    data: activeRecovery,
+    refetch: refetchRecovery,
+    isRefetching: recoveryRefetching,
+  } = useActiveRecoveryQuery();
   const acceptMutation = useAcceptRecommendation();
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -37,6 +52,11 @@ export default function TodayScreen() {
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Accept failed');
     }
+  };
+
+  const onRefresh = () => {
+    void refetch();
+    void refetchRecovery();
   };
 
   if (isLoading && !data) {
@@ -53,8 +73,9 @@ export default function TodayScreen() {
     day: 'numeric',
   });
 
-  const hasRecovery =
+  const hasRecoveryMetrics =
     data?.recovery.sleepLabel || data?.recovery.hrvLabel || data?.recovery.feelLabel;
+  const hasActiveContext = Boolean(activeRecovery?.length);
 
   return (
     <ScrollView
@@ -62,8 +83,8 @@ export default function TodayScreen() {
       contentContainerClassName="px-6 pb-10 pt-4"
       refreshControl={
         <RefreshControl
-          refreshing={isRefetching}
-          onRefresh={() => void refetch()}
+          refreshing={isRefetching || recoveryRefetching}
+          onRefresh={onRefresh}
           tintColor={Colors.brand}
         />
       }
@@ -135,7 +156,7 @@ export default function TodayScreen() {
         </Pressable>
       ) : null}
 
-      {hasRecovery ? (
+      {hasRecoveryMetrics ? (
         <View className="mt-4 flex-row gap-2">
           {data?.recovery.sleepLabel ? (
             <View className="flex-1 rounded-lg border border-zinc-800 px-3 py-2">
@@ -155,6 +176,23 @@ export default function TodayScreen() {
               <Text className="text-sm text-white">{data.recovery.feelLabel}</Text>
             </View>
           ) : null}
+        </View>
+      ) : null}
+
+      {hasActiveContext ? (
+        <View className="mt-3 flex-row flex-wrap">
+          {activeRecovery!.map((item) => (
+            <Pressable
+              key={item.id}
+              className="mr-2 mt-2 rounded-full border border-zinc-700 bg-zinc-900/80 px-3 py-1.5 active:opacity-80"
+              onPress={() => openRecoveryEvent(item)}
+            >
+              <Text className="text-xs font-semibold text-zinc-200">
+                {item.label}
+                {item.severity != null ? ` · ${item.severity}/10` : ''}
+              </Text>
+            </Pressable>
+          ))}
         </View>
       ) : null}
 
@@ -188,6 +226,13 @@ export default function TodayScreen() {
           ) : null}
         </View>
       ) : null}
+
+      <Pressable
+        className="mt-5 self-start py-1 active:opacity-70"
+        onPress={() => openRecoveryEvent()}
+      >
+        <Text className="text-sm font-semibold text-brand">Log recovery event</Text>
+      </Pressable>
     </ScrollView>
   );
 }

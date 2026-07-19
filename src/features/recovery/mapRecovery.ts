@@ -1,0 +1,154 @@
+import { localDateYmd } from '@/src/features/log/mapLogForm';
+
+import {
+  DESCRIPTION_MAX,
+  findOptionForCategoryType,
+  optionById,
+  severityPresetFromValue,
+  severityValueFromPreset,
+} from './taxonomy';
+import type {
+  JourneyEventPayload,
+  RecoveryContextItem,
+  RecoveryEventFormValues,
+  TimePresetId,
+} from './types';
+
+export function toLocalDateTimeValue(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  const h = String(date.getHours()).padStart(2, '0');
+  const min = String(date.getMinutes()).padStart(2, '0');
+  return `${y}-${m}-${d}T${h}:${min}`;
+}
+
+export function fromLocalDateTimeValue(value: string): Date {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return new Date();
+  return parsed;
+}
+
+function setLocalTime(base: Date, hour: number, minute: number): Date {
+  const date = new Date(base);
+  date.setHours(hour, minute, 0, 0);
+  return date;
+}
+
+export function applyTimePreset(preset: TimePresetId, now = new Date()): string {
+  if (preset === 'custom') {
+    return toLocalDateTimeValue(now);
+  }
+  if (preset === 'now') {
+    return toLocalDateTimeValue(now);
+  }
+  if (preset === 'earlier-today') {
+    return toLocalDateTimeValue(setLocalTime(now, 8, 0));
+  }
+  // yesterday
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  return toLocalDateTimeValue(setLocalTime(yesterday, 9, 0));
+}
+
+export function emptyRecoveryEventForm(now = new Date()): RecoveryEventFormValues {
+  return {
+    optionId: 'fatigue',
+    severityPreset: 'moderate',
+    timePreset: 'now',
+    localTimestamp: toLocalDateTimeValue(now),
+    description: '',
+  };
+}
+
+export function formFromRecoveryItem(item: RecoveryContextItem): RecoveryEventFormValues {
+  const eventType =
+    typeof item.metadata?.eventType === 'string' ? item.metadata.eventType : undefined;
+  const option = findOptionForCategoryType(item.category, eventType);
+  return {
+    optionId: option.id,
+    severityPreset: severityPresetFromValue(item.severity),
+    timePreset: 'custom',
+    localTimestamp: toLocalDateTimeValue(new Date(item.startAt)),
+    description: item.description ?? '',
+  };
+}
+
+export function clampDescription(description: string): string {
+  return description.trim().slice(0, DESCRIPTION_MAX);
+}
+
+export function toJourneyPayload(values: RecoveryEventFormValues): JourneyEventPayload {
+  const option = optionById(values.optionId);
+  const description = clampDescription(values.description);
+  const payload: JourneyEventPayload = {
+    timestamp: fromLocalDateTimeValue(values.localTimestamp).toISOString(),
+    eventType: option.eventType,
+    category: option.category,
+    severity: severityValueFromPreset(values.severityPreset),
+  };
+  if (description) payload.description = description;
+  return payload;
+}
+
+export function isDescriptionValid(description: string): boolean {
+  return description.length <= DESCRIPTION_MAX;
+}
+
+export function parseRecoveryContextItem(raw: unknown): RecoveryContextItem | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  if (typeof r.id !== 'string' || typeof r.sourceRecordId !== 'string') return null;
+  if (typeof r.startAt !== 'string' || typeof r.endAt !== 'string') return null;
+
+  const kind = r.kind;
+  if (kind !== 'wellness' && kind !== 'journey_event' && kind !== 'daily_checkin') return null;
+
+  const sourceType = r.sourceType;
+  if (sourceType !== 'imported' && sourceType !== 'manual_event' && sourceType !== 'daily_checkin') {
+    return null;
+  }
+
+  return {
+    id: r.id,
+    sourceRecordId: r.sourceRecordId,
+    kind,
+    sourceType,
+    label: typeof r.label === 'string' ? r.label : 'Recovery context',
+    description: typeof r.description === 'string' ? r.description : null,
+    severity: typeof r.severity === 'number' ? r.severity : null,
+    startAt: r.startAt,
+    endAt: r.endAt,
+    editable: Boolean(r.editable),
+    deletable: Boolean(r.deletable),
+    origin: typeof r.origin === 'string' ? r.origin : '',
+    category: typeof r.category === 'string' ? r.category : null,
+    metadata:
+      r.metadata && typeof r.metadata === 'object'
+        ? (r.metadata as Record<string, unknown>)
+        : undefined,
+  };
+}
+
+export function parseRecoveryContextList(raw: unknown): RecoveryContextItem[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map(parseRecoveryContextItem).filter((item): item is RecoveryContextItem => !!item);
+}
+
+/** Match web useRecoveryContext activeToday filter (date portion only). */
+export function filterActiveToday(
+  items: RecoveryContextItem[],
+  today = localDateYmd()
+): RecoveryContextItem[] {
+  return items.filter((item) => {
+    const start = item.startAt.slice(0, 10);
+    const end = item.endAt.slice(0, 10);
+    return start <= today && end >= today;
+  });
+}
+
+export function eventTypeBadgeLabel(eventType: string): string {
+  if (eventType === 'RECOVERY_NOTE') return 'Recovery note';
+  if (eventType === 'WELLNESS_CHECK') return 'Wellness check';
+  return 'Symptom';
+}

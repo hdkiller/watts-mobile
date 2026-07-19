@@ -6,10 +6,10 @@ Distilled from coach-wattz PR [#239](https://github.com/hdkiller/coach/pull/239)
 
 | Surface | Role |
 |---------|------|
-| **Web** | Control room: planning, analytics, integrations, teams, nutrition depth, library, billing |
-| **Mobile** | Field companion: what should I do today, check in, ask the coach |
+| **Web** | Control room: planning, analytics, integrations, teams, nutrition planning depth, library, billing |
+| **Mobile** | Field companion: what should I do today, what’s coming up, check in, quick nutrition log, ask the coach |
 
-If a screen exists mainly to configure, explore, or architect training → web. Mobile ships the daily athlete loop only.
+If a screen exists mainly to configure, explore, or architect training → web. Mobile ships the daily athlete loop plus light field writes (wellness, recovery, nutrition quick-log, athlete metrics).
 
 ## Stack
 
@@ -20,7 +20,7 @@ Auth: OAuth 2.0 + PKCE · tokens in Secure Store · `offline_access` for refresh
 ## v1 scope (priority order)
 
 1. **Today** — planned workout + AI recommendation (accept / modify / rest), short rationale
-2. **Log** — sleep, readiness/feel, notes (weight if already in wellness flows)
+2. **Log** — daily wellness (sleep, readiness/feel, notes, weight if already in flows) **and** recovery events (illness, fatigue, sleep disruption, etc. — parity with web “Log recovery event”)
 3. **Session detail** — today’s planned structure; deep analysis → open web
 4. **Recent activity** — last few workouts with sync/analysis status (not full calendar)
 5. **Coach chat** — short Q&A seeded with today + recovery
@@ -29,21 +29,36 @@ Auth: OAuth 2.0 + PKCE · tokens in Secure Store · `offline_access` for refresh
 
 ## Explicit non-goals (v1)
 
-Plan architect · analytics/explorer · coaching teams · integration OAuth connects · nutrition planning · library editing · billing/admin.
+Plan architect · analytics/explorer · coaching teams · integration OAuth connects · nutrition planning / grocery · library editing · billing/admin · full web Profile Settings / Athlete Profile generate · calendar heatmaps.
 
 Use **Open in browser** instead of half-porting these.
 
+## v1.5 scope (after store-candidate v1)
+
+Promoted from vague “later” into an explicit companion expansion:
+
+1. **Upcoming planned workouts** — More → Upcoming (capped next ~7–14 days via `GET /api/planned-workouts`); not a fifth tab or heatmap
+2. **Richer session details** — planned interval/step summary when payload allows; lite completed-workout summary; deep analysis → open web
+3. **Athlete metrics edit** — More → Athlete: weight, FTP, max HR, LTHR (`profile:write` / `PATCH /api/profile`); not full Profile Settings
+4. **Nutrition quick-log** — Log tab section: today’s totals glance, macro/meal item log, hydration quick-add (`nutrition:read` / `nutrition:write`); planning/grocery stay on web
+
 ## Later (v1.5+)
 
-HealthKit / Health Connect · structured workout push to devices · stronger offline Today · weekly glance · optional nutrition quick-log.
+HealthKit / Health Connect · structured workout push to devices · stronger offline Today · weekly glance (load/form lite, not CTL).
 
 ## Information architecture
 
 **Tabs:** Today · Log · Coach · More
 
-**Stacks:** recommendation detail, planned workout detail, activity summary, notification inbox, sign-in / instance setup, settings.
+**Stacks:** recommendation detail, planned workout detail, activity summary, upcoming planned list, notification inbox, athlete metrics, nutrition log (Log stack), sign-in / instance setup, settings.
 
-**Today (top → bottom):** greeting → recommendation hero → planned workout → recovery strip → Accept / Modify / Rest → optional “Ask coach”.
+**Today (top → bottom):** greeting → recommendation hero → planned workout → recovery strip (+ active recovery chips when present) → Accept / Modify / Rest → quiet “Log recovery event” link → optional “Ask coach”.
+
+Recovery **writes** stay Log-first; Today only shows active context chips and a secondary text link (not a second hero CTA).
+
+**Log writes:** wellness + recovery events (+ nutrition quick-log in v1.5).
+
+**More hosts:** recent activity, upcoming planned, notifications, athlete metrics, account glue.
 
 First viewport = one decision. No CTL grids or calendar heatmaps.
 
@@ -51,24 +66,26 @@ First viewport = one decision. No CTL grids or calendar heatmaps.
 
 1. Morning path < 30s
 2. Thumb-first primary CTAs on Today
-3. Today/Coach decide; Log writes
+3. Today/Coach decide; Log writes (wellness + recovery events + nutrition quick-log)
 4. Push deep-links to Today or detail (never a dead inbox)
 5. Honest empty/loading (“Waiting for Whoop sync…”)
 6. Self-hosted instance URL first-class
 7. Web escape hatch for out-of-scope depth
 8. Do not clone `/dashboard`
 
-## Auth — suggested v1 scopes
+## Auth — suggested scopes
 
 | Scope | Why |
 |-------|-----|
-| `profile:read` | Name, basics, FTP |
-| `workout:read` | Recent + planned surface |
+| `profile:read` | Name, basics, FTP display |
+| `profile:write` | Athlete metrics edit (v1.5) |
+| `workout:read` | Recent + planned / upcoming surface |
 | `health:read` / `health:write` | Recovery strip + check-in |
 | `recommendations:read` / `recommendations:write` | Today + accept/dismiss |
 | `planning:read` | Today’s planned workout |
+| `nutrition:read` / `nutrition:write` | Nutrition quick-log (v1.5) |
 | `offline_access` | Refresh tokens |
-| Chat | **TBD** — see [open-questions.md](./open-questions.md) |
+| `chat:read` / `chat:write` | Coach tab send/receive (Official Mobile App allowlist still to confirm) |
 
 ## Companion API (logical)
 
@@ -77,8 +94,13 @@ First viewport = one decision. No CTL grids or calendar heatmaps.
 | Bootstrap / home | Prefer `GET /api/mobile/today` (new) or documented composition |
 | Recommendation actions | Existing accept / dismiss |
 | Wellness check-in | Existing wellness write |
-| Recent activities | Limited workouts list |
-| Chat | Existing chat APIs (auth/streaming TBD) |
+| Recovery event | `POST/PATCH/DELETE /api/recovery-context/journey*` + `GET /api/recovery-context` |
+| Recent activities | Limited workouts list (`GET /api/workouts`) |
+| Upcoming planned | `GET /api/planned-workouts` (date range + limit) |
+| Planned / activity detail | Planned + workout by id (Bearer); structure summary when available |
+| Athlete metrics | `GET/PATCH /api/profile` (`profile:read` / `profile:write`) |
+| Nutrition quick-log | `GET/POST /api/nutrition` (+ hydration quick-add when Bearer-ready) |
+| Chat | Existing rooms/messages APIs + Bearer WebSocket (`websocket-token`); `@ai-sdk/react` on client; poll as degraded fallback |
 | Notifications | Existing `/api/notifications` |
 | Push register | `POST /api/mobile/devices` (new) |
 

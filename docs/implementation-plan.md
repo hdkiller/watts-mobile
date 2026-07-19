@@ -4,7 +4,9 @@ Phased delivery for this repository. Product detail: [product-baseline.md](./pro
 
 ## Current state
 
-- Expo app scaffolded (Phase 0 OpenSpec change `phase-0-expo-oauth`).
+- Phase 0–1 and Log check-in shipped; OpenSpecs archived under `openspec/changes/archive/2026-07-19-*`.
+- Active OpenSpecs (apply-ready): `phase-2-log-recovery-event` → `phase-2-notifications-push` → `phase-3-coach-chat` → `phase-3-recent-activity` (workouts glance: recent + upcoming) → `phase-3-deep-links` → `phase-3-store-polish` (E2E deferred).
+- Phase 4 / v1.5 OpenSpecs proposed: `phase-4-athlete-profile-edit`, `phase-4-nutrition-quick-log` (after store candidate).
 - coach-wattz baseline PR [#239](https://github.com/hdkiller/coach/pull/239) still draft — merge when ready.
 - OAuth client registered as **Official Mobile App** in local + production; wire `EXPO_PUBLIC_OAUTH_CLIENT_ID` from [oauth-setup.md](./oauth-setup.md).
 
@@ -51,35 +53,75 @@ Goal: the morning decision surface.
 ## Phase 2 — Log + notifications
 
 - [x] Log tab wellness form → `POST /api/wellness` (`health:write`)
+- [x] Log recovery event (journey) parity with web — OpenSpec `phase-2-log-recovery-event`
 - [ ] Soft offline queue for check-in (nice-to-have in Phase 2; harden in 4)
-- [ ] Notifications list + mark read
-- [ ] `POST` device registration + Expo push token
-- [ ] Handle first push event types (deep-link stubs OK)
+- [ ] Notifications list + mark read — OpenSpec `phase-2-notifications-push`
+- [ ] `POST` device registration + Expo push token — same change
+- [ ] Handle first push event types (deep-link stubs OK) — same change
 
-**Also done:** `POST /api/checkin/answer` Bearer fix in coach-wattz; OpenSpec `phase-2-log-checkin` for the Log slice (notifications still open).
+**Also done:** `POST /api/checkin/answer` Bearer fix in coach-wattz; Log slice archived as `phase-2-log-checkin`.
 
-**Backend dependency:** device registration + push send hooks when analysis/recommendation completes.
+**Backend:** Recovery-event APIs already Bearer (`health:read` / `health:write`). Notifications still need Bearer + `POST /api/mobile/devices` + push send hooks.
 
-**Exit:** check-in saves; inbox works; at least one push path verified on device.
+**Exit:** check-in + recovery event save; inbox works; at least one push path verified on device.
+
+**Suggested apply order within Phase 2:** `phase-2-log-recovery-event` first (API ready), then `phase-2-notifications-push`.
 
 ## Phase 3 — Coach + polish
 
+OpenSpecs (suggested apply order after Phase 2 push):
+
+| Change | Focus |
+|--------|--------|
+| `phase-3-coach-chat` | Threaded chat via `@ai-sdk/react`, seeding, starter prompts, Bearer WS streaming (poll degraded) |
+| `phase-3-recent-activity` | Workouts glance: recent completed + upcoming planned + richer detail stacks (More) |
+| `phase-3-deep-links` | Scheme/universal link map + push path alignment |
+| `phase-3-store-polish` | Icons/splash, privacy strings, More account glue, Sentry |
+
 - [ ] Coach tab threaded chat with today/recovery context seeding
 - [ ] Starter prompts
-- [ ] Universal links / scheme for Today, recommendation, activity, chat
+- [ ] Recent activity (lite) from More
+- [ ] Upcoming planned list from More (same change / workouts glance)
+- [ ] Richer planned + activity detail (interval/step summary when available)
+- [ ] Universal links / scheme for Today, recommendation, activity, planned, chat
 - [ ] i18n (Tolgee keys / shared locales where practical)
 - [ ] Store prep: icons, splash, privacy strings
-- [ ] E2E smoke (Maestro or Detox): login → Today → Accept; login → Log → Save
+- [ ] ~~E2E smoke (Maestro or Detox)~~ deferred
 
-**Exit:** chat usable; deep links land correctly; store checklist started.
+**Exit:** chat usable; deep links land correctly; store checklist started (E2E not required for this exit).
 
-## Phase 4 — v1.5 extensions
+## Phase 4 — v1.5 companion expansion
 
+Product themes: [product-baseline.md](./product-baseline.md) § v1.5. Finish Phase 2–3 store candidate first; do not starve push/chat for these.
+
+OpenSpecs (suggested):
+
+| Change | Focus |
+|--------|--------|
+| `phase-3-recent-activity` (widen) | Upcoming planned + richer details if not finished in Phase 3 |
+| `phase-4-athlete-profile-edit` | More → Athlete metrics (weight, FTP, max HR, LTHR) |
+| `phase-4-nutrition-quick-log` | Log → nutrition totals + macro/meal log + hydration |
+
+Checklist:
+
+- [ ] Upcoming planned workouts (More → Upcoming, capped 7–14 days)
+- [ ] Richer planned workout detail (structure summary) + lite activity summary
+- [ ] Athlete metrics editor (`profile:write`, `GET/PATCH /api/profile`)
+- [ ] Nutrition quick-log on Log (`nutrition:read` / `nutrition:write`)
+- [ ] Soft offline queue for check-in (harden)
+- [ ] Stronger offline Today cache
+- [ ] Weekly glance (lite load/form — not CTL)
 - [ ] HealthKit / Health Connect ingest
 - [ ] Structured workout export to devices / Intervals
-- [ ] Stronger offline Today cache
-- [ ] Weekly glance (lite)
-- [ ] Optional nutrition quick-log
+
+**coach-wattz prerequisites (Phase 4 / workouts glance):**
+
+1. Bearer on `GET /api/planned-workouts/:id` (list already `workout:read`; detail may still be session-only)
+2. Confirm planned structure / intervals fields for mobile summary (compose or document)
+3. Official Mobile App allowlist: `profile:write`, `nutrition:read`, `nutrition:write`
+4. Bearer on nutrition hydration quick-add (and any session-only nutrition routes used by mobile)
+
+**Exit:** athlete can browse upcoming + recent, edit core metrics, and quick-log nutrition without opening web for the happy path.
 
 ## Suggested repo layout (target)
 
@@ -102,10 +144,11 @@ watts-mobile/
 Track separately (or as paired PRs) — mobile UI polish should not wait forever on these, but Phase 1+ needs them:
 
 1. Official companion OAuth client + redirect URIs
-2. Chat auth approach for Bearer clients
+2. Chat: Bearer `websocket-token` (+ prefer room `state`); confirm Official Mobile App `chat:*` scopes
 3. `GET /api/mobile/today` (or composition docs)
 4. `POST /api/mobile/devices` + push send path
 5. Deep-link / universal link host association
+6. Bearer + structure docs for planned workout detail; `profile:write` / `nutrition:*` on Official Mobile App (Phase 4)
 
 ## Definition of done (v1 store candidate)
 
@@ -113,3 +156,9 @@ Track separately (or as paired PRs) — mobile UI polish should not wait forever
 - Log + notifications + coach chat shippable
 - No v1 non-goal surfaces half-ported
 - Sentry + privacy labels + store metadata ready
+
+## Definition of done (v1.5 companion expansion)
+
+- Upcoming + recent workouts glance with usable detail stacks
+- Athlete metrics editable on device
+- Nutrition quick-log on Log (planning/grocery still web-only)

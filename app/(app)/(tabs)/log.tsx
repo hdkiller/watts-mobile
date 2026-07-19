@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -19,6 +19,8 @@ import {
 } from '@/src/features/log/mapLogForm';
 import { useSaveWellnessCheckin, useTodayWellnessQuery } from '@/src/features/log/useLog';
 import type { LogFormValues } from '@/src/features/log/types';
+import { useActiveRecoveryQuery } from '@/src/features/recovery/useRecovery';
+import type { RecoveryContextItem } from '@/src/features/recovery/types';
 import { Colors } from '@/src/theme/colors';
 
 function Field({
@@ -53,8 +55,39 @@ function Field({
   );
 }
 
+function openRecoveryEvent(item?: RecoveryContextItem) {
+  if (item) {
+    router.push(`/(app)/recovery-event?id=${encodeURIComponent(item.sourceRecordId)}` as Href);
+    return;
+  }
+  router.push('/(app)/recovery-event' as Href);
+}
+
+function RecoveryChip({ item }: { item: RecoveryContextItem }) {
+  const readOnly = item.sourceType === 'imported' || !item.editable;
+  return (
+    <Pressable
+      className="mr-2 mt-2 rounded-full border border-zinc-700 bg-zinc-900 px-3 py-2 active:opacity-80"
+      onPress={() => openRecoveryEvent(item)}
+    >
+      <Text className="text-xs font-semibold text-white">
+        {item.label}
+        {item.severity != null ? ` · ${item.severity}/10` : ''}
+        {readOnly ? ' · view' : ''}
+      </Text>
+    </Pressable>
+  );
+}
+
 export default function LogScreen() {
-  const { data: todayWellness, isLoading } = useTodayWellnessQuery();
+  const { data: todayWellness, isLoading: wellnessLoading } = useTodayWellnessQuery();
+  const {
+    data: activeRecovery,
+    isLoading: recoveryLoading,
+    isError: recoveryError,
+    error: recoveryErr,
+    refetch: refetchRecovery,
+  } = useActiveRecoveryQuery();
   const saveMutation = useSaveWellnessCheckin();
   const [values, setValues] = useState<LogFormValues>(emptyLogForm());
   const [error, setError] = useState<string | null>(null);
@@ -86,7 +119,7 @@ export default function LogScreen() {
     }
   };
 
-  if (isLoading && !todayWellness) {
+  if (wellnessLoading && !todayWellness) {
     return (
       <View className="flex-1 items-center justify-center bg-surface-dark">
         <ActivityIndicator color={Colors.brand} />
@@ -102,8 +135,56 @@ export default function LogScreen() {
       <ScrollView className="flex-1" contentContainerClassName="px-6 pb-12 pt-4">
         <Text className="text-2xl font-semibold text-white">Log</Text>
         <Text className="mt-2 text-base text-ink-muted">
-          Quick wellness check-in for today. Save, then head back to Today.
+          Check in for today, or log a recovery event that explains how you feel.
         </Text>
+
+        <Text className="mb-1 mt-8 text-xs font-semibold uppercase tracking-widest text-ink-muted">
+          Recovery events
+        </Text>
+        <Text className="text-sm text-ink-muted">
+          Illness, fatigue, sleep, stress — context Coach Watts uses for guidance.
+        </Text>
+
+        {recoveryLoading && !activeRecovery ? (
+          <ActivityIndicator className="mt-4" color={Colors.brand} />
+        ) : null}
+
+        {recoveryError ? (
+          <View className="mt-3 rounded-xl border border-red-900/50 bg-red-950/40 p-3">
+            <Text className="text-sm text-red-300">
+              {recoveryErr instanceof Error
+                ? recoveryErr.message
+                : 'Could not load recovery context'}
+            </Text>
+            <Pressable className="mt-2" onPress={() => void refetchRecovery()}>
+              <Text className="font-semibold text-brand">Retry</Text>
+            </Pressable>
+          </View>
+        ) : null}
+
+        {!recoveryError && activeRecovery && activeRecovery.length === 0 ? (
+          <Text className="mt-3 text-sm text-ink-muted">No active recovery context for today.</Text>
+        ) : null}
+
+        {activeRecovery && activeRecovery.length > 0 ? (
+          <View className="mt-1 flex-row flex-wrap">
+            {activeRecovery.map((item) => (
+              <RecoveryChip key={item.id} item={item} />
+            ))}
+          </View>
+        ) : null}
+
+        <Pressable
+          className="mt-4 items-center rounded-xl border border-zinc-700 py-3.5 active:opacity-80"
+          onPress={() => openRecoveryEvent()}
+        >
+          <Text className="text-base font-semibold text-white">Log recovery event</Text>
+        </Pressable>
+
+        <Text className="mb-1 mt-10 text-xs font-semibold uppercase tracking-widest text-ink-muted">
+          Daily wellness
+        </Text>
+        <Text className="text-sm text-ink-muted">Sleep, feel, and notes for today.</Text>
 
         <Field
           label="Feel / readiness (1–10)"

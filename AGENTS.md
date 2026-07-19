@@ -14,9 +14,15 @@ This app is the **field companion**: today’s recommendation, check-in, light c
 | [docs/open-questions.md](docs/open-questions.md) | Decisions to resolve before/during Phase 0–1 |
 | [docs/oauth-setup.md](docs/oauth-setup.md) | Public OAuth client + redirect URI registration |
 | coach-wattz `docs/06-plans/mobile-companion-app.md` | Full living baseline (PR [#239](https://github.com/hdkiller/coach/pull/239); merge pending) |
-| OpenSpec `phase-0-expo-oauth` | Phase 0 scaffold + OAuth PKCE (complete; archive when ready) |
-| OpenSpec `phase-1-today-loop` | Today recommendation loop |
-| OpenSpec `phase-2-log-checkin` | Log wellness check-in (notifications still open) |
+| OpenSpec archive `2026-07-19-phase-0/1/2-log-*` | Auth, Today, Log check-in (done) |
+| OpenSpec `phase-2-log-recovery-event` | Log recovery event (journey) parity with web |
+| OpenSpec `phase-2-notifications-push` | Inbox + Expo push registration/handling |
+| OpenSpec `phase-3-coach-chat` | Coach tab chat (polling-first) |
+| OpenSpec `phase-3-recent-activity` | Workouts glance: recent + upcoming planned + detail |
+| OpenSpec `phase-3-deep-links` | Scheme / universal links + push paths |
+| OpenSpec `phase-3-store-polish` | Store chrome + More account glue (E2E deferred) |
+| OpenSpec `phase-4-athlete-profile-edit` | Athlete metrics edit (v1.5) |
+| OpenSpec `phase-4-nutrition-quick-log` | Nutrition quick-log on Log (v1.5) |
 
 When the coach-wattz PR merges, prefer that file for product/API narrative and keep this repo’s docs focused on **implementation**.
 
@@ -49,9 +55,11 @@ Local coach-wattz (workspace default): `http://localhost:3099/api/`
 
 ## v1 product summary
 
-**In:** Today (recommendation + planned workout), Log (wellness check-in), recent activities (lite), Coach chat (seeded), notifications, account glue (instance URL, sign-in, open web).
+**In (v1):** Today (recommendation + planned workout), Log (wellness check-in + recovery events), recent activities (lite), Coach chat (seeded), notifications, account glue (instance URL, sign-in, open web).
 
-**Out:** Plan architect, analytics/explorer, coaching teams, integration OAuth connects, nutrition planning, library editing, billing/admin.
+**In (v1.5):** Upcoming planned, richer session details, athlete metrics edit, nutrition quick-log.
+
+**Out:** Plan architect, analytics/explorer, coaching teams, integration OAuth connects, nutrition planning/grocery, library editing, billing/admin, full Profile Settings.
 
 IA: bottom tabs **Today · Log · Coach · More**.
 

@@ -36,6 +36,14 @@ export default function AppLayout() {
           presentation: 'card',
         }}
       />
+      <Stack.Screen
+        name="recovery-event"
+        options={{
+          headerShown: true,
+          title: 'Recovery event',
+          presentation: 'card',
+        }}
+      />
     </Stack>
   );
 }
