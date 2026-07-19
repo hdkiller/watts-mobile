@@ -1,7 +1,17 @@
 import { apiFetch } from '@/src/api/client';
+import { getItemAsync, setItemAsync } from '@/src/storage/secureStorage';
 
 import { mapNotificationsList } from './mapNotifications';
-import type { NotificationsInbox, RegisterDeviceBody } from './types';
+import type { NotificationsInbox, NotificationPreferences, RegisterDeviceBody } from './types';
+
+const PREFS_STORAGE_KEY = 'watts.push.preferences';
+
+const DEFAULT_PREFERENCES: NotificationPreferences = {
+  RECOMMENDATION_READY: true,
+  WORKOUT_ANALYSIS_READY: true,
+  SYNC_COMPLETED: true,
+  COACH_MESSAGE: true,
+};
 
 async function readErrorMessage(response: Response, fallback: string): Promise<string> {
   try {
@@ -97,4 +107,58 @@ export async function unregisterMobileDevice(token: string): Promise<void> {
   }
 
   console.warn(await readErrorMessage(response, `Device unregister failed (${response.status})`));
+}
+
+export async function fetchNotificationPreferences(): Promise<NotificationPreferences> {
+  // 1. Attempt to fetch from backend
+  try {
+    const response = await apiFetch('/api/mobile/devices/preferences');
+    if (response.ok) {
+      const data = await response.json();
+      if (data && typeof data === 'object') {
+        const parsed = data as NotificationPreferences;
+        await setItemAsync(PREFS_STORAGE_KEY, JSON.stringify(parsed));
+        return parsed;
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to fetch preferences from backend, using local:', error);
+  }
+
+  // 2. Local fallback
+  const stored = await getItemAsync(PREFS_STORAGE_KEY);
+  if (stored) {
+    try {
+      return JSON.parse(stored) as NotificationPreferences;
+    } catch {
+      // ignore
+    }
+  }
+  return DEFAULT_PREFERENCES;
+}
+
+export async function updateNotificationPreferences(
+  preferences: NotificationPreferences
+): Promise<NotificationPreferences> {
+  // 1. Always update local storage first
+  await setItemAsync(PREFS_STORAGE_KEY, JSON.stringify(preferences));
+
+  // 2. Sync with backend
+  try {
+    const response = await apiFetch('/api/mobile/devices/preferences', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ preferences }),
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (data && typeof data === 'object') {
+        return data as NotificationPreferences;
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to sync preferences with backend:', error);
+  }
+
+  return preferences;
 }

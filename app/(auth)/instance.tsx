@@ -73,6 +73,14 @@ export default function InstanceScreen() {
             <Text className="text-base font-semibold text-ink">Continue</Text>
           )}
         </Pressable>
+
+        <Pressable
+          className="mt-3 items-center py-3 active:opacity-80"
+          onPress={() => router.replace('/(auth)/login')}
+          disabled={busy}
+        >
+          <Text className="text-sm font-semibold text-ink-muted">Cancel</Text>
+        </Pressable>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

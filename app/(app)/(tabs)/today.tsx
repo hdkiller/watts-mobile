@@ -2,13 +2,16 @@ import { router, type Href } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState, type ReactNode } from 'react';
 import {
+  ActivityIndicator,
   Pressable,
   RefreshControl,
   ScrollView,
   Text,
   View,
 } from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
@@ -20,13 +23,18 @@ import { SportIcon } from '@/src/components/SportIcon';
 import { useRecentActivityQuery, useUpcomingPlannedQuery } from '@/src/features/activity/useActivity';
 import { NutritionGlance } from '@/src/features/nutrition/NutritionGlance';
 import { useTodayNutritionQuery } from '@/src/features/nutrition/useNutrition';
+import { useDailyCheckinQuery } from '@/src/features/log/useDailyCheckin';
 import { isNutritionTrackingEnabled } from '@/src/features/profile/mapProfile';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
+import { DASHBOARD_PROFILE_KEY } from '@/src/features/profile/useRecentWellness';
 import { useActiveRecoveryQuery } from '@/src/features/recovery/useRecovery';
 import { ActiveRecoveryBand } from '@/src/features/today/active-recovery-band';
 import { AnalysisReadyCard } from '@/src/features/today/analysis-ready-card';
 import { ComingUpStrip } from '@/src/features/today/coming-up-strip';
 import { EventCountdownChip } from '@/src/features/today/event-countdown-chip';
+import { TrainingLoadGlance } from '@/src/features/performance/TrainingLoadGlance';
+import { pmcQueryKey } from '@/src/features/performance/usePmc';
+import { RecentWellnessGlance } from '@/src/features/today/RecentWellnessGlance';
 import {
   confidenceFilledCount,
   formatDuration,
@@ -34,9 +42,14 @@ import {
   type HeroTone,
 } from '@/src/features/today/mapTodayPayload';
 import { RecentlyTeaser } from '@/src/features/today/recently-teaser';
+import { fetchRecommendationStatus } from '@/src/features/today/api';
 import { syncTodayWidget } from '@/src/features/today/syncTodayWidget';
 import type { RecoverySentiment, TodayPlannedWorkout } from '@/src/features/today/types';
-import { useAcceptRecommendation, useTodayQuery } from '@/src/features/today/useToday';
+import {
+  useAcceptRecommendation,
+  useGenerateTodayRecommendation,
+  useTodayQuery,
+} from '@/src/features/today/useToday';
 import { WeekGlanceStrip } from '@/src/features/today/week-glance-strip';
 import { hapticError, hapticSuccess } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
@@ -49,36 +62,7 @@ function openDiscussWithCoach() {
   router.push('/(app)/(tabs)/coach?discuss=1' as Href);
 }
 
-const SENTIMENT_DOT: Record<RecoverySentiment, string> = {
-  good: 'bg-green-400',
-  ok: 'bg-modify',
-  poor: 'bg-red-400',
-};
 
-function RecoveryMetricTile({
-  label,
-  value,
-  sentiment,
-}: {
-  label: string;
-  value: string;
-  sentiment: RecoverySentiment | null | undefined;
-}) {
-  return (
-    <View className="flex-1 rounded-lg border border-zinc-800 px-3 py-2">
-      <View className="flex-row items-center gap-1.5">
-        {sentiment ? (
-          <View
-            accessibilityLabel={`${label} ${sentiment}`}
-            className={`h-1.5 w-1.5 rounded-full ${SENTIMENT_DOT[sentiment]}`}
-          />
-        ) : null}
-        <Text className="text-[10px] uppercase text-ink-muted">{label}</Text>
-      </View>
-      <Text className="mt-0.5 text-sm text-white">{value}</Text>
-    </View>
-  );
-}
 
 const HERO_TONE_CLASSES: Record<
   HeroTone,
@@ -186,6 +170,7 @@ function EnterSection({ order, children }: { order: number; children: ReactNode 
 
 export default function TodayScreen() {
   const { instanceUrl } = useAuth();
+  const queryClient = useQueryClient();
   const { data, isLoading, isError, error, refetch, isRefetching, dataUpdatedAt } = useTodayQuery();
   const {
     data: activeRecovery,
@@ -197,10 +182,63 @@ export default function TodayScreen() {
   const upcomingQuery = useUpcomingPlannedQuery();
   const recentQuery = useRecentActivityQuery();
   const profileQuery = useAthleteProfileQuery();
+  const dailyCheckinQuery = useDailyCheckinQuery();
   const nutritionEnabled = isNutritionTrackingEnabled(profileQuery.data);
   const nutritionQuery = useTodayNutritionQuery({ enabled: nutritionEnabled });
   const acceptMutation = useAcceptRecommendation();
+
+  const isDailyCheckinCompleted = dailyCheckinQuery.data
+    ? dailyCheckinQuery.data.questions.length > 0 &&
+      dailyCheckinQuery.data.questions.every((q) => q.answer != null)
+    : false;
+
   const [actionError, setActionError] = useState<string | null>(null);
+  const [genState, setGenState] = useState<'idle' | 'generating' | 'error' | 'quota'>('idle');
+  const [genError, setGenError] = useState<string | null>(null);
+  const generateMutation = useGenerateTodayRecommendation();
+
+  const onGenerate = async () => {
+    setGenState('generating');
+    setGenError(null);
+    try {
+      const res = await generateMutation.mutateAsync(undefined);
+      if (res.jobId) {
+        let attempts = 0;
+        const maxAttempts = 30;
+        const poll = setInterval(async () => {
+          attempts++;
+          try {
+            const status = await fetchRecommendationStatus(res.jobId);
+            if (!status.isRunning) {
+              clearInterval(poll);
+              setGenState('idle');
+              void refetch();
+            } else if (attempts >= maxAttempts) {
+              clearInterval(poll);
+              setGenState('error');
+              setGenError('Generation timed out. Please try again.');
+            }
+          } catch (err) {
+            clearInterval(poll);
+            setGenState('error');
+            setGenError('Failed to check generation status.');
+          }
+        }, 2500);
+      } else {
+        setGenState('idle');
+        void refetch();
+      }
+    } catch (err: any) {
+      if (err.message && err.message.includes('Quota')) {
+        setGenState('quota');
+        setGenError(err.message || 'Quota exceeded for activity recommendation.');
+      } else {
+        setGenState('error');
+        setGenError(friendlyError(err, 'Failed to generate recommendation'));
+      }
+    }
+  };
+
   const showCachedOffline = Boolean(isError && data);
 
   useEffect(() => {
@@ -230,25 +268,35 @@ export default function TodayScreen() {
     void upcomingQuery.refetch();
     void recentQuery.refetch();
     void profileQuery.refetch();
+    void dailyCheckinQuery.refetch();
+    void queryClient.invalidateQueries({ queryKey: DASHBOARD_PROFILE_KEY });
+    void queryClient.invalidateQueries({ queryKey: ['wellness'] });
+    void queryClient.invalidateQueries({ queryKey: pmcQueryKey(90) });
     if (nutritionEnabled) void nutritionQuery.refetch();
   };
 
   if (isLoading && !data) {
     return (
-      <SkeletonScreen>
-        <View className="flex-1 bg-surface-dark px-6 pt-4">
-          <Skeleton className="h-4 w-28" />
-          <Skeleton className="mt-2 h-7 w-48" />
-          <Skeleton className="mt-6 h-44 rounded-2xl" />
-          <View className="mt-4 flex-row gap-2">
-            <Skeleton className="h-14 flex-1" />
-            <Skeleton className="h-14 flex-1" />
-            <Skeleton className="h-14 flex-1" />
+      <SafeAreaView
+        testID="today-screen"
+        edges={{ top: true }}
+        style={{ flex: 1, backgroundColor: Colors.background }}
+      >
+        <SkeletonScreen>
+          <View className="flex-1 bg-surface-dark px-6 pt-4">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="mt-2 h-7 w-48" />
+            <Skeleton className="mt-6 h-44 rounded-2xl" />
+            <View className="mt-4 flex-row gap-2">
+              <Skeleton className="h-14 flex-1" />
+              <Skeleton className="h-14 flex-1" />
+              <Skeleton className="h-14 flex-1" />
+            </View>
+            <Skeleton className="mt-6 h-12 rounded-xl" />
+            <Skeleton className="mt-3 h-12 rounded-xl" />
           </View>
-          <Skeleton className="mt-6 h-12 rounded-xl" />
-          <Skeleton className="mt-3 h-12 rounded-xl" />
-        </View>
-      </SkeletonScreen>
+        </SkeletonScreen>
+      </SafeAreaView>
     );
   }
 
@@ -258,8 +306,6 @@ export default function TodayScreen() {
     day: 'numeric',
   });
 
-  const hasRecoveryMetrics =
-    data?.recovery.sleepLabel || data?.recovery.hrvLabel || data?.recovery.feelLabel;
   const hasRecommendation = Boolean(data?.recommendationId);
   const planned = data?.plannedWorkout ?? null;
   const hardError = isError && !data;
@@ -270,6 +316,11 @@ export default function TodayScreen() {
   const lastUpdatedLabel = formatLastUpdated(dataUpdatedAt);
 
   return (
+    <SafeAreaView
+      testID="today-screen"
+      edges={{ top: true }}
+      style={{ flex: 1, backgroundColor: Colors.background }}
+    >
     <ScrollView
       className="flex-1 bg-surface-dark"
       contentContainerClassName="px-6 pb-10 pt-4"
@@ -281,6 +332,7 @@ export default function TodayScreen() {
             upcomingQuery.isRefetching ||
             recentQuery.isRefetching ||
             profileQuery.isRefetching ||
+            dailyCheckinQuery.isRefetching ||
             nutritionQuery.isRefetching
           }
           onRefresh={onRefresh}
@@ -308,23 +360,78 @@ export default function TodayScreen() {
 
       <AnalysisReadyCard recent={recentQuery.data} />
 
+      {!isDailyCheckinCompleted ? (
+        <EnterSection order={1}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Do Quick Daily Coach Check-In"
+            className="mt-6 flex-row items-center justify-between rounded-xl border border-brand bg-brand/5 p-4"
+            onPress={() => router.push('/(app)/daily-checkin' as Href)}
+          >
+            <View className="flex-1 pr-3">
+              <Text className="text-xs uppercase tracking-wide text-brand font-semibold">
+                Coach Check-In
+              </Text>
+              <Text className="mt-1 text-base font-semibold text-white">
+                Do Quick Daily Coach Check-In
+              </Text>
+              <Text className="mt-1 text-xs text-ink-muted">
+                Coach has questions prepared to adjust today's recommendation.
+              </Text>
+            </View>
+            <Text className="text-xl text-brand">→</Text>
+          </Pressable>
+        </EnterSection>
+      ) : null}
+
       {emptyNoDecision ? (
         <View className="mt-6 rounded-xl border border-zinc-800 bg-zinc-900/80 p-5">
-          <Text className="text-lg font-semibold text-white">No recommendation yet</Text>
-          <Text className="mt-2 text-sm leading-5 text-ink-muted">
-            Waiting for today’s AI recommendation (or sync). Pull to refresh, or open the web app to
-            generate guidance.
-          </Text>
-          <View className="mt-4 flex-row flex-wrap gap-x-4 gap-y-2">
-            <Pressable className="py-1 active:opacity-70" hitSlop={8} onPress={() => void refetch()}>
-              <Text className="font-semibold text-brand">Retry</Text>
-            </Pressable>
-            {instanceUrl ? (
-              <Pressable className="py-1 active:opacity-70" hitSlop={8} onPress={() => void openWeb()}>
-                <Text className="font-semibold text-brand">Open web</Text>
-              </Pressable>
-            ) : null}
-          </View>
+          {genState === 'generating' ? (
+            <View className="items-center py-4">
+              <ActivityIndicator color={Colors.brand} size="small" />
+              <Text className="mt-3 text-base font-semibold text-white">Analyzing readiness…</Text>
+              <Text className="mt-1 text-center text-xs text-ink-muted animate-pulse">
+                Creating today's personalized AI recommendation
+              </Text>
+            </View>
+          ) : genState === 'quota' ? (
+            <View>
+              <Text className="text-lg font-semibold text-white">Recommendation limit reached</Text>
+              <Text className="mt-2 text-sm leading-5 text-red-300">
+                {genError || 'Update your plan on the web to generate more recommendations.'}
+              </Text>
+              <View className="mt-4 flex-row gap-4">
+                <Button label="Open web" className="flex-1" onPress={() => void openWeb()} />
+                <Button label="Retry" variant="secondary" onPress={() => setGenState('idle')} />
+              </View>
+            </View>
+          ) : genState === 'error' ? (
+            <View>
+              <Text className="text-lg font-semibold text-white">Generation failed</Text>
+              <Text className="mt-2 text-sm leading-5 text-red-300">
+                {genError || 'An error occurred while generating recommendation.'}
+              </Text>
+              <View className="mt-4 flex-row gap-4">
+                <Button label="Retry" className="flex-1" onPress={() => void onGenerate()} />
+                <Button label="Cancel" variant="secondary" onPress={() => setGenState('idle')} />
+              </View>
+            </View>
+          ) : (
+            <View>
+              <Text className="text-lg font-semibold text-white">No recommendation yet</Text>
+              <Text className="mt-2 text-sm leading-5 text-ink-muted">
+                Generate today’s personalized recommendation using your latest biometrics.
+              </Text>
+              <View className="mt-4 gap-3">
+                <Button
+                  label="Analyze Readiness"
+                  onPress={() => void onGenerate()}
+                  loading={generateMutation.isPending}
+                />
+
+              </View>
+            </View>
+          )}
         </View>
       ) : null}
 
@@ -366,33 +473,9 @@ export default function TodayScreen() {
         </EnterSection>
       ) : null}
 
-      {hasRecoveryMetrics ? (
-        <EnterSection order={3}>
-          <View className="mt-4 flex-row gap-2">
-            {data?.recovery.sleepLabel ? (
-              <RecoveryMetricTile
-                label="Sleep"
-                value={data.recovery.sleepLabel}
-                sentiment={data.recovery.sleepSentiment}
-              />
-            ) : null}
-            {data?.recovery.hrvLabel ? (
-              <RecoveryMetricTile
-                label="HRV"
-                value={data.recovery.hrvLabel}
-                sentiment={data.recovery.hrvSentiment}
-              />
-            ) : null}
-            {data?.recovery.feelLabel ? (
-              <RecoveryMetricTile
-                label="Feel"
-                value={data.recovery.feelLabel}
-                sentiment={data.recovery.feelSentiment}
-              />
-            ) : null}
-          </View>
-        </EnterSection>
-      ) : null}
+      <EnterSection order={3}>
+        <RecentWellnessGlance />
+      </EnterSection>
 
       <ActiveRecoveryBand
         items={activeRecovery}
@@ -459,9 +542,7 @@ export default function TodayScreen() {
         <EnterSection order={2}>
           <View className="mt-6 gap-3">
             <Button label="View workout details" onPress={() => openPlannedWorkout(planned.id)} />
-            {instanceUrl ? (
-              <Button variant="secondary" label="Open web" onPress={() => void openWeb()} />
-            ) : null}
+
           </View>
           <EventCountdownChip />
         </EnterSection>
@@ -470,11 +551,13 @@ export default function TodayScreen() {
       {!hasRecommendation && !plannedOnlyHero ? <EventCountdownChip /> : null}
 
       <EnterSection order={5}>
+        <TrainingLoadGlance />
         <WeekGlanceStrip recent={recentQuery.data} planned={upcomingQuery.data} />
         <ComingUpStrip excludePlannedId={planned?.id} />
         <RecentlyTeaser />
         <NutritionGlance />
       </EnterSection>
     </ScrollView>
+    </SafeAreaView>
   );
 }

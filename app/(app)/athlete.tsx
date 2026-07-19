@@ -1,10 +1,9 @@
-import { Stack } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
+import { Stack, router, type Href } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -14,8 +13,10 @@ import {
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
+import { AthleteProfileOverview } from '@/src/features/profile/AthleteProfileOverview';
 import {
   absoluteInstanceUrl,
+  athleteProfileWebPath,
   emptyAthleteForm,
   formFromAthleteProfile,
   formHasInvalidNumbers,
@@ -24,24 +25,28 @@ import {
   toAthleteMetricsPatch,
   weightUnitLabel,
 } from '@/src/features/profile/mapProfile';
-import { useAthleteProfileQuery, usePatchAthleteMetrics } from '@/src/features/profile/useProfile';
-import type { AthleteMetricsFormValues } from '@/src/features/profile/types';
+import { ATHLETE_PROFILE_KEY, useAthleteProfileQuery, usePatchAthleteMetrics } from '@/src/features/profile/useProfile';
+import type { AthleteMetricsFormValues, AthleteProfile } from '@/src/features/profile/types';
+import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
 import { Colors } from '@/src/theme/colors';
 
 export default function AthleteMetricsScreen() {
+  const queryClient = useQueryClient();
   const { instanceUrl, refreshUser } = useAuth();
-  const { data, isLoading, isError, error, refetch, isFetching } = useAthleteProfileQuery();
+  const { data, isLoading, isError, error, refetch } = useAthleteProfileQuery();
   const saveMutation = usePatchAthleteMetrics();
+  const { containerRef, overlap } = useKeyboardOverlap();
 
-  const [values, setValues] = useState<AthleteMetricsFormValues>(emptyAthleteForm());
-  const [hydrated, setHydrated] = useState(false);
+  const [values, setValues] = useState<AthleteMetricsFormValues>(() => {
+    const cached = queryClient.getQueryData<AthleteProfile>(ATHLETE_PROFILE_KEY);
+    return cached ? formFromAthleteProfile(cached) : emptyAthleteForm();
+  });
   const [formError, setFormError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!data) return;
     setValues(formFromAthleteProfile(data));
-    setHydrated(true);
   }, [data]);
 
   const patch = <K extends keyof AthleteMetricsFormValues>(
@@ -53,10 +58,17 @@ export default function AthleteMetricsScreen() {
     setValues((prev) => ({ ...prev, [key]: value }));
   };
 
-  const openWeb = async () => {
+  const openWebSettings = async () => {
     if (!instanceUrl) return;
     await WebBrowser.openBrowserAsync(
       absoluteInstanceUrl(instanceUrl, profileSettingsWebPath())
+    );
+  };
+
+  const openWebReport = async () => {
+    if (!instanceUrl) return;
+    await WebBrowser.openBrowserAsync(
+      absoluteInstanceUrl(instanceUrl, athleteProfileWebPath())
     );
   };
 
@@ -96,9 +108,9 @@ export default function AthleteMetricsScreen() {
   return (
     <>
       <Stack.Screen options={{ title: 'Athlete', headerShown: true }} />
-      {isLoading || (isFetching && !hydrated) ? (
+      {isLoading && !data ? (
         <View className="flex-1 items-center justify-center bg-surface-dark">
-          <ActivityIndicator color={Colors.brand} />
+          <ActivityIndicator color={Colors.brand} size="large" />
         </View>
       ) : isError && !data ? (
         <View className="flex-1 bg-surface-dark px-6 pt-6">
@@ -113,25 +125,39 @@ export default function AthleteMetricsScreen() {
           </Pressable>
           <Pressable
             className="mt-3 items-center rounded-xl border border-zinc-700 py-3.5 active:opacity-80"
-            onPress={() => void openWeb()}
+            onPress={() => void openWebReport()}
           >
             <Text className="text-base font-semibold text-white">Open web</Text>
           </Pressable>
         </View>
       ) : (
-        <KeyboardAvoidingView
-          className="flex-1 bg-surface-dark"
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
+        <View ref={containerRef} className="flex-1 bg-surface-dark">
           <ScrollView
             className="flex-1"
-            contentContainerClassName="px-6 pb-10 pt-4"
+            contentContainerClassName="px-6 pt-4"
+            contentContainerStyle={{ paddingBottom: 40 + overlap }}
             keyboardShouldPersistTaps="handled"
           >
-            <Text className="text-2xl font-semibold text-white">Athlete metrics</Text>
+            {data ? (
+              <AthleteProfileOverview
+                profile={data}
+                onOpenWebReport={() => void openWebReport()}
+              />
+            ) : null}
+
+            <Text className="text-xl font-semibold text-white">Edit metrics</Text>
             <Text className="mt-2 text-sm text-ink-muted">
-              Update core training numbers. Full Profile Settings stay on the web.
+              Edits your default sport profile (weight, FTP, max HR, LTHR). For per-sport thresholds,
+              use Settings → Sports. Distance, temperature, and timezone live under Settings → Units
+              & locale. Zones and advanced Sport Settings stay on the web.
             </Text>
+            <Pressable
+              className="mt-3 self-start py-1 active:opacity-70"
+              hitSlop={8}
+              onPress={() => router.push('/(app)/settings/sports' as Href)}
+            >
+              <Text className="text-sm font-semibold text-brand">Settings → Sports</Text>
+            </Pressable>
 
             <Field
               label={`Weight (${unit})`}
@@ -181,12 +207,12 @@ export default function AthleteMetricsScreen() {
 
             <Pressable
               className="mt-3 items-center rounded-xl border border-zinc-700 py-3.5 active:opacity-80"
-              onPress={() => void openWeb()}
+              onPress={() => void openWebSettings()}
             >
               <Text className="text-base font-semibold text-white">Open web Profile Settings</Text>
             </Pressable>
           </ScrollView>
-        </KeyboardAvoidingView>
+        </View>
       )}
     </>
   );

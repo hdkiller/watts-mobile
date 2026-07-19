@@ -23,6 +23,7 @@ export default function CoachScreen() {
 
   return (
     <SafeAreaView
+      testID="coach-screen"
       edges={{ top: true, bottom: true }}
       style={{ flex: 1, backgroundColor: Colors.background }}
     >

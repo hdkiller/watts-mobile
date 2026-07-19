@@ -2,14 +2,54 @@ import type {
   AthleteMetricsFormValues,
   AthleteMetricsPatch,
   AthleteProfile,
+  AiPersona,
+  AiSettingsLite,
+  DistanceUnits,
+  TemperatureUnits,
   WeightUnits,
 } from './types';
 
 /** Matches coach-wattz `LBS_TO_KG`. */
 export const LBS_TO_KG = 0.45359237;
 
+const AI_PERSONAS: AiPersona[] = [
+  'Analytical',
+  'Supportive',
+  'Drill Sergeant',
+  'Motivational',
+];
+
 export function profileSettingsWebPath(): string {
   return '/profile/settings';
+}
+
+export function athleteProfileWebPath(): string {
+  return '/profile/athlete';
+}
+
+/** ISO 3166-1 alpha-2 → regional-indicator flag emoji. */
+export function countryFlag(country: string | null | undefined): string | null {
+  if (!country || typeof country !== 'string') return null;
+  const code = country.trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(code)) return null;
+  return String.fromCodePoint(...[...code].map((c) => 127397 + c.charCodeAt(0)));
+}
+
+export function ageFromDob(dob: string | null | undefined): number | null {
+  if (!dob || typeof dob !== 'string') return null;
+  const birth = new Date(dob.includes('T') ? dob : `${dob}T12:00:00`);
+  if (Number.isNaN(birth.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age -= 1;
+  }
+  return age >= 0 && age < 130 ? age : null;
+}
+
+export function dangerZoneWebPath(): string {
+  return '/settings/danger';
 }
 
 export function absoluteInstanceUrl(instanceUrl: string, path: string): string {
@@ -22,6 +62,21 @@ export function normalizeWeightUnits(raw: unknown): WeightUnits {
   return raw === 'Pounds' ? 'Pounds' : 'Kilograms';
 }
 
+export function normalizeDistanceUnits(raw: unknown): DistanceUnits {
+  return raw === 'Miles' ? 'Miles' : 'Kilometers';
+}
+
+export function normalizeTemperatureUnits(raw: unknown): TemperatureUnits {
+  return raw === 'Fahrenheit' ? 'Fahrenheit' : 'Celsius';
+}
+
+export function normalizeAiPersona(raw: unknown): AiPersona {
+  if (typeof raw === 'string' && (AI_PERSONAS as string[]).includes(raw)) {
+    return raw as AiPersona;
+  }
+  return 'Supportive';
+}
+
 export function kgToDisplayWeight(weightKg: number | null, units: WeightUnits): number | null {
   if (weightKg == null || !Number.isFinite(weightKg)) return null;
   if (units === 'Pounds') {
@@ -32,6 +87,14 @@ export function kgToDisplayWeight(weightKg: number | null, units: WeightUnits): 
 
 export function weightUnitLabel(units: WeightUnits): string {
   return units === 'Pounds' ? 'lbs' : 'kg';
+}
+
+export function distanceUnitLabel(units: DistanceUnits): string {
+  return units === 'Miles' ? 'mi' : 'km';
+}
+
+export function temperatureUnitLabel(units: TemperatureUnits): string {
+  return units === 'Fahrenheit' ? '°F' : '°C';
 }
 
 /** Display unit for weight fields; falls back to kg when profile is missing. */
@@ -65,14 +128,38 @@ export function parseAthleteProfile(json: unknown): AthleteProfile {
     name: asNullableString(profile.name),
     nickname: asNullableString(profile.nickname),
     email: asNullableString(profile.email),
+    country: asNullableString(profile.country),
+    dob: asNullableString(profile.dob),
     weightKg: asFiniteNumber(profile.weight),
     weightUnits: normalizeWeightUnits(profile.weightUnits),
+    distanceUnits: normalizeDistanceUnits(profile.distanceUnits),
+    temperatureUnits: normalizeTemperatureUnits(profile.temperatureUnits),
+    timezone: asNullableString(profile.timezone),
+    aiContext: asNullableString(profile.aiContext),
     ftp: asFiniteNumber(profile.ftp),
     maxHr: asFiniteNumber(profile.maxHr),
     lthr: asFiniteNumber(profile.lthr),
+    restingHr: asFiniteNumber(profile.restingHr),
     // Web treats missing/null as enabled (`!== false`).
     nutritionTrackingEnabled: profile.nutritionTrackingEnabled !== false,
   };
+}
+
+export function parseAiSettingsLite(json: unknown): AiSettingsLite {
+  if (!json || typeof json !== 'object') {
+    throw new Error('Invalid AI settings response');
+  }
+  const root = json as Record<string, unknown>;
+  return {
+    aiPersona: normalizeAiPersona(root.aiPersona),
+    aiRequireToolApproval: root.aiRequireToolApproval === true,
+    nickname: asNullableString(root.nickname),
+    aiContext: asNullableString(root.aiContext),
+  };
+}
+
+export function aiPersonaOptions(): { value: AiPersona; label: string }[] {
+  return AI_PERSONAS.map((value) => ({ value, label: value }));
 }
 
 /** Same gate as coach-wattz dashboard / nav. */

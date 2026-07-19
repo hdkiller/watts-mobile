@@ -41,5 +41,48 @@ export async function acceptRecommendation(id: string): Promise<void> {
   }
 }
 
+export async function generateTodayRecommendation(userFeedback?: string): Promise<{
+  success: boolean;
+  jobId?: string;
+  recommendationId?: string;
+  message?: string;
+}> {
+  const response = await apiFetch('/api/recommendations/today', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userFeedback }),
+  });
+
+  if (!response.ok) {
+    let message = `Generation failed (${response.status})`;
+    try {
+      const body = (await response.json()) as { message?: string; statusMessage?: string };
+      if (response.status === 429) {
+        throw new Error(body.message || 'Quota exceeded for activity recommendation.');
+      }
+      message = body.message || body.statusMessage || message;
+    } catch (e: any) {
+      if (e.message) throw e;
+    }
+    throw new Error(message);
+  }
+
+  return response.json();
+}
+
+export async function fetchRecommendationStatus(jobId?: string): Promise<{
+  isRunning: boolean;
+  task: string | null;
+}> {
+  const path = jobId
+    ? `/api/recommendations/status?jobId=${encodeURIComponent(jobId)}`
+    : '/api/recommendations/status';
+  const response = await apiFetch(path);
+  if (!response.ok) {
+    throw new Error(`Failed to load status (${response.status})`);
+  }
+  return response.json();
+}
+
 /** Re-export — planned detail owned by activity glance module. */
 export { fetchPlannedWorkout } from '@/src/features/activity/api';

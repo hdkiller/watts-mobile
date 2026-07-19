@@ -1,4 +1,5 @@
 import type { LogFormValues, WellnessDay, WellnessUploadPayload } from './types';
+import { clampSubjectiveScore, normalizeStressScore } from './wellnessLabels';
 
 export function localDateYmd(date = new Date()): string {
   const y = date.getFullYear();
@@ -14,11 +15,18 @@ function parseOptionalNumber(value: string): number | undefined {
   return Number.isFinite(n) ? n : undefined;
 }
 
+function asSubjective(value: unknown): number | null {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return null;
+  return clampSubjectiveScore(value);
+}
+
 export function formHasContent(values: LogFormValues): boolean {
   return Boolean(
-    values.readiness.trim() ||
+    values.mood != null ||
+      values.stress != null ||
+      values.fatigue != null ||
+      values.soreness != null ||
       values.sleepHours.trim() ||
-      values.sleepQuality.trim() ||
       values.notes.trim() ||
       values.weight.trim()
   );
@@ -27,14 +35,15 @@ export function formHasContent(values: LogFormValues): boolean {
 export function toWellnessPayload(values: LogFormValues, date = localDateYmd()): WellnessUploadPayload {
   const payload: WellnessUploadPayload = { date };
 
-  const readiness = parseOptionalNumber(values.readiness);
+  if (values.mood != null) payload.mood = clampSubjectiveScore(values.mood);
+  if (values.stress != null) payload.stress = clampSubjectiveScore(values.stress);
+  if (values.fatigue != null) payload.fatigue = clampSubjectiveScore(values.fatigue);
+  if (values.soreness != null) payload.soreness = clampSubjectiveScore(values.soreness);
+
   const sleepHours = parseOptionalNumber(values.sleepHours);
-  const sleepQuality = parseOptionalNumber(values.sleepQuality);
   const weight = parseOptionalNumber(values.weight);
 
-  if (readiness != null) payload.readiness = Math.round(readiness);
   if (sleepHours != null) payload.sleepHours = sleepHours;
-  if (sleepQuality != null) payload.sleepQuality = Math.round(sleepQuality);
   if (weight != null) payload.weight = weight;
   if (values.notes.trim()) payload.comments = values.notes.trim();
 
@@ -43,9 +52,11 @@ export function toWellnessPayload(values: LogFormValues, date = localDateYmd()):
 
 export function emptyLogForm(): LogFormValues {
   return {
-    readiness: '',
+    mood: null,
+    stress: null,
+    fatigue: null,
+    soreness: null,
     sleepHours: '',
-    sleepQuality: '',
     notes: '',
     weight: '',
   };
@@ -54,9 +65,11 @@ export function emptyLogForm(): LogFormValues {
 export function formFromWellness(day: WellnessDay | null): LogFormValues {
   if (!day) return emptyLogForm();
   return {
-    readiness: day.readiness != null ? String(day.readiness) : '',
+    mood: day.mood,
+    stress: day.stress,
+    fatigue: day.fatigue,
+    soreness: day.soreness,
     sleepHours: day.sleepHours != null ? String(day.sleepHours) : '',
-    sleepQuality: day.sleepQuality != null ? String(day.sleepQuality) : '',
     notes: day.comments ?? '',
     weight: day.weight != null ? String(day.weight) : '',
   };
@@ -73,12 +86,16 @@ export function pickTodayWellness(rows: unknown[], today = localDateYmd()): Well
     const date = String(dateRaw).slice(0, 10);
     if (date !== today) continue;
 
+    const stressRaw = typeof r.stress === 'number' ? normalizeStressScore(r.stress) : null;
+
     return {
       id: String(r.id ?? ''),
       date,
-      readiness: typeof r.readiness === 'number' ? r.readiness : null,
+      mood: asSubjective(r.mood),
+      stress: stressRaw != null ? clampSubjectiveScore(stressRaw) : null,
+      fatigue: asSubjective(r.fatigue),
+      soreness: asSubjective(r.soreness),
       sleepHours: typeof r.sleepHours === 'number' ? r.sleepHours : null,
-      sleepQuality: typeof r.sleepQuality === 'number' ? r.sleepQuality : null,
       comments: typeof r.comments === 'string' ? r.comments : null,
       weight: typeof r.weight === 'number' ? r.weight : null,
     };

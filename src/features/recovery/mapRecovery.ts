@@ -135,12 +135,24 @@ export function parseRecoveryContextList(raw: unknown): RecoveryContextItem[] {
   return raw.map(parseRecoveryContextItem).filter((item): item is RecoveryContextItem => !!item);
 }
 
-/** Match web useRecoveryContext activeToday filter (date portion only). */
+/**
+ * Items active on the athlete's local calendar day.
+ *
+ * Journey events are point-in-time timestamps (startAt === endAt) — use the
+ * device-local calendar day of the timestamp so early/late local hours are not
+ * dropped when the UTC date portion differs.
+ *
+ * Wellness periods and daily check-ins are calendar-day anchors stored as UTC
+ * midnights — compare the UTC date portion (same as web activeToday).
+ */
 export function filterActiveToday(
   items: RecoveryContextItem[],
   today = localDateYmd()
 ): RecoveryContextItem[] {
   return items.filter((item) => {
+    if (item.kind === 'journey_event') {
+      return localDateYmd(new Date(item.startAt)) === today;
+    }
     const start = item.startAt.slice(0, 10);
     const end = item.endAt.slice(0, 10);
     return start <= today && end >= today;

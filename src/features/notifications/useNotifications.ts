@@ -1,13 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
+  fetchNotificationPreferences,
   fetchNotifications,
   markAllNotificationsRead,
   markNotificationRead,
+  updateNotificationPreferences,
 } from './api';
-import type { NotificationsInbox } from './types';
+import type { NotificationPreferences, NotificationsInbox } from './types';
 
 export const NOTIFICATIONS_QUERY_KEY = ['notifications', 'inbox'] as const;
+export const NOTIFICATION_PREFS_QUERY_KEY = ['notifications', 'preferences'] as const;
 
 export function useNotificationsQuery() {
   return useQuery({
@@ -89,6 +92,34 @@ export function useMarkAllNotificationsRead() {
     },
     onSettled: async () => {
       await queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
+    },
+  });
+}
+
+export function useNotificationPreferencesQuery() {
+  return useQuery({
+    queryKey: NOTIFICATION_PREFS_QUERY_KEY,
+    queryFn: () => fetchNotificationPreferences(),
+  });
+}
+
+export function useUpdateNotificationPreferences() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (prefs: NotificationPreferences) => updateNotificationPreferences(prefs),
+    onMutate: async (newPrefs) => {
+      await queryClient.cancelQueries({ queryKey: NOTIFICATION_PREFS_QUERY_KEY });
+      const previous = queryClient.getQueryData<NotificationPreferences>(NOTIFICATION_PREFS_QUERY_KEY);
+      queryClient.setQueryData<NotificationPreferences>(NOTIFICATION_PREFS_QUERY_KEY, newPrefs);
+      return { previous };
+    },
+    onError: (_err, _newPrefs, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(NOTIFICATION_PREFS_QUERY_KEY, context.previous);
+      }
+    },
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: NOTIFICATION_PREFS_QUERY_KEY });
     },
   });
 }

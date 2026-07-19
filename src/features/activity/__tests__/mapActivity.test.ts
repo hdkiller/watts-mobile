@@ -68,12 +68,12 @@ describe('mapWorkoutListItem', () => {
 
 describe('mapPlannedStructure', () => {
   it('returns empty when structure is absent', () => {
-    expect(mapPlannedStructure(null)).toEqual([]);
-    expect(mapPlannedStructure({})).toEqual([]);
+    expect(mapPlannedStructure(null)).toEqual({ steps: [], isStrength: false });
+    expect(mapPlannedStructure({})).toEqual({ steps: [], isStrength: false });
   });
 
   it('maps steps with name, duration, and intensity when present', () => {
-    const steps = mapPlannedStructure({
+    const { steps, isStrength } = mapPlannedStructure({
       steps: [
         { name: 'Warm-up', durationSeconds: 600, power: { value: 150 } },
         { type: 'Interval', durationSeconds: 300, rpe: 7 },
@@ -85,6 +85,7 @@ describe('mapPlannedStructure', () => {
       ],
     });
 
+    expect(isStrength).toBe(false);
     expect(steps[0]).toMatchObject({
       name: 'Warm-up',
       durationSec: 600,
@@ -100,7 +101,109 @@ describe('mapPlannedStructure', () => {
   });
 
   it('does not invent intervals from description-only payloads', () => {
-    expect(mapPlannedStructure({ description: 'Do 5x5' })).toEqual([]);
+    expect(mapPlannedStructure({ description: 'Do 5x5' })).toEqual({
+      steps: [],
+      isStrength: false,
+    });
+  });
+
+  it('maps strength blocks with setRows prescriptions', () => {
+    const { steps, isStrength } = mapPlannedStructure({
+      blocks: [
+        {
+          type: 'warmup',
+          title: 'Warm-up',
+          steps: [
+            {
+              name: 'Band Pull-Aparts',
+              prescriptionMode: 'reps',
+              setRows: [
+                { value: '15', loadValue: '', restOverride: '45s' },
+                { value: '15', loadValue: '', restOverride: '' },
+              ],
+            },
+          ],
+        },
+        {
+          type: 'single_exercise',
+          title: 'Main lifts',
+          steps: [
+            {
+              name: 'Back Squat',
+              prescriptionMode: 'reps',
+              defaultRest: '90s',
+              setRows: [
+                { value: '5', loadValue: '80kg' },
+                { value: '5', loadValue: '85kg' },
+                { value: '5', loadValue: '90kg' },
+              ],
+            },
+            {
+              name: 'Split Squat',
+              prescriptionMode: 'reps_per_side',
+              setRows: [
+                { value: '8', loadValue: '20kg' },
+                { value: '8', loadValue: '20kg' },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(isStrength).toBe(true);
+    expect(steps.map((s) => s.name)).toEqual([
+      'Warm-up',
+      'Band Pull-Aparts',
+      'Main lifts',
+      'Back Squat',
+      'Split Squat',
+    ]);
+    expect(steps.find((s) => s.name === 'Band Pull-Aparts')?.intensityLabel).toBe(
+      '2×15 · 45s rest'
+    );
+    expect(steps.find((s) => s.name === 'Back Squat')?.intensityLabel).toBe(
+      '3×5 · 80kg, 85kg, 90kg · 90s rest'
+    );
+    expect(steps.find((s) => s.name === 'Split Squat')?.intensityLabel).toBe(
+      '2×8/side · 20kg'
+    );
+  });
+
+  it('falls back to legacy exercises when blocks are absent', () => {
+    const { steps, isStrength } = mapPlannedStructure({
+      exercises: [
+        { name: 'Deadlift', sets: 3, reps: '5', weight: '100kg', rest: '2m' },
+      ],
+    });
+    expect(isStrength).toBe(true);
+    expect(steps).toEqual([
+      {
+        name: 'Deadlift',
+        durationSec: null,
+        intensityLabel: '3×5 · 100kg · 2m rest',
+      },
+    ]);
+  });
+
+  it('prefers blocks over exercises when both exist', () => {
+    const { steps, isStrength } = mapPlannedStructure({
+      blocks: [
+        {
+          type: 'single_exercise',
+          steps: [
+            {
+              name: 'From Blocks',
+              setRows: [{ value: '5' }, { value: '5' }],
+            },
+          ],
+        },
+      ],
+      exercises: [{ name: 'From Exercises', sets: 4, reps: '8' }],
+    });
+    expect(isStrength).toBe(true);
+    expect(steps.map((s) => s.name)).toEqual(['From Blocks']);
+    expect(steps.some((s) => s.name === 'From Exercises')).toBe(false);
   });
 });
 
@@ -117,6 +220,26 @@ describe('mapPlannedDetail', () => {
     });
     expect(detail.structureSteps).toHaveLength(1);
     expect(detail.structureSteps[0]?.name).toBe('SS');
+    expect(detail.structureIsStrength).toBe(false);
+  });
+
+  it('marks strength structure on detail', () => {
+    const detail = mapPlannedDetail({
+      id: 'p-strength',
+      title: 'Gym',
+      type: 'WeightTraining',
+      structuredWorkout: {
+        blocks: [
+          {
+            type: 'single_exercise',
+            steps: [{ name: 'Bench', setRows: [{ value: '5' }, { value: '5' }, { value: '5' }] }],
+          },
+        ],
+      },
+    });
+    expect(detail.structureIsStrength).toBe(true);
+    expect(detail.structureSteps[0]?.name).toBe('Bench');
+    expect(detail.structureSteps[0]?.intensityLabel).toBe('3×5');
   });
 
   it('maps intensity, status, coach cues, and zones when present', () => {
@@ -160,6 +283,7 @@ describe('mapPlannedDetail', () => {
     expect(detail.coachInstructions).toBeNull();
     expect(detail.zoneSummary).toBeNull();
     expect(detail.structureSteps).toEqual([]);
+    expect(detail.structureIsStrength).toBe(false);
   });
 });
 
@@ -279,6 +403,11 @@ describe('formatIntensityFactor / formatDistanceMeters', () => {
   it('formats distance in m or km', () => {
     expect(formatDistanceMeters(800)).toBe('800 m');
     expect(formatDistanceMeters(1500)).toBe('1.5 km');
+  });
+
+  it('formats distance in miles when preferred', () => {
+    expect(formatDistanceMeters(1609.344, 'Miles')).toBe('1.0 mi');
+    expect(formatDistanceMeters(50, 'Miles')).toBe('164 ft');
   });
 });
 

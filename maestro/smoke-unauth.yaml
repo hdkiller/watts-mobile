@@ -1,0 +1,13 @@
+# Cold start without e2e auth — expects Sign in chrome.
+# Run with EXPO_PUBLIC_E2E_AUTH unset (normal .env / Metro).
+appId: com.coachwatts.mobile
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: login-screen
+    timeout: 30000
+- assertVisible:
+    id: login-sign-in
+- assertVisible: "Sign in"

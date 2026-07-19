@@ -39,8 +39,16 @@ export type NotificationsInbox = {
 
 export type DevicePlatform = 'ios' | 'android';
 
+export type NotificationPreferences = {
+  RECOMMENDATION_READY: boolean;
+  WORKOUT_ANALYSIS_READY: boolean;
+  SYNC_COMPLETED: boolean;
+  COACH_MESSAGE: boolean;
+};
+
 export type RegisterDeviceBody = {
   token: string;
   platform: DevicePlatform;
   appVersion?: string;
+  preferences?: NotificationPreferences;
 };

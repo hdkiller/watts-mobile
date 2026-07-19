@@ -6,7 +6,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { friendlyError } from '@/src/api/errors';
 import { getInstanceUrl } from '@/src/config/instance';
 import type { RecoveryContextItem } from '@/src/features/recovery/types';
-import { ACTIVE_RECOVERY_KEY } from '@/src/features/recovery/useRecovery';
+import { filterActiveToday } from '@/src/features/recovery/mapRecovery';
+import { RECOVERY_CONTEXT_KEY } from '@/src/features/recovery/useRecovery';
 import type { TodayViewModel } from '@/src/features/today/types';
 import { TODAY_QUERY_KEY } from '@/src/features/today/useToday';
 
@@ -690,7 +691,8 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
       let outbound = text;
       if (!seedUsedRef.current && messagesRef.current.length === 0 && text) {
         const today = queryClient.getQueryData<TodayViewModel>(TODAY_QUERY_KEY);
-        const recovery = queryClient.getQueryData<RecoveryContextItem[]>(ACTIVE_RECOVERY_KEY);
+        const recoveryWindow = queryClient.getQueryData<RecoveryContextItem[]>(RECOVERY_CONTEXT_KEY);
+        const recovery = recoveryWindow ? filterActiveToday(recoveryWindow) : undefined;
         const seed = buildCoachSeedContext({ today, activeRecovery: recovery });
         outbound = withSeedPrefix(text, seed);
         setSeedUsed(true);

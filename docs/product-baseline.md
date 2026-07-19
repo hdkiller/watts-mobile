@@ -25,7 +25,7 @@ Auth: OAuth 2.0 + PKCE · tokens in Secure Store · `offline_access` for refresh
 4. **Recent activity** — last few workouts with sync/analysis status (not full calendar)
 5. **Coach chat** — short Q&A seeded with today + recovery; markdown-lite assistant replies; multi-tool feedback cards (nutrition, recovery/wellness, generic) with approve/deny — not nutrition-only
 6. **Notifications** — push + in-app inbox
-7. **Account glue** — instance URL, sign-in, notification prefs, open web
+7. **Account glue** — instance URL, sign-in, notification prefs, Settings hub (units/locale, coach identity lite, Health Sync, export/delete via Open web), open web
 
 ## Explicit non-goals (v1)
 
@@ -39,12 +39,15 @@ Promoted from vague “later” into an explicit companion expansion:
 
 1. **Upcoming planned workouts** — More → Upcoming (capped next ~7–14 days via `GET /api/planned-workouts`); not a fifth tab or heatmap
 2. **Richer session details** — planned interval/step summary when payload allows; completed-workout summary metrics + AI analysis + charts in-app; map / interval audit → open web
-3. **Athlete metrics edit** — More → Athlete: weight, FTP, max HR, LTHR (`profile:write` / `PATCH /api/profile`); not full Profile Settings
+3. **Athlete metrics edit** — More → Athlete: weight, FTP, max HR, LTHR for the **default** sport profile (`profile:write` / `PATCH /api/profile`); not full Profile Settings
 4. **Nutrition quick-log** — Log tab section: today’s totals glance, macro/meal item log, hydration quick-add (`nutrition:read` / `nutrition:write`); planning/grocery stay on web
+5. **Lite sport thresholds** — Settings → Sports: list sport profiles and edit per-sport FTP / LTHR / Max HR (pace when present); zones, detect-from-workouts, and advanced Sport Settings stay on web
 
 ## Later (v1.5+)
 
-HealthKit / Health Connect · structured workout push to devices · stronger offline Today · weekly glance (load/form lite, not CTL).
+HealthKit / Health Connect · structured workout push to devices · stronger offline Today.
+
+**Shipped companion glances:** Today Training Load & Form (CTL/ATL/TSB summary + sheet chart; not a first-viewport CTL grid) · Wellness Overview sheet from Recent Wellness · Athlete Profile overview (AI summary) on More → Athlete.
 
 ## Information architecture
 
@@ -56,9 +59,11 @@ HealthKit / Health Connect · structured workout push to devices · stronger off
 
 Recovery **writes** stay Log-first; Today shows named active context and secondary actions (not a second hero CTA). Coming up stays planned-first; race/life events are a countdown chip + optional line (not a calendar). Nutrition glance is totals-only; meal/hydration writes stay on Log. Offline: last cached Today + planned detail with a “last updated” stamp.
 
-**Log writes:** wellness + recovery events (+ nutrition quick-log in v1.5 when tracking enabled).
+**Log writes:** wellness + recovery events (+ nutrition quick-log when tracking enabled). Per-sport lite thresholds live under Settings → Sports.
 
-**More hosts:** recent activity, upcoming planned, notifications, athlete metrics, account glue.
+**More hosts:** recent activity, upcoming planned, notifications inbox, athlete metrics, Settings hub, account glue (open web / sign out).
+
+**Settings hub (field companion):** push prefs · Health Sync · Units & locale · Instance · Coach identity lite (nickname / persona / About me / tool approval) · Export / Delete via Open web. Full Profile Settings, Connected Apps, Billing, sport zones stay on web.
 
 First viewport = one decision. No CTL grids or calendar heatmaps.
 

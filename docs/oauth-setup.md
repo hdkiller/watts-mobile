@@ -91,6 +91,7 @@ nutrition:write
 recommendation:read
 plan:read
 goal:read
+performance:read
 chat:read
 chat:write
 offline_access
@@ -99,6 +100,10 @@ offline_access
 These match Coach Watts **REST** OAuth scope names (`recommendation:read`, `plan:read` — not the MCP `recommendations:*` / `planning:*` names).
 
 `goal:read` authorizes Bearer `GET /api/events` (race/life calendar countdown on Today). Re-consent on next login after this scope is added.
+
+`performance:read` authorizes Bearer `GET /api/performance/pmc` (Today Training Load & Form). Existing sessions need re-login after this scope is added.
+
+`profile:read` / `profile:write` also cover Athlete Profile AI reports (`GET /api/reports?type=ATHLETE_PROFILE`) and Sync (`POST /api/profile/generate`) once those routes use `requireAuth`.
 
 `profile:write`, `nutrition:read`, `nutrition:write`, and `workout:write` (completed-workout AI analyze/regenerate) are in `REST_OAUTH_SCOPES` (no separate Official Mobile App allowlist). Re-consent on next login if the IdP requires incremental consent.
 

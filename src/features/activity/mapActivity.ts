@@ -128,8 +128,18 @@ export function formatIntensityFactor(value: unknown): string | null {
   return `IF ${value.toFixed(2)}`;
 }
 
-export function formatDistanceMeters(meters: unknown): string | null {
+export type DistanceDisplayUnits = 'Kilometers' | 'Miles';
+
+export function formatDistanceMeters(
+  meters: unknown,
+  units: DistanceDisplayUnits = 'Kilometers'
+): string | null {
   if (typeof meters !== 'number' || !Number.isFinite(meters) || meters <= 0) return null;
+  if (units === 'Miles') {
+    const miles = meters / 1609.344;
+    if (miles >= 0.1) return `${miles.toFixed(1)} mi`;
+    return `${Math.round(meters * 3.28084)} ft`;
+  }
   if (meters >= 1000) return `${(meters / 1000).toFixed(1)} km`;
   return `${Math.round(meters)} m`;
 }
@@ -193,9 +203,12 @@ export function mapSyncLabel(status: string | null | undefined): string | null {
   }
 }
 
-export function mapWorkoutSummaryMetrics(raw: WorkoutSummaryApi): SummaryMetric[] {
+export function mapWorkoutSummaryMetrics(
+  raw: WorkoutSummaryApi,
+  distanceUnits: DistanceDisplayUnits = 'Kilometers'
+): SummaryMetric[] {
   const metrics: SummaryMetric[] = [];
-  const distance = formatDistanceMeters(raw.distanceMeters);
+  const distance = formatDistanceMeters(raw.distanceMeters, distanceUnits);
   if (distance) metrics.push({ key: 'distance', label: 'Distance', value: distance });
 
   const avgPower = formatWatts(raw.averageWatts);
@@ -343,6 +356,7 @@ export function mapWorkoutListItem(raw: WorkoutListItemApi): ActivityListItem {
     tss,
     trainingLoad,
     status: mapWorkoutStatus(raw),
+    summaryPolyline: raw.summaryPolyline ?? null,
   };
 }
 
@@ -516,13 +530,16 @@ export function mapActivityAnalysis(raw: WorkoutSummaryApi): ActivityAnalysis {
   };
 }
 
-export function mapWorkoutSummary(raw: WorkoutSummaryApi): ActivitySummary {
+export function mapWorkoutSummary(
+  raw: WorkoutSummaryApi,
+  distanceUnits: DistanceDisplayUnits = 'Kilometers'
+): ActivitySummary {
   const base = mapWorkoutListItem(raw);
   return {
     ...base,
     description: typeof raw.description === 'string' ? raw.description : null,
     loadLabel: loadLabel(base.tss, base.trainingLoad),
-    metrics: mapWorkoutSummaryMetrics(raw),
+    metrics: mapWorkoutSummaryMetrics(raw, distanceUnits),
     analysis: mapActivityAnalysis(raw),
   };
 }
@@ -613,27 +630,207 @@ function flattenSteps(nodes: unknown[], out: PlannedStructureStep[], depth = 0):
   }
 }
 
+function summarizeSetRowField(
+  setRows: Array<Record<string, unknown>>,
+  field: 'value' | 'loadValue'
+): string | null {
+  const values = setRows
+    .map((row) => {
+      const raw = row[field];
+      return typeof raw === 'string' ? raw.trim() : raw != null ? String(raw).trim() : '';
+    })
+    .filter(Boolean);
+  if (values.length === 0) return null;
+  const unique = [...new Set(values)];
+  return unique.length === 1 ? unique[0]! : unique.join(', ');
+}
+
+function formatRestLabel(rest: string): string {
+  const trimmed = rest.trim();
+  if (!trimmed) return '';
+  return /rest/i.test(trimmed) ? trimmed : `${trimmed} rest`;
+}
+
 /**
- * Compact structure summary from `structuredWorkout`. Returns [] when absent — never invents steps.
+ * Compact strength prescription from setRows / legacy exercise fields.
+ * Example: `3×5 · 80kg · 90s rest`
  */
-export function mapPlannedStructure(structuredWorkout: unknown): PlannedStructureStep[] {
-  if (!structuredWorkout || typeof structuredWorkout !== 'object') return [];
-  const root = structuredWorkout as { steps?: unknown[]; intervals?: unknown[] };
+export function strengthPrescriptionLabel(exercise: Record<string, unknown>): string | null {
+  const setRows = Array.isArray(exercise.setRows)
+    ? (exercise.setRows.filter((row) => row && typeof row === 'object') as Array<
+        Record<string, unknown>
+      >)
+    : [];
+  const setsFromRows = setRows.length;
+  const setsFromField = typeof exercise.sets === 'number' && exercise.sets > 0 ? exercise.sets : 0;
+  const sets = setsFromRows || setsFromField;
+
+  const prescriptionMode =
+    typeof exercise.prescriptionMode === 'string' ? exercise.prescriptionMode : null;
+  const valueSummary =
+    summarizeSetRowField(setRows, 'value') ??
+    (typeof exercise.reps === 'string' && exercise.reps.trim()
+      ? exercise.reps.trim()
+      : typeof exercise.reps === 'number'
+        ? String(exercise.reps)
+        : typeof exercise.value === 'string' && exercise.value.trim()
+          ? exercise.value.trim()
+          : typeof exercise.duration === 'number' && exercise.duration > 0
+            ? String(exercise.duration)
+            : null);
+  const loadSummary =
+    summarizeSetRowField(setRows, 'loadValue') ??
+    (typeof exercise.weight === 'string' && exercise.weight.trim()
+      ? exercise.weight.trim()
+      : null);
+
+  const restOverride = setRows.find((row) => {
+    const rest = row.restOverride;
+    return typeof rest === 'string' && rest.trim();
+  })?.restOverride;
+  const restRaw =
+    (typeof exercise.defaultRest === 'string' && exercise.defaultRest.trim()
+      ? exercise.defaultRest.trim()
+      : null) ??
+    (typeof restOverride === 'string' && restOverride.trim() ? restOverride.trim() : null) ??
+    (typeof exercise.rest === 'string' && exercise.rest.trim() ? exercise.rest.trim() : null);
+
+  const parts: string[] = [];
+
+  if (prescriptionMode === 'duration' && valueSummary) {
+    const durationLabel = /^\d+$/.test(valueSummary) ? `${valueSummary}s` : valueSummary;
+    parts.push(sets > 0 ? `${sets}×${durationLabel}` : durationLabel);
+  } else if (valueSummary) {
+    const reps =
+      prescriptionMode === 'reps_per_side' && !/\/side$/i.test(valueSummary)
+        ? `${valueSummary}/side`
+        : valueSummary;
+    parts.push(sets > 0 ? `${sets}×${reps}` : reps);
+  } else if (sets > 0) {
+    parts.push(`${sets} sets`);
+  }
+
+  if (loadSummary) parts.push(loadSummary);
+  if (restRaw) {
+    const restLabel = formatRestLabel(restRaw);
+    if (restLabel) parts.push(restLabel);
+  }
+
+  return parts.length > 0 ? parts.join(' · ') : null;
+}
+
+function strengthDurationSec(exercise: Record<string, unknown>): number | null {
+  const mode =
+    typeof exercise.prescriptionMode === 'string' ? exercise.prescriptionMode : null;
+  if (mode !== 'duration') return null;
+
+  const setRows = Array.isArray(exercise.setRows)
+    ? (exercise.setRows.filter((row) => row && typeof row === 'object') as Array<
+        Record<string, unknown>
+      >)
+    : [];
+  const valueSummary = summarizeSetRowField(setRows, 'value');
+  if (valueSummary && /^\d+$/.test(valueSummary)) {
+    const sec = Number(valueSummary);
+    return sec > 0 ? sec : null;
+  }
+  if (typeof exercise.duration === 'number' && exercise.duration > 0) {
+    return exercise.duration;
+  }
+  return null;
+}
+
+function strengthBlockTitle(block: Record<string, unknown>): string | null {
+  if (typeof block.title === 'string' && block.title.trim()) return block.title.trim();
+  const type = typeof block.type === 'string' ? block.type : null;
+  if (type === 'warmup') return 'Warm-up';
+  if (type === 'cooldown') return 'Cool-down';
+  return null;
+}
+
+function mapStrengthExercise(
+  exercise: Record<string, unknown>,
+  index: number
+): PlannedStructureStep {
+  return {
+    name: stepName(exercise, index),
+    durationSec: strengthDurationSec(exercise),
+    intensityLabel: strengthPrescriptionLabel(exercise),
+  };
+}
+
+function flattenStrengthBlocks(blocks: unknown[]): PlannedStructureStep[] {
+  const out: PlannedStructureStep[] = [];
+  for (const node of blocks) {
+    if (!node || typeof node !== 'object') continue;
+    const block = node as Record<string, unknown>;
+    const title = strengthBlockTitle(block);
+    const steps = Array.isArray(block.steps) ? block.steps : [];
+    if (title) {
+      out.push({ name: title, durationSec: null, intensityLabel: null, isSection: true });
+    }
+    for (const stepNode of steps) {
+      if (!stepNode || typeof stepNode !== 'object') continue;
+      out.push(mapStrengthExercise(stepNode as Record<string, unknown>, out.length));
+    }
+  }
+  return out;
+}
+
+function flattenStrengthExercises(exercises: unknown[]): PlannedStructureStep[] {
+  const out: PlannedStructureStep[] = [];
+  for (const node of exercises) {
+    if (!node || typeof node !== 'object') continue;
+    out.push(mapStrengthExercise(node as Record<string, unknown>, out.length));
+  }
+  return out;
+}
+
+export type MappedPlannedStructure = {
+  steps: PlannedStructureStep[];
+  isStrength: boolean;
+};
+
+/**
+ * Compact structure summary from `structuredWorkout`.
+ * Prefers strength `blocks`, then legacy `exercises`, then endurance `steps`/`intervals`.
+ * Returns empty steps when absent — never invents structure.
+ */
+export function mapPlannedStructure(structuredWorkout: unknown): MappedPlannedStructure {
+  if (!structuredWorkout || typeof structuredWorkout !== 'object') {
+    return { steps: [], isStrength: false };
+  }
+  const root = structuredWorkout as {
+    blocks?: unknown[];
+    exercises?: unknown[];
+    steps?: unknown[];
+    intervals?: unknown[];
+  };
+
+  if (Array.isArray(root.blocks) && root.blocks.length > 0) {
+    return { steps: flattenStrengthBlocks(root.blocks).slice(0, 24), isStrength: true };
+  }
+  if (Array.isArray(root.exercises) && root.exercises.length > 0) {
+    return { steps: flattenStrengthExercises(root.exercises).slice(0, 24), isStrength: true };
+  }
+
   const out: PlannedStructureStep[] = [];
   if (Array.isArray(root.steps) && root.steps.length > 0) {
     flattenSteps(root.steps, out);
   } else if (Array.isArray(root.intervals) && root.intervals.length > 0) {
     flattenSteps(root.intervals, out);
   }
-  return out.slice(0, 24);
+  return { steps: out.slice(0, 24), isStrength: false };
 }
 
 export function mapPlannedDetail(raw: PlannedDetailApi): PlannedDetail {
   const base = mapPlannedListItem(raw);
+  const structure = mapPlannedStructure(raw.structuredWorkout);
   return {
     ...base,
     description: typeof raw.description === 'string' ? raw.description : null,
-    structureSteps: mapPlannedStructure(raw.structuredWorkout),
+    structureSteps: structure.steps,
+    structureIsStrength: structure.isStrength,
     workIntensityLabel: formatIntensityFactor(raw.workIntensity),
     completionLabel: mapCompletionLabel(raw.completionStatus),
     syncLabel: mapSyncLabel(raw.syncStatus),

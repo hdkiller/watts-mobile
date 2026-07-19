@@ -86,7 +86,7 @@ OpenSpecs (suggested apply order after Phase 2 push):
 - [x] Universal links / scheme for Today, recommendation, activity, planned, chat — OpenSpec `phase-3-deep-links` ([deep-links.md](./deep-links.md); https host association still on coach-wattz)
 - [x] i18n footing (English-first keys; Tolgee/shared locales later)
 - [x] Store prep: icons, splash, privacy strings, More account glue, Sentry env/EAS — OpenSpec `phase-3-store-polish` (device splash verify + listing paste still manual; see [store-checklist.md](./store-checklist.md))
-- [ ] ~~E2E smoke (Maestro or Detox)~~ deferred
+- [x] E2E smoke footing (Maestro + e2e auth seed) — see [e2e.md](./e2e.md); CI wiring still open
 
 **Exit:** chat usable; deep links land correctly; store checklist started (E2E not required for this exit).
 

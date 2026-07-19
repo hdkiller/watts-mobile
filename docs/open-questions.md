@@ -13,7 +13,8 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 7 | **App package location** | Expo at repo root (this repo) vs later sync with coach-wattz `clients/mobile` | Lean: **this repo is the app**; coach-wattz keeps API/docs | Proposed |
 | 8 | **Expo channel** | Managed Expo vs early dev client (needed for HealthKit in v1.5+) | **Decided:** `expo-dev-client` early; rebuild after native deps ([native-modules.md](./native-modules.md)) |
 | 9 | **Nutrition entry IA** | Log tab section vs More → Nutrition | **Decided:** Log (write surface) |
-| 10 | **Athlete metrics vs full settings** | Metrics-only editor vs port Profile Settings tabs | **Decided:** metrics-only (weight, FTP, max HR, LTHR); rest → Open web |
+| 10 | **Athlete metrics vs full settings** | Metrics-only editor vs port Profile Settings tabs | **Decided:** More → Athlete = default-profile metrics (weight, FTP, max HR, LTHR); Settings → Sports = lite per-sport FTP/LTHR/Max HR; zones / detect-from-workouts / full Sport Settings → Open web |
+| 20 | **Settings hub field-companion scope** | Thin device/daily prefs vs port web Profile/Settings | **Decided:** Settings hub = Notifications, Health Sync, Units & locale, Instance, Coach identity lite (nickname/persona/About me/tool approval), Export/Delete via Open web; push prefs stay separate from email Communication prefs; full Profile/Apps/Billing/zones stay web — see `openspec/changes/settings-field-companion` |
 | 11 | **Planned detail Bearer + structure** | Session-only `GET /api/planned-workouts/:id` vs `requireAuth` + structure fields for intervals | **Decided** |
 | 12 | **Upcoming vs Recent More entries** | Single “Workouts” hub vs separate Upcoming + Recent links | **Decided:** separate More rows (Recent activity + Upcoming) |
 | 13 | **Today when no recommendation** | Empty-only vs planned-hero fallback | **Decided** |
@@ -57,5 +58,11 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 2026-07-19 | Coach sessions = web 15-minute reuse | Open last room if `index` ≤ 15m else `POST /rooms`; room list + New chat on mobile |
 | 2026-07-19 | Chat photo attach via `chat:write` upload | Bearer `POST /api/storage/upload`; no separate storage scope; tool approvals via `tool-approval-response` on messages POST |
 | 2026-07-19 | Early `expo-dev-client` (not Expo Go) | Push, image picker, and future HealthKit need a custom binary; document rebuild-after-native-dep in [native-modules.md](./native-modules.md) |
+| 2026-07-19 | Today Recent Wellness glance | Sleep/HRV/RHR from `profile/dashboard` + `wellness/trend`; empty “No recent wellness · Check in”; drop AI Sleep/HRV/Feel strip; Check in → Log; trends moved to Wellness Overview sheet (2026-07-20) |
+| 2026-07-20 | Settings = field companion only | Hub: push prefs, Health Sync, units/timezone, instance, coach identity lite; Export/Delete Open web; no full Profile Settings / Apps / Billing / zones; push ≠ email prefs API — `settings-field-companion` |
+| 2026-07-20 | Lite per-sport thresholds on Settings → Sports | List profiles; edit FTP/LTHR/Max HR (pace if present) via `PATCH` `sportSettings`; Athlete metrics stays default-profile quick edit; zones / detect-from-workouts / full Sport Settings stay web — `log-sport-settings` |
+| 2026-07-20 | Wellness Overview on Today | Tap Recent Wellness tiles → read-only sheet (`GET /api/wellness/{date}`); 7-day trends in sheet (not inline); Check in → Log; no AI Analyze / PATCH logs |
+| 2026-07-20 | Training Load & Form on Today | Compact CTL/ATL/TSB glance below CTAs; PMC chart in sheet via `GET /api/performance/pmc` + `performance:read`; Open web `/performance`; no first-viewport CTL grid |
+| 2026-07-20 | Athlete Profile overview on More → Athlete | Identity + HR trio + AI report summary/Sync; reports/generate Bearer via `profile:read`/`profile:write`; full report → Open web `/profile/athlete` |
 
 When a row above is decided, move it here and update [product-baseline.md](./product-baseline.md) / [implementation-plan.md](./implementation-plan.md) if scope changes.

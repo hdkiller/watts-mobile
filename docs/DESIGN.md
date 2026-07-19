@@ -77,6 +77,27 @@ Inline text links (Retry, See all, Check in…): `text-sm font-semibold text-bra
 - **Empty:** honest one-liner in `text-ink-muted` ("Waiting for sync…", "No upcoming planned workouts.") plus the relevant action. Never a blank screen.
 - **Success/confirm:** green (`text-green-400`) inline text or state change; keep it near the triggering control.
 
+## Haptic Feedback Map
+
+Map haptic interactions uniformly across all screens. Use the helpers from `src/lib/haptics.ts`:
+
+- **`hapticLight()`**: Chip selection (e.g. Log check-in options), segment selectors, +/- steppers, custom list item row presses, tab swaps.
+- **`hapticSuccess()`**: Successful API actions, log submissions, accepted recommendations, successfully sent chat messages.
+- **`hapticError()`**: Blocked form validation, API failures, authentication failure.
+
+## Keyboard & Input Accessibility
+
+To avoid keyboards layout overlap or blocking inputs:
+
+- **Tab screens:** Use `useKeyboardOverlap` hook to adjust bottom padding dynamically on iOS (standard `KeyboardAvoidingView` behaves incorrectly inside bottom tab systems).
+- **Dismiss interactions:** Wrap inputs/forms in a root dismissing `Pressable` that calls `Keyboard.dismiss()` to ensure taps on empty space hide the keyboard.
+- **Standard screens:** Use standard `KeyboardAvoidingView` or `KeyboardAwareScrollView` for standalone screens (like Login or Athlete Profile).
+
+## Standardized Press Animations
+
+- Prefer **`AnimatedPressable`** (spring-scale + opacity press animation) over raw `Pressable` with `active:opacity-80` classes.
+- Ensure all tappable surfaces (links, chips, triggers) have **`hitSlop={8}`** or higher, targeting a minimum touch dimension of **44pt**.
+
 ## Accessibility
 
 - Primary CTAs go through `Button` (roles/labels/state included).

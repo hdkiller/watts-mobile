@@ -10,18 +10,21 @@ import { HeroStatTiles, type HeroStat } from '@/src/components/HeroStatTiles';
 import { DetailSkeleton, Skeleton } from '@/src/components/Skeleton';
 import { SportIcon } from '@/src/components/SportIcon';
 import { ActivityCharts } from '@/src/features/activity/ActivityCharts';
+import { ActivityMap } from '@/src/features/activity/ActivityMap';
 import {
   absoluteInstanceUrl,
   formatActivityDate,
   formatDuration,
   workoutWebPath,
 } from '@/src/features/activity/mapActivity';
+import { resolveActivityRouteCoordinates } from '@/src/features/activity/route';
 import type {
   ActivityAnalysis,
   ActivitySummary,
   AnalysisPhase,
 } from '@/src/features/activity/types';
 import {
+  useActivityStreamsQuery,
   useActivitySummaryQuery,
   useRequestWorkoutAnalysis,
 } from '@/src/features/activity/useActivity';
@@ -178,8 +181,14 @@ export default function ActivitySummaryScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { instanceUrl } = useAuth();
   const { data, isLoading, isError, error } = useActivitySummaryQuery(id);
+  const streams = useActivityStreamsQuery(id);
   const analyzeMutation = useRequestWorkoutAnalysis(id);
   const prevAnalysisPhase = useRef<AnalysisPhase | undefined>(undefined);
+
+  const coordinates = resolveActivityRouteCoordinates(
+    streams.data?.latlng,
+    data?.summaryPolyline
+  );
 
   useEffect(() => {
     const phase = data?.analysis.phase;
@@ -260,6 +269,10 @@ export default function ActivitySummaryScreen() {
             onAnalyze={onAnalyze}
           />
 
+          {coordinates.length > 0 ? (
+            <ActivityMap coordinates={coordinates} />
+          ) : null}
+
           {id ? <ActivityCharts workoutId={id} /> : null}
 
           {data.description ? (
@@ -269,7 +282,7 @@ export default function ActivitySummaryScreen() {
           <Button
             variant="secondary"
             className="mt-8"
-            label="Open in Coach Watts for map & more"
+            label="Open in Coach Watts for explorer & more"
             onPress={() => void openWeb()}
           />
         </ScrollView>

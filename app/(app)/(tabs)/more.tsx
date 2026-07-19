@@ -173,6 +173,7 @@ export default function MoreScreen() {
 
   return (
     <SafeAreaView
+      testID="more-screen"
       edges={{ top: true }}
       style={{ flex: 1, backgroundColor: Colors.background }}
     >
@@ -209,7 +210,8 @@ export default function MoreScreen() {
 
         <Section title="Account">
           <MenuRow
-            title="Athlete metrics"
+            title="Athlete profile"
+            detail="AI summary & metrics"
             sf="person.crop.circle"
             emoji="👤"
             onPress={() => router.push('/(app)/athlete' as Href)}
@@ -222,17 +224,16 @@ export default function MoreScreen() {
             onPress={() => router.push('/(app)/notifications' as Href)}
           />
           <MenuRow
+            title="Settings"
+            sf="gearshape"
+            emoji="⚙️"
+            onPress={() => router.push('/(app)/settings' as Href)}
+          />
+          <MenuRow
             title="Open web"
             sf="globe"
             emoji="🌐"
             onPress={() => void openWeb()}
-          />
-          <MenuRow
-            title="Instance"
-            detail={instanceUrl ?? 'Not set'}
-            sf="link"
-            emoji="🔗"
-            showChevron={false}
             isLast
           />
         </Section>

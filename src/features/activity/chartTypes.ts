@@ -9,12 +9,14 @@ export type WorkoutStreamsApi = {
   time?: number[] | null;
   watts?: number[] | null;
   heartrate?: number[] | null;
+  latlng?: [number, number][] | null;
   hrZoneTimes?: number[] | null;
   powerZoneTimes?: number[] | null;
   hrZones?: StreamZoneDef[] | null;
   powerZones?: StreamZoneDef[] | null;
   dataSource?: string | null;
 };
+
 
 export type PowerCurvePointApi = {
   duration?: number;
@@ -42,7 +44,7 @@ export type ChartPoint = {
 };
 
 export type StreamSeries = {
-  key: 'watts' | 'heartrate';
+  key: string;
   label: string;
   unit: string;
   color: string;
@@ -65,6 +67,7 @@ export type ActivityStreamCharts = {
     channelLabel: string;
     bars: ZoneBar[];
   } | null;
+  latlng?: { latitude: number; longitude: number }[] | null;
 };
 
 export type PowerCurveCharts = {

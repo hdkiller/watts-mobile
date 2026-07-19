@@ -18,6 +18,7 @@ export type WorkoutListItemApi = {
   aiAnalysisStatus?: WorkoutAnalysisStatus | null;
   streams?: { id?: string } | null;
   source?: string | null;
+  summaryPolyline?: string | null;
 };
 
 /** Raw planned row from `GET /api/planned-workouts`. */
@@ -77,6 +78,7 @@ export type ActivityListItem = {
   tss: number | null;
   trainingLoad: number | null;
   status: ActivityRowStatus;
+  summaryPolyline?: string | null;
 };
 
 export type SummaryMetric = {
@@ -147,6 +149,8 @@ export type PlannedStructureStep = {
   name: string;
   durationSec: number | null;
   intensityLabel: string | null;
+  /** Strength block title / warmup-cooldown cue — not an exercise row. */
+  isSection?: boolean;
 };
 
 export type PlannedZoneBand = {
@@ -162,6 +166,8 @@ export type PlannedZoneSummary = {
 export type PlannedDetail = PlannedListItem & {
   description: string | null;
   structureSteps: PlannedStructureStep[];
+  /** True when structure was mapped from strength `blocks` / `exercises`. */
+  structureIsStrength: boolean;
   workIntensityLabel: string | null;
   completionLabel: string | null;
   syncLabel: string | null;

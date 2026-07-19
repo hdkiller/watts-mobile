@@ -4,10 +4,11 @@ import type { KeyboardEvent } from 'react-native';
 
 /**
  * Returns the number of points the iOS keyboard overlaps the referenced
- * container, for use as bottom padding. KeyboardAvoidingView cannot be used
- * inside a native-tabs screen: it measures its frame relative to the screen
- * container but compares against window-space keyboard coordinates, so it
- * over-pads and crushes the layout.
+ * container, for use as bottom padding.
+ *
+ * Prefer this over KeyboardAvoidingView on native-stack and tab screens:
+ * KAV with behavior="padding" often collapses ScrollView height to 0 under a
+ * header (blank black content while the form is still mounted).
  */
 export function useKeyboardOverlap<T extends View>() {
   const containerRef = useRef<T>(null);

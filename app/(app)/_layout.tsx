@@ -28,6 +28,7 @@ export default function AppLayout() {
         headerStyle: { backgroundColor: Colors.background },
         headerTintColor: Colors.text,
         contentStyle: { backgroundColor: Colors.background },
+        headerBackButtonDisplayMode: 'minimal',
       }}
     >
       <Stack.Screen name="(tabs)" />
@@ -72,6 +73,14 @@ export default function AppLayout() {
         }}
       />
       <Stack.Screen
+        name="sports/[id]"
+        options={{
+          headerShown: true,
+          title: 'Sport profile',
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
         name="recovery-event"
         options={{
           headerShown: true,
@@ -84,6 +93,62 @@ export default function AppLayout() {
         options={{
           headerShown: true,
           title: 'Notifications',
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="settings/index"
+        options={{
+          headerShown: true,
+          title: 'Settings',
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="settings/notifications"
+        options={{
+          headerShown: true,
+          title: 'Notification settings',
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="settings/health"
+        options={{
+          headerShown: true,
+          title: 'Health Sync',
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="settings/units"
+        options={{
+          headerShown: true,
+          title: 'Units & locale',
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="settings/log"
+        options={{
+          headerShown: true,
+          title: 'Log defaults',
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="settings/sports"
+        options={{
+          headerShown: true,
+          title: 'Sports',
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="settings/coach"
+        options={{
+          headerShown: true,
+          title: 'Coach identity',
           presentation: 'card',
         }}
       />

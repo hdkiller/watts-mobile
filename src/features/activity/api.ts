@@ -6,7 +6,13 @@ import type {
   PowerCurveCharts,
   WorkoutStreamsApi,
 } from './chartTypes';
-import { mapPlannedDetail, mapPlannedListItem, mapWorkoutListItem, mapWorkoutSummary } from './mapActivity';
+import {
+  mapPlannedDetail,
+  mapPlannedListItem,
+  mapWorkoutListItem,
+  mapWorkoutSummary,
+  type DistanceDisplayUnits,
+} from './mapActivity';
 import { mapActivityStreamCharts, mapPowerCurveCharts } from './mapCharts';
 import type {
   ActivityListItem,
@@ -86,13 +92,16 @@ export async function fetchUpcomingPlanned(
   return json.map(mapPlannedListItem);
 }
 
-export async function fetchActivitySummary(id: string): Promise<ActivitySummary> {
+export async function fetchActivitySummary(
+  id: string,
+  distanceUnits: DistanceDisplayUnits = 'Kilometers'
+): Promise<ActivitySummary> {
   const response = await apiFetch(`/api/workouts/${encodeURIComponent(id)}?includeStreams=false`);
   if (!response.ok) {
     throw new Error(await readErrorMessage(response, `Failed to load workout (${response.status})`));
   }
   const json = (await response.json()) as WorkoutSummaryApi;
-  return mapWorkoutSummary(json);
+  return mapWorkoutSummary(json, distanceUnits);
 }
 
 export class AnalyzeWorkoutError extends Error {

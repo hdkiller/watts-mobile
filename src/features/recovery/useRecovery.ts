@@ -3,18 +3,33 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   createJourneyEvent,
   deleteJourneyEvent,
-  fetchActiveRecoveryToday,
+  fetchRecoveryContext,
   updateJourneyEvent,
 } from './api';
+import { filterActiveToday } from './mapRecovery';
 import type { JourneyEventPayload } from './types';
 
-export const ACTIVE_RECOVERY_KEY = ['recovery-context', 'active-today'] as const;
+/** Shared cache for GET /api/recovery-context (unfiltered window). */
+export const RECOVERY_CONTEXT_KEY = ['recovery-context', 7] as const;
 
-export function useActiveRecoveryQuery() {
+export function useRecoveryContextQuery(days = 7) {
   return useQuery({
-    queryKey: ACTIVE_RECOVERY_KEY,
-    queryFn: () => fetchActiveRecoveryToday(7),
+    queryKey: ['recovery-context', days] as const,
+    queryFn: () => fetchRecoveryContext(days),
   });
+}
+
+/** Active-today subset derived from the shared recovery-context cache. */
+export function useActiveRecoveryQuery() {
+  const query = useRecoveryContextQuery(7);
+  return {
+    ...query,
+    data: query.data !== undefined ? filterActiveToday(query.data) : undefined,
+  };
+}
+
+async function invalidateRecoveryContext(queryClient: ReturnType<typeof useQueryClient>) {
+  await queryClient.invalidateQueries({ queryKey: ['recovery-context'] });
 }
 
 export function useCreateJourneyEvent() {
@@ -22,7 +37,7 @@ export function useCreateJourneyEvent() {
   return useMutation({
     mutationFn: (payload: JourneyEventPayload) => createJourneyEvent(payload),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ACTIVE_RECOVERY_KEY });
+      await invalidateRecoveryContext(queryClient);
     },
   });
 }
@@ -33,7 +48,7 @@ export function useUpdateJourneyEvent() {
     mutationFn: ({ id, payload }: { id: string; payload: JourneyEventPayload }) =>
       updateJourneyEvent(id, payload),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ACTIVE_RECOVERY_KEY });
+      await invalidateRecoveryContext(queryClient);
     },
   });
 }
@@ -43,7 +58,7 @@ export function useDeleteJourneyEvent() {
   return useMutation({
     mutationFn: (id: string) => deleteJourneyEvent(id),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ACTIVE_RECOVERY_KEY });
+      await invalidateRecoveryContext(queryClient);
     },
   });
 }

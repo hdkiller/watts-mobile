@@ -15,6 +15,7 @@ type ButtonProps = {
   /** Light impact on press. Defaults to true. */
   haptic?: boolean;
   className?: string;
+  testID?: string;
 };
 
 const containerByVariant: Record<ButtonVariant, string> = {
@@ -43,10 +44,12 @@ export function Button({
   disabled = false,
   haptic = true,
   className = '',
+  testID,
 }: ButtonProps) {
   const blocked = disabled || loading;
   return (
     <AnimatedPressable
+      testID={testID}
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ disabled: blocked, busy: loading }}

@@ -11,6 +11,14 @@
         "EXPO_PUBLIC_SENTRY_ENVIRONMENT": "development"
       }
     },
+    "e2e": {
+      "extends": "development",
+      "env": {
+        "EXPO_PUBLIC_SENTRY_ENVIRONMENT": "e2e",
+        "EXPO_PUBLIC_E2E_AUTH": "1",
+        "EXPO_PUBLIC_E2E_INSTANCE_URL": "http://localhost:3099"
+      }
+    },
     "preview": {
       "distribution": "internal",
       "env": {

@@ -6,7 +6,7 @@ import { emptyLogForm } from '@/src/features/log/mapLogForm';
 describe('applyHealthPrefill', () => {
   it('fills empty sleep and weight only', () => {
     const form = emptyLogForm();
-    form.readiness = '7';
+    form.mood = 7;
     const next = applyHealthPrefill(form, {
       sleepHours: '7.5',
       weightKg: '72.2',
@@ -14,7 +14,7 @@ describe('applyHealthPrefill', () => {
     });
     expect(next.sleepHours).toBe('7.5');
     expect(next.weight).toBe('72.2');
-    expect(next.readiness).toBe('7');
+    expect(next.mood).toBe(7);
   });
 
   it('does not overwrite athlete-entered fields', () => {

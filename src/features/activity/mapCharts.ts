@@ -126,7 +126,17 @@ export function mapActivityStreamCharts(raw: WorkoutStreamsApi): ActivityStreamC
         ? { channelLabel: 'HR zones', bars: hrBars }
         : null;
 
-  if (series.length === 0 && !zones) return null;
+  let latlng: { latitude: number; longitude: number }[] | null = null;
+  if (Array.isArray(raw.latlng)) {
+    latlng = [];
+    for (const pair of raw.latlng) {
+      if (Array.isArray(pair) && typeof pair[0] === 'number' && typeof pair[1] === 'number') {
+        latlng.push({ latitude: pair[0], longitude: pair[1] });
+      }
+    }
+  }
+
+  if (series.length === 0 && !zones && !latlng) return null;
 
   let durationSec = 0;
   for (const s of series) {
@@ -138,7 +148,7 @@ export function mapActivityStreamCharts(raw: WorkoutStreamsApi): ActivityStreamC
     if (isFiniteNumber(lastT)) durationSec = lastT;
   }
 
-  return { series, durationSec, zones };
+  return { series, durationSec, zones, latlng };
 }
 
 export function mapPowerCurveCharts(raw: PowerCurveApi): PowerCurveCharts | null {

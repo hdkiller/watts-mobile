@@ -1,3 +1,5 @@
+import type { SFSymbol } from 'expo-symbols';
+
 import type {
   JourneyEventCategory,
   JourneyEventOptionId,
@@ -10,6 +12,9 @@ export type JourneyEventOption = {
   id: JourneyEventOptionId;
   title: string;
   subtitle: string;
+  /** SF Symbol for iOS; emoji fallback elsewhere (mirrors web Lucide icons). */
+  sf: SFSymbol;
+  emoji: string;
   category: JourneyEventCategory;
   eventType: JourneyEventType;
 };
@@ -19,6 +24,8 @@ export const JOURNEY_EVENT_OPTIONS: JourneyEventOption[] = [
     id: 'illness',
     title: 'Illness / sick',
     subtitle: 'Cold, fever, flu, feeling run down, or unexplained crash.',
+    sf: 'thermometer',
+    emoji: '🌡️',
     category: 'FATIGUE',
     eventType: 'WELLNESS_CHECK',
   },
@@ -26,6 +33,8 @@ export const JOURNEY_EVENT_OPTIONS: JourneyEventOption[] = [
     id: 'injury',
     title: 'Injury / pain',
     subtitle: 'Pain, soreness, or something that may limit normal training.',
+    sf: 'cross.case.fill',
+    emoji: '🩹',
     category: 'MUSCLE_PAIN',
     eventType: 'SYMPTOM',
   },
@@ -33,6 +42,8 @@ export const JOURNEY_EVENT_OPTIONS: JourneyEventOption[] = [
     id: 'fatigue',
     title: 'Fatigue / heavy legs',
     subtitle: 'Low energy, unusually hard effort, flat legs, or poor readiness.',
+    sf: 'battery.25percent',
+    emoji: '🪫',
     category: 'FATIGUE',
     eventType: 'SYMPTOM',
   },
@@ -40,6 +51,8 @@ export const JOURNEY_EVENT_OPTIONS: JourneyEventOption[] = [
     id: 'sleep',
     title: 'Poor sleep',
     subtitle: 'Short sleep, frequent wakeups, restless night, or poor sleep quality.',
+    sf: 'moon.stars',
+    emoji: '🌙',
     category: 'SLEEP',
     eventType: 'WELLNESS_CHECK',
   },
@@ -47,6 +60,8 @@ export const JOURNEY_EVENT_OPTIONS: JourneyEventOption[] = [
     id: 'mood',
     title: 'Mood / stress',
     subtitle: 'Stress, anxiety, emotional strain, or feeling mentally off.',
+    sf: 'cloud.bolt',
+    emoji: '⛈️',
     category: 'MOOD',
     eventType: 'WELLNESS_CHECK',
   },
@@ -54,6 +69,8 @@ export const JOURNEY_EVENT_OPTIONS: JourneyEventOption[] = [
     id: 'gi',
     title: 'GI issues',
     subtitle: 'Nausea, bloating, stomach discomfort, or gut problems during training.',
+    sf: 'allergens',
+    emoji: '🐚',
     category: 'GI_DISTRESS',
     eventType: 'SYMPTOM',
   },
@@ -61,6 +78,8 @@ export const JOURNEY_EVENT_OPTIONS: JourneyEventOption[] = [
     id: 'cramping',
     title: 'Cramping',
     subtitle: 'Muscle cramping, tightness, or spasms affecting performance.',
+    sf: 'bolt.fill',
+    emoji: '⚡️',
     category: 'CRAMPING',
     eventType: 'SYMPTOM',
   },
@@ -68,6 +87,8 @@ export const JOURNEY_EVENT_OPTIONS: JourneyEventOption[] = [
     id: 'dizziness',
     title: 'Dizziness',
     subtitle: 'Lightheadedness, dizziness, or feeling unstable.',
+    sf: 'arrow.triangle.2.circlepath',
+    emoji: '💫',
     category: 'DIZZINESS',
     eventType: 'SYMPTOM',
   },
@@ -75,6 +96,8 @@ export const JOURNEY_EVENT_OPTIONS: JourneyEventOption[] = [
     id: 'hunger',
     title: 'Hunger / underfueled',
     subtitle: 'Low energy from underfueling, hunger, or poor intake.',
+    sf: 'fork.knife',
+    emoji: '🍽️',
     category: 'HUNGER',
     eventType: 'SYMPTOM',
   },
@@ -82,6 +105,8 @@ export const JOURNEY_EVENT_OPTIONS: JourneyEventOption[] = [
     id: 'note',
     title: 'General recovery note',
     subtitle: 'Anything unusual you want Coach Watts to remember or correlate.',
+    sf: 'square.and.pencil',
+    emoji: '📝',
     category: 'FATIGUE',
     eventType: 'RECOVERY_NOTE',
   },
@@ -92,19 +117,32 @@ export const SEVERITY_PRESETS: {
   label: string;
   value: number;
   description: string;
+  sf: SFSymbol;
+  emoji: string;
 }[] = [
-  { id: 'mild', label: 'Mild', value: 3, description: 'Noticeable but manageable.' },
+  {
+    id: 'mild',
+    label: 'Mild',
+    value: 3,
+    description: 'Noticeable but manageable.',
+    sf: 'leaf',
+    emoji: '🍃',
+  },
   {
     id: 'moderate',
     label: 'Moderate',
     value: 6,
     description: 'Clearly affecting recovery or training.',
+    sf: 'gauge.with.dots.needle.33percent',
+    emoji: '📊',
   },
   {
     id: 'severe',
     label: 'Severe',
     value: 9,
     description: 'Strong impact, likely explains major disruption.',
+    sf: 'exclamationmark.triangle',
+    emoji: '⚠️',
   },
 ];
 

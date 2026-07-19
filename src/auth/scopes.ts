@@ -11,6 +11,7 @@ export const COMPANION_SCOPES = [
   'recommendation:read',
   'plan:read',
   'goal:read',
+  'performance:read',
   'chat:read',
   'chat:write',
   'offline_access',

@@ -11,6 +11,7 @@ import {
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
+import { Button } from '@/src/components/Button';
 import { absoluteInstanceUrl } from '@/src/features/activity/mapActivity';
 import { Colors } from '@/src/theme/colors';
 
@@ -125,7 +126,7 @@ export function NutritionSection() {
   };
 
   return (
-    <View className="mt-10">
+    <View className="mt-4">
       <Text className="mb-1 text-xs font-semibold uppercase tracking-widest text-ink-muted">
         Nutrition
       </Text>
@@ -149,27 +150,49 @@ export function NutritionSection() {
       ) : null}
 
       {!isError && today ? (
-        <View className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-3">
+        <View className="mt-4">
           {today.isEmpty ? (
-            <Text className="text-sm text-ink-muted">No nutrition logged yet today — start below.</Text>
+            <View className="rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-4">
+              <Text className="text-sm text-ink-muted">No nutrition logged yet today — start below.</Text>
+            </View>
           ) : (
-            <>
-              <Text className="text-lg font-semibold text-white">
-                {today.calories} kcal
-              </Text>
-              <Text className="mt-1 text-sm text-ink-muted">
-                P {formatMacroGrams(today.protein)}g · C {formatMacroGrams(today.carbs)}g · F{' '}
-                {formatMacroGrams(today.fat)}g
-              </Text>
-            </>
+            <View className="gap-3">
+              <View className="flex-row gap-3">
+                {/* Calories Tile */}
+                <View className="flex-1 rounded-xl border border-zinc-800/80 bg-zinc-900/80 p-3.5 shadow-sm">
+                  <Text className="text-[10px] font-bold uppercase tracking-wide text-zinc-400">Calories</Text>
+                  <Text className="text-2xl font-black text-white mt-2">{today.calories} <Text className="text-xs font-semibold text-zinc-500">kcal</Text></Text>
+                </View>
+                {/* Water Tile */}
+                <View className="flex-1 rounded-xl border border-zinc-800/80 bg-zinc-900/80 p-3.5 shadow-sm">
+                  <Text className="text-[10px] font-bold uppercase tracking-wide text-zinc-400">Water</Text>
+                  <Text className="text-2xl font-black text-white mt-2">{(today.waterMl / 1000).toFixed(1)} <Text className="text-xs font-semibold text-zinc-500">L</Text></Text>
+                </View>
+              </View>
+              {/* Macros Row */}
+              <View className="flex-row gap-2.5">
+                <View className="flex-1 bg-zinc-900/30 border border-zinc-800/60 rounded-xl p-3 items-center shadow-sm">
+                  <View className="h-1 w-8 rounded-full bg-orange-400/80 mb-2" />
+                  <Text className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Protein</Text>
+                  <Text className="text-base font-extrabold text-orange-400 mt-1">{formatMacroGrams(today.protein)}g</Text>
+                </View>
+                <View className="flex-1 bg-zinc-900/30 border border-zinc-800/60 rounded-xl p-3 items-center shadow-sm">
+                  <View className="h-1 w-8 rounded-full bg-brand/80 mb-2" />
+                  <Text className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Carbs</Text>
+                  <Text className="text-base font-extrabold text-brand mt-1">{formatMacroGrams(today.carbs)}g</Text>
+                </View>
+                <View className="flex-1 bg-zinc-900/30 border border-zinc-800/60 rounded-xl p-3 items-center shadow-sm">
+                  <View className="h-1 w-8 rounded-full bg-amber-500/80 mb-2" />
+                  <Text className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Fat</Text>
+                  <Text className="text-base font-extrabold text-amber-500 mt-1">{formatMacroGrams(today.fat)}g</Text>
+                </View>
+              </View>
+            </View>
           )}
-          <Text className="mt-2 text-sm text-white">
-            Water {(today.waterMl / 1000).toFixed(1)} L
-          </Text>
         </View>
       ) : null}
 
-      <Text className="mb-2 mt-6 text-sm text-ink-muted">Meal</Text>
+      <Text className="mb-2 mt-6 text-sm text-zinc-400">Meal</Text>
       <View className="flex-row flex-wrap">
         {MEAL_OPTIONS.map((option) => {
           const selected = form.meal === option.value;
@@ -234,32 +257,30 @@ export function NutritionSection() {
         <Text className="mt-3 text-sm font-semibold text-green-400">Logged — totals refreshed.</Text>
       ) : null}
 
-      <Pressable
-        className="mt-4 items-center rounded-xl bg-brand-action py-3.5 active:opacity-80"
+      <Button
+        className="mt-6"
+        label="Log meal"
         onPress={() => void onLogItem()}
-        disabled={logMutation.isPending || !quickLogHasContent(form)}
-      >
-        {logMutation.isPending ? (
-          <ActivityIndicator color="#09090b" />
-        ) : (
-          <Text className="text-base font-semibold text-ink">Log meal</Text>
-        )}
-      </Pressable>
+        loading={logMutation.isPending}
+        disabled={!quickLogHasContent(form)}
+      />
 
-      <Pressable
-        className="mt-3 items-center rounded-xl border border-zinc-700 py-3.5 active:opacity-80"
+      <Button
+        variant="secondary"
+        className="mt-3"
+        label="Log with photo"
         onPress={() =>
           router.push({
             pathname: '/(app)/(tabs)/coach',
             params: { attach: 'camera' },
           })
         }
-      >
-        <Text className="text-base font-semibold text-white">Log with photo</Text>
-        <Text className="mt-1 text-xs text-ink-muted">Opens Coach camera for meal estimate</Text>
-      </Pressable>
+      />
+      <Text className="mt-1.5 text-center text-xs text-ink-muted">
+        Opens Coach camera for meal estimate
+      </Text>
 
-      <Text className="mb-2 mt-6 text-sm text-ink-muted">Hydration</Text>
+      <Text className="mb-2 mt-6 text-sm text-zinc-400">Hydration</Text>
       <View className="flex-row flex-wrap">
         {HYDRATION_QUICK_ML.map((ml) => (
           <Pressable
@@ -280,12 +301,12 @@ export function NutritionSection() {
         <Text className="mt-2 text-sm font-semibold text-green-400">{hydrationSaved}</Text>
       ) : null}
 
-      <Pressable
-        className="mt-5 items-center rounded-xl border border-zinc-700 py-3.5 active:opacity-80"
+      <Button
+        variant="secondary"
+        className="mt-5"
+        label="Open web for planning"
         onPress={() => void openWeb()}
-      >
-        <Text className="text-base font-semibold text-white">Open web for planning</Text>
-      </Pressable>
+      />
     </View>
   );
 }

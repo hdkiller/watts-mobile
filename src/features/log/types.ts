@@ -1,7 +1,9 @@
 export type LogFormValues = {
-  readiness: string;
+  mood: number | null;
+  stress: number | null;
+  fatigue: number | null;
+  soreness: number | null;
   sleepHours: string;
-  sleepQuality: string;
   notes: string;
   weight: string;
 };
@@ -9,18 +11,22 @@ export type LogFormValues = {
 export type WellnessDay = {
   id: string;
   date: string;
-  readiness: number | null;
+  mood: number | null;
+  stress: number | null;
+  fatigue: number | null;
+  soreness: number | null;
   sleepHours: number | null;
-  sleepQuality: number | null;
   comments: string | null;
   weight: number | null;
 };
 
 export type WellnessUploadPayload = {
   date: string;
-  readiness?: number;
+  mood?: number;
+  stress?: number;
+  fatigue?: number;
+  soreness?: number;
   sleepHours?: number;
-  sleepQuality?: number;
   comments?: string;
   weight?: number;
 };

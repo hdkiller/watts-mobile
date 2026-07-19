@@ -12,6 +12,7 @@ import {
 
 import { fetchUserInfo, setAuthFailureHandler, type UserInfo } from '@/src/api/client';
 import { friendlyError } from '@/src/api/errors';
+import { applyE2eAuthSeed } from '@/src/auth/e2eAuth';
 import { loginWithPkce } from '@/src/auth/oauth';
 import { clearTokens, loadTokens } from '@/src/auth/tokenStorage';
 import {
@@ -59,13 +60,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const bootstrap = useCallback(async () => {
     setStatus('loading');
     try {
-      const storedInstance = await getInstanceUrl();
-      setInstanceUrlState(storedInstance);
-
-      if (!storedInstance) {
-        setStatus('needs_instance');
+      const e2eSeed = await applyE2eAuthSeed();
+      if (e2eSeed) {
+        setInstanceUrlState(e2eSeed.instanceUrl);
+        try {
+          const info = await fetchUserInfo();
+          setUser(info);
+          setStatus('authenticated');
+        } catch (err) {
+          setUser(null);
+          setError(friendlyError(err, 'E2E auth seed failed — check token and instance URL'));
+          setStatus('needs_login');
+        }
         return;
       }
+
+      let storedInstance = await getInstanceUrl();
+      if (!storedInstance) {
+        const defaultUrl = getDefaultInstanceUrl();
+        await setInstanceUrl(defaultUrl);
+        storedInstance = defaultUrl;
+      }
+      setInstanceUrlState(storedInstance);
 
       const tokens = await loadTokens();
       if (!tokens?.accessToken) {

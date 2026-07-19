@@ -11,6 +11,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "maestro test maestro",
+    "test:e2e:unauth": "maestro test maestro/smoke-unauth.yaml",
+    "test:e2e:shell": "maestro test maestro/smoke-shell.yaml",
     "lint": "expo lint"
   },
   "dependencies": {
@@ -48,6 +51,7 @@
     "react-native-css-interop": "^0.2.6",
     "react-native-gesture-handler": "~2.32.0",
     "react-native-health-connect": "^3.5.3",
+    "react-native-maps": "1.27.2",
     "react-native-nitro-modules": "^0.36.1",
     "react-native-reanimated": "4.5.0",
     "react-native-safe-area-context": "~5.7.0",
@@ -59,6 +63,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.17",
+    "babel-preset-expo": "~57.0.3",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~57.0.0",
     "typescript": "~6.0.3",

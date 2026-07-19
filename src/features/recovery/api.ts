@@ -22,8 +22,7 @@ export async function fetchRecoveryContext(days = 7): Promise<RecoveryContextIte
 }
 
 export async function fetchActiveRecoveryToday(days = 7): Promise<RecoveryContextItem[]> {
-  const items = await fetchRecoveryContext(days);
-  return filterActiveToday(items);
+  return filterActiveToday(await fetchRecoveryContext(days));
 }
 
 export async function createJourneyEvent(payload: JourneyEventPayload): Promise<void> {

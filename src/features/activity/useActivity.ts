@@ -1,5 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { ATHLETE_PROFILE_KEY } from '@/src/features/profile/useProfile';
+import type { AthleteProfile } from '@/src/features/profile/types';
+
 import {
   fetchActivityPowerCurve,
   fetchActivityStreamCharts,
@@ -53,9 +56,13 @@ export function useUpcomingPlannedQuery() {
 }
 
 export function useActivitySummaryQuery(id: string | undefined) {
+  const queryClient = useQueryClient();
   return useQuery({
     queryKey: activityDetailQueryKey(id ?? ''),
-    queryFn: () => fetchActivitySummary(id!),
+    queryFn: () => {
+      const profile = queryClient.getQueryData<AthleteProfile>(ATHLETE_PROFILE_KEY);
+      return fetchActivitySummary(id!, profile?.distanceUnits ?? 'Kilometers');
+    },
     enabled: Boolean(id),
     refetchInterval: (query) => {
       const phase = query.state.data?.analysis.phase;

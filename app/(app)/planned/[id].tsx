@@ -16,9 +16,10 @@ import {
   formatDuration,
   plannedWorkoutWebPath,
   zoneIndexFromBandName,
+  stepIntensity,
 } from '@/src/features/activity/mapActivity';
 import { usePlannedDetailQuery } from '@/src/features/activity/useActivity';
-import { zoneColor } from '@/src/theme/colors';
+import { zoneColor, Colors } from '@/src/theme/colors';
 
 function plannedHeroStats(data: {
   durationSec: number | null;
@@ -92,19 +93,45 @@ export default function PlannedWorkoutDetailScreen() {
 
           {data.structureSteps.length > 0 ? (
             <View className="mt-6">
-              <Text className="text-xs uppercase tracking-wide text-ink-muted">Structure</Text>
-              <StructureProfile steps={data.structureSteps} />
+              <Text className="text-xs uppercase tracking-wide text-ink-muted">
+                {data.structureIsStrength ? 'Exercises' : 'Structure'}
+              </Text>
+              {!data.structureIsStrength ? (
+                <StructureProfile steps={data.structureSteps} />
+              ) : null}
               {data.structureSteps.map((step, index) => {
                 const meta = [formatDuration(step.durationSec), step.intensityLabel]
                   .filter(Boolean)
                   .join(' · ');
+                const intensity = stepIntensity(step);
+                const color =
+                  intensity.zoneIndex !== undefined
+                    ? zoneColor(intensity.zoneIndex)
+                    : Colors.zoneNeutral;
+                const isSectionCue = Boolean(step.isSection);
                 return (
                   <View
                     key={`${step.name}-${index}`}
-                    className="mt-3 border-b border-zinc-800 pb-3"
+                    className="mt-3 flex-row items-stretch gap-3 border-b border-zinc-800 pb-3"
                   >
-                    <Text className="text-base text-zinc-100">{step.name}</Text>
-                    {meta ? <Text className="mt-1 text-sm text-ink-muted">{meta}</Text> : null}
+                    {!isSectionCue ? (
+                      <View
+                        className="w-1 rounded-full"
+                        style={{ backgroundColor: color }}
+                      />
+                    ) : null}
+                    <View className="flex-1">
+                      <Text
+                        className={
+                          isSectionCue
+                            ? 'text-xs uppercase tracking-wide text-ink-muted'
+                            : 'text-base text-zinc-100'
+                        }
+                      >
+                        {step.name}
+                      </Text>
+                      {meta ? <Text className="mt-1 text-sm text-ink-muted">{meta}</Text> : null}
+                    </View>
                   </View>
                 );
               })}

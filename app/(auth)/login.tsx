@@ -11,7 +11,7 @@ import { Button } from '@/src/components/Button';
 const showDevRegistration = __DEV__ || isExpoGoRuntime();
 
 export default function LoginScreen() {
-  const { instanceUrl, signIn, error, clearError } = useAuth();
+  const { instanceUrl, defaultInstanceUrl, signIn, error, clearError, saveInstance } = useAuth();
   const [busy, setBusy] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
 
@@ -29,39 +29,69 @@ export default function LoginScreen() {
   };
 
   const message = localError || error;
+  const isDefault = !instanceUrl || instanceUrl === defaultInstanceUrl;
 
   return (
-    <SafeAreaView className="flex-1 bg-surface-dark">
+    <SafeAreaView testID="login-screen" className="flex-1 bg-surface-dark">
       <View className="flex-1 justify-center px-6">
         <Image
           source={require('../../assets/images/wordmark.png')}
           accessibilityLabel="Coach Watts"
           style={{ width: 192, height: 40, marginBottom: 24 }}
           resizeMode="contain"
+          tintColor="#ffffff"
         />
         <Text className="text-3xl font-semibold text-white">Sign in</Text>
         <Text className="mt-2 text-base text-ink-muted">
           Connect with Coach Watts using OAuth PKCE. Tokens stay on this device.
         </Text>
 
-        <View className="mt-8 rounded-xl border border-zinc-800 bg-zinc-900/80 p-4">
-          <Text className="text-xs uppercase tracking-wide text-ink-muted">Instance</Text>
-          <Text className="mt-1 text-base text-white">{instanceUrl}</Text>
-          <Link href="/(auth)/instance" asChild>
-            <Pressable className="mt-3 self-start" hitSlop={8}>
-              <Text className="text-sm font-medium text-brand">Change instance</Text>
-            </Pressable>
-          </Link>
-        </View>
+        {!isDefault ? (
+          <View className="mt-8 rounded-xl border border-zinc-800 bg-zinc-900/80 p-4">
+            <Text className="text-xs uppercase tracking-wide text-ink-muted">Instance URL</Text>
+            <Text className="mt-1 text-base text-white">{instanceUrl}</Text>
+            <View className="mt-3 flex-row gap-4">
+              <Link href="/(auth)/instance" asChild>
+                <Pressable hitSlop={8}>
+                  <Text className="text-sm font-medium text-brand">Change URL</Text>
+                </Pressable>
+              </Link>
+              <Pressable
+                hitSlop={8}
+                onPress={async () => {
+                  try {
+                    setBusy(true);
+                    await saveInstance(defaultInstanceUrl);
+                  } catch (err) {
+                    setLocalError(friendlyError(err, 'Failed to restore default'));
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                <Text className="text-sm font-medium text-red-400">Reset to default</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : null}
 
         {message ? <Text className="mt-4 text-sm text-red-400">{message}</Text> : null}
 
         <Button
+          testID="login-sign-in"
           className="mt-6"
           label="Sign in with Coach Watts"
           onPress={() => void onSignIn()}
           loading={busy}
         />
+
+        {isDefault ? (
+          <Link href="/(auth)/instance" asChild>
+            <Pressable className="mt-6 align-center self-center" hitSlop={8}>
+              <Text className="text-sm font-medium text-brand">Use self-hosted instance</Text>
+            </Pressable>
+          </Link>
+        ) : null}
 
         {showDevRegistration ? (
           <Text className="mt-6 text-xs leading-5 text-ink-muted">

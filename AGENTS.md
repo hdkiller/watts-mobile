@@ -13,6 +13,7 @@ This app is the **field companion**: today’s recommendation, check-in, light c
 | [docs/implementation-plan.md](docs/implementation-plan.md) | Delivery phases and checklist for this repo |
 | [docs/open-questions.md](docs/open-questions.md) | Decisions to resolve before/during Phase 0–1 |
 | [docs/oauth-setup.md](docs/oauth-setup.md) | Public OAuth client + redirect URI registration |
+| [docs/e2e.md](docs/e2e.md) | Maestro smoke + e2e auth seed (fixture token) |
 | [docs/deep-links.md](docs/deep-links.md) | Scheme / universal link path map + host association |
 | [docs/native-modules.md](docs/native-modules.md) | When adding Expo native deps: rebuild the dev client |
 | coach-wattz `docs/06-plans/mobile-companion-app.md` | Full living baseline (PR [#239](https://github.com/hdkiller/coach/pull/239); merge pending) |

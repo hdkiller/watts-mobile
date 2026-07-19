@@ -1,6 +1,6 @@
 # Store candidate checklist
 
-Track chrome and metadata for TestFlight / Play internal tracks. E2E automation is deferred.
+Track chrome and metadata for TestFlight / Play internal tracks. Local Maestro footing lives in [e2e.md](./e2e.md); CI wiring is still open.
 
 ## Brand chrome
 
@@ -63,9 +63,11 @@ See [.env.example](../.env.example).
 - [x] Open web + sign out
 - [x] Recent activity + Upcoming preserved
 - [x] About: version/build + privacy / terms / support (when URLs configured)
+- [x] Settings → Export my data opens web Danger Zone
+- [x] Settings → Delete account opens web Danger Zone (in-app path to account deletion)
 
 ## Deferred
 
-- Maestro / Detox E2E
+- Maestro CI wiring (local footing in [e2e.md](./e2e.md))
 - Store listing screenshots owner (marketing vs eng — open question in design)
 - Separate branded binaries per self-hosted customer
