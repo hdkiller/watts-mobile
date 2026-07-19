@@ -15,9 +15,11 @@ Source of truth: [`src/theme/colors.ts`](../src/theme/colors.ts) (JS access) and
 
 | Token | Value | Tailwind | Use |
 |-------|-------|----------|-----|
-| brand | `#00DC82` | `text-brand` / `bg-brand` | Accents, links, active states, spinner tint |
+| brand | `#00DC82` | `text-brand` / `bg-brand` | Accents, links, active states, spinner tint; train hero tone |
 | brand action | `#00C16A` | `bg-brand-action` | Primary button fill only |
 | brand deep | `#00A155` | `brand-deep` | Chart accent |
+| recovery | `#38bdf8` | `text-recovery` / `bg-recovery` | Rest-day hero accent (sky on dark; not violet) |
+| modify | `#f59e0b` | `text-modify` / `bg-modify` | Modify hero accent |
 | background | `#09090b` | `bg-surface-dark` | Screen background |
 | ink | `#09090b` | `text-ink` | Text **on** brand green |
 | ink muted | `#71717a` | `text-ink-muted` | Secondary text, labels, metadata |

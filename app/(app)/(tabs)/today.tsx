@@ -23,7 +23,12 @@ import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { useActiveRecoveryQuery } from '@/src/features/recovery/useRecovery';
 import { ActiveRecoveryBand } from '@/src/features/today/active-recovery-band';
 import { ComingUpStrip } from '@/src/features/today/coming-up-strip';
-import { formatDuration } from '@/src/features/today/mapTodayPayload';
+import {
+  confidenceFilledCount,
+  formatDuration,
+  heroToneForAction,
+  type HeroTone,
+} from '@/src/features/today/mapTodayPayload';
 import { RecentlyTeaser } from '@/src/features/today/recently-teaser';
 import type { TodayPlannedWorkout } from '@/src/features/today/types';
 import { useAcceptRecommendation, useTodayQuery } from '@/src/features/today/useToday';
@@ -31,6 +36,54 @@ import { Colors } from '@/src/theme/colors';
 
 function openPlannedWorkout(id: string) {
   router.push(`/(app)/planned/${id}` as Href);
+}
+
+const HERO_TONE_CLASSES: Record<
+  HeroTone,
+  { accent: string; kicker: string; tint: string; fill: string }
+> = {
+  train: {
+    accent: 'border-l-brand',
+    kicker: 'text-brand',
+    tint: 'bg-brand/10',
+    fill: 'bg-brand',
+  },
+  rest: {
+    accent: 'border-l-recovery',
+    kicker: 'text-recovery',
+    tint: 'bg-recovery/10',
+    fill: 'bg-recovery',
+  },
+  modify: {
+    accent: 'border-l-modify',
+    kicker: 'text-modify',
+    tint: 'bg-modify/10',
+    fill: 'bg-modify',
+  },
+};
+
+function ConfidenceDots({
+  confidence,
+  fillClass,
+}: {
+  confidence: number;
+  fillClass: string;
+}) {
+  const filled = confidenceFilledCount(confidence);
+  if (filled == null) return null;
+  return (
+    <View
+      accessibilityLabel={`Confidence ${filled} of 3`}
+      className="ml-2 flex-row items-center gap-1"
+    >
+      {[1, 2, 3].map((n) => (
+        <View
+          key={n}
+          className={`h-1.5 w-1.5 rounded-full ${n <= filled ? fillClass : 'bg-zinc-600'}`}
+        />
+      ))}
+    </View>
+  );
 }
 
 function greetingForNow(): string {
@@ -162,6 +215,8 @@ export default function TodayScreen() {
   const planned = data?.plannedWorkout ?? null;
   const plannedOnlyHero = !isError && !hasRecommendation && Boolean(planned);
   const emptyNoDecision = !isError && !hasRecommendation && !planned;
+  const heroTone = heroToneForAction(data?.action);
+  const heroToneClasses = HERO_TONE_CLASSES[heroTone];
 
   return (
     <ScrollView
@@ -220,26 +275,27 @@ export default function TodayScreen() {
 
       {hasRecommendation ? (
         <EnterSection order={1}>
-        <View className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
-          <Text className="text-xs uppercase tracking-wide text-ink-muted">Today’s call</Text>
-          <Text className="mt-2 text-2xl font-semibold text-brand">{data!.actionLabel}</Text>
-          {data!.rationale ? (
-            <Text className="mt-3 text-base leading-6 text-zinc-200">{data!.rationale}</Text>
-          ) : null}
-          {data!.confidence != null ? (
-            <Text className="mt-3 text-xs text-ink-muted">
-              Confidence {Math.round(data!.confidence * (data!.confidence <= 1 ? 100 : 1))}%
+          <View
+            className={`mt-6 rounded-2xl border border-zinc-800 border-l-4 ${heroToneClasses.accent} ${heroToneClasses.tint} p-5`}
+          >
+            <View className="flex-row items-center">
+              <Text className="text-xs uppercase tracking-wide text-ink-muted">Today’s call</Text>
+              {data!.confidence != null ? (
+                <ConfidenceDots confidence={data!.confidence} fillClass={heroToneClasses.fill} />
+              ) : null}
+            </View>
+            <Text className={`mt-2 text-2xl font-semibold ${heroToneClasses.kicker}`}>
+              {data!.actionLabel}
             </Text>
-          ) : null}
-          {data!.userAccepted ? (
-            <Text className="mt-3 text-sm font-semibold text-green-400">Accepted</Text>
-          ) : null}
-          {data!.modificationSummary && !data!.userAccepted ? (
-            <Text className="mt-3 text-sm text-zinc-400">
-              Proposed change: {data!.modificationSummary}
-            </Text>
-          ) : null}
-        </View>
+            {data!.rationale ? (
+              <Text className="mt-3 text-base leading-6 text-zinc-200">{data!.rationale}</Text>
+            ) : null}
+            {data!.modificationSummary && !data!.userAccepted ? (
+              <Text className="mt-3 text-sm text-zinc-400">
+                Proposed change: {data!.modificationSummary}
+              </Text>
+            ) : null}
+          </View>
         </EnterSection>
       ) : null}
 
@@ -293,23 +349,47 @@ export default function TodayScreen() {
 
       {hasRecommendation ? (
         <EnterSection order={4}>
-        <View className="mt-6 gap-3">
-          {data?.canAccept ? (
-            <Button
-              label={data.action === 'rest' ? 'Accept rest day' : 'Accept recommendation'}
-              onPress={() => void onAccept()}
-              loading={acceptMutation.isPending}
-            />
-          ) : null}
-
-          {planned ? (
-            <Button
-              variant="secondary"
-              label="View workout details"
-              onPress={() => openPlannedWorkout(planned.id)}
-            />
-          ) : null}
-        </View>
+          <View className="mt-6 gap-3">
+            {data?.userAccepted ? (
+              planned ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Accepted — view workout"
+                  className="flex-row items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-900/80 px-4 py-3.5 active:opacity-70"
+                  onPress={() => openPlannedWorkout(planned.id)}
+                >
+                  <Text className="text-base font-semibold text-green-400">✓</Text>
+                  <Text className="text-base font-semibold text-green-400">
+                    Accepted — view workout
+                  </Text>
+                </Pressable>
+              ) : (
+                <View className="flex-row items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-900/80 px-4 py-3.5">
+                  <Text className="text-base font-semibold text-green-400">✓</Text>
+                  <Text className="text-base font-semibold text-green-400">
+                    {data.action === 'rest' ? 'Rest day accepted' : 'Accepted'}
+                  </Text>
+                </View>
+              )
+            ) : (
+              <>
+                {data?.canAccept ? (
+                  <Button
+                    label={data.action === 'rest' ? 'Accept rest day' : 'Accept recommendation'}
+                    onPress={() => void onAccept()}
+                    loading={acceptMutation.isPending}
+                  />
+                ) : null}
+                {planned ? (
+                  <Button
+                    variant="secondary"
+                    label="View workout details"
+                    onPress={() => openPlannedWorkout(planned.id)}
+                  />
+                ) : null}
+              </>
+            )}
+          </View>
         </EnterSection>
       ) : null}
 
