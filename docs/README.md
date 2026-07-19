@@ -8,5 +8,7 @@ Implementation docs for the native companion app. Product narrative originally d
 | [implementation-plan.md](./implementation-plan.md) | Phased delivery + checklist for this repo |
 | [open-questions.md](./open-questions.md) | Decisions that block or shape Phase 0–1 |
 | [oauth-setup.md](./oauth-setup.md) | Register public OAuth client + redirect URIs |
+| [store-checklist.md](./store-checklist.md) | Icons, splash, Sentry, listing chrome |
+| [store-privacy-checklist.md](./store-privacy-checklist.md) | Privacy / health questionnaire strings |
 
 After the coach-wattz PR merges, link agents to that file as the living product baseline and keep these docs as the **build plan**.
