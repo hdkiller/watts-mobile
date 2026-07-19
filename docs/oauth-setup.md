@@ -93,6 +93,8 @@ offline_access
 
 These match Coach Watts **REST** OAuth scope names (`recommendation:read`, `plan:read` — not the MCP `recommendations:*` / `planning:*` names).
 
+**v1.5 additions** (when applying `phase-4-athlete-profile-edit` / `phase-4-nutrition-quick-log`): `profile:write`, `nutrition:read`, `nutrition:write` — confirm Official Mobile App allowlist in coach-wattz.
+
 ## Verify
 
 1. `pnpm start` → open simulator

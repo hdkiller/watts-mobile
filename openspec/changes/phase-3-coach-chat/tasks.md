@@ -1,9 +1,9 @@
 ## 1. Backend / auth readiness (coach-wattz)
 
-- [ ] 1.1 Confirm Official Mobile App may request `chat:read` / `chat:write`
-- [ ] 1.2 Bearer (or equivalent) on `GET /api/websocket-token` for mobile clients
-- [ ] 1.3 Prefer Bearer on `GET /api/chat/rooms/[id]/state` in the same wave
-- [ ] 1.4 Add chat scopes to mobile authorize scope list when allowed
+- [x] 1.1 Confirm Official Mobile App may request `chat:read` / `chat:write`
+- [x] 1.2 Bearer (or equivalent) on `GET /api/websocket-token` for mobile clients
+- [x] 1.3 Bearer on `GET /api/chat/rooms/[id]/state` (+ resume/retry with `chat:write`)
+- [x] 1.4 Chat scopes already on mobile authorize scope list (`src/auth/scopes.ts`)
 
 ## 2. Coach data layer
 
@@ -12,6 +12,7 @@
 - [ ] 2.3 WebSocket client: mint token, subscribe, merge `chat_assistant_text_delta` / upserts / turn status (mirror web)
 - [ ] 2.4 Poll `GET /api/chat/messages` as degraded/safety net while turn active if WS unavailable
 - [ ] 2.5 Context seed helper from Today/recovery cache (short, non-prescriptive)
+- [ ] 2.6 Optional: room `state` + resume/retry helpers for turn recovery UX
 
 ## 3. Coach UI
 

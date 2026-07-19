@@ -10,7 +10,7 @@ Coach chat is the third tab of the daily loop: short Q&A seeded with today + rec
 - Load rooms/messages and send via existing chat HTTP APIs (`chat:read` / `chat:write`)
 - Delivery: **Bearer WebSocket** for live deltas (primary); poll `GET /api/chat/messages` as degraded/safety net only
 - Request `chat:read` and `chat:write` in the OAuth scope set
-- **coach-wattz (required):** Bearer (or equivalent) on `GET /api/websocket-token`; confirm Official Mobile App may request chat scopes; prefer Bearer on room `state` in the same wave
+- **coach-wattz (done 2026-07-19):** Bearer on `websocket-token`, room `state`, resume/retry; `chat:*` in public scopes / Official Mobile App
 
 ## Capabilities
 
@@ -25,5 +25,5 @@ Coach chat is the third tab of the daily loop: short Q&A seeded with today + rec
 ## Impact
 
 - **watts-mobile:** Coach tab + `src/features/coach/`; `@ai-sdk/react` / `ai` deps; WS client; scope list update
-- **coach-wattz:** Chat REST already Bearer-scoped; **must** extend WS token (and ideally room state) for Bearer clients
+- **coach-wattz:** Chat REST + WS token + room state + resume/retry Bearer-ready; mobile implements client
 - **Out of scope:** Full web chat tooling, coaching teams, voice, E2E, deep-link host files (see `phase-3-deep-links`)

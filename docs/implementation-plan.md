@@ -144,7 +144,7 @@ watts-mobile/
 Track separately (or as paired PRs) — mobile UI polish should not wait forever on these, but Phase 1+ needs them:
 
 1. Official companion OAuth client + redirect URIs
-2. Chat: Bearer `websocket-token` (+ prefer room `state`); confirm Official Mobile App `chat:*` scopes
+2. ~~Chat: Bearer `websocket-token` + room `state` + resume/retry; Official Mobile App `chat:*`~~ **done in coach-wattz**
 3. `GET /api/mobile/today` (or composition docs)
 4. `POST /api/mobile/devices` + push send path
 5. Deep-link / universal link host association

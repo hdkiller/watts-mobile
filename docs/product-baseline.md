@@ -85,7 +85,7 @@ First viewport = one decision. No CTL grids or calendar heatmaps.
 | `planning:read` | Today’s planned workout |
 | `nutrition:read` / `nutrition:write` | Nutrition quick-log (v1.5) |
 | `offline_access` | Refresh tokens |
-| `chat:read` / `chat:write` | Coach tab send/receive (Official Mobile App allowlist still to confirm) |
+| `chat:read` / `chat:write` | Coach tab send/receive (+ room state / resume-retry on write) |
 
 ## Companion API (logical)
 
