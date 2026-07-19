@@ -84,8 +84,8 @@ OpenSpecs (suggested apply order after Phase 2 push):
 - [x] Upcoming planned list from More (`/(app)/upcoming`, same change / workouts glance)
 - [x] Richer planned + activity detail (interval/step summary when available)
 - [ ] Universal links / scheme for Today, recommendation, activity, planned, chat
-- [ ] i18n (Tolgee keys / shared locales where practical)
-- [ ] Store prep: icons, splash, privacy strings
+- [x] i18n footing (English-first keys; Tolgee/shared locales later)
+- [x] Store prep: icons, splash, privacy strings, More account glue, Sentry env/EAS — OpenSpec `phase-3-store-polish` (device splash verify + listing paste still manual; see [store-checklist.md](./store-checklist.md))
 - [ ] ~~E2E smoke (Maestro or Detox)~~ deferred
 
 **Exit:** chat usable; deep links land correctly; store checklist started (E2E not required for this exit).

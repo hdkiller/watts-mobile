@@ -76,6 +76,14 @@ export default function AppLayout() {
           presentation: 'card',
         }}
       />
+      <Stack.Screen
+        name="notifications"
+        options={{
+          headerShown: true,
+          title: 'Notifications',
+          presentation: 'card',
+        }}
+      />
     </Stack>
   );
 }

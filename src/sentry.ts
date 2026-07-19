@@ -1,4 +1,10 @@
-import { SENTRY_DSN } from '@/src/config/env';
+import {
+  APP_VERSION,
+  SENTRY_DIST,
+  SENTRY_DSN,
+  SENTRY_ENVIRONMENT,
+  SENTRY_RELEASE,
+} from '@/src/config/env';
 
 export function initSentry() {
   if (!SENTRY_DSN) return;
@@ -10,5 +16,8 @@ export function initSentry() {
     dsn: SENTRY_DSN,
     tracesSampleRate: 0.1,
     enableAutoSessionTracking: true,
+    environment: SENTRY_ENVIRONMENT,
+    release: SENTRY_RELEASE ?? `coach-watts-mobile@${APP_VERSION}`,
+    dist: SENTRY_DIST,
   });
 }
