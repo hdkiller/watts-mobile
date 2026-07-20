@@ -25,9 +25,12 @@ import {
 import type { AiPersona } from '@/src/features/profile/types';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
+import { useThemeColors } from '@/src/theme/useThemeColors';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 
 export default function CoachIdentityScreen() {
+  const theme = useThemeColors();
+
   const { instanceUrl } = useAuth();
   const profileQuery = useAthleteProfileQuery();
   const availableQuery = useAiSettingsAvailableQuery();
@@ -100,15 +103,15 @@ export default function CoachIdentityScreen() {
       <Stack.Screen options={{ title: 'Coach identity', headerShown: true }} />
       <SafeAreaView
         edges={{ bottom: true }}
-        style={{ flex: 1, backgroundColor: Colors.background }}
+        style={{ flex: 1, backgroundColor: theme.surface }}
       >
         {loading ? (
-          <View className="flex-1 items-center justify-center bg-surface-dark">
+          <View className="flex-1 items-center justify-center bg-surface">
             <ActivityIndicator color={Colors.brand} size="large" />
-            <Text className="mt-3 text-sm text-ink-muted">Loading coach prefs…</Text>
+            <Text className="mt-3 text-sm text-text-muted">Loading coach prefs…</Text>
           </View>
         ) : loadError ? (
-          <View className="flex-1 bg-surface-dark px-6 pt-6">
+          <View className="flex-1 bg-surface px-6 pt-6">
             <Text className="text-red-400">
               {friendlyError(
                 profileQuery.error ?? aiQuery.error,
@@ -127,38 +130,38 @@ export default function CoachIdentityScreen() {
           </View>
         ) : (
           <ScrollView
-            className="flex-1 bg-surface-dark"
+            className="flex-1 bg-surface"
             contentContainerClassName="px-6 pb-12 pt-4"
             keyboardShouldPersistTaps="handled"
           >
-            <Text className="text-2xl font-semibold text-white">Coach identity</Text>
-            <Text className="mt-1 text-sm text-ink-muted">
+            <Text className="text-2xl font-semibold text-text-primary">Coach identity</Text>
+            <Text className="mt-1 text-sm text-text-muted">
               How Coach Watts addresses you and behaves in chat. Automation and voice stay on the
               web.
             </Text>
 
             <View className="mt-6">
-              <Text className="text-xs uppercase tracking-wide text-ink-muted">Nickname</Text>
+              <Text className="text-xs uppercase tracking-wide text-text-muted">Nickname</Text>
               <TextInput
-                className="mt-2 rounded-xl border border-zinc-700 bg-zinc-900/80 px-4 py-3 text-base text-white"
+                className="mt-2 rounded-xl border border-border-strong bg-card/80 px-4 py-3 text-base text-text-primary"
                 value={nickname}
                 onChangeText={setNickname}
                 editable={!pending}
                 placeholder="What should Coach call you?"
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={theme.textMuted}
                 maxLength={50}
               />
             </View>
 
             <View className="mt-5">
-              <Text className="text-xs uppercase tracking-wide text-ink-muted">About me</Text>
+              <Text className="text-xs uppercase tracking-wide text-text-muted">About me</Text>
               <TextInput
-                className="mt-2 min-h-[120px] rounded-xl border border-zinc-700 bg-zinc-900/80 px-4 py-3 text-base text-white"
+                className="mt-2 min-h-[120px] rounded-xl border border-border-strong bg-card/80 px-4 py-3 text-base text-text-primary"
                 value={aiContext}
                 onChangeText={setAiContext}
                 editable={!pending}
                 placeholder="Context Coach should remember (goals, constraints, preferences)"
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={theme.textMuted}
                 multiline
                 textAlignVertical="top"
               />
@@ -167,7 +170,7 @@ export default function CoachIdentityScreen() {
             {aiAvailable ? (
               <>
                 <View className="mt-6">
-                  <Text className="text-xs uppercase tracking-wide text-ink-muted">Persona</Text>
+                  <Text className="text-xs uppercase tracking-wide text-text-muted">Persona</Text>
                   <View className="mt-3 flex-row flex-wrap gap-2">
                     {aiPersonaOptions().map((option) => {
                       const selected = option.value === persona;
@@ -178,7 +181,7 @@ export default function CoachIdentityScreen() {
                           accessibilityState={{ selected }}
                           disabled={pending}
                           className={`rounded-lg px-3 py-2 ${
-                            selected ? 'bg-brand' : 'border border-zinc-700 bg-zinc-900'
+                            selected ? 'bg-brand' : 'border border-border-strong bg-card'
                           } ${pending ? 'opacity-50' : 'active:opacity-80'}`}
                           onPress={() => {
                             hapticLight();
@@ -187,7 +190,7 @@ export default function CoachIdentityScreen() {
                         >
                           <Text
                             className={`text-sm font-medium ${
-                              selected ? 'text-zinc-950' : 'text-white'
+                              selected ? 'text-ink' : 'text-text-primary'
                             }`}
                           >
                             {option.label}
@@ -198,16 +201,16 @@ export default function CoachIdentityScreen() {
                   </View>
                 </View>
 
-                <View className="mt-6 flex-row items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-4">
+                <View className="mt-6 flex-row items-center justify-between rounded-xl border border-border bg-card px-4 py-4">
                   <View className="mr-4 flex-1">
-                    <Text className="text-base font-semibold text-white">Require tool approval</Text>
-                    <Text className="mt-1 text-sm text-ink-muted leading-5">
+                    <Text className="text-base font-semibold text-text-primary">Require tool approval</Text>
+                    <Text className="mt-1 text-sm text-text-muted leading-5">
                       Ask before Coach runs tools that change your data.
                     </Text>
                   </View>
                   <Switch
-                    trackColor={{ false: '#27272a', true: Colors.brand }}
-                    thumbColor={Platform.OS === 'ios' ? undefined : '#fafafa'}
+                    trackColor={{ false: theme.border, true: Colors.brand }}
+                    thumbColor={Platform.OS === 'ios' ? undefined : theme.textPrimary}
                     value={requireToolApproval}
                     onValueChange={(val) => {
                       hapticLight();
@@ -218,9 +221,9 @@ export default function CoachIdentityScreen() {
                 </View>
               </>
             ) : (
-              <View className="mt-6 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-4">
-                <Text className="text-base font-semibold text-white">Persona & tool approval</Text>
-                <Text className="mt-1 text-sm text-ink-muted leading-5">
+              <View className="mt-6 rounded-xl border border-border bg-card px-4 py-4">
+                <Text className="text-base font-semibold text-text-primary">Persona & tool approval</Text>
+                <Text className="mt-1 text-sm text-text-muted leading-5">
                   These preferences need a server update before they can be edited in the app. Open
                   web AI Coach settings for now — nickname and About me still save here.
                 </Text>
@@ -246,10 +249,10 @@ export default function CoachIdentityScreen() {
             />
 
             <Pressable
-              className="mt-3 items-center rounded-xl border border-zinc-700 py-3.5 active:opacity-80"
+              className="mt-3 items-center rounded-xl border border-border-strong py-3.5 active:opacity-80"
               onPress={() => void openWebProfile()}
             >
-              <Text className="text-base font-semibold text-white">Open web Profile Settings</Text>
+              <Text className="text-base font-semibold text-text-primary">Open web Profile Settings</Text>
             </Pressable>
           </ScrollView>
         )}

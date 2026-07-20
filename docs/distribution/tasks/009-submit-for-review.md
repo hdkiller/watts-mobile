@@ -1,0 +1,23 @@
+# 009 — Submit for App Review
+
+**Area:** review · **Priority:** high · **Status:** open
+
+**Depends on:** [003](./003-privacy-and-compliance.md), [004](./004-listing-metadata-assets.md), [007](./007-testflight-smoke.md), [008](./008-reviewer-demo-account.md)
+
+## Goal
+
+Select the tested build, attach review info, and submit.
+
+## Steps
+
+1. [ ] In ASC, choose the TestFlight build that passed [007](./007-testflight-smoke.md).
+2. [ ] Confirm privacy, listing, and compliance sections show no missing required fields.
+3. [ ] Fill App Review Information: contact, demo account, notes from [008](./008-reviewer-demo-account.md).
+4. [ ] Answer any remaining content-rights / advertising / gambling prompts accurately (companion: no ads expected).
+5. [ ] Submit for Review.
+6. [ ] Prepend outcome to [log.md](../log.md) (submitted / Waiting for Review / In Review / Approved / Rejected + reason).
+7. [ ] If rejected: file follow-up tasks or issues; do not delete history — log the response and the fix.
+
+## Done when
+
+- App is **Waiting for Review** or later; submission recorded in the log.

@@ -78,6 +78,17 @@ describe('mapWellnessOverview', () => {
     expect(overview!.metrics.map((m) => m.key)).toEqual(['hrv']);
     expect(overview!.barSeries).toEqual([]);
   });
+
+  it('omits implausible sleep and resting HR', () => {
+    const overview = mapWellnessOverview({
+      date: '2026-07-18',
+      hrv: 40,
+      sleepHours: 0.2,
+      restingHr: 8,
+      trends: {},
+    });
+    expect(overview!.metrics.map((m) => m.key)).toEqual(['hrv']);
+  });
 });
 
 describe('heuristicCoachNote', () => {

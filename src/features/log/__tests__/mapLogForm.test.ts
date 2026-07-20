@@ -77,4 +77,20 @@ describe('mapLogForm', () => {
       weight: '72',
     });
   });
+
+  it('round-trips Pounds display weight to kg on save', () => {
+    const today = pickTodayWellness(
+      [{ id: 'w1', date: '2026-07-19', weight: 72.5748 }],
+      '2026-07-19'
+    );
+    const form = formFromWellness(today, 'Pounds');
+    expect(Number(form.weight)).toBeCloseTo(160, 0);
+
+    const payload = toWellnessPayload(
+      { ...emptyLogForm(), weight: form.weight },
+      '2026-07-19',
+      'Pounds'
+    );
+    expect(payload.weight).toBeCloseTo(72.575, 2);
+  });
 });

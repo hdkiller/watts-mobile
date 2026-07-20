@@ -1,3 +1,6 @@
+import { displayWeightToKg, kgToDisplayWeight } from '@/src/features/profile/mapProfile';
+import type { WeightUnits } from '@/src/features/profile/types';
+
 import type { LogFormValues, WellnessDay, WellnessUploadPayload } from './types';
 import { clampSubjectiveScore, normalizeStressScore } from './wellnessLabels';
 
@@ -32,7 +35,15 @@ export function formHasContent(values: LogFormValues): boolean {
   );
 }
 
-export function toWellnessPayload(values: LogFormValues, date = localDateYmd()): WellnessUploadPayload {
+/**
+ * Build wellness upload payload. Weight is always sent in kg (server storage unit).
+ * Pass `weightUnits` when the form field is in the athlete's display unit.
+ */
+export function toWellnessPayload(
+  values: LogFormValues,
+  date = localDateYmd(),
+  weightUnits: WeightUnits = 'Kilograms'
+): WellnessUploadPayload {
   const payload: WellnessUploadPayload = { date };
 
   if (values.mood != null) payload.mood = clampSubjectiveScore(values.mood);
@@ -41,10 +52,12 @@ export function toWellnessPayload(values: LogFormValues, date = localDateYmd()):
   if (values.soreness != null) payload.soreness = clampSubjectiveScore(values.soreness);
 
   const sleepHours = parseOptionalNumber(values.sleepHours);
-  const weight = parseOptionalNumber(values.weight);
+  const displayWeight = parseOptionalNumber(values.weight);
 
   if (sleepHours != null) payload.sleepHours = sleepHours;
-  if (weight != null) payload.weight = weight;
+  if (displayWeight != null) {
+    payload.weight = displayWeightToKg(displayWeight, weightUnits);
+  }
   if (values.notes.trim()) payload.comments = values.notes.trim();
 
   return payload;
@@ -62,8 +75,13 @@ export function emptyLogForm(): LogFormValues {
   };
 }
 
-export function formFromWellness(day: WellnessDay | null): LogFormValues {
+/** Hydrate form from server wellness (weight stored in kg → display units). */
+export function formFromWellness(
+  day: WellnessDay | null,
+  weightUnits: WeightUnits = 'Kilograms'
+): LogFormValues {
   if (!day) return emptyLogForm();
+  const displayWeight = kgToDisplayWeight(day.weight, weightUnits);
   return {
     mood: day.mood,
     stress: day.stress,
@@ -71,7 +89,7 @@ export function formFromWellness(day: WellnessDay | null): LogFormValues {
     soreness: day.soreness,
     sleepHours: day.sleepHours != null ? String(day.sleepHours) : '',
     notes: day.comments ?? '',
-    weight: day.weight != null ? String(day.weight) : '',
+    weight: displayWeight != null ? String(displayWeight) : '',
   };
 }
 

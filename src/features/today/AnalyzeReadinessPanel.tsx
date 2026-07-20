@@ -15,9 +15,9 @@ type Props = {
 };
 
 const shellByState: Record<AnalyzeReadinessState, string> = {
-  idle: 'border-zinc-800 bg-zinc-900/80',
-  generating: 'border-zinc-800 bg-zinc-900/80',
-  error: 'border-red-900/50 bg-red-950/40',
+  idle: 'border-border bg-card/80',
+  generating: 'border-border bg-card/80',
+  error: 'border-danger/40 bg-tint-error',
   quota: 'border-amber-900/40 bg-amber-950/25',
 };
 
@@ -34,8 +34,8 @@ export function AnalyzeReadinessPanel({
       {state === 'generating' ? (
         <View className="items-center py-2">
           <ActivityIndicator color={Colors.brand} size="small" />
-          <Text className="mt-3 text-base font-semibold text-white">Analyzing readiness…</Text>
-          <Text className="mt-1 text-center text-sm leading-5 text-ink-muted">
+          <Text className="mt-3 text-base font-semibold text-text-primary">Analyzing readiness…</Text>
+          <Text className="mt-1 text-center text-sm leading-5 text-text-muted">
             Building today’s recommendation from your latest biometrics
           </Text>
         </View>
@@ -44,8 +44,8 @@ export function AnalyzeReadinessPanel({
       {state === 'quota' ? (
         <View>
           <Text className="text-xs uppercase tracking-wide text-modify">Plan limit</Text>
-          <Text className="mt-2 text-lg font-semibold text-white">Recommendation limit reached</Text>
-          <Text className="mt-2 text-sm leading-5 text-zinc-300">
+          <Text className="mt-2 text-lg font-semibold text-text-primary">Recommendation limit reached</Text>
+          <Text className="mt-2 text-sm leading-5 text-text-body">
             {errorMessage || 'Update your plan on the web to generate more recommendations.'}
           </Text>
           <View className="mt-5 gap-3">
@@ -58,7 +58,7 @@ export function AnalyzeReadinessPanel({
       {state === 'error' ? (
         <View>
           <Text className="text-xs uppercase tracking-wide text-red-400/90">Analyze Readiness</Text>
-          <Text className="mt-2 text-lg font-semibold text-white">Couldn’t analyze readiness</Text>
+          <Text className="mt-2 text-lg font-semibold text-text-primary">Couldn’t analyze readiness</Text>
           <Text className="mt-2 text-sm leading-5 text-red-300">
             {errorMessage || 'Something went wrong. Try again, or continue on the web.'}
           </Text>
@@ -71,9 +71,9 @@ export function AnalyzeReadinessPanel({
 
       {state === 'idle' ? (
         <View>
-          <Text className="text-xs uppercase tracking-wide text-ink-muted">Ready when you are</Text>
-          <Text className="mt-2 text-lg font-semibold text-white">No recommendation yet</Text>
-          <Text className="mt-2 text-sm leading-5 text-ink-muted">
+          <Text className="text-xs uppercase tracking-wide text-text-muted">Ready when you are</Text>
+          <Text className="mt-2 text-lg font-semibold text-text-primary">No recommendation yet</Text>
+          <Text className="mt-2 text-sm leading-5 text-text-muted">
             Generate today’s personalized call from your latest biometrics and recovery context.
           </Text>
           <View className="mt-5 gap-3">

@@ -1,8 +1,9 @@
 import { apiFetch } from '@/src/api/client';
 
-import { localDateYmd, pickTodayNutrition } from './mapNutrition';
+import { localDateYmd, pickNextFuelingWindow, pickTodayNutrition } from './mapNutrition';
 import type {
   HydrationQuickAddPayload,
+  NextFuelingWindow,
   NutritionDayTotals,
   NutritionUploadPayload,
 } from './types';
@@ -28,6 +29,17 @@ export async function fetchTodayNutrition(date = localDateYmd()): Promise<Nutrit
   }
   const json = await response.json();
   return pickTodayNutrition(json, date);
+}
+
+export async function fetchNextFuelingWindow(): Promise<NextFuelingWindow | null> {
+  const response = await apiFetch('/api/nutrition/upcoming-plan');
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, `Failed to load fueling plan (${response.status})`)
+    );
+  }
+  const json = await response.json();
+  return pickNextFuelingWindow(json);
 }
 
 export async function logNutritionItem(payload: NutritionUploadPayload): Promise<void> {

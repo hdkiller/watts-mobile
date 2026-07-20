@@ -1,10 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { fetchTodayNutrition, logNutritionItem, quickAddHydration } from './api';
+import {
+  fetchNextFuelingWindow,
+  fetchTodayNutrition,
+  logNutritionItem,
+  quickAddHydration,
+} from './api';
 import { localDateYmd } from './mapNutrition';
 import type { HydrationQuickAddPayload, NutritionUploadPayload } from './types';
 
 export const TODAY_NUTRITION_KEY = ['nutrition', 'today'] as const;
+export const NEXT_FUELING_WINDOW_KEY = ['nutrition', 'next-window'] as const;
 
 export function useTodayNutritionQuery(options?: { enabled?: boolean }) {
   return useQuery({

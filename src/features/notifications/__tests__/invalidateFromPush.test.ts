@@ -11,6 +11,7 @@ describe('workoutIdFromPushData', () => {
   it('parses canonical and app paths', () => {
     expect(workoutIdFromPushData({ path: '/activities/abc' })).toBe('abc');
     expect(workoutIdFromPushData({ path: '/(app)/activity/xyz' })).toBe('xyz');
+    expect(workoutIdFromPushData({ path: '/(app)/(tabs)/today/activity/xyz' })).toBe('xyz');
     expect(workoutIdFromPushData({ url: 'coachwatts://activities/q%2Fw' })).toBe('q/w');
   });
 

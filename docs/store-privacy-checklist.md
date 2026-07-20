@@ -55,6 +55,8 @@ Avoid phrases like “diagnoses injury”, “medical advice”, “treats illne
 
 ## App Store / Play checklist hooks
 
+Tracked as distribution [task 003](./distribution/tasks/003-privacy-and-compliance.md) (App Store) and [task 012](./distribution/tasks/012-play-data-safety-and-content.md) (Play):
+
 - [ ] Privacy Nutrition Labels / Data safety form filled using the table above
 - [ ] Privacy policy URL set for the listing (hosted or operator URL)
 - [ ] Health / fitness declarations match athlete-reported wellness + recovery, plus optional HealthKit / Health Connect read for check-in prefill (sleep + weight only)
@@ -63,4 +65,5 @@ Avoid phrases like “diagnoses injury”, “medical advice”, “treats illne
 
 ## Related
 
+- [distribution.md](./distribution.md) — shipping hub, tasks, progress log
 - [store-checklist.md](./store-checklist.md) — icons, splash, Sentry, listing chrome

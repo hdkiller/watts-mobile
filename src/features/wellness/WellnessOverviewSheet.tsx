@@ -48,14 +48,14 @@ function TrendText({
 
 function MetricTile({ metric }: { metric: WellnessOverviewMetric }) {
   return (
-    <View className="w-[48%] rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-3">
-      <Text className="text-[10px] font-bold uppercase tracking-wide text-zinc-400">
+    <View className="w-[48%] rounded-xl border border-border bg-card px-3 py-3">
+      <Text className="text-[10px] font-bold uppercase tracking-wide text-text-muted">
         {metric.label}
       </Text>
       <View className="mt-2 flex-row items-baseline gap-1">
-        <Text className="text-xl font-black text-white">{metric.value}</Text>
+        <Text className="text-xl font-black text-text-primary">{metric.value}</Text>
         {metric.unit ? (
-          <Text className="text-[10px] font-semibold text-zinc-500">{metric.unit}</Text>
+          <Text className="text-[10px] font-semibold text-text-muted">{metric.unit}</Text>
         ) : null}
       </View>
       <TrendText value={metric.trendPercent} lowerIsBetter={metric.lowerIsBetter} />
@@ -70,7 +70,7 @@ function TrendBars({ series }: { series: WellnessBarSeries }) {
 
   return (
     <View className="mt-4">
-      <Text className="text-xs font-semibold text-zinc-300">
+      <Text className="text-xs font-semibold text-text-body">
         {series.label} · 7 days
       </Text>
       <View className="mt-2 h-16 flex-row items-end gap-1.5">
@@ -119,12 +119,12 @@ export function WellnessOverviewSheet({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-surface-dark">
-        <View className="flex-row items-start justify-between border-b border-zinc-800 px-5 py-4">
+      <View className="flex-1 bg-surface">
+        <View className="flex-row items-start justify-between border-b border-border px-5 py-4">
           <View className="min-w-0 flex-1 pr-3">
-            <Text className="text-xl font-semibold text-white">Wellness Overview</Text>
+            <Text className="text-xl font-semibold text-text-primary">Wellness Overview</Text>
             {date ? (
-              <Text className="mt-1 text-sm text-ink-muted">{formatOverviewDate(date)}</Text>
+              <Text className="mt-1 text-sm text-text-muted">{formatOverviewDate(date)}</Text>
             ) : null}
             {query.data?.isStale ? (
               <Text className="mt-1 text-xs font-semibold text-amber-400">
@@ -147,20 +147,20 @@ export function WellnessOverviewSheet({
               {friendlyError(query.error, 'Failed to load wellness overview')}
             </Text>
             <Pressable
-              className="mt-4 items-center rounded-xl border border-zinc-700 py-3.5 active:opacity-80"
+              className="mt-4 items-center rounded-xl border border-border-strong py-3.5 active:opacity-80"
               onPress={() => void query.refetch()}
             >
-              <Text className="text-base font-semibold text-white">Retry</Text>
+              <Text className="text-base font-semibold text-text-primary">Retry</Text>
             </Pressable>
           </View>
         ) : !query.data ? (
           <View className="flex-1 px-5 pt-8">
-            <Text className="text-base text-ink-muted">No wellness data for this day.</Text>
+            <Text className="text-base text-text-muted">No wellness data for this day.</Text>
             <Pressable
               className="mt-6 items-center rounded-xl bg-brand py-3.5 active:opacity-80"
               onPress={onCheckIn}
             >
-              <Text className="text-base font-semibold text-zinc-950">Check in</Text>
+              <Text className="text-base font-semibold text-ink">Check in</Text>
             </Pressable>
           </View>
         ) : (
@@ -177,7 +177,7 @@ export function WellnessOverviewSheet({
 
             {query.data.barSeries.length > 0 ? (
               <View className="mt-8">
-                <Text className="text-xs uppercase tracking-wide text-ink-muted">
+                <Text className="text-xs uppercase tracking-wide text-text-muted">
                   7-day trends
                 </Text>
                 {query.data.barSeries.map((series) => (
@@ -187,11 +187,11 @@ export function WellnessOverviewSheet({
             ) : null}
 
             {query.data.coachNote ? (
-              <View className="mt-8 rounded-xl border border-zinc-800 bg-zinc-900/80 px-4 py-4">
-                <Text className="text-xs uppercase tracking-wide text-ink-muted">
+              <View className="mt-8 rounded-xl border border-border bg-card/80 px-4 py-4">
+                <Text className="text-xs uppercase tracking-wide text-text-muted">
                   Coach note
                 </Text>
-                <Text className="mt-2 text-sm leading-5 text-zinc-200">
+                <Text className="mt-2 text-sm leading-5 text-text-body">
                   {query.data.coachNote}
                 </Text>
               </View>
@@ -201,13 +201,13 @@ export function WellnessOverviewSheet({
               className="mt-8 items-center rounded-xl bg-brand py-3.5 active:opacity-80"
               onPress={onCheckIn}
             >
-              <Text className="text-base font-semibold text-zinc-950">Check in</Text>
+              <Text className="text-base font-semibold text-ink">Check in</Text>
             </Pressable>
             <Pressable
-              className="mt-3 items-center rounded-xl border border-zinc-700 py-3.5 active:opacity-80"
+              className="mt-3 items-center rounded-xl border border-border-strong py-3.5 active:opacity-80"
               onPress={() => void openWeb()}
             >
-              <Text className="text-base font-semibold text-white">Open web</Text>
+              <Text className="text-base font-semibold text-text-primary">Open web</Text>
             </Pressable>
           </ScrollView>
         )}

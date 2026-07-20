@@ -9,6 +9,24 @@ export type NutritionDayTotals = {
   fat: number;
   waterMl: number;
   isEmpty: boolean;
+  /** Canonical fueling-plan targets from GET /api/nutrition; null when no plan for the day. */
+  caloriesGoal: number | null;
+  proteinGoal: number | null;
+  carbsGoal: number | null;
+  fatGoal: number | null;
+  fluidGoalMl: number | null;
+  hasGoals: boolean;
+  /** Fueling periodization state for the day: 1 = Eco, 2 = Steady, 3 = Performance. */
+  fuelState: 1 | 2 | 3 | null;
+};
+
+export type NextFuelingWindow = {
+  /** e.g. "Dinner", "Pre-workout", "Intra-workout" */
+  label: string;
+  startTime: string; // ISO
+  targetCarbs: number;
+  targetProtein: number;
+  workoutTitle: string | null;
 };
 
 export type NutritionItemPayload = {

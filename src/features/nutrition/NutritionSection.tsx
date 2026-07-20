@@ -11,10 +11,12 @@ import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
 import { Colors } from '@/src/theme/colors';
+import { useThemeColors } from '@/src/theme/useThemeColors';
 
 import {
   emptyQuickLogForm,
   formatMacroGrams,
+  goalProgressPct,
   localDateYmd,
   nutritionWebPath,
   quickLogHasContent,
@@ -32,6 +34,46 @@ import {
 } from './types';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 
+function GoalBar({ pct, barClassName }: { pct: number | null; barClassName: string }) {
+  if (pct == null) return null;
+  return (
+    <View className="mt-2 h-1 w-full overflow-hidden rounded-full bg-border">
+      <View className={`h-1 rounded-full ${barClassName}`} style={{ width: `${pct}%` }} />
+    </View>
+  );
+}
+
+function MacroTile({
+  label,
+  value,
+  goal,
+  unit,
+  accentClassName,
+  barClassName,
+}: {
+  label: string;
+  value: number;
+  goal: number | null;
+  unit: string;
+  accentClassName: string;
+  barClassName: string;
+}) {
+  return (
+    <View className="flex-1 items-center rounded-xl border border-border/60 bg-card/30 p-3 shadow-sm">
+      <Text className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
+        {label}
+      </Text>
+      <Text className={`mt-1 text-base font-extrabold ${accentClassName}`}>
+        {formatMacroGrams(value)}
+        <Text className="text-xs font-semibold text-text-muted">
+          {goal != null ? ` / ${formatMacroGrams(goal)}${unit}` : unit}
+        </Text>
+      </Text>
+      <GoalBar pct={goalProgressPct(value, goal)} barClassName={barClassName} />
+    </View>
+  );
+}
+
 function MacroField({
   label,
   value,
@@ -42,12 +84,13 @@ function MacroField({
   onChangeText: (v: string) => void;
   placeholder?: string;
 }) {
+  const theme = useThemeColors();
   return (
     <View className="mt-3 flex-1">
-      <Text className="mb-1.5 text-xs text-ink-muted">{label}</Text>
+      <Text className="mb-1.5 text-xs text-text-muted">{label}</Text>
       <TextInput
-        className="rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2.5 text-base text-white"
-        placeholderTextColor={Colors.textMuted}
+        className="rounded-xl border border-border-strong bg-card px-3 py-2.5 text-base text-text-primary"
+        placeholderTextColor={theme.textMuted}
         placeholder={placeholder}
         value={value}
         onChangeText={onChangeText}
@@ -58,6 +101,8 @@ function MacroField({
 }
 
 export function NutritionSection() {
+  const theme = useThemeColors();
+
   const router = useRouter();
   const { instanceUrl } = useAuth();
   const {
@@ -121,10 +166,10 @@ export function NutritionSection() {
 
   return (
     <View className="mt-4">
-      <Text className="mb-1 text-xs font-semibold uppercase tracking-widest text-ink-muted">
+      <Text className="mb-1 text-xs font-semibold uppercase tracking-widest text-text-muted">
         Nutrition
       </Text>
-      <Text className="text-sm text-ink-muted">
+      <Text className="text-sm text-text-muted">
         Today’s totals, quick meal log, and hydration. Planning and grocery stay on web.
       </Text>
 
@@ -133,7 +178,7 @@ export function NutritionSection() {
       ) : null}
 
       {isError ? (
-        <View className="mt-3 rounded-xl border border-red-900/50 bg-red-950/40 p-3">
+        <View className="mt-3 rounded-xl border border-danger/40 bg-tint-error p-3">
           <Text className="text-sm text-red-300">
             {friendlyError(error, 'Could not load nutrition')}
           </Text>
@@ -145,48 +190,77 @@ export function NutritionSection() {
 
       {!isError && today ? (
         <View className="mt-4">
-          {today.isEmpty ? (
-            <View className="rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-4">
-              <Text className="text-sm text-ink-muted">No nutrition logged yet today — start below.</Text>
+          {today.isEmpty && !today.hasGoals ? (
+            <View className="rounded-xl border border-border bg-card px-4 py-4">
+              <Text className="text-sm text-text-muted">No nutrition logged yet today — start below.</Text>
             </View>
           ) : (
             <View className="gap-3">
               <View className="flex-row gap-3">
                 {/* Calories Tile */}
-                <View className="flex-1 rounded-xl border border-zinc-800/80 bg-zinc-900/80 p-3.5 shadow-sm">
-                  <Text className="text-[10px] font-bold uppercase tracking-wide text-zinc-400">Calories</Text>
-                  <Text className="text-2xl font-black text-white mt-2">{today.calories} <Text className="text-xs font-semibold text-zinc-500">kcal</Text></Text>
+                <View className="flex-1 rounded-xl border border-border/80 bg-card/80 p-3.5 shadow-sm">
+                  <Text className="text-[10px] font-bold uppercase tracking-wide text-text-muted">Calories</Text>
+                  <Text className="text-2xl font-black text-text-primary mt-2">
+                    {today.calories}
+                    <Text className="text-xs font-semibold text-text-muted">
+                      {today.caloriesGoal != null ? ` / ${today.caloriesGoal} kcal` : ' kcal'}
+                    </Text>
+                  </Text>
+                  <GoalBar
+                    pct={goalProgressPct(today.calories, today.caloriesGoal)}
+                    barClassName="bg-brand"
+                  />
                 </View>
                 {/* Water Tile */}
-                <View className="flex-1 rounded-xl border border-zinc-800/80 bg-zinc-900/80 p-3.5 shadow-sm">
-                  <Text className="text-[10px] font-bold uppercase tracking-wide text-zinc-400">Water</Text>
-                  <Text className="text-2xl font-black text-white mt-2">{(today.waterMl / 1000).toFixed(1)} <Text className="text-xs font-semibold text-zinc-500">L</Text></Text>
+                <View className="flex-1 rounded-xl border border-border/80 bg-card/80 p-3.5 shadow-sm">
+                  <Text className="text-[10px] font-bold uppercase tracking-wide text-text-muted">Water</Text>
+                  <Text className="text-2xl font-black text-text-primary mt-2">
+                    {(today.waterMl / 1000).toFixed(1)}
+                    <Text className="text-xs font-semibold text-text-muted">
+                      {today.fluidGoalMl != null
+                        ? ` / ${(today.fluidGoalMl / 1000).toFixed(1)} L`
+                        : ' L'}
+                    </Text>
+                  </Text>
+                  <GoalBar
+                    pct={goalProgressPct(today.waterMl, today.fluidGoalMl)}
+                    barClassName="bg-blue-400"
+                  />
                 </View>
               </View>
               {/* Macros Row */}
               <View className="flex-row gap-2.5">
-                <View className="flex-1 bg-zinc-900/30 border border-zinc-800/60 rounded-xl p-3 items-center shadow-sm">
-                  <View className="h-1 w-8 rounded-full bg-orange-400/80 mb-2" />
-                  <Text className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Protein</Text>
-                  <Text className="text-base font-extrabold text-orange-400 mt-1">{formatMacroGrams(today.protein)}g</Text>
-                </View>
-                <View className="flex-1 bg-zinc-900/30 border border-zinc-800/60 rounded-xl p-3 items-center shadow-sm">
-                  <View className="h-1 w-8 rounded-full bg-brand/80 mb-2" />
-                  <Text className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Carbs</Text>
-                  <Text className="text-base font-extrabold text-brand mt-1">{formatMacroGrams(today.carbs)}g</Text>
-                </View>
-                <View className="flex-1 bg-zinc-900/30 border border-zinc-800/60 rounded-xl p-3 items-center shadow-sm">
-                  <View className="h-1 w-8 rounded-full bg-amber-500/80 mb-2" />
-                  <Text className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Fat</Text>
-                  <Text className="text-base font-extrabold text-amber-500 mt-1">{formatMacroGrams(today.fat)}g</Text>
-                </View>
+                <MacroTile
+                  label="Carbs"
+                  value={today.carbs}
+                  goal={today.carbsGoal}
+                  unit="g"
+                  accentClassName="text-amber-400"
+                  barClassName="bg-amber-400"
+                />
+                <MacroTile
+                  label="Protein"
+                  value={today.protein}
+                  goal={today.proteinGoal}
+                  unit="g"
+                  accentClassName="text-blue-400"
+                  barClassName="bg-blue-400"
+                />
+                <MacroTile
+                  label="Fat"
+                  value={today.fat}
+                  goal={today.fatGoal}
+                  unit="g"
+                  accentClassName="text-violet-400"
+                  barClassName="bg-violet-400"
+                />
               </View>
             </View>
           )}
         </View>
       ) : null}
 
-      <Text className="mb-2 mt-6 text-sm text-zinc-400">Meal</Text>
+      <Text className="mb-2 mt-6 text-sm text-text-muted">Meal</Text>
       <View className="flex-row flex-wrap">
         {MEAL_OPTIONS.map((option) => {
           const selected = form.meal === option.value;
@@ -194,11 +268,11 @@ export function NutritionSection() {
             <Pressable
               key={option.value}
               className={`mb-2 mr-2 rounded-full border px-3 py-2 ${
-                selected ? 'border-brand bg-brand/20' : 'border-zinc-700 bg-zinc-900'
+                selected ? 'border-brand bg-brand/20' : 'border-border-strong bg-card'
               }`}
               onPress={() => setMeal(option.value)}
             >
-              <Text className={`text-xs font-semibold ${selected ? 'text-brand' : 'text-white'}`}>
+              <Text className={`text-xs font-semibold ${selected ? 'text-brand' : 'text-text-primary'}`}>
                 {option.label}
               </Text>
             </Pressable>
@@ -207,10 +281,10 @@ export function NutritionSection() {
       </View>
 
       <View className="mt-2">
-        <Text className="mb-1.5 text-xs text-ink-muted">Name (optional)</Text>
+        <Text className="mb-1.5 text-xs text-text-muted">Name (optional)</Text>
         <TextInput
-          className="rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2.5 text-base text-white"
-          placeholderTextColor={Colors.textMuted}
+          className="rounded-xl border border-border-strong bg-card px-3 py-2.5 text-base text-text-primary"
+          placeholderTextColor={theme.textMuted}
           placeholder="e.g. Greek yogurt"
           value={form.name}
           onChangeText={update('name')}
@@ -222,13 +296,13 @@ export function NutritionSection() {
           label="Calories"
           value={form.calories}
           onChangeText={update('calories')}
-          placeholder="320"
+          placeholder="kcal"
         />
         <MacroField
           label="Protein (g)"
           value={form.protein}
           onChangeText={update('protein')}
-          placeholder="25"
+          placeholder="g"
         />
       </View>
       <View className="flex-row gap-2">
@@ -236,13 +310,13 @@ export function NutritionSection() {
           label="Carbs (g)"
           value={form.carbs}
           onChangeText={update('carbs')}
-          placeholder="30"
+          placeholder="g"
         />
         <MacroField
           label="Fat (g)"
           value={form.fat}
           onChangeText={update('fat')}
-          placeholder="10"
+          placeholder="g"
         />
       </View>
 
@@ -269,20 +343,42 @@ export function NutritionSection() {
             params: { attach: 'camera' } })
         }
       />
-      <Text className="mt-1.5 text-center text-xs text-ink-muted">
+      <Text className="mt-1.5 text-center text-xs text-text-muted">
         Opens Coach camera for meal estimate
       </Text>
 
-      <Text className="mb-2 mt-6 text-sm text-zinc-400">Hydration</Text>
+      <Text className="mb-2 mt-6 text-sm text-text-muted">Hydration</Text>
+      {today && today.fluidGoalMl != null ? (
+        <View className="mb-3">
+          <View className="flex-row items-baseline justify-between">
+            <Text className="text-base font-semibold text-text-primary">
+              {today.waterMl}
+              <Text className="text-sm font-normal text-text-muted"> / {today.fluidGoalMl} ml</Text>
+            </Text>
+            <Text className="text-xs font-semibold text-text-muted">
+              {goalProgressPct(today.waterMl, today.fluidGoalMl)}%
+            </Text>
+          </View>
+          <GoalBar
+            pct={goalProgressPct(today.waterMl, today.fluidGoalMl)}
+            barClassName="bg-blue-400"
+          />
+          <Text className="mt-2 text-xs text-text-muted">
+            {today.waterMl >= today.fluidGoalMl
+              ? 'Target hit — keep sipping as needed.'
+              : `${today.fluidGoalMl - today.waterMl} ml left to hit today’s target.`}
+          </Text>
+        </View>
+      ) : null}
       <View className="flex-row flex-wrap">
         {HYDRATION_QUICK_ML.map((ml) => (
           <Pressable
             key={ml}
-            className="mb-2 mr-2 rounded-full border border-zinc-700 bg-zinc-900 px-3 py-2 active:opacity-80"
+            className="mb-2 mr-2 rounded-full border border-border-strong bg-card px-3 py-2 active:opacity-80"
             onPress={() => void onHydration(ml)}
             disabled={hydrationMutation.isPending}
           >
-            <Text className="text-xs font-semibold text-white">+{ml} ml</Text>
+            <Text className="text-xs font-semibold text-text-primary">+{ml} ml</Text>
           </Pressable>
         ))}
       </View>

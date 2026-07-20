@@ -25,11 +25,14 @@ import { ATHLETE_PROFILE_KEY, useAthleteProfileQuery, usePatchAthleteMetrics } f
 import type { AthleteMetricsFormValues, AthleteProfile } from '@/src/features/profile/types';
 import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
 import { Colors } from '@/src/theme/colors';
+import { useThemeColors } from '@/src/theme/useThemeColors';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 
 export default function AthleteMetricsScreen() {
+  const theme = useThemeColors();
+
   const queryClient = useQueryClient();
-  const { instanceUrl, refreshUser, signOut } = useAuth();
+  const { instanceUrl, refreshUser, signIn } = useAuth();
   const { data, isLoading, isError, error, refetch } = useAthleteProfileQuery();
   const saveMutation = usePatchAthleteMetrics();
   const { containerRef, overlap } = useKeyboardOverlap();
@@ -100,29 +103,29 @@ export default function AthleteMetricsScreen() {
     <>
       <Stack.Screen options={{ title: 'Athlete', headerShown: true }} />
       {isLoading && !data ? (
-        <View className="flex-1 items-center justify-center bg-surface-dark">
+        <View className="flex-1 items-center justify-center bg-surface">
           <ActivityIndicator color={Colors.brand} size="large" />
         </View>
       ) : isError && !data ? (
-        <View className="flex-1 bg-surface-dark px-6 pt-6">
+        <View className="flex-1 bg-surface px-6 pt-6">
           <Text className="text-red-400">
             {friendlyError(error, 'Failed to load profile')}
           </Text>
           <Pressable
-            className="mt-4 items-center rounded-xl border border-zinc-700 py-3.5 active:opacity-80"
+            className="mt-4 items-center rounded-xl border border-border-strong py-3.5 active:opacity-80"
             onPress={() => void refetch()}
           >
-            <Text className="text-base font-semibold text-white">Retry</Text>
+            <Text className="text-base font-semibold text-text-primary">Retry</Text>
           </Pressable>
           <Pressable
-            className="mt-3 items-center rounded-xl border border-zinc-700 py-3.5 active:opacity-80"
+            className="mt-3 items-center rounded-xl border border-border-strong py-3.5 active:opacity-80"
             onPress={() => void openWebReport()}
           >
-            <Text className="text-base font-semibold text-white">Open web</Text>
+            <Text className="text-base font-semibold text-text-primary">Open web</Text>
           </Pressable>
         </View>
       ) : (
-        <View ref={containerRef} className="flex-1 bg-surface-dark">
+        <View ref={containerRef} className="flex-1 bg-surface">
           <ScrollView
             className="flex-1"
             contentContainerClassName="px-6 pt-4"
@@ -133,23 +136,27 @@ export default function AthleteMetricsScreen() {
               <AthleteProfileOverview
                 profile={data}
                 onOpenWebReport={() => void openWebReport()}
-                onReauth={() => void signOut()}
+                // Scope drift: re-run PKCE in place (usually one tap via the live browser
+                // session), then refetch — never sign the athlete out for this (issue 059).
+                onReauth={() =>
+                  void signIn()
+                    .then(() => queryClient.invalidateQueries())
+                    .catch(() => {})
+                }
               />
             ) : null}
 
-            <Text className="text-xl font-semibold text-white">Edit metrics</Text>
-            <Text className="mt-2 text-sm text-ink-muted">
-              Edits your default sport profile (weight, FTP, max HR, LTHR). For per-sport thresholds,
-              use Settings → Sports. Distance, temperature, and timezone live under Settings → Units
-              & locale. Zones and advanced Sport Settings stay on the web.
+            <Text className="text-xl font-semibold text-text-primary">Edit metrics</Text>
+            <Text className="mt-2 text-sm text-text-muted">
+              Default sport profile — per-sport thresholds live in{' '}
+              <Text
+                className="font-semibold text-brand"
+                onPress={() => router.push('/(app)/(tabs)/more/settings/sports' as Href)}
+              >
+                Sports
+              </Text>
+              ; advanced settings stay on the web.
             </Text>
-            <Pressable
-              className="mt-3 self-start py-1 active:opacity-70"
-              hitSlop={8}
-              onPress={() => router.push('/(app)/settings/sports' as Href)}
-            >
-              <Text className="text-sm font-semibold text-brand">Settings → Sports</Text>
-            </Pressable>
 
             <Field
               label={`Weight (${unit})`}
@@ -191,17 +198,17 @@ export default function AthleteMetricsScreen() {
               disabled={pending}
             >
               {pending ? (
-                <ActivityIndicator color={Colors.background} />
+                <ActivityIndicator color={theme.surface} />
               ) : (
-                <Text className="text-base font-semibold text-zinc-950">Save metrics</Text>
+                <Text className="text-base font-semibold text-ink">Save metrics</Text>
               )}
             </Pressable>
 
             <Pressable
-              className="mt-3 items-center rounded-xl border border-zinc-700 py-3.5 active:opacity-80"
+              className="mt-3 items-center rounded-xl border border-border-strong py-3.5 active:opacity-80"
               onPress={() => void openWebSettings()}
             >
-              <Text className="text-base font-semibold text-white">Open web Profile Settings</Text>
+              <Text className="text-base font-semibold text-text-primary">Open web Profile Settings</Text>
             </Pressable>
           </ScrollView>
         </View>
@@ -222,16 +229,17 @@ function Field({
   keyboardType: 'decimal-pad' | 'number-pad';
   editable: boolean;
 }) {
+  const theme = useThemeColors();
   return (
     <View className="mt-5">
-      <Text className="text-xs uppercase tracking-wide text-ink-muted">{label}</Text>
+      <Text className="text-xs uppercase tracking-wide text-text-muted">{label}</Text>
       <TextInput
-        className="mt-2 rounded-xl border border-zinc-700 bg-zinc-900/80 px-4 py-3 text-base text-white"
+        className="mt-2 rounded-xl border border-border-strong bg-card/80 px-4 py-3 text-base text-text-primary"
         value={value}
         onChangeText={onChangeText}
         keyboardType={keyboardType}
         editable={editable}
-        placeholderTextColor={Colors.textMuted}
+        placeholderTextColor={theme.textMuted}
       />
     </View>
   );

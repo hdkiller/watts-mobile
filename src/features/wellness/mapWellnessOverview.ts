@@ -1,5 +1,12 @@
 import { calculateTrend } from '@/src/features/profile/trend';
 
+import {
+  isPlausibleRestingHr,
+  isPlausibleSleepHours,
+  isPlausibleWeightKg,
+  plausibleRestingHrHistory,
+  plausibleSleepHistory,
+} from './plausibility';
 import type {
   WellnessBarSeries,
   WellnessMetricTrend,
@@ -150,16 +157,25 @@ export function mapWellnessOverview(json: unknown): WellnessOverview | null {
   const recoveryTrend = parseTrend(trendsRoot.recoveryScore);
 
   const hrv = asFiniteNumber(root.hrv) ?? hrvTrend?.value ?? null;
-  const sleepHours =
+  const rawSleepHours =
     asFiniteNumber(root.sleepHours) ??
     asFiniteNumber(root.hoursSlept) ??
     sleepTrend?.value ??
     null;
-  const restingHr = asFiniteNumber(root.restingHr) ?? rhrTrend?.value ?? null;
+  const sleepHours = isPlausibleSleepHours(rawSleepHours) ? rawSleepHours : null;
+  const rawRestingHr = asFiniteNumber(root.restingHr) ?? rhrTrend?.value ?? null;
+  const restingHr = isPlausibleRestingHr(rawRestingHr) ? rawRestingHr : null;
   const recoveryScore =
     asFiniteNumber(root.recoveryScore) ?? recoveryTrend?.value ?? null;
   const readiness = asFiniteNumber(root.readiness);
-  const weight = asFiniteNumber(root.weight);
+  const rawWeight = asFiniteNumber(root.weight);
+  const weightTrend = parseTrend(trendsRoot.weight);
+  const weightHistoryPrior = priorValues(weightTrend?.history ?? [], date);
+  const weightPrevious =
+    asFiniteNumber(root.previousWeight) ??
+    weightTrend?.previous ??
+    (weightHistoryPrior.length > 0 ? weightHistoryPrior[weightHistoryPrior.length - 1]! : null);
+  const weight = isPlausibleWeightKg(rawWeight, weightPrevious) ? rawWeight : null;
   const stress = asFiniteNumber(root.stress);
   const mood = asFiniteNumber(root.mood);
   const spo2 = asFiniteNumber(root.spo2) ?? asFiniteNumber(root.spO2);
@@ -169,14 +185,17 @@ export function mapWellnessOverview(json: unknown): WellnessOverview | null {
     systolic != null && diastolic != null ? `${Math.round(systolic)}/${Math.round(diastolic)}` : null;
 
   const hrvTrendPercent = calculateTrend(hrv, priorValues(hrvTrend?.history ?? [], date));
-  const sleepTrendPercent = calculateTrend(
-    sleepHours,
-    priorValues(sleepTrend?.history ?? [], date)
-  );
-  const rhrTrendPercent = calculateTrend(
-    restingHr,
-    priorValues(rhrTrend?.history ?? [], date)
-  );
+  const sleepTrendPercent =
+    sleepHours != null
+      ? calculateTrend(sleepHours, plausibleSleepHistory(priorValues(sleepTrend?.history ?? [], date)))
+      : null;
+  const rhrTrendPercent =
+    restingHr != null
+      ? calculateTrend(
+          restingHr,
+          plausibleRestingHrHistory(priorValues(rhrTrend?.history ?? [], date))
+        )
+      : null;
   const recoveryTrendPercent = calculateTrend(
     recoveryScore,
     priorValues(recoveryTrend?.history ?? [], date)

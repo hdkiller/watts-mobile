@@ -1,6 +1,7 @@
 import type {
   ActivityRecommendationApi,
   RecoverySentiment,
+  RecommendationDetailViewModel,
   TodayRecoveryStrip,
   TodayViewModel,
 } from './types';
@@ -306,4 +307,72 @@ export function formatDuration(durationSec: number | null): string | null {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
   return m ? `${h}h ${m}m` : `${h}h`;
+}
+
+function asFiniteNumber(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim() && Number.isFinite(Number(value))) {
+    return Number(value);
+  }
+  return null;
+}
+
+/**
+ * Map today’s recommendation payload into the View Details sheet model.
+ * Prefers `analysisJson` originals/mods; falls back to linked planned workout for Original Plan.
+ */
+export function mapRecommendationDetail(
+  raw: ActivityRecommendationApi | null | undefined
+): RecommendationDetailViewModel | null {
+  if (!raw?.id) return null;
+
+  const mods = raw.analysisJson?.suggested_modifications ?? null;
+  const analysisPlan = raw.analysisJson?.planned_workout ?? null;
+  const linked = raw.plannedWorkout ?? null;
+  const unit = normalizeConfidence(typeof raw.confidence === 'number' ? raw.confidence : null);
+
+  const keyFactors = Array.isArray(raw.analysisJson?.key_factors)
+    ? raw.analysisJson!.key_factors!.filter((f): f is string => typeof f === 'string' && f.trim().length > 0)
+    : [];
+
+  let originalPlan: RecommendationDetailViewModel['originalPlan'] = null;
+  if (analysisPlan && (analysisPlan.original_title || analysisPlan.original_duration_min != null)) {
+    originalPlan = {
+      title: analysisPlan.original_title?.trim() || 'Original plan',
+      durationMin: asFiniteNumber(analysisPlan.original_duration_min),
+      tss: asFiniteNumber(analysisPlan.original_tss),
+    };
+  } else if (linked) {
+    originalPlan = {
+      title: linked.title?.trim() || 'Planned workout',
+      durationMin:
+        linked.durationSec != null && linked.durationSec > 0
+          ? Math.round(linked.durationSec / 60)
+          : null,
+      tss: asFiniteNumber(linked.tss),
+    };
+  }
+
+  const suggestedChanges = mods
+    ? {
+        title: mods.new_title?.trim() || null,
+        durationMin: asFiniteNumber(mods.new_duration_min),
+        tss: asFiniteNumber(mods.new_tss),
+        description: mods.description?.trim() || null,
+      }
+    : null;
+
+  return {
+    recommendationId: raw.id,
+    action: raw.recommendation ?? null,
+    actionLabel: actionLabel(raw.recommendation),
+    reasoning: raw.reasoning?.trim() || mods?.description?.trim() || null,
+    confidence: unit,
+    confidencePercent: unit == null ? null : Math.round(unit * 100),
+    userAccepted: Boolean(raw.userAccepted),
+    canAccept: Boolean(mods) && !raw.userAccepted,
+    keyFactors,
+    originalPlan,
+    suggestedChanges,
+  };
 }

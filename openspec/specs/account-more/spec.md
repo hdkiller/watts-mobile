@@ -36,7 +36,7 @@ The More tab SHALL provide an entry to the Athlete destination whose label or su
 
 #### Scenario: More entry wording
 - **WHEN** the authenticated user opens More
-- **THEN** an Athlete (or Athlete profile) row is available that navigates to `/(app)/athlete`
+- **THEN** an Athlete (or Athlete profile) row is available that navigates to `/(app)/(tabs)/more/athlete`
 
 #### Scenario: Not metrics-only implication
 - **WHEN** the Athlete profile overview is implemented

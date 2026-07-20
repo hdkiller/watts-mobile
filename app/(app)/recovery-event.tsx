@@ -46,6 +46,7 @@ import { Button } from '@/src/components/Button';
 import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
 import { hapticLight } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
+import { useThemeColors } from '@/src/theme/useThemeColors';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -65,14 +66,18 @@ const LIST_LAYOUT = {
   delete: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
 };
 
-const activeSelectStyle = {
-  borderColor: Colors.brand,
-  backgroundColor: 'rgba(0, 220, 130, 0.1)',
-} as const;
-const idleSelectStyle = {
-  borderColor: '#27272a',
-  backgroundColor: 'rgba(24, 24, 27, 0.6)',
-} as const;
+function selectStyles(theme: ReturnType<typeof useThemeColors>) {
+  return {
+    active: {
+      borderColor: Colors.brand,
+      backgroundColor: 'rgba(0, 220, 130, 0.1)',
+    } as const,
+    idle: {
+      borderColor: theme.border,
+      backgroundColor: `${theme.card}99`,
+    } as const,
+  };
+}
 
 function OptionGlyph({
   sf,
@@ -85,12 +90,13 @@ function OptionGlyph({
   active?: boolean;
   size?: 'sm' | 'md';
 }) {
-  const tint = active ? Colors.brand : '#d4d4d8';
+  const theme = useThemeColors();
+  const tint = active ? Colors.brand : theme.textBody;
   const box = size === 'sm' ? 32 : 36;
   const icon = size === 'sm' ? 15 : 17;
   return (
     <View
-      className="mr-3 items-center justify-center rounded-full bg-zinc-800"
+      className="mr-3 items-center justify-center rounded-full bg-border-strong"
       style={{ width: box, height: box }}
     >
       {Platform.OS === 'ios' ? (
@@ -107,6 +113,9 @@ function animateList() {
 }
 
 export default function RecoveryEventScreen() {
+  const theme = useThemeColors();
+  const { active: activeSelectStyle, idle: idleSelectStyle } = selectStyles(theme);
+
   const params = useLocalSearchParams<{ id?: string }>();
   const sourceRecordId =
     typeof params.id === 'string' && params.id && params.id !== 'undefined'
@@ -225,7 +234,7 @@ export default function RecoveryEventScreen() {
 
   if (isEdit && isLoading && !hydrated) {
     return (
-      <View className="flex-1 items-center justify-center bg-surface-dark">
+      <View className="flex-1 items-center justify-center bg-surface">
         <ActivityIndicator color={Colors.brand} />
       </View>
     );
@@ -233,8 +242,8 @@ export default function RecoveryEventScreen() {
 
   if (isEdit && !isLoading && !existing) {
     return (
-      <View className="flex-1 items-center justify-center bg-surface-dark px-6">
-        <Text className="text-center text-base text-ink-muted">
+      <View className="flex-1 items-center justify-center bg-surface px-6">
+        <Text className="text-center text-base text-text-muted">
           This recovery event is no longer available.
         </Text>
         <Pressable className="mt-4" hitSlop={8} onPress={() => router.back()}>
@@ -246,12 +255,12 @@ export default function RecoveryEventScreen() {
 
   if (isEdit && existing && !existing.editable) {
     return (
-      <View className="flex-1 bg-surface-dark px-6 pt-4">
-        <Text className="text-2xl font-semibold text-white">{existing.label}</Text>
-        <Text className="mt-2 text-sm text-ink-muted">
+      <View className="flex-1 bg-surface px-6 pt-4">
+        <Text className="text-2xl font-semibold text-text-primary">{existing.label}</Text>
+        <Text className="mt-2 text-sm text-text-muted">
           Imported context is read-only. Open the web app to review the source.
         </Text>
-        <Text className="mt-4 text-base text-zinc-200">
+        <Text className="mt-4 text-base text-text-body">
           {existing.description || 'No additional context provided.'}
         </Text>
         <Button variant="secondary" className="mt-8" label="Close" onPress={() => router.back()} />
@@ -267,19 +276,19 @@ export default function RecoveryEventScreen() {
           headerShown: true,
         }}
       />
-      <View ref={containerRef} className="flex-1 bg-surface-dark">
+      <View ref={containerRef} className="flex-1 bg-surface">
         <ScrollView
           className="flex-1"
           contentContainerClassName="px-6 pt-4"
           contentContainerStyle={{ paddingBottom: 48 + overlap }}
           keyboardShouldPersistTaps="handled"
         >
-          <Text className="text-base text-ink-muted">
+          <Text className="text-base text-text-muted">
             Capture what helps explain unusual recovery, sleep, or training response.
           </Text>
 
           <View className="mt-6 flex-row items-center justify-between">
-            <Text className="text-xs font-semibold uppercase tracking-widest text-ink-muted">
+            <Text className="text-xs font-semibold uppercase tracking-widest text-text-muted">
               What happened?
             </Text>
             {!browsingOptions ? (
@@ -319,8 +328,8 @@ export default function RecoveryEventScreen() {
                   <View className="flex-row items-start">
                     <OptionGlyph sf={option.sf} emoji={option.emoji} active={active} />
                     <View className="min-w-0 flex-1">
-                      <Text className="text-sm font-semibold text-white">{option.title}</Text>
-                      <Text className="mt-1 text-xs text-ink-muted">{option.subtitle}</Text>
+                      <Text className="text-sm font-semibold text-text-primary">{option.title}</Text>
+                      <Text className="mt-1 text-xs text-text-muted">{option.subtitle}</Text>
                     </View>
                   </View>
                 </Pressable>
@@ -329,16 +338,16 @@ export default function RecoveryEventScreen() {
           </View>
 
           {!browsingOptions ? (
-            <Text className="mt-3 text-xs text-ink-muted">
+            <Text className="mt-3 text-xs text-text-muted">
               Logged as {eventTypeBadgeLabel(selectedOption.eventType).toLowerCase()}
             </Text>
           ) : (
-            <Text className="mt-3 text-xs text-ink-muted">Tap an option to continue.</Text>
+            <Text className="mt-3 text-xs text-text-muted">Tap an option to continue.</Text>
           )}
 
           {detailsUnlocked ? (
             <Animated.View entering={FadeInDown.duration(280)}>
-              <Text className="mb-2 mt-6 text-xs font-semibold uppercase tracking-widest text-ink-muted">
+              <Text className="mb-2 mt-6 text-xs font-semibold uppercase tracking-widest text-text-muted">
                 How much did it affect you?
               </Text>
               <View className="gap-2">
@@ -358,10 +367,10 @@ export default function RecoveryEventScreen() {
                         <OptionGlyph sf={level.sf} emoji={level.emoji} active={active} />
                         <View className="min-w-0 flex-1">
                           <View className="flex-row items-center justify-between">
-                            <Text className="text-sm font-semibold text-white">{level.label}</Text>
-                            <Text className="text-xs text-ink-muted">{level.value}/10</Text>
+                            <Text className="text-sm font-semibold text-text-primary">{level.label}</Text>
+                            <Text className="text-xs text-text-muted">{level.value}/10</Text>
                           </View>
-                          <Text className="mt-1 text-xs text-ink-muted">{level.description}</Text>
+                          <Text className="mt-1 text-xs text-text-muted">{level.description}</Text>
                         </View>
                       </View>
                     </Pressable>
@@ -369,7 +378,7 @@ export default function RecoveryEventScreen() {
                 })}
               </View>
 
-              <Text className="mb-2 mt-6 text-xs font-semibold uppercase tracking-widest text-ink-muted">
+              <Text className="mb-2 mt-6 text-xs font-semibold uppercase tracking-widest text-text-muted">
                 When did this happen?
               </Text>
               <View className="flex-row flex-wrap gap-2">
@@ -382,7 +391,7 @@ export default function RecoveryEventScreen() {
                       style={
                         active
                           ? activeSelectStyle
-                          : { borderColor: '#3f3f46', backgroundColor: 'transparent' }
+                          : { borderColor: theme.borderStrong, backgroundColor: 'transparent' }
                       }
                       onPress={() => {
                         hapticLight();
@@ -390,7 +399,7 @@ export default function RecoveryEventScreen() {
                       }}
                     >
                       <Text
-                        className={`text-xs font-semibold ${active ? 'text-brand' : 'text-white'}`}
+                        className={`text-xs font-semibold ${active ? 'text-brand' : 'text-text-primary'}`}
                       >
                         {preset.label}
                       </Text>
@@ -399,8 +408,8 @@ export default function RecoveryEventScreen() {
                 })}
               </View>
               <TextInput
-                className="mt-3 rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-base text-white"
-                placeholderTextColor={Colors.textMuted}
+                className="mt-3 rounded-xl border border-border-strong bg-card px-4 py-3 text-base text-text-primary"
+                placeholderTextColor={theme.textMuted}
                 placeholder="YYYY-MM-DDTHH:mm"
                 value={values.localTimestamp}
                 onChangeText={(text) => {
@@ -411,19 +420,19 @@ export default function RecoveryEventScreen() {
                 autoCorrect={false}
               />
 
-              <Text className="mb-2 mt-6 text-xs font-semibold uppercase tracking-widest text-ink-muted">
+              <Text className="mb-2 mt-6 text-xs font-semibold uppercase tracking-widest text-text-muted">
                 Tell Coach Watts more
               </Text>
               <TextInput
-                className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-base text-white"
-                placeholderTextColor={Colors.textMuted}
+                className="rounded-xl border border-border-strong bg-card px-4 py-3 text-base text-text-primary"
+                placeholderTextColor={theme.textMuted}
                 placeholder="Symptoms, trigger, what changed…"
                 value={values.description}
                 onChangeText={(text) => patch('description', text)}
                 multiline
                 style={{ minHeight: 100, textAlignVertical: 'top' }}
               />
-              <Text className="mt-1 text-xs text-ink-muted">
+              <Text className="mt-1 text-xs text-text-muted">
                 {values.description.length}/{DESCRIPTION_MAX}
               </Text>
 
@@ -454,10 +463,10 @@ export default function RecoveryEventScreen() {
           ) : null}
 
           <Pressable
-            className="mt-3 items-center rounded-xl border border-zinc-700 py-3.5"
+            className="mt-3 items-center rounded-xl border border-border-strong py-3.5"
             onPress={() => router.back()}
           >
-            <Text className="text-base font-semibold text-white">Cancel</Text>
+            <Text className="text-base font-semibold text-text-primary">Cancel</Text>
           </Pressable>
         </ScrollView>
       </View>

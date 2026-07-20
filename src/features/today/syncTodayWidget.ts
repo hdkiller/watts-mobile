@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 
 import { formatDuration } from '@/src/features/today/mapTodayPayload';
 import type { TodayViewModel } from '@/src/features/today/types';
+import { humanizeWorkoutType } from '@/src/lib/humanizeWorkoutType';
 
 /** Push Today payload into the iOS home-screen widget (no-op on other platforms). */
 export async function syncTodayWidget(data: TodayViewModel | undefined): Promise<void> {
@@ -10,7 +11,11 @@ export async function syncTodayWidget(data: TodayViewModel | undefined): Promise
     const widget = (await import('../../../widgets/TodaySessionWidget')).default;
     const planned = data.plannedWorkout;
     const meta = planned
-      ? [planned.type, formatDuration(planned.durationSec), planned.tss != null ? `TSS ${Math.round(planned.tss)}` : null]
+      ? [
+            humanizeWorkoutType(planned.type),
+            formatDuration(planned.durationSec),
+            planned.tss != null ? `TSS ${Math.round(planned.tss)}` : null,
+          ]
           .filter(Boolean)
           .join(' · ')
       : data.action === 'rest'

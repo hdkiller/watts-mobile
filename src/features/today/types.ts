@@ -38,6 +38,20 @@ export type TodayViewModel = {
   raw: unknown;
 };
 
+export type SuggestedModificationsApi = {
+  description?: string;
+  new_type?: string;
+  new_title?: string;
+  new_duration_min?: number;
+  new_tss?: number;
+};
+
+export type AnalysisPlannedWorkoutApi = {
+  original_title?: string;
+  original_duration_min?: number;
+  original_tss?: number;
+};
+
 export type ActivityRecommendationApi = {
   id: string;
   recommendation?: string | null;
@@ -46,11 +60,9 @@ export type ActivityRecommendationApi = {
   status?: string | null;
   userAccepted?: boolean | null;
   analysisJson?: {
-    suggested_modifications?: {
-      description?: string;
-      new_type?: string;
-      new_title?: string;
-    } | null;
+    key_factors?: string[] | null;
+    planned_workout?: AnalysisPlannedWorkoutApi | null;
+    suggested_modifications?: SuggestedModificationsApi | null;
     recovery_context?: Record<string, unknown> | null;
     recovery_analysis?: {
       hrv_status?: string | null;
@@ -68,5 +80,29 @@ export type ActivityRecommendationApi = {
     tss?: number | null;
     description?: string | null;
     structure?: unknown;
+  } | null;
+};
+
+/** Detail sheet view model mapped from today recommendation + analysisJson. */
+export type RecommendationDetailViewModel = {
+  recommendationId: string;
+  action: RecommendationAction | null;
+  actionLabel: string;
+  reasoning: string | null;
+  confidence: number | null;
+  confidencePercent: number | null;
+  userAccepted: boolean;
+  canAccept: boolean;
+  keyFactors: string[];
+  originalPlan: {
+    title: string;
+    durationMin: number | null;
+    tss: number | null;
+  } | null;
+  suggestedChanges: {
+    title: string | null;
+    durationMin: number | null;
+    tss: number | null;
+    description: string | null;
   } | null;
 };

@@ -1,11 +1,12 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
-import { ScrollView, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
 import { HeroStatTiles, type HeroStat } from '@/src/components/HeroStatTiles';
-import { formatLastUpdated, OfflineBanner } from '@/src/components/OfflineBanner';
+import { OfflineBanner } from '@/src/components/OfflineBanner';
 import { DetailSkeleton } from '@/src/components/Skeleton';
 import { SportIcon } from '@/src/components/SportIcon';
 import { StructureProfile } from '@/src/features/activity/charts/StructureProfile';
@@ -16,8 +17,10 @@ import {
   zoneIndexFromBandName,
   stepIntensity } from '@/src/features/activity/mapActivity';
 import { usePlannedDetailQuery } from '@/src/features/activity/useActivity';
-import { zoneColor, Colors } from '@/src/theme/colors';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
+import { useOfflineCached } from '@/src/hooks/useOfflineCached';
+import { humanizeWorkoutType } from '@/src/lib/humanizeWorkoutType';
+import { zoneColor, Colors } from '@/src/theme/colors';
 
 function plannedHeroStats(data: {
   durationSec: number | null;
@@ -41,7 +44,12 @@ export default function PlannedWorkoutDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { instanceUrl } = useAuth();
   const { data, isLoading, isError, error, dataUpdatedAt } = usePlannedDetailQuery(id);
-  const showCachedOffline = Boolean(isError && data);
+  const { showCachedOffline, lastUpdatedLabel } = useOfflineCached({
+    data,
+    isError,
+    dataUpdatedAt,
+  });
+  const [zonesExpanded, setZonesExpanded] = useState(false);
 
   const openWeb = async () => {
     const path = id ? plannedWorkoutWebPath(id) : '/';
@@ -58,39 +66,41 @@ export default function PlannedWorkoutDetailScreen() {
       {isLoading && !data ? (
         <DetailSkeleton />
       ) : isError && !data ? (
-        <View className="flex-1 bg-surface-dark px-6 pt-6">
+        <View className="flex-1 bg-surface px-6 pt-6">
           <Text className="text-red-400">
             {friendlyError(error, 'Failed to load workout')}
           </Text>
         </View>
       ) : data ? (
-        <ScrollView className="flex-1 bg-surface-dark" contentContainerClassName="px-6 pb-10 pt-4">
+        <ScrollView className="flex-1 bg-surface" contentContainerClassName="px-6 pb-10 pt-4">
           <OfflineBanner
             visible={showCachedOffline}
-            lastUpdatedLabel={formatLastUpdated(dataUpdatedAt)}
+            lastUpdatedLabel={lastUpdatedLabel}
           />
           <View className="flex-row items-center gap-3">
             <SportIcon type={data.type} size={18} />
-            <Text className="min-w-0 flex-1 text-2xl font-semibold text-white">{data.title}</Text>
+            <Text className="min-w-0 flex-1 text-2xl font-semibold text-text-primary">{data.title}</Text>
           </View>
-          <Text className="mt-2 text-sm text-ink-muted">
-            {[formatActivityDate(data.date), data.type].filter(Boolean).join(' · ')}
+          <Text className="mt-2 text-sm text-text-muted">
+            {[formatActivityDate(data.date), humanizeWorkoutType(data.type)]
+              .filter(Boolean)
+              .join(' · ')}
           </Text>
           <HeroStatTiles stats={plannedHeroStats(data)} />
           {statusLine ? (
-            <Text className="mt-3 text-sm text-ink-muted">{statusLine}</Text>
+            <Text className="mt-3 text-sm text-text-muted">{statusLine}</Text>
           ) : null}
 
           {data.coachInstructions ? (
             <View className="mt-6">
-              <Text className="text-xs uppercase tracking-wide text-ink-muted">Coach cues</Text>
-              <Text className="mt-2 text-base leading-6 text-zinc-200">{data.coachInstructions}</Text>
+              <Text className="text-xs uppercase tracking-wide text-text-muted">Coach cues</Text>
+              <Text className="mt-2 text-base leading-6 text-text-body">{data.coachInstructions}</Text>
             </View>
           ) : null}
 
           {data.structureSteps.length > 0 ? (
             <View className="mt-6">
-              <Text className="text-xs uppercase tracking-wide text-ink-muted">
+              <Text className="text-xs uppercase tracking-wide text-text-muted">
                 {data.structureIsStrength ? 'Exercises' : 'Structure'}
               </Text>
               {!data.structureIsStrength ? (
@@ -109,7 +119,7 @@ export default function PlannedWorkoutDetailScreen() {
                 return (
                   <View
                     key={`${step.name}-${index}`}
-                    className="mt-3 flex-row items-stretch gap-3 border-b border-zinc-800 pb-3"
+                    className="mt-3 flex-row items-stretch gap-3 border-b border-border pb-3"
                   >
                     {!isSectionCue ? (
                       <View
@@ -121,13 +131,13 @@ export default function PlannedWorkoutDetailScreen() {
                       <Text
                         className={
                           isSectionCue
-                            ? 'text-xs uppercase tracking-wide text-ink-muted'
-                            : 'text-base text-zinc-100'
+                            ? 'text-xs uppercase tracking-wide text-text-muted'
+                            : 'text-base text-text-body'
                         }
                       >
                         {step.name}
                       </Text>
-                      {meta ? <Text className="mt-1 text-sm text-ink-muted">{meta}</Text> : null}
+                      {meta ? <Text className="mt-1 text-sm text-text-muted">{meta}</Text> : null}
                     </View>
                   </View>
                 );
@@ -137,35 +147,54 @@ export default function PlannedWorkoutDetailScreen() {
 
           {data.zoneSummary ? (
             <View className="mt-6">
-              <Text className="text-xs uppercase tracking-wide text-ink-muted">
-                Zones · {data.zoneSummary.channelLabel}
-              </Text>
-              {data.zoneSummary.bands.map((band, index) => {
-                const color = zoneColor(zoneIndexFromBandName(band.name, index));
-                return (
-                  <View
-                    key={`${band.name}-${band.rangeLabel}`}
-                    className="mt-3 flex-row items-center justify-between border-b border-zinc-800 pb-3"
-                  >
-                    <View className="min-w-0 flex-1 flex-row items-center gap-2.5">
-                      <View
-                        className="h-3 w-3 rounded-sm"
-                        style={{ backgroundColor: color }}
-                        accessibilityLabel={`${band.name} color`}
-                      />
-                      <Text className="text-base text-zinc-100">{band.name}</Text>
+              {data.structureSteps.length > 0 ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityState={{ expanded: zonesExpanded }}
+                  accessibilityLabel={`Zones · ${data.zoneSummary.channelLabel}`}
+                  onPress={() => setZonesExpanded((v) => !v)}
+                  className="flex-row items-center justify-between py-1 active:opacity-80"
+                  hitSlop={8}
+                >
+                  <Text className="text-xs uppercase tracking-wide text-text-muted">
+                    Zones · {data.zoneSummary.channelLabel}
+                  </Text>
+                  <Text className="text-xs font-semibold text-brand">
+                    {zonesExpanded ? 'Hide' : 'Show'}
+                  </Text>
+                </Pressable>
+              ) : (
+                <Text className="text-xs uppercase tracking-wide text-text-muted">
+                  Zones · {data.zoneSummary.channelLabel}
+                </Text>
+              )}
+              {(data.structureSteps.length === 0 || zonesExpanded) &&
+                data.zoneSummary.bands.map((band, index) => {
+                  const color = zoneColor(zoneIndexFromBandName(band.name, index));
+                  return (
+                    <View
+                      key={`${band.name}-${band.rangeLabel}`}
+                      className="mt-3 flex-row items-center justify-between border-b border-border pb-3"
+                    >
+                      <View className="min-w-0 flex-1 flex-row items-center gap-2.5">
+                        <View
+                          className="h-3 w-3 rounded-sm"
+                          style={{ backgroundColor: color }}
+                          accessibilityLabel={`${band.name} color`}
+                        />
+                        <Text className="text-base text-text-body">{band.name}</Text>
+                      </View>
+                      <Text className="text-sm text-text-muted">{band.rangeLabel}</Text>
                     </View>
-                    <Text className="text-sm text-ink-muted">{band.rangeLabel}</Text>
-                  </View>
-                );
-              })}
+                  );
+                })}
             </View>
           ) : null}
 
           {data.description ? (
-            <Text className="mt-6 text-base leading-6 text-zinc-200">{data.description}</Text>
+            <Text className="mt-6 text-base leading-6 text-text-body">{data.description}</Text>
           ) : data.structureSteps.length === 0 && !data.coachInstructions ? (
-            <Text className="mt-6 text-sm text-ink-muted">
+            <Text className="mt-6 text-sm text-text-muted">
               No structure summary available. Open the web app for full planned-workout detail.
             </Text>
           ) : null}

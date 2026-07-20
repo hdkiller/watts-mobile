@@ -17,6 +17,9 @@ This app is the **field companion**: today’s recommendation, check-in, light c
 | [docs/e2e.md](docs/e2e.md) | Maestro smoke + e2e auth seed (fixture token) |
 | [docs/deep-links.md](docs/deep-links.md) | Scheme / universal link path map + host association |
 | [docs/native-modules.md](docs/native-modules.md) | When adding Expo native deps: rebuild the dev client |
+| [docs/distribution.md](docs/distribution.md) | App Store / Play shipping hub → tasks + progress log under `docs/distribution/` |
+| [docs/store-checklist.md](docs/store-checklist.md) | Brand chrome, About links, Sentry env for store builds |
+| [docs/store-privacy-checklist.md](docs/store-privacy-checklist.md) | App Privacy / Data safety questionnaire copy |
 | coach-wattz `docs/06-plans/mobile-companion-app.md` | Full living baseline (PR [#239](https://github.com/hdkiller/coach/pull/239); merge pending) |
 | OpenSpec archive `2026-07-19-phase-0/1/2/3/4-*` | Auth → Today → Log → push → chat → activity → deep links → store → profile → nutrition (done) |
 
@@ -69,3 +72,4 @@ IA: bottom tabs **Today · Log · Coach · More**.
 6. Follow [BRANDING.md](../coach-wattz/BRANDING.md) in coach-wattz — companion is Coach Watts, not a generic fitness shell.
 7. Update [docs/open-questions.md](docs/open-questions.md) when a decision lands.
 8. After adding/upgrading a **native** Expo module or changing its `app.json` plugin, **rebuild the binary** (`pnpm ios` / `pnpm android` or EAS). Metro alone will not link it — see [docs/native-modules.md](docs/native-modules.md). Symptom: `Cannot find native module '…'`.
+9. Store / distribution progress: update [docs/distribution/tasks.md](docs/distribution/tasks.md) (and the matching task file) when status changes; **prepend** a dated entry to [docs/distribution/log.md](docs/distribution/log.md) for enrollments, TestFlight builds, submissions, and review outcomes. Never commit Apple passwords, review demo passwords, or real Sentry DSNs — see [docs/distribution.md](docs/distribution.md).

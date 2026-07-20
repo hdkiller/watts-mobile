@@ -14,5 +14,9 @@ Implementation docs for the native companion app. Product narrative originally d
 | [native-modules.md](./native-modules.md) | Rebuild the dev client after native package / plugin changes |
 | [store-checklist.md](./store-checklist.md) | Icons, splash, Sentry, listing chrome |
 | [store-privacy-checklist.md](./store-privacy-checklist.md) | Privacy / health questionnaire strings |
+| [distribution.md](./distribution.md) | App Store / Play shipping hub |
+| [distribution/tasks.md](./distribution/tasks.md) | Outstanding distribution tasks |
+| [distribution/log.md](./distribution/log.md) | Distribution progress history (append-only) |
+| [distribution/play-console-signup.md](./distribution/play-console-signup.md) | Google Play Organization signup walkthrough |
 
 After the coach-wattz PR merges, link agents to that file as the living product baseline and keep these docs as the **build plan**.

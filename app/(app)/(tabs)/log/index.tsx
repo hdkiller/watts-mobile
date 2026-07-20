@@ -46,8 +46,10 @@ import { filterActiveToday } from '@/src/features/recovery/mapRecovery';
 import { useRecoveryContextQuery } from '@/src/features/recovery/useRecovery';
 import type { RecoveryContextItem } from '@/src/features/recovery/types';
 import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
+import { useTabScrollPadding } from '@/src/hooks/useTabScrollPadding';
 import { hapticError, hapticSuccess } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
+import { useThemeColors } from '@/src/theme/useThemeColors';
 
 const TAB_LABELS: Record<LogSection, string> = {
   nutrition: 'Nutrition',
@@ -77,12 +79,13 @@ function Field({
   keyboardType?: 'default' | 'decimal-pad' | 'number-pad';
   multiline?: boolean;
 }) {
+  const theme = useThemeColors();
   return (
     <View className="mt-4">
-      <Text className="mb-2 text-sm text-ink-muted">{label}</Text>
+      <Text className="mb-2 text-sm text-text-muted">{label}</Text>
       <TextInput
-        className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-base text-white"
-        placeholderTextColor={Colors.textMuted}
+        className="rounded-xl border border-border-strong bg-card px-4 py-3 text-base text-text-primary"
+        placeholderTextColor={theme.textMuted}
         placeholder={placeholder}
         value={value}
         onChangeText={onChangeText}
@@ -107,23 +110,24 @@ function MetricSlider({
   tintColor: string;
   onChange: (next: number) => void;
 }) {
+  const theme = useThemeColors();
   const display = value ?? SUBJECTIVE_DEFAULT;
   return (
     <View className="mt-5">
       <View className="mb-1 flex-row items-baseline justify-between">
-        <Text className="text-sm text-ink-muted">{label}</Text>
-        <Text className={`text-sm font-semibold ${value != null ? 'text-white' : 'text-ink-muted'}`}>
+        <Text className="text-sm text-text-muted">{label}</Text>
+        <Text className={`text-sm font-semibold ${value != null ? 'text-text-primary' : 'text-text-muted'}`}>
           {value != null ? display : '—'}
         </Text>
       </View>
-      <Text className="mb-2 text-xs text-ink-muted">{help}</Text>
+      <Text className="mb-2 text-xs text-text-muted">{help}</Text>
       <Slider
         value={display}
         minimumValue={1}
         maximumValue={10}
         step={1}
         minimumTrackTintColor={tintColor}
-        maximumTrackTintColor="#3f3f46"
+        maximumTrackTintColor={theme.borderStrong}
         thumbTintColor={tintColor}
         style={{ width: '100%', height: 36 }}
         onValueChange={(next) => onChange(clampSubjectiveScore(next))}
@@ -141,21 +145,22 @@ function SleepHoursField({
   onChangeText: (v: string) => void;
   onStep: (delta: number) => void;
 }) {
+  const theme = useThemeColors();
   return (
     <View className="mt-4">
-      <Text className="mb-2 text-sm text-ink-muted">Sleep hours</Text>
+      <Text className="mb-2 text-sm text-text-muted">Sleep hours</Text>
       <View className="flex-row items-center gap-2">
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Decrease sleep hours by 0.5"
-          className="h-12 w-12 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 active:opacity-80"
+          className="h-12 w-12 items-center justify-center rounded-xl border border-border-strong bg-card active:opacity-80"
           onPress={() => onStep(-0.5)}
         >
-          <Text className="text-lg font-semibold text-white">−</Text>
+          <Text className="text-lg font-semibold text-text-primary">−</Text>
         </Pressable>
         <TextInput
-          className="min-h-12 flex-1 rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-center text-base text-white"
-          placeholderTextColor={Colors.textMuted}
+          className="min-h-12 flex-1 rounded-xl border border-border-strong bg-card px-4 py-3 text-center text-base text-text-primary"
+          placeholderTextColor={theme.textMuted}
           placeholder="7.5"
           value={value}
           onChangeText={onChangeText}
@@ -164,10 +169,10 @@ function SleepHoursField({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Increase sleep hours by 0.5"
-          className="h-12 w-12 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 active:opacity-80"
+          className="h-12 w-12 items-center justify-center rounded-xl border border-border-strong bg-card active:opacity-80"
           onPress={() => onStep(0.5)}
         >
-          <Text className="text-lg font-semibold text-white">+</Text>
+          <Text className="text-lg font-semibold text-text-primary">+</Text>
         </Pressable>
       </View>
     </View>
@@ -183,6 +188,7 @@ function openRecoveryEvent(item?: RecoveryContextItem) {
 }
 
 function RecoveryChip({ item }: { item: RecoveryContextItem }) {
+  const theme = useThemeColors();
   const readOnly = item.sourceType === 'imported' || !item.editable;
   return (
     <Pressable
@@ -192,18 +198,18 @@ function RecoveryChip({ item }: { item: RecoveryContextItem }) {
           ? `${item.label}${item.severity != null ? `, severity ${item.severity} of 10` : ''}, read-only`
           : undefined
       }
-      className="mr-2 mt-2 flex-row items-center rounded-full border border-zinc-700 bg-zinc-900 px-3 py-2 active:opacity-80"
+      className="mr-2 mt-2 flex-row items-center rounded-full border border-border-strong bg-card px-3 py-2 active:opacity-80"
       onPress={() => openRecoveryEvent(item)}
     >
-      <Text className="text-xs font-semibold text-white">
+      <Text className="text-xs font-semibold text-text-primary">
         {item.label}
         {item.severity != null ? ` · ${item.severity}/10` : ''}
       </Text>
       {readOnly ? (
         Platform.OS === 'ios' ? (
-          <SymbolView name="eye" size={11} tintColor={Colors.textMuted} style={{ marginLeft: 5 }} />
+          <SymbolView name="eye" size={11} tintColor={theme.textMuted} style={{ marginLeft: 5 }} />
         ) : (
-          <Text className="ml-1 text-[10px] text-ink-muted" accessibilityElementsHidden>
+          <Text className="ml-1 text-[10px] text-text-muted" accessibilityElementsHidden>
             👁
           </Text>
         )
@@ -233,11 +239,14 @@ function stepSleepHours(current: string, delta: number): string {
 }
 
 export default function LogScreen() {
+  const theme = useThemeColors();
+
   const params = useLocalSearchParams<{ section?: string | string[] }>();
   const targetSection = parseLogSection(params.section);
   const scrollRef = useRef<ScrollView>(null);
   const savedFlashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { containerRef, overlap } = useKeyboardOverlap();
+  const tabBottomPad = useTabScrollPadding(overlap);
 
   const { data: athleteProfile } = useAthleteProfileQuery();
   const nutritionEnabled = isNutritionTrackingEnabled(athleteProfile);
@@ -269,16 +278,19 @@ export default function LogScreen() {
   const [error, setError] = useState<string | null>(null);
   const [wasPrefilled, setWasPrefilled] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
+  const [savedOffline, setSavedOffline] = useState(false);
   const [healthBusy, setHealthBusy] = useState(false);
   const [healthHint, setHealthHint] = useState<string | null>(null);
+  const formDirtyRef = useRef(false);
+  const weightUnits = athleteProfile?.weightUnits ?? 'Kilograms';
 
   useEffect(() => {
-    if (todayWellness) {
-      const next = formFromWellness(todayWellness);
+    if (todayWellness && !formDirtyRef.current) {
+      const next = formFromWellness(todayWellness, weightUnits);
       setValues(next);
       setWasPrefilled(formHasContent(next));
     }
-  }, [todayWellness]);
+  }, [todayWellness, weightUnits]);
 
   useEffect(() => {
     return () => {
@@ -306,7 +318,9 @@ export default function LogScreen() {
   }, [resolvedSection, logTabPreferenceReady, logTabPreference, nutritionEnabled]);
 
   const touchForm = () => {
+    formDirtyRef.current = true;
     setJustSaved(false);
+    setSavedOffline(false);
     setError(null);
     if (savedFlashTimer.current) {
       clearTimeout(savedFlashTimer.current);
@@ -360,11 +374,16 @@ export default function LogScreen() {
       return;
     }
     setError(null);
+    setSavedOffline(false);
     try {
-      await saveMutation.mutateAsync(toWellnessPayload(values));
+      const result = await saveMutation.mutateAsync(
+        toWellnessPayload(values, undefined, weightUnits)
+      );
       hapticSuccess();
+      formDirtyRef.current = false;
       setWasPrefilled(true);
       setJustSaved(true);
+      setSavedOffline(result.queuedOffline);
       if (savedFlashTimer.current) clearTimeout(savedFlashTimer.current);
       savedFlashTimer.current = setTimeout(() => {
         setJustSaved(false);
@@ -381,9 +400,9 @@ export default function LogScreen() {
       <SafeAreaView
         testID="log-screen"
         edges={{ top: true }}
-        style={{ flex: 1, backgroundColor: Colors.background }}
+        style={{ flex: 1, backgroundColor: theme.surface }}
       >
-        <View className="flex-1 items-center justify-center bg-surface-dark">
+        <View className="flex-1 items-center justify-center bg-surface">
           <ActivityIndicator color={Colors.brand} />
         </View>
       </SafeAreaView>
@@ -391,7 +410,9 @@ export default function LogScreen() {
   }
 
   const saveLabel = justSaved
-    ? '✓ Saved'
+    ? savedOffline
+      ? '✓ Saved offline'
+      : '✓ Saved'
     : wasPrefilled
       ? 'Update check-in'
       : 'Save check-in';
@@ -405,24 +426,24 @@ export default function LogScreen() {
     <SafeAreaView
       testID="log-screen"
       edges={{ top: true }}
-      style={{ flex: 1, backgroundColor: Colors.background }}
+      style={{ flex: 1, backgroundColor: theme.surface }}
     >
-    <View ref={containerRef} className="flex-1 bg-surface-dark">
+    <View ref={containerRef} className="flex-1 bg-surface">
       <ScrollView
         ref={scrollRef}
         className="flex-1"
         contentContainerClassName="px-6 pt-4"
-        contentContainerStyle={{ paddingBottom: 48 + overlap }}
+        contentContainerStyle={{ paddingBottom: tabBottomPad }}
         keyboardShouldPersistTaps="handled"
       >
-        <Text className="text-2xl font-semibold text-white">Log</Text>
-        <Text className="mt-2 text-base text-ink-muted">
+        <Text className="text-2xl font-semibold text-text-primary">Log</Text>
+        <Text className="mt-2 text-base text-text-muted">
           {nutritionEnabled
             ? 'Check in, recovery, nutrition, or body measurements for today.'
             : 'Check in, recovery events, or body measurements for today.'}
         </Text>
 
-        <View className="mt-5 flex-row rounded-xl bg-zinc-900 p-1 border border-zinc-800">
+        <View className="mt-5 flex-row rounded-xl bg-card p-1 border border-border">
           {tabs.map((tab) => {
             const active = activeTab === tab.key;
             return (
@@ -434,9 +455,9 @@ export default function LogScreen() {
                 style={
                   active
                     ? {
-                        backgroundColor: '#27272a',
+                        backgroundColor: theme.border,
                         borderWidth: 1,
-                        borderColor: 'rgba(63, 63, 70, 0.8)',
+                        borderColor: theme.borderStrong,
                         shadowColor: '#000',
                         shadowOffset: { width: 0, height: 1 },
                         shadowOpacity: 0.18,
@@ -451,7 +472,7 @@ export default function LogScreen() {
                 }}
               >
                 <Text
-                  className={`text-center text-xs font-semibold ${active ? 'text-brand' : 'text-zinc-400'}`}
+                  className={`text-center text-xs font-semibold ${active ? 'text-brand' : 'text-text-muted'}`}
                   numberOfLines={1}
                 >
                   {tab.label}
@@ -463,10 +484,10 @@ export default function LogScreen() {
 
         {activeTab === 'recovery' && (
           <View className="mt-6">
-            <Text className="mb-1 text-xs font-semibold uppercase tracking-widest text-ink-muted">
+            <Text className="mb-1 text-xs font-semibold uppercase tracking-widest text-text-muted">
               Recovery events
             </Text>
-            <Text className="text-sm text-ink-muted">
+            <Text className="text-sm text-text-muted">
               Illness, fatigue, sleep, stress — context Coach Watts uses for guidance.
             </Text>
 
@@ -475,7 +496,7 @@ export default function LogScreen() {
             ) : null}
 
             {recoveryError ? (
-              <View className="mt-3 rounded-xl border border-red-900/50 bg-red-950/40 p-3">
+              <View className="mt-3 rounded-xl border border-danger/40 bg-tint-error p-3">
                 <Text className="text-sm text-red-300">
                   {friendlyError(recoveryErr, 'Could not load recovery context')}
                 </Text>
@@ -487,13 +508,13 @@ export default function LogScreen() {
 
             {!recoveryError && recoveryItems ? (
               recoveryItems.length === 0 ? (
-                <Text className="mt-4 text-sm text-ink-muted">
+                <Text className="mt-4 text-sm text-text-muted">
                   No recovery context in the last 7 days. Log an event when something affects
                   training.
                 </Text>
               ) : (
                 <>
-                  <Text className="mt-5 text-xs font-semibold uppercase tracking-widest text-ink-muted">
+                  <Text className="mt-5 text-xs font-semibold uppercase tracking-widest text-text-muted">
                     Active today
                   </Text>
                   {activeToday && activeToday.length > 0 ? (
@@ -503,14 +524,14 @@ export default function LogScreen() {
                       ))}
                     </View>
                   ) : (
-                    <Text className="mt-2 text-sm text-ink-muted">
+                    <Text className="mt-2 text-sm text-text-muted">
                       Nothing active for today yet.
                     </Text>
                   )}
 
                   {recentOnly && recentOnly.length > 0 ? (
                     <>
-                      <Text className="mt-5 text-xs font-semibold uppercase tracking-widest text-ink-muted">
+                      <Text className="mt-5 text-xs font-semibold uppercase tracking-widest text-text-muted">
                         Recent
                       </Text>
                       <View className="mt-1 flex-row flex-wrap">
@@ -535,10 +556,10 @@ export default function LogScreen() {
 
         {activeTab === 'wellness' && (
           <View className="mt-6">
-            <Text className="mb-1 text-xs font-semibold uppercase tracking-widest text-ink-muted">
+            <Text className="mb-1 text-xs font-semibold uppercase tracking-widest text-text-muted">
               Daily logs & subjective metrics
             </Text>
-            <Text className="text-sm text-ink-muted">
+            <Text className="text-sm text-text-muted">
               Mood, stress, fatigue, and soreness — plus sleep and weight for today.
             </Text>
 
@@ -554,7 +575,7 @@ export default function LogScreen() {
                 {healthBusy ? 'Reading Health…' : 'Prefill from Health'}
               </Text>
             </Pressable>
-            {healthHint ? <Text className="mt-1 text-sm text-ink-muted">{healthHint}</Text> : null}
+            {healthHint ? <Text className="mt-1 text-sm text-text-muted">{healthHint}</Text> : null}
 
             <MetricSlider
               label="Mood"
@@ -574,7 +595,7 @@ export default function LogScreen() {
               label="Fatigue"
               help={getFatigueHelp(values.fatigue ?? SUBJECTIVE_DEFAULT)}
               value={values.fatigue}
-              tintColor="#a1a1aa"
+              tintColor={theme.textMuted}
               onChange={updateSubjective('fatigue')}
             />
             <MetricSlider
@@ -599,6 +620,11 @@ export default function LogScreen() {
             />
 
             {error ? <Text className="mt-4 text-sm text-red-400">{error}</Text> : null}
+            {savedOffline ? (
+              <Text className="mt-4 text-sm text-amber-200">
+                Saved offline — will sync when you’re back online.
+              </Text>
+            ) : null}
 
             <Button
               className="mt-6"

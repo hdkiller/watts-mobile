@@ -31,13 +31,13 @@ const BADGE: Record<ComplianceMark, ComplianceBadge> = {
     mark: 'missed',
     glyph: '–',
     label: 'Missed planned session',
-    colorClass: 'text-ink-muted',
+    colorClass: 'text-text-muted',
   },
   none: {
     mark: 'none',
     glyph: '',
     label: '',
-    colorClass: 'text-ink-muted',
+    colorClass: 'text-text-muted',
   },
 };
 

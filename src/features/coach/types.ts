@@ -110,6 +110,8 @@ export const NUTRITION_TOOL_NAMES = new Set([
   'patch_nutrition_items',
   'delete_nutrition_item',
   'delete_hydration',
+  'get_nutrition_log',
+  'get_daily_fueling_status',
 ]);
 
 /** Journey / recovery-event write tools from coach-wattz `ai-tools/journey`. */
@@ -122,6 +124,32 @@ export const RECOVERY_TOOL_NAMES = new Set([
 /** Wellness metrics tools from coach-wattz `ai-tools/wellness`. */
 export const WELLNESS_TOOL_NAMES = new Set(['get_wellness_metrics', 'get_wellness_events']);
 
+/** Recommendation tools from coach-wattz recommendations skill. */
+export const RECOMMENDATION_TOOL_NAMES = new Set([
+  'recommend_workout',
+  'get_recommendation_details',
+  'list_pending_recommendations',
+]);
+
+/** Planned-workout lite tools (create/update/reschedule + common reads). */
+export const PLANNED_TOOL_NAMES = new Set([
+  'create_planned_workout',
+  'update_planned_workout',
+  'reschedule_planned_workout',
+  'get_planned_workouts',
+  'get_planned_workout_details',
+]);
+
+/** Completed-activity read tools. */
+export const ACTIVITY_TOOL_NAMES = new Set([
+  'get_recent_workouts',
+  'search_workouts',
+  'get_workout_details',
+]);
+
+/** Compact domain buckets for chip tint/icon (not full web taxonomy). */
+export type ToolDomain = 'nutrition' | 'wellness' | 'planning' | 'workouts' | 'other';
+
 export type ToolOutcomeStatus = 'success' | 'failure' | 'denied';
 
 export type ToolOutcomeSummary = {
@@ -129,6 +157,14 @@ export type ToolOutcomeSummary = {
   toolName: string;
   status: ToolOutcomeStatus;
   message: string;
+  domain: ToolDomain;
+};
+
+export type ToolInProgressSummary = {
+  id: string;
+  toolName: string;
+  label: string;
+  domain: ToolDomain;
 };
 
 export const MAX_CHAT_ATTACHMENTS = 4;

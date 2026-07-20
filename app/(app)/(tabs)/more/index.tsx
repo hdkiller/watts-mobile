@@ -15,7 +15,8 @@ import {
   TERMS_OF_SERVICE_URL,
 } from '@/src/features/account/paths';
 import { useUnreadNotificationsCount } from '@/src/features/notifications/useNotifications';
-import { Colors } from '@/src/theme/colors';
+import { useTabScrollPadding } from '@/src/hooks/useTabScrollPadding';
+import { useThemeColors } from '@/src/theme/useThemeColors';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 
 function appVersionLabel(): string {
@@ -30,10 +31,11 @@ function appVersionLabel(): string {
 }
 
 function RowIcon({ sf, emoji }: { sf: SFSymbol; emoji: string }) {
+  const theme = useThemeColors();
   return (
-    <View className="mr-3 h-9 w-9 items-center justify-center rounded-full bg-zinc-800">
+    <View className="mr-3 h-9 w-9 items-center justify-center rounded-full bg-border-strong">
       {Platform.OS === 'ios' ? (
-        <SymbolView name={sf} size={18} tintColor="#d4d4d8" />
+        <SymbolView name={sf} size={18} tintColor={theme.textBody} />
       ) : (
         <Text style={{ fontSize: 16 }}>{emoji}</Text>
       )}
@@ -42,19 +44,20 @@ function RowIcon({ sf, emoji }: { sf: SFSymbol; emoji: string }) {
 }
 
 function Chevron() {
+  const theme = useThemeColors();
   if (Platform.OS === 'ios') {
-    return <SymbolView name="chevron.right" size={14} tintColor={Colors.textMuted} />;
+    return <SymbolView name="chevron.right" size={14} tintColor={theme.textMuted} />;
   }
-  return <Text className="text-base text-ink-muted">›</Text>;
+  return <Text className="text-base text-text-muted">›</Text>;
 }
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <View className="mt-8">
-      <Text className="mb-2 text-xs font-semibold uppercase tracking-widest text-ink-muted">
+      <Text className="mb-2 text-xs font-semibold uppercase tracking-widest text-text-muted">
         {title}
       </Text>
-      <View className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">{children}</View>
+      <View className="overflow-hidden rounded-xl border border-border bg-card">{children}</View>
     </View>
   );
 }
@@ -79,14 +82,14 @@ function MenuRow({
   const body = (
     <View
       className={`flex-row items-center px-4 py-3.5 ${
-        isLast ? '' : 'border-b border-zinc-800/80'
+        isLast ? '' : 'border-b border-border/80'
       }`}
     >
       <RowIcon sf={sf} emoji={emoji} />
       <View className="min-w-0 flex-1">
-        <Text className="text-base font-medium text-white">{title}</Text>
+        <Text className="text-base font-medium text-text-primary">{title}</Text>
         {detail ? (
-          <Text className="mt-0.5 text-sm text-ink-muted" numberOfLines={1}>
+          <Text className="mt-0.5 text-sm text-text-muted" numberOfLines={1}>
             {detail}
           </Text>
         ) : null}
@@ -116,8 +119,11 @@ function MenuRow({
 }
 
 export default function MoreScreen() {
+  const theme = useThemeColors();
+
   const { user, instanceUrl, signOut, refreshUser } = useAuth();
   const unreadCount = useUnreadNotificationsCount();
+  const tabBottomPad = useTabScrollPadding();
   const [busy, setBusy] = useState(false);
 
   const openWeb = async () => {
@@ -175,18 +181,19 @@ export default function MoreScreen() {
     <SafeAreaView
       testID="more-screen"
       edges={{ top: true }}
-      style={{ flex: 1, backgroundColor: Colors.background }}
+      style={{ flex: 1, backgroundColor: theme.surface }}
     >
       <ScrollView
-        className="flex-1 bg-surface-dark"
-        contentContainerClassName="px-6 pb-12 pt-4"
+        className="flex-1 bg-surface"
+        contentContainerClassName="px-6 pt-4"
+        contentContainerStyle={{ paddingBottom: tabBottomPad }}
       >
-        <Text className="text-2xl font-semibold text-white">More</Text>
+        <Text className="text-2xl font-semibold text-text-primary">More</Text>
 
-        <View className="mt-6 rounded-xl border border-zinc-800 bg-zinc-900/80 p-4">
-          <Text className="text-xs uppercase tracking-wide text-ink-muted">Signed in as</Text>
-          <Text className="mt-1 text-lg text-white">{user?.name || user?.email || 'Athlete'}</Text>
-          {user?.email ? <Text className="mt-1 text-sm text-ink-muted">{user.email}</Text> : null}
+        <View className="mt-6 rounded-xl border border-border bg-card/80 p-4">
+          <Text className="text-xs uppercase tracking-wide text-text-muted">Signed in as</Text>
+          <Text className="mt-1 text-lg text-text-primary">{user?.name || user?.email || 'Athlete'}</Text>
+          {user?.email ? <Text className="mt-1 text-sm text-text-muted">{user.email}</Text> : null}
           <Pressable className="mt-3 self-start" hitSlop={8} onPress={() => void refreshUser()}>
             <Text className="text-sm font-medium text-brand">Refresh profile</Text>
           </Pressable>
@@ -197,13 +204,13 @@ export default function MoreScreen() {
             title="Recent activity"
             sf="list.bullet"
             emoji="📋"
-            onPress={() => router.push('/(app)/activity' as Href)}
+            onPress={() => router.push('/(app)/(tabs)/today/activity' as Href)}
           />
           <MenuRow
             title="Upcoming"
             sf="calendar"
             emoji="📅"
-            onPress={() => router.push('/(app)/upcoming' as Href)}
+            onPress={() => router.push('/(app)/(tabs)/today/upcoming' as Href)}
             isLast
           />
         </Section>
@@ -214,20 +221,20 @@ export default function MoreScreen() {
             detail="AI summary & metrics"
             sf="person.crop.circle"
             emoji="👤"
-            onPress={() => router.push('/(app)/athlete' as Href)}
+            onPress={() => router.push('/(app)/(tabs)/more/athlete' as Href)}
           />
           <MenuRow
             title="Notifications"
             detail={unreadCount > 0 ? `${unreadCount} unread` : 'Inbox'}
             sf="bell"
             emoji="🔔"
-            onPress={() => router.push('/(app)/notifications' as Href)}
+            onPress={() => router.push('/(app)/(tabs)/more/notifications' as Href)}
           />
           <MenuRow
             title="Settings"
             sf="gearshape"
             emoji="⚙️"
-            onPress={() => router.push('/(app)/settings' as Href)}
+            onPress={() => router.push('/(app)/(tabs)/more/settings' as Href)}
           />
           <MenuRow
             title="Open web"
@@ -261,7 +268,7 @@ export default function MoreScreen() {
           </Section>
         ) : null}
 
-        <Text className="mt-8 text-center text-sm text-ink-muted">{appVersionLabel()}</Text>
+        <Text className="mt-8 text-center text-sm text-text-muted">{appVersionLabel()}</Text>
       </ScrollView>
     </SafeAreaView>
   );

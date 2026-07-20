@@ -14,54 +14,121 @@ import {
 } from 'react-native';
 import { SymbolView, type SFSymbol } from 'expo-symbols';
 import { Button } from '@/src/components/Button';
+import { CoachChatSkeleton } from '@/src/components/Skeleton';
 import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
 import { Colors } from '@/src/theme/colors';
+import { useThemeColors } from '@/src/theme/useThemeColors';
 
 import {
+  approvalPreviewLine,
   extractPendingApprovals,
+  humanizeToolName,
   messageImageParts,
-  messageText,
+  displayMessageText,
+  resolveToolDomain,
+  toolInProgressSummaries,
   toolOutcomeSummaries,
 } from './mapMessages';
 import { MarkdownLite } from './markdownLite';
 import { RoomListSheet } from './RoomListSheet';
 import { COACH_STARTER_PROMPTS, DISCUSS_TODAY_PROMPT } from './starterPrompts';
-import type { CoachUIMessage, ToolOutcomeSummary } from './types';
+import type {
+  CoachUIMessage,
+  ToolDomain,
+  ToolInProgressSummary,
+  ToolOutcomeSummary,
+} from './types';
 import { useCoachChat } from './useCoachChat';
 
 function ChatGlyph({
   sf,
   emoji,
   size = 18,
-  tint = '#fafafa',
+  tint,
 }: {
   sf: SFSymbol;
   emoji: string;
   size?: number;
   tint?: string;
 }) {
+  const theme = useThemeColors();
+  const color = tint ?? theme.textPrimary;
+
   if (Platform.OS === 'ios') {
-    return <SymbolView name={sf} size={size} tintColor={tint} />;
+    return <SymbolView name={sf} size={size} tintColor={color} />;
   }
-  return <Text style={{ fontSize: size - 2, color: tint }}>{emoji}</Text>;
+  return <Text style={{ fontSize: size - 2, color }}>{emoji}</Text>;
+}
+
+function domainGlyph(domain: ToolDomain): { sf: SFSymbol; emoji: string; tint: string } {
+  switch (domain) {
+    case 'nutrition':
+      return { sf: 'fork.knife', emoji: '🍽', tint: '#34d399' };
+    case 'wellness':
+      return { sf: 'heart.fill', emoji: '♥', tint: '#fb7185' };
+    case 'planning':
+      return { sf: 'calendar', emoji: '📅', tint: '#a5b4fc' };
+    case 'workouts':
+      return { sf: 'figure.run', emoji: '🏃', tint: '#38bdf8' };
+    default:
+      return { sf: 'wrench.and.screwdriver', emoji: '🔧', tint: '#94a3b8' };
+  }
+}
+
+function domainAccentBorder(domain: ToolDomain): string {
+  switch (domain) {
+    case 'nutrition':
+      return 'border-emerald-800/40';
+    case 'wellness':
+      return 'border-rose-800/40';
+    case 'planning':
+      return 'border-indigo-800/40';
+    case 'workouts':
+      return 'border-sky-800/40';
+    default:
+      return 'border-border-strong';
+  }
+}
+
+function ToolProgressChip({ item }: { item: ToolInProgressSummary }) {
+  const glyph = domainGlyph(item.domain);
+  return (
+    <View
+      className={`mt-2 flex-row items-center gap-2 rounded-xl border bg-card/80 px-3 py-2 ${domainAccentBorder(item.domain)}`}
+    >
+      <ActivityIndicator size="small" color={glyph.tint} />
+      <ChatGlyph sf={glyph.sf} emoji={glyph.emoji} size={14} tint={glyph.tint} />
+      <Text className="flex-1 text-sm text-text-muted">{item.label}</Text>
+    </View>
+  );
 }
 
 function ToolOutcomeCard({ outcome }: { outcome: ToolOutcomeSummary }) {
+  const glyph = domainGlyph(outcome.domain);
   const containerClass =
     outcome.status === 'success'
-      ? 'border-green-700/50 bg-green-950/30'
+      ? 'border-green-700/50 bg-tint-success'
       : outcome.status === 'denied'
-        ? 'border-zinc-600 bg-zinc-900'
-        : 'border-red-800/50 bg-red-950/30';
+        ? `bg-card ${domainAccentBorder(outcome.domain)}`
+        : 'border-red-800/50 bg-tint-error';
   const textClass =
     outcome.status === 'success'
       ? 'text-green-400'
       : outcome.status === 'denied'
-        ? 'text-ink-muted'
+        ? 'text-text-muted'
         : 'text-red-300';
+  const iconTint =
+    outcome.status === 'success'
+      ? glyph.tint
+      : outcome.status === 'denied'
+        ? '#94a3b8'
+        : '#f87171';
   return (
-    <View className={`mt-2 rounded-xl border px-3 py-2 ${containerClass}`}>
-      <Text className={`text-sm font-medium ${textClass}`}>{outcome.message}</Text>
+    <View className={`mt-2 flex-row items-start gap-2 rounded-xl border px-3 py-2 ${containerClass}`}>
+      <View className="mt-0.5">
+        <ChatGlyph sf={glyph.sf} emoji={glyph.emoji} size={14} tint={iconTint} />
+      </View>
+      <Text className={`flex-1 text-sm font-medium ${textClass}`}>{outcome.message}</Text>
     </View>
   );
 }
@@ -75,20 +142,21 @@ function Bubble({
 }) {
   const isUser = message.role === 'user';
   const typing = Boolean(message.metadata?.syntheticTyping);
-  const text = messageText(message).trim();
+  const text = displayMessageText(message).trim();
   const images = messageImageParts(message);
   const approvals = extractPendingApprovals(message);
   const toolNotes = toolOutcomeSummaries(message);
+  const toolProgress = toolInProgressSummaries(message);
 
   return (
     <View className={`mb-3 max-w-[88%] ${isUser ? 'self-end' : 'self-start'}`}>
       <View
         className={`rounded-2xl px-4 py-3 ${
-          isUser ? 'bg-brand' : 'border border-zinc-700 bg-zinc-900'
+          isUser ? 'bg-brand' : 'border border-border-strong bg-card'
         }`}
       >
         {typing ? (
-          <Text className="text-sm text-ink-muted">Coach is typing…</Text>
+          <Text className="text-sm text-text-muted">Coach is typing…</Text>
         ) : (
           <>
             {images.map((image) => (
@@ -101,46 +169,63 @@ function Bubble({
             ))}
             {text ? (
               isUser ? (
-                <Text className="text-base leading-6 text-zinc-950">{text}</Text>
+                <Text className="text-base leading-6 text-ink">{text}</Text>
               ) : (
-                <MarkdownLite text={text} className="text-base leading-6 text-white" />
+                <MarkdownLite text={text} className="text-base leading-6 text-text-primary" />
               )
             ) : null}
             {!text && images.length === 0 && !typing ? (
-              <Text className={`text-base ${isUser ? 'text-zinc-950' : 'text-white'}`}>…</Text>
+              <Text className={`text-base ${isUser ? 'text-ink' : 'text-text-primary'}`}>…</Text>
             ) : null}
           </>
         )}
       </View>
 
+      {toolProgress.map((item) => (
+        <ToolProgressChip key={item.id} item={item} />
+      ))}
+
       {toolNotes.map((note) => (
         <ToolOutcomeCard key={note.id} outcome={note} />
       ))}
 
-      {approvals.map((approval) => (
-        <View
-          key={approval.toolCallId}
-          className="mt-2 rounded-xl border border-amber-700/60 bg-amber-950/40 px-3 py-3"
-        >
-          <Text className="text-sm font-semibold text-amber-100">
-            Approve {approval.toolName.replace(/_/g, ' ')}?
-          </Text>
-          <View className="mt-3 flex-row gap-2">
-            <Pressable
-              className="rounded-lg bg-brand px-3 py-2 active:opacity-80"
-              onPress={() => onApprove({ approvalId: approval.toolCallId, approved: true })}
-            >
-              <Text className="text-sm font-semibold text-zinc-950">Approve</Text>
-            </Pressable>
-            <Pressable
-              className="rounded-lg border border-zinc-600 px-3 py-2 active:opacity-80"
-              onPress={() => onApprove({ approvalId: approval.toolCallId, approved: false })}
-            >
-              <Text className="text-sm font-semibold text-white">Deny</Text>
-            </Pressable>
+      {approvals.map((approval) => {
+        const preview = approvalPreviewLine(approval.args);
+        const domain = resolveToolDomain(approval.toolName);
+        const glyph = domainGlyph(domain);
+        return (
+          <View
+            key={approval.toolCallId}
+            className={`mt-2 rounded-xl border border-amber-700/60 bg-amber-950/40 px-3 py-3 ${domainAccentBorder(domain)}`}
+          >
+            <View className="flex-row items-center gap-2">
+              <ChatGlyph sf={glyph.sf} emoji={glyph.emoji} size={14} tint={glyph.tint} />
+              <Text className="flex-1 text-sm font-semibold text-amber-100">
+                Approve {humanizeToolName(approval.toolName)}?
+              </Text>
+            </View>
+            {preview ? (
+              <Text className="mt-1 text-xs text-amber-200/80" numberOfLines={1}>
+                {preview}
+              </Text>
+            ) : null}
+            <View className="mt-3 flex-row gap-2">
+              <Pressable
+                className="rounded-lg bg-brand px-3 py-2 active:opacity-80"
+                onPress={() => onApprove({ approvalId: approval.toolCallId, approved: true })}
+              >
+                <Text className="text-sm font-semibold text-ink">Approve</Text>
+              </Pressable>
+              <Pressable
+                className="rounded-lg border border-border-strong px-3 py-2 active:opacity-80"
+                onPress={() => onApprove({ approvalId: approval.toolCallId, approved: false })}
+              >
+                <Text className="text-sm font-semibold text-text-primary">Deny</Text>
+              </Pressable>
+            </View>
           </View>
-        </View>
-      ))}
+        );
+      })}
     </View>
   );
 }
@@ -160,36 +245,36 @@ function AttachSheet({
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable className="flex-1 justify-end bg-black/50" onPress={onClose}>
         <Pressable
-          className="rounded-t-3xl border-t border-zinc-700 bg-zinc-900 px-5 pb-10 pt-4"
+          className="rounded-t-3xl border-t border-border-strong bg-card px-5 pb-10 pt-4"
           onPress={(event) => event.stopPropagation()}
         >
           <View className="mb-4 items-center">
-            <View className="h-1 w-10 rounded-full bg-zinc-600" />
+            <View className="h-1 w-10 rounded-full bg-border-strong" />
           </View>
-          <Text className="text-lg font-semibold text-white">Attach photo</Text>
-          <Text className="mt-1 text-sm text-ink-muted">
+          <Text className="text-lg font-semibold text-text-primary">Attach photo</Text>
+          <Text className="mt-1 text-sm text-text-muted">
             Send a meal or context photo to Coach.
           </Text>
           <Pressable
-            className="mt-5 rounded-xl border border-zinc-700 px-4 py-3.5 active:opacity-80"
+            className="mt-5 rounded-xl border border-border-strong px-4 py-3.5 active:opacity-80"
             onPress={() => {
               onClose();
               onCamera();
             }}
           >
-            <Text className="text-base font-semibold text-white">Camera</Text>
+            <Text className="text-base font-semibold text-text-primary">Camera</Text>
           </Pressable>
           <Pressable
-            className="mt-2 rounded-xl border border-zinc-700 px-4 py-3.5 active:opacity-80"
+            className="mt-2 rounded-xl border border-border-strong px-4 py-3.5 active:opacity-80"
             onPress={() => {
               onClose();
               onLibrary();
             }}
           >
-            <Text className="text-base font-semibold text-white">Photo library</Text>
+            <Text className="text-base font-semibold text-text-primary">Photo library</Text>
           </Pressable>
           <Pressable className="mt-3 px-4 py-3 active:opacity-80" onPress={onClose}>
-            <Text className="text-center text-base font-semibold text-ink-muted">Cancel</Text>
+            <Text className="text-center text-base font-semibold text-text-muted">Cancel</Text>
           </Pressable>
         </Pressable>
       </Pressable>
@@ -207,6 +292,7 @@ export function CoachChat({
   /** When true, start (or open a new) chat seeded with today’s recommendation context. */
   discussToday?: boolean;
 }) {
+  const theme = useThemeColors();
   const listRef = useRef<FlatList<CoachUIMessage>>(null);
   const autoAttachHandled = useRef(false);
   const discussHandled = useRef(false);
@@ -280,18 +366,13 @@ export function CoachChat({
   };
 
   if (chat.loading && chat.displayMessages.length === 0) {
-    return (
-      <View className="flex-1 items-center justify-center bg-surface-dark">
-        <ActivityIndicator color={Colors.brand} size="large" />
-        <Text className="mt-3 text-sm text-ink-muted">Opening Coach…</Text>
-      </View>
-    );
+    return <CoachChatSkeleton />;
   }
 
   if (chat.error && chat.displayMessages.length === 0) {
     return (
-      <View className="flex-1 items-center justify-center bg-surface-dark px-6">
-        <Text className="text-center text-base text-white">{chat.error}</Text>
+      <View className="flex-1 items-center justify-center bg-surface px-6">
+        <Text className="text-center text-base text-text-primary">{chat.error}</Text>
         <Button className="mt-4 self-stretch" label="Try again" onPress={() => void chat.refresh()} />
       </View>
     );
@@ -314,10 +395,10 @@ export function CoachChat({
   return (
     <View
       ref={containerRef}
-      className="flex-1 bg-surface-dark"
+      className="flex-1 bg-surface"
       style={{ paddingBottom: overlap }}
     >
-      <View className="border-b border-zinc-800 px-5 pb-3 pt-2">
+      <View className="border-b border-border px-5 pb-3 pt-2">
         <View className="flex-row items-center justify-between gap-3">
           <Pressable
             className="min-w-0 flex-1 active:opacity-80"
@@ -331,26 +412,26 @@ export function CoachChat({
             <View className="flex-row items-center gap-2">
               <View
                 className={`h-2.5 w-2.5 rounded-full ${
-                  chat.isRealtimeConnected ? 'bg-green-400' : 'bg-zinc-500'
+                  chat.isRealtimeConnected ? 'bg-green-400' : 'bg-text-muted'
                 }`}
                 accessibilityLabel={
                   chat.isRealtimeConnected ? 'Live connection' : 'Polling connection'
                 }
               />
-              <Text className="min-w-0 flex-shrink text-2xl font-semibold text-white" numberOfLines={1}>
+              <Text className="min-w-0 flex-shrink text-2xl font-semibold text-text-primary" numberOfLines={1}>
                 {chat.roomName || 'Coach Watts'}
               </Text>
-              <ChatGlyph sf="chevron.down" emoji="▾" size={14} tint="#a1a1aa" />
+              <ChatGlyph sf="chevron.down" emoji="▾" size={14} tint={theme.textMuted} />
             </View>
             {statusLine ? (
-              <Text className="mt-1 text-sm text-ink-muted">{statusLine}</Text>
+              <Text className="mt-1 text-sm text-text-muted">{statusLine}</Text>
             ) : null}
           </Pressable>
           <Pressable
-            className="rounded-xl border border-zinc-600 px-3 py-2 active:opacity-80"
+            className="rounded-xl border border-border-strong px-3 py-2 active:opacity-80"
             onPress={() => void chat.createRoom()}
           >
-            <Text className="text-sm font-semibold text-white">New</Text>
+            <Text className="text-sm font-semibold text-text-primary">New</Text>
           </Pressable>
         </View>
       </View>
@@ -360,8 +441,8 @@ export function CoachChat({
       ) : null}
 
       {chat.isReadOnly ? (
-        <View className="mx-5 mt-3 rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3">
-          <Text className="text-sm text-ink-muted">
+        <View className="mx-5 mt-3 rounded-xl border border-border-strong bg-card px-4 py-3">
+          <Text className="text-sm text-text-muted">
             This chat is read-only. Start a new chat to keep talking with Coach.
           </Text>
           <Pressable className="mt-2" hitSlop={8} onPress={() => void chat.createRoom()}>
@@ -376,7 +457,7 @@ export function CoachChat({
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"
         >
-          <Text className="text-base text-ink-muted">
+          <Text className="text-base text-text-muted">
             Ask Coach Watts about today’s recommendation or how you feel. Short questions work
             best — or attach a meal photo to log nutrition.
           </Text>
@@ -384,15 +465,15 @@ export function CoachChat({
             {COACH_STARTER_PROMPTS.map((prompt) => (
               <Pressable
                 key={prompt.id}
-                className="mb-3 rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-3 active:opacity-80"
+                className="mb-3 rounded-2xl border border-border-strong bg-card px-4 py-3 active:opacity-80"
                 disabled={chat.isReadOnly}
                 onPress={() => {
                   chat.applyStarter(prompt.text);
                   void chat.send(prompt.text);
                 }}
               >
-                <Text className="text-base font-semibold text-white">{prompt.label}</Text>
-                <Text className="mt-1 text-sm text-ink-muted">{prompt.text}</Text>
+                <Text className="text-base font-semibold text-text-primary">{prompt.label}</Text>
+                <Text className="mt-1 text-sm text-text-muted">{prompt.text}</Text>
               </Pressable>
             ))}
           </View>
@@ -426,17 +507,17 @@ export function CoachChat({
         <View className="flex-row gap-3 px-5 pb-2">
           {chat.recoverableStatus === 'INTERRUPTED' ? (
             <Pressable
-              className="rounded-lg border border-zinc-600 px-3 py-2 active:opacity-80"
+              className="rounded-lg border border-border-strong px-3 py-2 active:opacity-80"
               onPress={() => void chat.resumeTurn()}
             >
-              <Text className="text-sm font-semibold text-white">Resume</Text>
+              <Text className="text-sm font-semibold text-text-primary">Resume</Text>
             </Pressable>
           ) : null}
           <Pressable
-            className="rounded-lg border border-zinc-600 px-3 py-2 active:opacity-80"
+            className="rounded-lg border border-border-strong px-3 py-2 active:opacity-80"
             onPress={() => void chat.retryTurn()}
           >
-            <Text className="text-sm font-semibold text-white">Retry</Text>
+            <Text className="text-sm font-semibold text-text-primary">Retry</Text>
           </Pressable>
         </View>
       ) : null}
@@ -447,7 +528,7 @@ export function CoachChat({
             <View key={attachment.id} className="relative">
               <Image
                 source={{ uri: attachment.localUri }}
-                className="h-16 w-16 rounded-xl border border-zinc-700"
+                className="h-16 w-16 rounded-xl border border-border-strong"
               />
               {attachment.uploading ? (
                 <View className="absolute inset-0 items-center justify-center rounded-xl bg-black/50">
@@ -455,22 +536,22 @@ export function CoachChat({
                 </View>
               ) : null}
               <Pressable
-                className="absolute -right-1 -top-1 h-5 w-5 items-center justify-center rounded-full bg-zinc-800"
+                className="absolute -right-1 -top-1 h-5 w-5 items-center justify-center rounded-full bg-border-strong"
                 hitSlop={8}
                 accessibilityRole="button"
                 accessibilityLabel="Remove attachment"
                 onPress={() => chat.removeAttachment(attachment.id)}
               >
-                <Text className="text-xs text-white">×</Text>
+                <Text className="text-xs text-text-primary">×</Text>
               </Pressable>
             </View>
           ))}
         </View>
       ) : null}
 
-      <View className="flex-row items-end gap-2 border-t border-zinc-800 px-4 py-3">
+      <View className="flex-row items-end gap-2 border-t border-border px-4 py-3">
         <Pressable
-          className={`h-12 w-12 items-center justify-center rounded-full border border-zinc-700 ${
+          className={`h-12 w-12 items-center justify-center rounded-full border border-border-strong ${
             chat.isReadOnly || chat.sending ? 'opacity-40' : 'active:opacity-80'
           }`}
           disabled={chat.isReadOnly || chat.sending}
@@ -481,9 +562,9 @@ export function CoachChat({
           <ChatGlyph sf="plus" emoji="＋" size={20} />
         </Pressable>
         <TextInput
-          className="max-h-28 flex-1 rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-base text-white"
+          className="max-h-28 flex-1 rounded-2xl border border-border-strong bg-card px-4 py-3 text-base text-text-primary"
           placeholder={chat.isReadOnly ? 'Read-only chat' : 'Message Coach Watts'}
-          placeholderTextColor={Colors.textMuted}
+          placeholderTextColor={theme.textMuted}
           value={chat.input}
           onChangeText={chat.setInput}
           multiline
@@ -491,7 +572,7 @@ export function CoachChat({
         />
         <Pressable
           className={`h-12 w-12 items-center justify-center rounded-full ${
-            canSend ? 'bg-brand' : 'bg-zinc-700'
+            canSend ? 'bg-brand' : 'bg-border-strong'
           }`}
           disabled={!canSend}
           accessibilityRole="button"
@@ -499,13 +580,13 @@ export function CoachChat({
           onPress={() => void chat.send()}
         >
           {chat.sending ? (
-            <ActivityIndicator color={Colors.background} />
+            <ActivityIndicator color={theme.ink} />
           ) : (
             <ChatGlyph
               sf="arrow.up"
               emoji="↑"
               size={18}
-              tint={canSend ? '#09090b' : '#a1a1aa'}
+              tint={canSend ? theme.ink : theme.textMuted}
             />
           )}
         </Pressable>

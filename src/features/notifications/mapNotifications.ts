@@ -78,3 +78,32 @@ export function mapNotificationsListApi(api: NotificationsListApi): Notification
 export function mapNotificationApi(api: NotificationApi): InboxNotification | null {
   return mapNotificationItem(api);
 }
+
+/** Relative up to 7 days, then locale short date (matches activity list style). */
+export function formatNotificationTime(iso: string, nowMs = Date.now()): string {
+  const ms = Date.parse(iso);
+  if (!Number.isFinite(ms)) return '';
+  const deltaSec = Math.round((nowMs - ms) / 1000);
+  if (deltaSec < 60) return 'Just now';
+  if (deltaSec < 3600) return `${Math.floor(deltaSec / 60)}m ago`;
+  if (deltaSec < 86_400) return `${Math.floor(deltaSec / 3600)}h ago`;
+  if (deltaSec < 86_400 * 7) return `${Math.floor(deltaSec / 86_400)}d ago`;
+  return new Date(ms).toLocaleDateString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+/** Mark consecutive same-title (+ same link) rows so the UI can de-emphasize repeats. */
+export function markNotificationRepeats(
+  items: InboxNotification[]
+): Array<InboxNotification & { isRepeat: boolean }> {
+  return items.map((item, index) => {
+    const prev = items[index - 1];
+    const isRepeat = Boolean(
+      prev && prev.title === item.title && (prev.link ?? null) === (item.link ?? null)
+    );
+    return { ...item, isRepeat };
+  });
+}

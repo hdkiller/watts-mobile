@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
+import { ScoreChip } from '@/src/components/ScoreChip';
 import { Colors } from '@/src/theme/colors';
 
 import { AthleteReportSheet } from './AthleteReportSheet';
@@ -87,12 +88,12 @@ export function AthleteProfileOverview({
         <View className="min-w-0 flex-1">
           <View className="flex-row items-center gap-2">
             {flag ? <Text className="text-2xl">{flag}</Text> : null}
-            <Text className="shrink text-2xl font-semibold text-white" numberOfLines={2}>
+            <Text className="shrink text-2xl font-semibold text-text-primary" numberOfLines={2}>
               {displayName}
             </Text>
           </View>
           {age != null ? (
-            <Text className="mt-1 text-sm text-ink-muted">{age} yrs</Text>
+            <Text className="mt-1 text-sm text-text-muted">{age} yrs</Text>
           ) : null}
         </View>
         {!reportForbidden ? (
@@ -101,7 +102,7 @@ export function AthleteProfileOverview({
             accessibilityLabel="Sync athlete profile"
             disabled={syncing}
             onPress={() => void onSync()}
-            className="rounded-full border border-zinc-700 px-3 py-1.5 active:opacity-70"
+            className="rounded-full border border-border-strong px-3 py-1.5 active:opacity-70"
           >
             {syncing ? (
               <ActivityIndicator color={Colors.brand} size="small" />
@@ -118,22 +119,21 @@ export function AthleteProfileOverview({
         <HrTile label="LTHR" value={profile.lthr} />
       </View>
 
-      <View className="mt-5 rounded-xl border border-zinc-800 bg-zinc-900/80 px-4 py-4">
-        <Text className="text-xs uppercase tracking-wide text-ink-muted">AI Athlete Profile</Text>
+      <View className="mt-5 rounded-xl border border-border bg-card/80 px-4 py-4">
+        <Text className="text-xs uppercase tracking-wide text-text-muted">AI Athlete Profile</Text>
 
         {reportQuery.isLoading && !reportQuery.data ? (
           <ActivityIndicator className="mt-4" color={Colors.brand} />
         ) : reportForbidden ? (
           <View className="mt-3">
-            <Text className="text-sm text-ink-muted">
-              This session cannot read AI reports. Sign out and sign in again to refresh
-              permissions.
+            <Text className="text-sm text-text-muted">
+              New permissions are available for AI reports — a quick access update unlocks them.
             </Text>
             <Pressable className="mt-3 active:opacity-70" onPress={onReauth}>
-              <Text className="text-sm font-semibold text-brand">Sign out & sign in</Text>
+              <Text className="text-sm font-semibold text-brand">Update access</Text>
             </Pressable>
             <Pressable className="mt-3 active:opacity-70" onPress={onOpenWebReport}>
-              <Text className="text-sm font-semibold text-zinc-300">
+              <Text className="text-sm font-semibold text-text-body">
                 Open web Athlete Profile
               </Text>
             </Pressable>
@@ -152,7 +152,7 @@ export function AthleteProfileOverview({
           </View>
         ) : reportQuery.data?.status === 'PENDING' ||
           reportQuery.data?.status === 'PROCESSING' ? (
-          <Text className="mt-3 text-sm text-ink-muted">Generating your athlete profile…</Text>
+          <Text className="mt-3 text-sm text-text-muted">Generating your athlete profile…</Text>
         ) : completedReport?.executiveSummary ? (
           <Pressable
             accessibilityRole="button"
@@ -166,25 +166,18 @@ export function AthleteProfileOverview({
                 {completedReport.fitnessStatusLabel}
               </Text>
             ) : null}
-            <Text className="text-sm leading-5 text-zinc-200">
+            <Text className="text-sm leading-5 text-text-body">
               {completedReport.executiveSummary}
             </Text>
             {completedReport.scores.length > 0 ? (
               <View className="mt-3 flex-row flex-wrap gap-2">
                 {completedReport.scores.map((chip) => (
-                  <View
-                    key={chip.key}
-                    className="rounded-full border border-zinc-700 bg-zinc-950/60 px-2.5 py-1"
-                  >
-                    <Text className="text-[11px] font-semibold text-zinc-300">
-                      {chip.label} {chip.score}
-                    </Text>
-                  </View>
+                  <ScoreChip key={chip.key} label={chip.label} score={chip.score} />
                 ))}
               </View>
             ) : null}
             {completedReport.recommendationsSummary ? (
-              <Text className="mt-3 text-sm text-ink-muted">
+              <Text className="mt-3 text-sm text-text-muted">
                 {completedReport.recommendationsSummary}
               </Text>
             ) : null}
@@ -194,7 +187,7 @@ export function AthleteProfileOverview({
           </Pressable>
         ) : (
           <View className="mt-3">
-            <Text className="text-sm text-ink-muted">
+            <Text className="text-sm text-text-muted">
               No AI athlete profile yet. Sync to generate one, or open the web report.
             </Text>
           </View>
@@ -222,14 +215,14 @@ export function AthleteProfileOverview({
 
 function HrTile({ label, value }: { label: string; value: number | null }) {
   return (
-    <View className="flex-1 rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-3">
-      <Text className="text-[10px] font-bold uppercase tracking-wide text-zinc-400">{label}</Text>
+    <View className="flex-1 rounded-xl border border-border bg-card px-3 py-3">
+      <Text className="text-[10px] font-bold uppercase tracking-wide text-text-muted">{label}</Text>
       <View className="mt-2 flex-row items-baseline gap-1">
-        <Text className="text-lg font-black text-white">
+        <Text className="text-lg font-black text-text-primary">
           {value != null ? Math.round(value) : '—'}
         </Text>
         {value != null ? (
-          <Text className="text-[10px] font-semibold text-zinc-500">bpm</Text>
+          <Text className="text-[10px] font-semibold text-text-muted">bpm</Text>
         ) : null}
       </View>
     </View>

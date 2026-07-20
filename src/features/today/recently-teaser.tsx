@@ -13,6 +13,7 @@ import {
 import { ComplianceMarkView } from '@/src/features/activity/ComplianceMark';
 import { SportIcon } from '@/src/components/SportIcon';
 import type { ActivityListItem } from '@/src/features/activity/types';
+import { humanizeWorkoutType } from '@/src/lib/humanizeWorkoutType';
 import {
   useRecentActivityQuery,
   useUpcomingPlannedQuery,
@@ -36,20 +37,20 @@ export function RecentlyTeaser() {
   return (
     <View className="mt-8">
       <View className="flex-row items-baseline justify-between">
-        <Text className="text-xs font-semibold uppercase tracking-widest text-ink-muted">
+        <Text className="text-xs font-semibold uppercase tracking-widest text-text-muted">
           Recently
         </Text>
         <Pressable
           className="py-1 active:opacity-70"
           hitSlop={8}
-          onPress={() => router.push('/(app)/activity' as Href)}
+          onPress={() => router.push('/(app)/(tabs)/today/activity' as Href)}
         >
           <Text className="text-sm font-semibold text-brand">See all</Text>
         </Pressable>
       </View>
 
       {rows.length === 0 ? (
-        <Text className="mt-3 text-sm text-ink-muted">No recent workouts yet.</Text>
+        <Text className="mt-3 text-sm text-text-muted">No recent workouts yet.</Text>
       ) : (
         <View className="mt-2">
           {rows.map((item) => (
@@ -74,7 +75,7 @@ function RecentRow({
 }) {
   const meta = [
     formatActivityDate(item.date),
-    item.type,
+    humanizeWorkoutType(item.type),
     formatDuration(item.durationSec),
   ]
     .filter(Boolean)
@@ -82,21 +83,21 @@ function RecentRow({
 
   return (
     <Pressable
-      className="flex-row items-center gap-3 border-b border-zinc-800/80 py-3 active:opacity-80"
-      onPress={() => router.push(`/(app)/activity/${item.id}` as Href)}
+      className="flex-row items-center gap-3 border-b border-border/80 py-3 active:opacity-80"
+      onPress={() => router.push(`/(app)/(tabs)/today/activity/${item.id}` as Href)}
     >
       <SportIcon type={item.type} size={13} />
       <View className="min-w-0 flex-1">
         <View className="flex-row items-start justify-between gap-3">
           <View className="min-w-0 flex-1 flex-row items-center">
-            <Text className="shrink text-base font-medium text-white" numberOfLines={1}>
+            <Text className="shrink text-base font-medium text-text-primary" numberOfLines={1}>
               {item.title}
             </Text>
             <ComplianceMarkView mark={mark} />
           </View>
-          <Text className="text-xs text-ink-muted">{item.status.label}</Text>
+          <Text className="text-xs text-text-muted">{item.status.label}</Text>
         </View>
-        {meta ? <Text className="mt-1 text-sm text-ink-muted">{meta}</Text> : null}
+        {meta ? <Text className="mt-1 text-sm text-text-muted">{meta}</Text> : null}
       </View>
     </Pressable>
   );

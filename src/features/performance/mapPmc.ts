@@ -34,7 +34,7 @@ export function formStatusTextClass(color: string): string {
     case 'red':
       return 'text-red-400';
     default:
-      return 'text-zinc-400';
+      return 'text-text-muted';
   }
 }
 

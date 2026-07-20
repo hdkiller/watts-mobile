@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { mapNotificationItem, mapNotificationsList } from '../mapNotifications';
+import {
+  formatNotificationTime,
+  mapNotificationItem,
+  mapNotificationsList,
+  markNotificationRepeats,
+} from '../mapNotifications';
 
 describe('mapNotificationItem', () => {
   it('maps title/message/read/createdAt', () => {
@@ -98,3 +103,51 @@ describe('mapNotificationsList', () => {
     expect(mapNotificationsList({ notifications: [], unreadCount: 0 }).items).toEqual([]);
   });
 });
+
+describe('formatNotificationTime', () => {
+  const now = Date.parse('2026-07-20T12:00:00.000Z');
+
+  it('uses relative labels within a week', () => {
+    expect(formatNotificationTime('2026-07-20T11:30:00.000Z', now)).toBe('30m ago');
+    expect(formatNotificationTime('2026-07-18T12:00:00.000Z', now)).toBe('2d ago');
+  });
+
+  it('uses locale short date beyond a week', () => {
+    const label = formatNotificationTime('2026-06-05T12:00:00.000Z', now);
+    expect(label).toMatch(/Jun/);
+    expect(label).toMatch(/5/);
+  });
+});
+
+describe('markNotificationRepeats', () => {
+  it('flags consecutive same title+link rows', () => {
+    const marked = markNotificationRepeats([
+      {
+        id: '1',
+        title: 'Workout Analysis Ready',
+        body: 'A',
+        read: false,
+        createdAt: '2026-07-20T10:00:00.000Z',
+        link: '/workouts/1',
+      },
+      {
+        id: '2',
+        title: 'Workout Analysis Ready',
+        body: 'B',
+        read: false,
+        createdAt: '2026-07-20T09:00:00.000Z',
+        link: '/workouts/1',
+      },
+      {
+        id: '3',
+        title: 'Other',
+        body: 'C',
+        read: true,
+        createdAt: '2026-07-20T08:00:00.000Z',
+        link: null,
+      },
+    ]);
+    expect(marked.map((m) => m.isRepeat)).toEqual([false, true, false]);
+  });
+});
+

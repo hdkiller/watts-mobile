@@ -21,15 +21,15 @@ export function EventCountdownChip() {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`${next.title}, ${next.countdownLabel}`}
-      className="mt-4 self-start rounded-full border border-zinc-700 bg-zinc-900/80 px-3 py-1.5 active:opacity-80"
+      className="mt-4 self-start rounded-full border border-border-strong bg-card/80 px-3 py-1.5 active:opacity-80"
       hitSlop={8}
       onPress={() => void openWeb()}
     >
       <View className="flex-row items-center gap-2">
-        <Text className="text-sm font-medium text-white" numberOfLines={1}>
+        <Text className="text-sm font-medium text-text-primary" numberOfLines={1}>
           {next.title}
         </Text>
-        <Text className="text-sm text-ink-muted">— {next.countdownLabel}</Text>
+        <Text className="text-sm text-text-muted">— {next.countdownLabel}</Text>
       </View>
     </Pressable>
   );

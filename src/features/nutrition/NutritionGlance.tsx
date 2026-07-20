@@ -26,7 +26,7 @@ export function NutritionGlance() {
   return (
     <View className="mt-8">
       <View className="flex-row items-baseline justify-between">
-        <Text className="text-xs font-semibold uppercase tracking-widest text-ink-muted">
+        <Text className="text-xs font-semibold uppercase tracking-widest text-text-muted">
           Nutrition
         </Text>
         <Pressable className="py-1 active:opacity-70" onPress={openNutritionLog}>
@@ -38,22 +38,22 @@ export function NutritionGlance() {
         <ActivityIndicator className="mt-3" color={Colors.brand} />
       ) : (
         <Pressable
-          className="mt-3 rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-3 active:opacity-80"
+          className="mt-3 rounded-xl border border-border bg-card/60 px-4 py-3 active:opacity-80"
           onPress={openNutritionLog}
         >
           {!today || today.isEmpty ? (
-            <Text className="text-sm text-ink-muted">No fuel logged yet today.</Text>
+            <Text className="text-sm text-text-muted">No fuel logged yet today.</Text>
           ) : (
             <>
-              <Text className="text-lg font-semibold text-white">{today.calories} kcal</Text>
-              <Text className="mt-1 text-sm text-ink-muted">
+              <Text className="text-lg font-semibold text-text-primary">{today.calories} kcal</Text>
+              <Text className="mt-1 text-sm text-text-muted">
                 P {formatMacroGrams(today.protein)}g · C {formatMacroGrams(today.carbs)}g · F{' '}
                 {formatMacroGrams(today.fat)}g
               </Text>
             </>
           )}
-          {today ? (
-            <Text className="mt-2 text-sm text-white">
+          {today && today.waterMl > 0 ? (
+            <Text className="mt-2 text-sm text-text-primary">
               Water {(today.waterMl / 1000).toFixed(1)} L
             </Text>
           ) : null}

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { RecoveryContextItem } from '@/src/features/recovery/types';
 import type { TodayViewModel } from '@/src/features/today/types';
 
-import { buildCoachSeedContext, withSeedPrefix } from '../seedContext';
+import { buildCoachSeedContext, displayAthleteText, withSeedPrefix } from '../seedContext';
 
 const baseToday = (): TodayViewModel => ({
   recommendationId: 'rec-1',
@@ -74,5 +74,22 @@ describe('buildCoachSeedContext', () => {
       'Context line\n\nAthlete question: Why this?'
     );
     expect(withSeedPrefix('Why this?', null)).toBe('Why this?');
+  });
+});
+
+describe('displayAthleteText', () => {
+  it('strips the seed block and keeps the athlete question', () => {
+    const seeded = withSeedPrefix(
+      "What's the intent of today's planned session?",
+      buildCoachSeedContext({ today: baseToday() })
+    );
+    expect(displayAthleteText(seeded)).toBe("What's the intent of today's planned session?");
+  });
+
+  it('leaves ordinary user text unchanged', () => {
+    expect(displayAthleteText('Athlete question: just kidding, real text')).toBe(
+      'Athlete question: just kidding, real text'
+    );
+    expect(displayAthleteText('How hard should I go?')).toBe('How hard should I go?');
   });
 });

@@ -14,9 +14,16 @@ export function roomActivityMs(room: ChatRoomSummary): number {
   return 0;
 }
 
+/** A room that never received a message (server sends `lastMessage: null`). */
+export function isEmptyRoom(room: ChatRoomSummary): boolean {
+  return room.lastMessage == null;
+}
+
 /**
  * Decide whether to reopen the most recent room or create a new one.
  * Rooms must already be sorted by activity desc (API contract).
+ * A stale session prefers reusing the newest EMPTY room over creating another —
+ * otherwise every Coach-tab visit mints a "New Chat" that piles up server-side (issue 061).
  */
 export function decideSessionOpen(
   rooms: ChatRoomSummary[],
@@ -28,6 +35,10 @@ export function decideSessionOpen(
   }
   const lastActivity = roomActivityMs(lastRoom);
   if (!lastActivity || nowMs - lastActivity > CHAT_SESSION_REUSE_MS) {
+    const emptyRoom = rooms.find(isEmptyRoom);
+    if (emptyRoom) {
+      return { action: 'select', room: emptyRoom };
+    }
     return { action: 'create' };
   }
   return { action: 'select', room: lastRoom };

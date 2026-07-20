@@ -1,13 +1,10 @@
 import { Platform } from 'react-native';
 
+import { lastNightSleepWindow, mergeIntervalDurationMs } from './sleepIntervals';
 import type { HealthPrefill } from './healthPrefillTypes';
 
 export type { HealthPrefill } from './healthPrefillTypes';
 export { applyHealthPrefill } from './applyHealthPrefill';
-
-function startOfLocalDay(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-}
 
 function addLocalDays(d: Date, days: number): Date {
   const next = new Date(d);
@@ -16,7 +13,9 @@ function addLocalDays(d: Date, days: number): Date {
 }
 
 /** Asleep category values in HealthKit (core/deep/rem/asleepUnspecified). */
-const ASLEEP_VALUES = new Set([1, 3, 4, 5]);
+const ASLEEP_UNSPECIFIED = 1;
+const STAGE_VALUES = new Set([3, 4, 5]); // core / deep / rem
+const ALL_ASLEEP_VALUES = new Set([ASLEEP_UNSPECIFIED, 3, 4, 5]);
 
 async function prefillFromHealthKit(): Promise<HealthPrefill | null> {
   const HK = await import('@kingstinct/react-native-healthkit');
@@ -34,10 +33,9 @@ async function prefillFromHealthKit(): Promise<HealthPrefill | null> {
     result.weightKg = String(Math.round(weight.quantity * 10) / 10);
   }
 
-  const now = new Date();
-  const from = addLocalDays(startOfLocalDay(now), -1);
+  const { from, to: now } = lastNightSleepWindow();
   const samples = await HK.queryCategorySamples('HKCategoryTypeIdentifierSleepAnalysis', {
-    limit: 40,
+    limit: 80,
     ascending: false,
     filter: {
       date: {
@@ -47,16 +45,22 @@ async function prefillFromHealthKit(): Promise<HealthPrefill | null> {
     },
   });
 
-  let asleepMs = 0;
-  for (const sample of samples) {
-    const value = typeof sample.value === 'number' ? sample.value : Number(sample.value);
-    if (!ASLEEP_VALUES.has(value)) continue;
-    const start = new Date(sample.startDate).getTime();
-    const end = new Date(sample.endDate).getTime();
-    if (Number.isFinite(start) && Number.isFinite(end) && end > start) {
-      asleepMs += end - start;
-    }
-  }
+  const parsed = samples
+    .map((sample) => {
+      const value = typeof sample.value === 'number' ? sample.value : Number(sample.value);
+      const start = new Date(sample.startDate).getTime();
+      const end = new Date(sample.endDate).getTime();
+      return { value, start, end };
+    })
+    .filter((s) => ALL_ASLEEP_VALUES.has(s.value) && s.end > s.start);
+
+  // Prefer stage samples when present so watch stages + phone "asleep" don't double-count.
+  const hasStages = parsed.some((s) => STAGE_VALUES.has(s.value));
+  const accepted = hasStages
+    ? parsed.filter((s) => STAGE_VALUES.has(s.value))
+    : parsed.filter((s) => ALL_ASLEEP_VALUES.has(s.value));
+
+  const asleepMs = mergeIntervalDurationMs(accepted.map((s) => ({ start: s.start, end: s.end })));
   if (asleepMs > 0) {
     const hours = asleepMs / (1000 * 60 * 60);
     result.sleepHours = String(Math.round(hours * 10) / 10);
@@ -80,8 +84,7 @@ async function prefillFromHealthConnect(): Promise<HealthPrefill | null> {
   if (!granted?.length) return null;
 
   const result: HealthPrefill = { source: 'health_connect' };
-  const now = new Date();
-  const from = addLocalDays(startOfLocalDay(now), -1);
+  const { from, to: now } = lastNightSleepWindow();
 
   const weightRes = await HC.readRecords('Weight', {
     timeRangeFilter: {
@@ -107,18 +110,20 @@ async function prefillFromHealthConnect(): Promise<HealthPrefill | null> {
       endTime: now.toISOString(),
     },
     ascendingOrder: false,
-    pageSize: 5,
+    pageSize: 10,
   });
-  let asleepMs = 0;
-  for (const rec of sleepRes?.records ?? []) {
-    const r = rec as { startTime?: string; endTime?: string };
-    if (!r.startTime || !r.endTime) continue;
-    const start = new Date(r.startTime).getTime();
-    const end = new Date(r.endTime).getTime();
-    if (Number.isFinite(start) && Number.isFinite(end) && end > start) {
-      asleepMs += end - start;
-    }
-  }
+  const intervals = (sleepRes?.records ?? [])
+    .map((rec) => {
+      const r = rec as { startTime?: string; endTime?: string };
+      if (!r.startTime || !r.endTime) return null;
+      return {
+        start: new Date(r.startTime).getTime(),
+        end: new Date(r.endTime).getTime(),
+      };
+    })
+    .filter((i): i is { start: number; end: number } => i != null);
+
+  const asleepMs = mergeIntervalDurationMs(intervals);
   if (asleepMs > 0) {
     const hours = asleepMs / (1000 * 60 * 60);
     result.sleepHours = String(Math.round(hours * 10) / 10);

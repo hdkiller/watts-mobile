@@ -11,14 +11,14 @@ Paths are path-only. Scheme form: `coachwatts://today`. HTTPS form: `https://coa
 | `/today` | `/(app)/(tabs)/today` | Today tab |
 | `/today/recommendation` | `/(app)/(tabs)/today` | Recommendation context on Today |
 | `/recommendations/:id` | `/(app)/(tabs)/today` | Alias until a dedicated detail route exists |
-| `/planned/:id` | `/(app)/planned/:id` | Planned workout detail |
-| `/activities` | `/(app)/activity` | Recent activity list |
-| `/activities/:id` | `/(app)/activity/:id` | Activity summary |
-| `/upcoming` | `/(app)/upcoming` | Upcoming planned list |
+| `/planned/:id` | `/(app)/(tabs)/today/planned/:id` | Planned workout detail (Today stack) |
+| `/activities` | `/(app)/(tabs)/today/activity` | Recent activity list (Today stack) |
+| `/activities/:id` | `/(app)/(tabs)/today/activity/:id` | Activity summary (Today stack) |
+| `/upcoming` | `/(app)/(tabs)/today/upcoming` | Upcoming planned list (Today stack) |
 | `/coach` | `/(app)/(tabs)/coach` | Coach tab (session policy picks/creates room) |
 | `/chat` | `/(app)/(tabs)/coach` | Alias for Coach tab |
 | `/chat/:roomId` | `/(app)/(tabs)/coach?roomId=` | Opens that chat room when it exists |
-| `/notifications` | `/(app)/notifications` | Inbox (stub until Phase 2 push) |
+| `/notifications` | `/(app)/(tabs)/more/notifications` | Inbox (More stack) |
 | `/log` | `/(app)/(tabs)/log` | Optional convenience |
 | `/oauth/callback` | — | Handled by expo-auth-session; **not** rewritten |
 

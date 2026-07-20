@@ -23,7 +23,7 @@ Auth: OAuth 2.0 + PKCE · tokens in Secure Store · `offline_access` for refresh
 2. **Log** — daily wellness (sleep, readiness/feel, notes, weight if already in flows) **and** recovery events (illness, fatigue, sleep disruption, etc. — parity with web “Log recovery event”) — distinct from Today’s AI Daily Coach Check-In
 3. **Session detail** — today’s planned structure; completed-workout AI analysis + stream/zone/power-curve charts + **lite in-app route map** when GPS exists; map explorer / GPX / interval audit → open web
 4. **Recent activity** — last few workouts with sync/analysis status (not full calendar)
-5. **Coach chat** — short Q&A seeded with today + recovery; markdown-lite assistant replies; multi-tool feedback cards (nutrition, recovery/wellness, generic) with approve/deny — not nutrition-only
+5. **Coach chat** — short Q&A seeded with today + recovery; markdown-lite assistant replies; compact tool feedback (curated nutrition / wellness / recommendations / planned lite / activity reads + generic fallback) with in-progress chips, domain tint, and approve/deny — not full web tool-card parity
 6. **Notifications** — push + in-app inbox
 7. **Account glue** — instance URL, sign-in, notification prefs, Settings hub (units/locale, coach identity lite, Health Sync, export/delete via Open web), **Open web with Bearer→cookie session handoff**
 

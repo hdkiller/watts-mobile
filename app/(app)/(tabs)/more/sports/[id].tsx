@@ -23,9 +23,12 @@ import { usePatchSportThresholds, useSportProfilesQuery } from '@/src/features/s
 import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
 import { hapticError, hapticSuccess } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
+import { useThemeColors } from '@/src/theme/useThemeColors';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 
 export default function SportProfileEditorScreen() {
+  const theme = useThemeColors();
+
   const params = useLocalSearchParams<{ id?: string }>();
   const profileId = typeof params.id === 'string' ? decodeURIComponent(params.id) : '';
   const { instanceUrl } = useAuth();
@@ -95,11 +98,11 @@ export default function SportProfileEditorScreen() {
     <>
       <Stack.Screen options={{ title, headerShown: true }} />
       {isLoading && !profiles ? (
-        <View className="flex-1 items-center justify-center bg-surface-dark">
+        <View className="flex-1 items-center justify-center bg-surface">
           <ActivityIndicator color={Colors.brand} size="large" />
         </View>
       ) : isError && !profiles ? (
-        <View className="flex-1 bg-surface-dark px-6 pt-6">
+        <View className="flex-1 bg-surface px-6 pt-6">
           <Text className="text-red-400">
             {friendlyError(error, 'Failed to load sport profiles')}
           </Text>
@@ -108,26 +111,26 @@ export default function SportProfileEditorScreen() {
           </Pressable>
         </View>
       ) : !profile ? (
-        <View className="flex-1 bg-surface-dark px-6 pt-6">
-          <Text className="text-base text-ink-muted">This sport profile is no longer available.</Text>
+        <View className="flex-1 bg-surface px-6 pt-6">
+          <Text className="text-base text-text-muted">This sport profile is no longer available.</Text>
           <Pressable
             className="mt-4"
             hitSlop={8}
-            onPress={() => router.replace('/(app)/settings/sports' as Href)}
+            onPress={() => router.replace('/(app)/(tabs)/more/settings/sports' as Href)}
           >
             <Text className="font-semibold text-brand">Back to Sports</Text>
           </Pressable>
         </View>
       ) : (
-        <View ref={containerRef} className="flex-1 bg-surface-dark">
+        <View ref={containerRef} className="flex-1 bg-surface">
           <ScrollView
             className="flex-1"
             contentContainerClassName="px-6 pt-4"
             contentContainerStyle={{ paddingBottom: 40 + overlap }}
             keyboardShouldPersistTaps="handled"
           >
-            <Text className="text-2xl font-semibold text-white">{title}</Text>
-            <Text className="mt-2 text-sm text-ink-muted">
+            <Text className="text-2xl font-semibold text-text-primary">{title}</Text>
+            <Text className="mt-2 text-sm text-text-muted">
               Lite thresholds for this sport. Zones and advanced Sport Settings stay on the web.
             </Text>
 
@@ -175,17 +178,17 @@ export default function SportProfileEditorScreen() {
             />
 
             <Pressable
-              className="mt-3 items-center rounded-xl border border-zinc-700 py-3.5 active:opacity-80"
+              className="mt-3 items-center rounded-xl border border-border-strong py-3.5 active:opacity-80"
               onPress={() => void openWeb()}
             >
-              <Text className="text-base font-semibold text-white">Open web Sport Settings</Text>
+              <Text className="text-base font-semibold text-text-primary">Open web Sport Settings</Text>
             </Pressable>
 
             <Pressable
-              className="mt-3 items-center rounded-xl border border-zinc-700 py-3.5 active:opacity-80"
+              className="mt-3 items-center rounded-xl border border-border-strong py-3.5 active:opacity-80"
               onPress={() => router.back()}
             >
-              <Text className="text-base font-semibold text-white">Cancel</Text>
+              <Text className="text-base font-semibold text-text-primary">Cancel</Text>
             </Pressable>
           </ScrollView>
         </View>
@@ -206,16 +209,17 @@ function Field({
   keyboardType: 'decimal-pad' | 'number-pad';
   editable: boolean;
 }) {
+  const theme = useThemeColors();
   return (
     <View className="mt-5">
-      <Text className="text-xs uppercase tracking-wide text-ink-muted">{label}</Text>
+      <Text className="text-xs uppercase tracking-wide text-text-muted">{label}</Text>
       <TextInput
-        className="mt-2 rounded-xl border border-zinc-700 bg-zinc-900/80 px-4 py-3 text-base text-white"
+        className="mt-2 rounded-xl border border-border-strong bg-card/80 px-4 py-3 text-base text-text-primary"
         value={value}
         onChangeText={onChangeText}
         keyboardType={keyboardType}
         editable={editable}
-        placeholderTextColor={Colors.textMuted}
+        placeholderTextColor={theme.textMuted}
       />
     </View>
   );

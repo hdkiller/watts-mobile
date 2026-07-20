@@ -15,6 +15,8 @@ import { ErrorFallback } from '@/src/components/ErrorFallback';
 import { useDeepLinkReturn } from '@/src/linking/useDeepLinkReturn';
 import { initSentry } from '@/src/sentry';
 import { Colors } from '@/src/theme/colors';
+import { ThemePreferenceBootstrap } from '@/src/theme/ThemePreferenceBootstrap';
+import { useThemeColors } from '@/src/theme/useThemeColors';
 
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   return <ErrorFallback error={error} retry={retry} />;
@@ -25,6 +27,7 @@ initSentry();
 
 function RootNavigator() {
   const { status } = useAuth();
+  const theme = useThemeColors();
   useDeepLinkReturn();
 
   useEffect(() => {
@@ -35,7 +38,7 @@ function RootNavigator() {
 
   if (status === 'loading') {
     return (
-      <View className="flex-1 items-center justify-center bg-surface-dark">
+      <View className="flex-1 items-center justify-center bg-surface">
         <ActivityIndicator color={Colors.brand} size="large" />
       </View>
     );
@@ -43,8 +46,13 @@ function RootNavigator() {
 
   return (
     <>
-      <StatusBar style="light" />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Colors.background } }}>
+      <StatusBar style="auto" />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: theme.surface },
+        }}
+      >
         <Stack.Screen name="index" />
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(app)" />
@@ -55,8 +63,10 @@ function RootNavigator() {
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <RootNavigator />
-    </AuthProvider>
+    <ThemePreferenceBootstrap>
+      <AuthProvider>
+        <RootNavigator />
+      </AuthProvider>
+    </ThemePreferenceBootstrap>
   );
 }

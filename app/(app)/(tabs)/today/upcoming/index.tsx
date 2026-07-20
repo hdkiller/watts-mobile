@@ -10,12 +10,10 @@ import {
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
+import { OfflineBanner } from '@/src/components/OfflineBanner';
 import { ListSkeleton } from '@/src/components/Skeleton';
 import { SportIcon } from '@/src/components/SportIcon';
-import {
-  formatActivityDate,
-  formatDuration,
-} from '@/src/features/activity/mapActivity';
+import { formatDuration } from '@/src/features/activity/mapActivity';
 import { buildComplianceIndex, type ComplianceMark } from '@/src/features/activity/compliance';
 import { ComplianceMarkView } from '@/src/features/activity/ComplianceMark';
 import { groupUpcomingByDay } from '@/src/features/activity/groupUpcoming';
@@ -25,8 +23,10 @@ import {
   useUpcomingPlannedQuery,
 } from '@/src/features/activity/useActivity';
 import { useUpcomingEventsQuery } from '@/src/features/events/useEvents';
-import { Colors } from '@/src/theme/colors';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
+import { useOfflineCached } from '@/src/hooks/useOfflineCached';
+import { humanizeWorkoutType } from '@/src/lib/humanizeWorkoutType';
+import { Colors } from '@/src/theme/colors';
 
 function PlannedRow({
   item,
@@ -35,9 +35,9 @@ function PlannedRow({
   item: PlannedListItem;
   mark: ComplianceMark | undefined;
 }) {
+  // Date lives in the section header — keep type · duration · TSS only.
   const meta = [
-    formatActivityDate(item.date),
-    item.type,
+    humanizeWorkoutType(item.type),
     formatDuration(item.durationSec),
     item.tss != null ? `TSS ${Math.round(item.tss)}` : null,
   ]
@@ -46,19 +46,19 @@ function PlannedRow({
 
   return (
     <Pressable
-      className="mb-3 rounded-xl border border-zinc-800 bg-zinc-900/80 px-4 py-3.5 active:opacity-80"
-      onPress={() => router.push(`/(app)/planned/${item.id}` as Href)}
+      className="mb-3 rounded-xl border border-border bg-card/80 px-4 py-3.5 active:opacity-80"
+      onPress={() => router.push(`/(app)/(tabs)/today/planned/${item.id}` as Href)}
     >
       <View className="flex-row items-center gap-3">
         <SportIcon type={item.type} size={14} />
         <View className="min-w-0 flex-1">
           <View className="flex-row items-center">
-            <Text className="shrink text-base font-semibold text-white" numberOfLines={1}>
+            <Text className="shrink text-base font-semibold text-text-primary" numberOfLines={1}>
               {item.title}
             </Text>
             <ComplianceMarkView mark={mark} />
           </View>
-          {meta ? <Text className="mt-1.5 text-sm text-ink-muted">{meta}</Text> : null}
+          {meta ? <Text className="mt-1.5 text-sm text-text-muted">{meta}</Text> : null}
         </View>
       </View>
     </Pressable>
@@ -67,9 +67,15 @@ function PlannedRow({
 
 export default function UpcomingPlannedScreen() {
   const { instanceUrl } = useAuth();
-  const { data, isLoading, isError, error, refetch, isRefetching } = useUpcomingPlannedQuery();
+  const { data, isLoading, isError, error, refetch, isRefetching, dataUpdatedAt } =
+    useUpcomingPlannedQuery();
   const recent = useRecentActivityQuery();
   const eventsQuery = useUpcomingEventsQuery();
+  const { showCachedOffline, lastUpdatedLabel } = useOfflineCached({
+    data,
+    isError,
+    dataUpdatedAt,
+  });
   const futurePlanned = useMemo(
     () =>
       (data ?? []).filter((item) => {
@@ -99,7 +105,7 @@ export default function UpcomingPlannedScreen() {
       {isLoading && !data ? (
         <ListSkeleton />
       ) : isError && !data ? (
-        <View className="flex-1 bg-surface-dark px-6 pt-6">
+        <View className="flex-1 bg-surface px-6 pt-6">
           <Text className="text-red-400">
             {friendlyError(error, 'Failed to load upcoming workouts')}
           </Text>
@@ -109,7 +115,7 @@ export default function UpcomingPlannedScreen() {
         </View>
       ) : (
         <SectionList
-          className="flex-1 bg-surface-dark"
+          className="flex-1 bg-surface"
           contentContainerClassName="px-6 pb-10 pt-4"
           sections={sections}
           keyExtractor={(item) => item.id}
@@ -125,42 +131,45 @@ export default function UpcomingPlannedScreen() {
             />
           }
           ListHeaderComponent={
-            eventsQuery.data && eventsQuery.data.length > 0 ? (
-              <View className="mb-6">
-                <Text className="text-xs font-semibold uppercase tracking-widest text-ink-muted">
-                  Events
-                </Text>
-                <View className="mt-2">
-                  {eventsQuery.data.slice(0, 5).map((event) => (
-                    <Pressable
-                      key={event.id}
-                      className="mb-2 rounded-xl border border-zinc-800 bg-zinc-900/80 px-4 py-3 active:opacity-80"
-                      onPress={() => void openWeb()}
-                    >
-                      <Text className="text-base font-semibold text-white">{event.title}</Text>
-                      <Text className="mt-1 text-sm text-ink-muted">
-                        {[event.countdownLabel, event.type].filter(Boolean).join(' · ')}
-                      </Text>
+            <View>
+              <OfflineBanner visible={showCachedOffline} lastUpdatedLabel={lastUpdatedLabel} />
+              {eventsQuery.data && eventsQuery.data.length > 0 ? (
+                <View className="mb-6">
+                  <Text className="text-xs font-semibold uppercase tracking-widest text-text-muted">
+                    Events
+                  </Text>
+                  <View className="mt-2">
+                    {eventsQuery.data.slice(0, 5).map((event) => (
+                      <Pressable
+                        key={event.id}
+                        className="mb-2 rounded-xl border border-border bg-card/80 px-4 py-3 active:opacity-80"
+                        onPress={() => void openWeb()}
+                      >
+                        <Text className="text-base font-semibold text-text-primary">{event.title}</Text>
+                        <Text className="mt-1 text-sm text-text-muted">
+                          {[event.countdownLabel, event.type].filter(Boolean).join(' · ')}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                  {instanceUrl ? (
+                    <Pressable className="mt-1" hitSlop={8} onPress={() => void openWeb()}>
+                      <Text className="text-sm font-semibold text-brand">Open web for events</Text>
                     </Pressable>
-                  ))}
+                  ) : null}
                 </View>
-                {instanceUrl ? (
-                  <Pressable className="mt-1" hitSlop={8} onPress={() => void openWeb()}>
-                    <Text className="text-sm font-semibold text-brand">Open web for events</Text>
-                  </Pressable>
-                ) : null}
-              </View>
-            ) : null
+              ) : null}
+            </View>
           }
           ListEmptyComponent={
             <View className="pt-8">
-              <Text className="text-base text-ink-muted">
+              <Text className="text-base text-text-muted">
                 No upcoming planned workouts in the next two weeks.
               </Text>
             </View>
           }
           renderSectionHeader={({ section }) => (
-            <Text className="mb-2 mt-4 text-xs font-semibold uppercase tracking-widest text-ink-muted">
+            <Text className="mb-2 mt-4 text-xs font-semibold uppercase tracking-widest text-text-muted">
               {section.title}
             </Text>
           )}

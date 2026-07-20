@@ -14,10 +14,10 @@ export function HeroStatTiles({ stats }: { stats: HeroStat[] }) {
       {stats.map((stat) => (
         <View
           key={stat.label}
-          className="min-w-0 flex-1 rounded-lg border border-zinc-800 px-3 py-3"
+          className="min-w-0 flex-1 rounded-lg border border-border px-3 py-3"
         >
-          <Text className="text-[10px] uppercase text-ink-muted">{stat.label}</Text>
-          <Text className="mt-1 text-lg font-semibold text-white" numberOfLines={1}>
+          <Text className="text-[10px] uppercase text-text-muted">{stat.label}</Text>
+          <Text className="mt-1 text-lg font-semibold text-text-primary" numberOfLines={1}>
             {stat.value}
           </Text>
         </View>

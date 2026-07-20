@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Text, View } from 'react-native';
 import Svg, { Circle, Line, Polyline } from 'react-native-svg';
 
-import { Colors } from '@/src/theme/colors';
+import { useThemeColors } from '@/src/theme/useThemeColors';
 
 import type { StreamSeries } from '../chartTypes';
 import { formatChartMinutes } from '../mapCharts';
@@ -23,6 +23,8 @@ export function LineSeriesChart({
   endXLabel,
   startXLabel = '0:00',
 }: Props) {
+  const theme = useThemeColors();
+
   const [width, setWidth] = useState(0);
   if (series.length === 0) return null;
 
@@ -72,7 +74,7 @@ export function LineSeriesChart({
                 x2={width - padR}
                 y1={y}
                 y2={y}
-                stroke={Colors.border}
+                stroke={theme.border}
                 strokeWidth={1}
               />
             );
@@ -110,8 +112,8 @@ export function LineSeriesChart({
       )}
 
       <View className="mt-1 flex-row justify-between px-1">
-        <Text className="text-[10px] text-ink-muted">{startXLabel}</Text>
-        <Text className="text-[10px] text-ink-muted">
+        <Text className="text-[10px] text-text-muted">{startXLabel}</Text>
+        <Text className="text-[10px] text-text-muted">
           {endXLabel ?? formatChartMinutes(maxX)}
         </Text>
       </View>
@@ -120,7 +122,7 @@ export function LineSeriesChart({
         {series.map((s) => (
           <View key={s.key} className="mb-1 mr-4 flex-row items-center">
             <View className="mr-1.5 h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />
-            <Text className="text-xs text-ink-muted">
+            <Text className="text-xs text-text-muted">
               {s.label} ({s.unit})
             </Text>
           </View>

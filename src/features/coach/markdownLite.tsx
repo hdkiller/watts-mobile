@@ -60,7 +60,7 @@ function Inline({
           return (
             <Text
               key={key}
-              className="rounded bg-zinc-800 px-1.5 py-0.5 text-sm text-brand"
+              className="rounded bg-border-strong px-1.5 py-0.5 text-sm text-brand"
             >
               {node.value}
             </Text>
@@ -86,7 +86,7 @@ function Inline({
 /** Constrained markdown for assistant/system bubbles. No HTML execution. */
 export function MarkdownLite({
   text,
-  className = 'text-base leading-6 text-white',
+  className = 'text-base leading-6 text-text-primary',
 }: {
   text: string;
   className?: string;

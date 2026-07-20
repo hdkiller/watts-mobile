@@ -1,0 +1,62 @@
+/**
+ * In-app Expo Router hrefs after per-tab stacks (issue 049).
+ * External deep-link paths (`/activities`, `/planned/:id`) stay stable; only
+ * the resolved Expo Router targets live here.
+ */
+
+export const APP_HREFS = {
+  today: '/(app)/(tabs)/today',
+  log: '/(app)/(tabs)/log',
+  coach: '/(app)/(tabs)/coach',
+  more: '/(app)/(tabs)/more',
+  activityList: '/(app)/(tabs)/today/activity',
+  activityDetail: (id: string) =>
+    `/(app)/(tabs)/today/activity/${encodeURIComponent(id)}` as const,
+  plannedDetail: (id: string) =>
+    `/(app)/(tabs)/today/planned/${encodeURIComponent(id)}` as const,
+  upcoming: '/(app)/(tabs)/today/upcoming',
+  athlete: '/(app)/(tabs)/more/athlete',
+  notifications: '/(app)/(tabs)/more/notifications',
+  settings: '/(app)/(tabs)/more/settings',
+  settingsNotifications: '/(app)/(tabs)/more/settings/notifications',
+  settingsHealth: '/(app)/(tabs)/more/settings/health',
+  settingsUnits: '/(app)/(tabs)/more/settings/units',
+  settingsLog: '/(app)/(tabs)/more/settings/log',
+  settingsSports: '/(app)/(tabs)/more/settings/sports',
+  settingsCoach: '/(app)/(tabs)/more/settings/coach',
+  sportProfile: (id: string) =>
+    `/(app)/(tabs)/more/sports/${encodeURIComponent(id)}` as const,
+  dailyCheckin: '/(app)/daily-checkin',
+  recoveryEvent: '/(app)/recovery-event',
+  recoveryEventEdit: (id: string) =>
+    `/(app)/recovery-event?id=${encodeURIComponent(id)}` as const,
+} as const;
+
+/** Rewrite legacy root-stack hrefs still present in push payloads / pending returns. */
+export function migrateLegacyAppHref(href: string): string {
+  if (!href.startsWith('/(app)')) return href;
+
+  const rules: Array<[RegExp, string | ((m: RegExpMatchArray) => string)]> = [
+    [/^\/\(app\)\/activity\/([^/?#]+)/, (m) => APP_HREFS.activityDetail(decodeURIComponent(m[1]!))],
+    [/^\/\(app\)\/activity\/?$/, APP_HREFS.activityList],
+    [/^\/\(app\)\/planned\/([^/?#]+)/, (m) => APP_HREFS.plannedDetail(decodeURIComponent(m[1]!))],
+    [/^\/\(app\)\/upcoming\/?$/, APP_HREFS.upcoming],
+    [/^\/\(app\)\/notifications\/?$/, APP_HREFS.notifications],
+    [/^\/\(app\)\/athlete\/?$/, APP_HREFS.athlete],
+    [/^\/\(app\)\/settings\/notifications\/?$/, APP_HREFS.settingsNotifications],
+    [/^\/\(app\)\/settings\/health\/?$/, APP_HREFS.settingsHealth],
+    [/^\/\(app\)\/settings\/units\/?$/, APP_HREFS.settingsUnits],
+    [/^\/\(app\)\/settings\/log\/?$/, APP_HREFS.settingsLog],
+    [/^\/\(app\)\/settings\/sports\/?$/, APP_HREFS.settingsSports],
+    [/^\/\(app\)\/settings\/coach\/?$/, APP_HREFS.settingsCoach],
+    [/^\/\(app\)\/settings\/?$/, APP_HREFS.settings],
+    [/^\/\(app\)\/sports\/([^/?#]+)/, (m) => APP_HREFS.sportProfile(decodeURIComponent(m[1]!))],
+  ];
+
+  for (const [re, dest] of rules) {
+    const m = href.match(re);
+    if (!m) continue;
+    return typeof dest === 'function' ? dest(m) : dest;
+  }
+  return href;
+}

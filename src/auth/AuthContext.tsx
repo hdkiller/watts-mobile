@@ -18,10 +18,18 @@ import { clearTokens, loadTokens } from '@/src/auth/tokenStorage';
 import {
   getDefaultInstanceUrl,
   getInstanceUrl,
+  normalizeInstanceUrl,
   setInstanceUrl,
   validateInstanceReachability,
 } from '@/src/config/instance';
-import { queryPersister, shouldPersistQuery } from '@/src/query/persist';
+import { wireQueryConnectivity } from '@/src/query/connectivity';
+import {
+  clearPersistedQueryCache,
+  queryPersister,
+  shouldDehydratePersistedQuery,
+} from '@/src/query/persist';
+
+wireQueryConnectivity();
 
 type AuthStatus = 'loading' | 'needs_instance' | 'needs_login' | 'authenticated';
 
@@ -45,7 +53,8 @@ const queryClient = new QueryClient({
     queries: {
       retry: 1,
       staleTime: 30_000,
-      // Keep cached Today/planned readable offline between launches.
+      refetchOnReconnect: true,
+      // Keep cached field reads readable offline between launches.
       gcTime: 1000 * 60 * 60 * 24 * 7,
     },
   },
@@ -119,10 +128,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const saveInstance = useCallback(async (url: string) => {
     setError(null);
     await validateInstanceReachability(url);
-    const normalized = await setInstanceUrl(url);
+    const previous = instanceUrl ?? (await getInstanceUrl());
+    const normalized = normalizeInstanceUrl(url);
+    if (previous && previous !== normalized) {
+      await clearTokens();
+      setUser(null);
+      queryClient.clear();
+      await clearPersistedQueryCache();
+    }
+    await setInstanceUrl(normalized);
     setInstanceUrlState(normalized);
     setStatus('needs_login');
-  }, []);
+  }, [instanceUrl]);
 
   const signIn = useCallback(async () => {
     setError(null);
@@ -182,7 +199,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         persister: queryPersister,
         maxAge: 1000 * 60 * 60 * 24 * 7,
         dehydrateOptions: {
-          shouldDehydrateQuery: shouldPersistQuery,
+          shouldDehydrateQuery: shouldDehydratePersistedQuery,
         },
       }}
     >

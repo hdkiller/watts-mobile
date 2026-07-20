@@ -1,6 +1,8 @@
 import { SymbolView, type SFSymbol } from 'expo-symbols';
 import { Platform, Text, View } from 'react-native';
 
+import { useThemeColors } from '@/src/theme/useThemeColors';
+
 type Glyph = { sf: SFSymbol; emoji: string };
 
 const GLYPHS: { match: RegExp; glyph: Glyph }[] = [
@@ -31,13 +33,14 @@ export function SportIcon({
   size?: number;
 }) {
   const glyph = glyphForType(type);
+  const theme = useThemeColors();
   return (
     <View
-      className="items-center justify-center rounded-full bg-zinc-800/80"
+      className="items-center justify-center rounded-full bg-border-strong/80"
       style={{ width: size * 2, height: size * 2 }}
     >
       {Platform.OS === 'ios' ? (
-        <SymbolView name={glyph.sf} size={size} tintColor="#d4d4d8" />
+        <SymbolView name={glyph.sf} size={size} tintColor={theme.textBody} />
       ) : (
         <Text style={{ fontSize: size - 2 }}>{glyph.emoji}</Text>
       )}

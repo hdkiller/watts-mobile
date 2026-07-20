@@ -63,7 +63,7 @@ export function MonthlyProgressSheet({
       ? 'text-emerald-400'
       : summary && summary.percentDiff < 0
         ? 'text-amber-300'
-        : 'text-zinc-400';
+        : 'text-text-muted';
 
   return (
     <Modal
@@ -72,11 +72,11 @@ export function MonthlyProgressSheet({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-surface-dark">
-        <View className="flex-row items-start justify-between border-b border-zinc-800 px-5 py-4">
+      <View className="flex-1 bg-surface">
+        <View className="flex-row items-start justify-between border-b border-border px-5 py-4">
           <View className="min-w-0 flex-1 pr-3">
-            <Text className="text-xl font-semibold text-white">Monthly Progress</Text>
-            <Text className="mt-1 text-sm text-ink-muted">
+            <Text className="text-xl font-semibold text-text-primary">Monthly Progress</Text>
+            <Text className="mt-1 text-sm text-text-muted">
               This month vs last month — same comparison as the web dashboard.
             </Text>
           </View>
@@ -86,7 +86,7 @@ export function MonthlyProgressSheet({
         </View>
 
         <ScrollView className="flex-1" contentContainerClassName="px-5 pb-10 pt-5">
-          <Text className="text-xs uppercase tracking-wide text-ink-muted">Metric</Text>
+          <Text className="text-xs uppercase tracking-wide text-text-muted">Metric</Text>
           <View className="mt-2 flex-row flex-wrap gap-2">
             {METRICS.map((item) => {
               const selected = item.key === metric;
@@ -95,12 +95,12 @@ export function MonthlyProgressSheet({
                   key={item.key}
                   onPress={() => setMetric(item.key)}
                   className={`rounded-full px-3 py-1.5 ${
-                    selected ? 'bg-brand' : 'border border-zinc-700 bg-zinc-900'
+                    selected ? 'bg-brand' : 'border border-border-strong bg-card'
                   }`}
                 >
                   <Text
                     className={`text-xs font-semibold ${
-                      selected ? 'text-zinc-950' : 'text-zinc-300'
+                      selected ? 'text-ink' : 'text-text-body'
                     }`}
                   >
                     {item.label}
@@ -110,7 +110,7 @@ export function MonthlyProgressSheet({
             })}
           </View>
 
-          <Text className="mt-5 text-xs uppercase tracking-wide text-ink-muted">Sport</Text>
+          <Text className="mt-5 text-xs uppercase tracking-wide text-text-muted">Sport</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2">
             <View className="flex-row gap-2 pr-4">
               {sportOptions.map((value) => {
@@ -121,12 +121,12 @@ export function MonthlyProgressSheet({
                     key={value}
                     onPress={() => setSport(value)}
                     className={`rounded-full px-3 py-1.5 ${
-                      selected ? 'bg-brand' : 'border border-zinc-700 bg-zinc-900'
+                      selected ? 'bg-brand' : 'border border-border-strong bg-card'
                     }`}
                   >
                     <Text
                       className={`text-xs font-semibold ${
-                        selected ? 'text-zinc-950' : 'text-zinc-300'
+                        selected ? 'text-ink' : 'text-text-body'
                       }`}
                     >
                       {label}
@@ -137,7 +137,7 @@ export function MonthlyProgressSheet({
             </View>
           </ScrollView>
 
-          <Text className="mt-5 text-xs uppercase tracking-wide text-ink-muted">View</Text>
+          <Text className="mt-5 text-xs uppercase tracking-wide text-text-muted">View</Text>
           <View className="mt-2 flex-row gap-2">
             {(
               [
@@ -151,12 +151,12 @@ export function MonthlyProgressSheet({
                   key={key}
                   onPress={() => setViewMode(key)}
                   className={`rounded-full px-3 py-1.5 ${
-                    selected ? 'bg-brand' : 'border border-zinc-700 bg-zinc-900'
+                    selected ? 'bg-brand' : 'border border-border-strong bg-card'
                   }`}
                 >
                   <Text
                     className={`text-xs font-semibold ${
-                      selected ? 'text-zinc-950' : 'text-zinc-300'
+                      selected ? 'text-ink' : 'text-text-body'
                     }`}
                   >
                     {label}
@@ -184,19 +184,19 @@ export function MonthlyProgressSheet({
                 />
               </View>
               <View className="mt-4 flex-row flex-wrap items-center gap-x-4 gap-y-2">
-                <Text className="text-xs text-zinc-400">
+                <Text className="text-xs text-text-muted">
                   {query.data.currentMonthName}:{' '}
-                  <Text className="font-semibold text-white">{summary.formattedCurrent}</Text>
+                  <Text className="font-semibold text-text-primary">{summary.formattedCurrent}</Text>
                 </Text>
-                <Text className="text-xs text-zinc-400">
+                <Text className="text-xs text-text-muted">
                   {query.data.lastMonthName}:{' '}
-                  <Text className="font-semibold text-white">{summary.formattedLast}</Text>
+                  <Text className="font-semibold text-text-primary">{summary.formattedLast}</Text>
                 </Text>
                 <Text className={`text-xs font-semibold ${deltaClass}`}>
                   Delta {formatDeltaPercent(summary.percentDiff)}
                 </Text>
               </View>
-              <Text className="mt-2 text-[11px] text-ink-muted">
+              <Text className="mt-2 text-[11px] text-text-muted">
                 Totals use month-to-date through day {query.data.todayDay} (
                 {formatMetricValue(summary.currentTotal, metric)} vs last month same day).
               </Text>

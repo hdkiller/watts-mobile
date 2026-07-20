@@ -3,19 +3,19 @@
  *
  * Freeze aliases once the first store build ships.
  *
- * | External path              | Expo Router href              |
- * |----------------------------|-------------------------------|
- * | `/today`                   | `/(app)/(tabs)/today`         |
- * | `/today/recommendation`    | `/(app)/(tabs)/today`         |
- * | `/recommendations/:id`     | `/(app)/(tabs)/today`         |
- * | `/planned/:id`             | `/(app)/planned/:id`          |
- * | `/activities`              | `/(app)/activity`             |
- * | `/activities/:id`          | `/(app)/activity/:id`         |
- * | `/upcoming`                | `/(app)/upcoming`             |
- * | `/coach`                   | `/(app)/(tabs)/coach`         |
- * | `/chat` / `/chat/:roomId`  | `/(app)/(tabs)/coach`         |
- * | `/notifications`           | `/(app)/notifications`        |
- * | `/oauth/callback`          | (AuthSession — not product)   |
+ * | External path              | Expo Router href                         |
+ * |----------------------------|------------------------------------------|
+ * | `/today`                   | `/(app)/(tabs)/today`                    |
+ * | `/today/recommendation`    | `/(app)/(tabs)/today`                    |
+ * | `/recommendations/:id`     | `/(app)/(tabs)/today`                    |
+ * | `/planned/:id`             | `/(app)/(tabs)/today/planned/:id`        |
+ * | `/activities`              | `/(app)/(tabs)/today/activity`           |
+ * | `/activities/:id`          | `/(app)/(tabs)/today/activity/:id`       |
+ * | `/upcoming`                | `/(app)/(tabs)/today/upcoming`           |
+ * | `/coach`                   | `/(app)/(tabs)/coach`                    |
+ * | `/chat` / `/chat/:roomId`  | `/(app)/(tabs)/coach`                    |
+ * | `/notifications`           | `/(app)/(tabs)/more/notifications`       |
+ * | `/oauth/callback`          | (AuthSession — not product)              |
  */
 
 export const APP_SCHEME = 'coachwatts';

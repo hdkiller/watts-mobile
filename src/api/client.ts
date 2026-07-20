@@ -20,6 +20,11 @@ export function setAuthFailureHandler(handler: (() => void) | null) {
   onAuthFailure = handler;
 }
 
+/** Invoke the registered AuthContext failure handler (e.g. from coachChatFetch). */
+export function notifyAuthFailure(): void {
+  onAuthFailure?.();
+}
+
 function resolveUrl(instanceBaseUrl: string, path: string): string {
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
@@ -31,13 +36,22 @@ function resolveUrl(instanceBaseUrl: string, path: string): string {
   return `${instanceBaseUrl}/api${normalizedPath}`;
 }
 
-async function singleFlightRefresh(instanceBaseUrl: string, refreshToken: string): Promise<StoredTokens> {
+/** Shared single-flight refresh — use from apiFetch and coachChatFetch to avoid parallel rotations. */
+export async function singleFlightRefresh(
+  instanceBaseUrl: string,
+  refreshToken: string
+): Promise<StoredTokens> {
   if (!refreshPromise) {
     refreshPromise = refreshAccessToken({ instanceBaseUrl, refreshToken }).finally(() => {
       refreshPromise = null;
     });
   }
   return refreshPromise;
+}
+
+async function failAuthSession(): Promise<void> {
+  await clearTokens();
+  onAuthFailure?.();
 }
 
 export async function apiFetch(path: string, options: ApiFetchOptions = {}): Promise<Response> {
@@ -67,8 +81,7 @@ export async function apiFetch(path: string, options: ApiFetchOptions = {}): Pro
 
   const tokens = await loadTokens();
   if (!tokens?.refreshToken) {
-    await clearTokens();
-    onAuthFailure?.();
+    await failAuthSession();
     return response;
   }
 
@@ -79,10 +92,13 @@ export async function apiFetch(path: string, options: ApiFetchOptions = {}): Pro
       retryHeaders.set('Accept', 'application/json');
     }
     retryHeaders.set('Authorization', `Bearer ${refreshed.accessToken}`);
-    return fetch(url, { ...options, headers: retryHeaders });
+    const retry = await fetch(url, { ...options, headers: retryHeaders });
+    if (retry.status === 401) {
+      await failAuthSession();
+    }
+    return retry;
   } catch {
-    await clearTokens();
-    onAuthFailure?.();
+    await failAuthSession();
     return response;
   }
 }

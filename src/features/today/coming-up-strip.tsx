@@ -7,6 +7,7 @@ import {
   formatDuration,
 } from '@/src/features/activity/mapActivity';
 import { SportIcon } from '@/src/components/SportIcon';
+import { humanizeWorkoutType } from '@/src/lib/humanizeWorkoutType';
 import type { PlannedListItem } from '@/src/features/activity/types';
 import { useUpcomingPlannedQuery } from '@/src/features/activity/useActivity';
 import { pickNextEvent } from '@/src/features/events/mapEvents';
@@ -46,20 +47,20 @@ export function ComingUpStrip({ excludePlannedId }: ComingUpStripProps) {
   return (
     <View className="mt-8">
       <View className="flex-row items-baseline justify-between">
-        <Text className="text-xs font-semibold uppercase tracking-widest text-ink-muted">
+        <Text className="text-xs font-semibold uppercase tracking-widest text-text-muted">
           Coming up
         </Text>
         <Pressable
           className="py-1 active:opacity-70"
           hitSlop={8}
-          onPress={() => router.push('/(app)/upcoming' as Href)}
+          onPress={() => router.push('/(app)/(tabs)/today/upcoming' as Href)}
         >
           <Text className="text-sm font-semibold text-brand">See all</Text>
         </Pressable>
       </View>
 
       {rows.length === 0 ? (
-        <Text className="mt-3 text-sm text-ink-muted">No upcoming planned workouts.</Text>
+        <Text className="mt-3 text-sm text-text-muted">No upcoming planned workouts.</Text>
       ) : (
         <View className="mt-2">
           {rows.map((item) => (
@@ -69,7 +70,7 @@ export function ComingUpStrip({ excludePlannedId }: ComingUpStripProps) {
       )}
 
       {nextEvent ? (
-        <Text className="mt-3 text-sm text-ink-muted" numberOfLines={1}>
+        <Text className="mt-3 text-sm text-text-muted" numberOfLines={1}>
           Next event: {nextEvent.title} — {nextEvent.countdownLabel}
         </Text>
       ) : null}
@@ -80,7 +81,7 @@ export function ComingUpStrip({ excludePlannedId }: ComingUpStripProps) {
 function ComingUpRow({ item }: { item: PlannedListItem }) {
   const meta = [
     formatActivityDate(item.date),
-    item.type,
+    humanizeWorkoutType(item.type),
     formatDuration(item.durationSec),
   ]
     .filter(Boolean)
@@ -88,15 +89,15 @@ function ComingUpRow({ item }: { item: PlannedListItem }) {
 
   return (
     <Pressable
-      className="flex-row items-center gap-3 border-b border-zinc-800/80 py-3 active:opacity-80"
-      onPress={() => router.push(`/(app)/planned/${item.id}` as Href)}
+      className="flex-row items-center gap-3 border-b border-border/80 py-3 active:opacity-80"
+      onPress={() => router.push(`/(app)/(tabs)/today/planned/${item.id}` as Href)}
     >
       <SportIcon type={item.type} size={13} />
       <View className="min-w-0 flex-1">
-        <Text className="text-base font-medium text-white" numberOfLines={1}>
+        <Text className="text-base font-medium text-text-primary" numberOfLines={1}>
           {item.title}
         </Text>
-        {meta ? <Text className="mt-1 text-sm text-ink-muted">{meta}</Text> : null}
+        {meta ? <Text className="mt-1 text-sm text-text-muted">{meta}</Text> : null}
       </View>
     </Pressable>
   );

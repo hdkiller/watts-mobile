@@ -13,8 +13,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { Colors } from '@/src/theme/colors';
+import { useThemeColors } from '@/src/theme/useThemeColors';
 
 export default function InstanceScreen() {
+  const theme = useThemeColors();
+
   const { defaultInstanceUrl, saveInstance, error, clearError } = useAuth();
   const [url, setUrl] = useState(defaultInstanceUrl);
   const [busy, setBusy] = useState(false);
@@ -37,24 +40,24 @@ export default function InstanceScreen() {
   const message = localError || error;
 
   return (
-    <SafeAreaView className="flex-1 bg-surface-dark">
+    <SafeAreaView className="flex-1 bg-surface">
       <KeyboardAvoidingView
         className="flex-1 justify-center px-6"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Text className="text-3xl font-semibold text-white">Coach Watts</Text>
-        <Text className="mt-2 text-base text-ink-muted">
+        <Text className="text-3xl font-semibold text-text-primary">Coach Watts</Text>
+        <Text className="mt-2 text-base text-text-muted">
           Enter your Coach Watts instance URL. Use the hosted app or your self-hosted base URL.
         </Text>
 
-        <Text className="mt-8 mb-2 text-sm text-ink-muted">Instance URL</Text>
+        <Text className="mt-8 mb-2 text-sm text-text-muted">Instance URL</Text>
         <TextInput
-          className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-base text-white"
+          className="rounded-xl border border-border-strong bg-card px-4 py-3 text-base text-text-primary"
           autoCapitalize="none"
           autoCorrect={false}
           keyboardType="url"
           placeholder="https://coachwatts.com"
-          placeholderTextColor={Colors.textMuted}
+          placeholderTextColor={theme.textMuted}
           value={url}
           onChangeText={setUrl}
           editable={!busy}
@@ -68,7 +71,7 @@ export default function InstanceScreen() {
           disabled={busy}
         >
           {busy ? (
-            <ActivityIndicator color="#09090b" />
+            <ActivityIndicator color={Colors.ink} />
           ) : (
             <Text className="text-base font-semibold text-ink">Continue</Text>
           )}
@@ -79,7 +82,7 @@ export default function InstanceScreen() {
           onPress={() => router.replace('/(auth)/login')}
           disabled={busy}
         >
-          <Text className="text-sm font-semibold text-ink-muted">Cancel</Text>
+          <Text className="text-sm font-semibold text-text-muted">Cancel</Text>
         </Pressable>
       </KeyboardAvoidingView>
     </SafeAreaView>

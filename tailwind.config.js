@@ -12,13 +12,28 @@ module.exports = {
         },
         recovery: '#38bdf8',
         modify: '#f59e0b',
+        danger: '#ef4444',
+        success: '#22c55e',
+        /** Dark ink for text on brand green — theme-invariant */
         ink: {
           DEFAULT: '#09090b',
-          muted: '#71717a',
+          muted: '#71717a', // legacy alias; prefer text-muted token
         },
-        surface: {
-          light: '#FFFFFF',
-          dark: '#09090b',
+        /** Semantic neutrals — CSS variables resolve per OS appearance */
+        surface: 'rgb(var(--color-surface) / <alpha-value>)',
+        card: 'rgb(var(--color-card) / <alpha-value>)',
+        border: {
+          DEFAULT: 'rgb(var(--color-border) / <alpha-value>)',
+          strong: 'rgb(var(--color-border-strong) / <alpha-value>)',
+        },
+        text: {
+          primary: 'rgb(var(--color-text-primary) / <alpha-value>)',
+          body: 'rgb(var(--color-text-body) / <alpha-value>)',
+          muted: 'rgb(var(--color-text-muted) / <alpha-value>)',
+        },
+        tint: {
+          error: 'rgb(var(--color-tint-error) / <alpha-value>)',
+          success: 'rgb(var(--color-tint-success) / <alpha-value>)',
         },
         // Z1→Z7 — keep in sync with Colors.zones in src/theme/colors.ts
         zone: {

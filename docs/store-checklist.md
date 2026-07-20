@@ -1,6 +1,6 @@
 # Store candidate checklist
 
-Track chrome and metadata for TestFlight / Play internal tracks. Local Maestro footing lives in [e2e.md](./e2e.md); CI wiring is still open.
+Track chrome and metadata for TestFlight / Play internal tracks. Shipping workflow, outstanding tasks, and progress history live under [distribution.md](./distribution.md). Local Maestro footing lives in [e2e.md](./e2e.md); CI wiring is still open.
 
 ## Brand chrome
 
@@ -30,8 +30,10 @@ Regenerate from web mark if branding updates:
 # After changing assets/images/icon.png or splash, re-run native prebuild — `pnpm ios`
 # alone does NOT refresh AppIcon.appiconset in an existing ios/ folder:
 npx expo prebuild --platform ios --clean
-SENTRY_DISABLE_AUTO_UPLOAD=true pnpm ios
+pnpm ios
 ```
+
+Local `pnpm ios` / `pnpm android` set `SENTRY_DISABLE_AUTO_UPLOAD=true` so missing upload auth does not fail the native build. Plugin config in `app.json` sets org `watt-mind` / project `coach-watts-app` (EU `de.sentry.io`). EAS store builds that upload symbols also need `SENTRY_AUTH_TOKEN`.
 
 `ios/` is gitignored; a stale prebuild keeps the Expo chevron even when `assets/images/` is branded.
 
@@ -57,8 +59,8 @@ Rows are gated on non-empty constants in `src/features/account/paths.ts`.
 - [x] Client init reads `EXPO_PUBLIC_SENTRY_DSN` (or `extra.sentryDsn`) — never commit real secrets
 - [x] Release / dist / environment from env + EAS (`eas.json` profiles)
 - [x] Root `ErrorBoundary` reports via `Sentry.captureException` (branded `ErrorFallback`)
-- [ ] Set EAS secret / env: `EXPO_PUBLIC_SENTRY_DSN` for preview/production builds
-- [ ] Optional: `EXPO_PUBLIC_SENTRY_RELEASE`, `EXPO_PUBLIC_SENTRY_DIST`, `EXPO_PUBLIC_SENTRY_ENVIRONMENT`
+- [x] Set EAS env: `EXPO_PUBLIC_SENTRY_DSN` for development/preview/production (org `watt-mind`, project `coach-watts-app`)
+- [ ] Optional: `EXPO_PUBLIC_SENTRY_RELEASE`, `EXPO_PUBLIC_SENTRY_DIST` (environment already set per profile in `eas.json`)
 
 See [.env.example](../.env.example).
 

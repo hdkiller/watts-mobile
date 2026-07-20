@@ -62,4 +62,21 @@ describe('weekGlance', () => {
   it('localDateKey uses local calendar day', () => {
     expect(localDateKey(new Date(2026, 6, 19, 23, 30, 0))).toBe('2026-07-19');
   });
+
+  it('treats date-only strings as local calendar days (not UTC midnight)', () => {
+    expect(localDateKey('2026-07-20')).toBe('2026-07-20');
+  });
+
+  it('keeps planned-day bars visible when done days use duration/TSS', () => {
+    const now = new Date(2026, 6, 15, 12, 0, 0);
+    const glance = computeWeekGlance(
+      [activity({ date: '2026-07-14T10:00:00', durationSec: 3600, tss: 80 })],
+      [planned({ date: '2026-07-16T10:00:00', tss: 70 })],
+      now
+    );
+    const done = glance.days.find((d) => d.dateKey === '2026-07-14')!;
+    const plannedDay = glance.days.find((d) => d.dateKey === '2026-07-16')!;
+    expect(done.height).toBeGreaterThan(0.5);
+    expect(plannedDay.height).toBeGreaterThan(0.5);
+  });
 });

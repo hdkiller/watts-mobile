@@ -1,12 +1,18 @@
 import { fetch as expoFetch } from 'expo/fetch';
 
-import { refreshAccessToken } from '@/src/auth/oauth';
+import { notifyAuthFailure, singleFlightRefresh } from '@/src/api/client';
 import { clearTokens, loadTokens } from '@/src/auth/tokenStorage';
 import { getInstanceUrl } from '@/src/config/instance';
+
+async function failAuthSession(): Promise<void> {
+  await clearTokens();
+  notifyAuthFailure();
+}
 
 /**
  * Streaming-capable fetch for AI SDK transport.
  * Uses expo/fetch (required for RN stream parsing) + Bearer auth / refresh.
+ * Shares single-flight refresh with `apiFetch` so parallel 401s don't rotate the same token twice.
  */
 export async function coachChatFetch(
   input: RequestInfo | URL,
@@ -30,23 +36,29 @@ export async function coachChatFetch(
 
   const response = await expoFetch(url, { ...init, headers });
 
-  if (response.status !== 401 || !tokens?.refreshToken) {
+  if (response.status !== 401) {
+    return response;
+  }
+
+  if (!tokens?.refreshToken) {
+    await failAuthSession();
     return response;
   }
 
   try {
-    const refreshed = await refreshAccessToken({
-      instanceBaseUrl,
-      refreshToken: tokens.refreshToken,
-    });
+    const refreshed = await singleFlightRefresh(instanceBaseUrl, tokens.refreshToken);
     const retryHeaders = new Headers(init?.headers);
     if (!retryHeaders.has('Accept')) {
       retryHeaders.set('Accept', 'text/plain, application/json');
     }
     retryHeaders.set('Authorization', `Bearer ${refreshed.accessToken}`);
-    return expoFetch(url, { ...init, headers: retryHeaders });
+    const retry = await expoFetch(url, { ...init, headers: retryHeaders });
+    if (retry.status === 401) {
+      await failAuthSession();
+    }
+    return retry;
   } catch {
-    await clearTokens();
+    await failAuthSession();
     return response;
   }
 }

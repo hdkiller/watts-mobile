@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   applyAssistantTextDelta,
+  approvalPreviewLine,
   extractPendingApprovals,
   hasActiveTurn,
   humanizeToolName,
@@ -10,6 +11,8 @@ import {
   messageImageParts,
   messageText,
   nutritionToolSummaries,
+  resolveToolDomain,
+  toolInProgressSummaries,
   toolOutcomeSummaries,
   transformStoredMessage,
 } from '../mapMessages';
@@ -125,6 +128,7 @@ describe('mapMessages', () => {
     };
     expect(nutritionToolSummaries(message)[0]).toMatch(/Meal logged/i);
     expect(toolOutcomeSummaries(message)[0]?.status).toBe('success');
+    expect(toolOutcomeSummaries(message)[0]?.domain).toBe('nutrition');
   });
 
   it('summarizes recovery and wellness tool successes', () => {
@@ -153,9 +157,10 @@ describe('mapMessages', () => {
     expect(outcomes.find((o) => o.toolName === 'get_wellness_metrics')?.message).toMatch(
       /recovery metrics/i
     );
+    expect(outcomes.find((o) => o.toolName === 'record_wellness_event')?.domain).toBe('wellness');
   });
 
-  it('uses a generic success fallback for unknown tools', () => {
+  it('uses curated copy for companion planned / recommendation / activity tools', () => {
     const message: CoachUIMessage = {
       id: 'a4',
       role: 'assistant',
@@ -166,11 +171,62 @@ describe('mapMessages', () => {
           toolCallId: 'call-5',
           output: { id: 'pw-1' },
         } as unknown as CoachUIMessage['parts'][number],
+        {
+          type: 'tool-recommend_workout',
+          state: 'output-available',
+          toolCallId: 'call-5b',
+          output: { ok: true },
+        } as unknown as CoachUIMessage['parts'][number],
+        {
+          type: 'tool-get_recent_workouts',
+          state: 'output-available',
+          toolCallId: 'call-5c',
+          output: { count: 3 },
+        } as unknown as CoachUIMessage['parts'][number],
+        {
+          type: 'tool-get_nutrition_log',
+          state: 'output-available',
+          toolCallId: 'call-5d',
+          output: { meals: [] },
+        } as unknown as CoachUIMessage['parts'][number],
+      ],
+    };
+    const outcomes = toolOutcomeSummaries(message);
+    expect(outcomes.find((o) => o.toolName === 'create_planned_workout')).toMatchObject({
+      message: expect.stringMatching(/Planned session created/i),
+      domain: 'planning',
+    });
+    expect(outcomes.find((o) => o.toolName === 'recommend_workout')).toMatchObject({
+      message: expect.stringMatching(/recommendation ready/i),
+      domain: 'planning',
+    });
+    expect(outcomes.find((o) => o.toolName === 'get_recent_workouts')).toMatchObject({
+      message: expect.stringMatching(/recent workouts/i),
+      domain: 'workouts',
+    });
+    expect(outcomes.find((o) => o.toolName === 'get_nutrition_log')).toMatchObject({
+      message: expect.stringMatching(/nutrition log/i),
+      domain: 'nutrition',
+    });
+  });
+
+  it('uses a generic success fallback for unknown tools', () => {
+    const message: CoachUIMessage = {
+      id: 'a4b',
+      role: 'assistant',
+      parts: [
+        {
+          type: 'tool-perform_calculation',
+          state: 'output-available',
+          toolCallId: 'call-5e',
+          output: { value: 42 },
+        } as unknown as CoachUIMessage['parts'][number],
       ],
     };
     const outcome = toolOutcomeSummaries(message)[0];
     expect(outcome?.status).toBe('success');
-    expect(outcome?.message).toMatch(/Coach updated Create Planned Workout/i);
+    expect(outcome?.message).toMatch(/Coach updated Perform Calculation/i);
+    expect(outcome?.domain).toBe('other');
     expect(humanizeToolName('create_planned_workout')).toBe('Create Planned Workout');
   });
 
@@ -201,5 +257,69 @@ describe('mapMessages', () => {
       status: 'denied',
       message: expect.stringMatching(/was not applied/i),
     });
+  });
+
+  it('maps tool names into domain buckets', () => {
+    expect(resolveToolDomain('log_hydration_intake')).toBe('nutrition');
+    expect(resolveToolDomain('get_wellness_events')).toBe('wellness');
+    expect(resolveToolDomain('reschedule_planned_workout')).toBe('planning');
+    expect(resolveToolDomain('list_pending_recommendations')).toBe('planning');
+    expect(resolveToolDomain('get_workout_details')).toBe('workouts');
+    expect(resolveToolDomain('perform_calculation')).toBe('other');
+  });
+
+  it('summarizes in-progress tool parts and clears when terminal', () => {
+    const running: CoachUIMessage = {
+      id: 'a6',
+      role: 'assistant',
+      parts: [
+        {
+          type: 'tool-create_planned_workout',
+          state: 'call',
+          toolCallId: 'call-8',
+        } as unknown as CoachUIMessage['parts'][number],
+        {
+          type: 'tool-get_recent_workouts',
+          state: 'input-streaming',
+          toolCallId: 'call-9',
+        } as unknown as CoachUIMessage['parts'][number],
+      ],
+    };
+    const progress = toolInProgressSummaries(running);
+    expect(progress).toHaveLength(2);
+    expect(progress.find((p) => p.toolName === 'create_planned_workout')).toMatchObject({
+      label: expect.stringMatching(/Create Planned Workout/i),
+      domain: 'planning',
+    });
+    expect(toolOutcomeSummaries(running)).toHaveLength(0);
+
+    const done: CoachUIMessage = {
+      ...running,
+      parts: [
+        {
+          type: 'tool-create_planned_workout',
+          state: 'output-available',
+          toolCallId: 'call-8',
+          output: { id: 'pw-1' },
+        } as unknown as CoachUIMessage['parts'][number],
+        {
+          type: 'tool-get_recent_workouts',
+          state: 'input-streaming',
+          toolCallId: 'call-9',
+        } as unknown as CoachUIMessage['parts'][number],
+      ],
+    };
+    expect(toolInProgressSummaries(done).map((p) => p.id)).toEqual(['call-9']);
+    expect(toolOutcomeSummaries(done).map((o) => o.id)).toEqual(['call-8']);
+  });
+
+  it('builds approval preview from common args', () => {
+    expect(approvalPreviewLine({ title: 'Threshold intervals', date: '2026-07-21' })).toBe(
+      'Threshold intervals'
+    );
+    expect(approvalPreviewLine({ name: 'Oatmeal' })).toBe('Oatmeal');
+    expect(approvalPreviewLine({ date: '2026-07-21' })).toBe('2026-07-21');
+    expect(approvalPreviewLine({ sport: 'bike' })).toBeNull();
+    expect(approvalPreviewLine(null)).toBeNull();
   });
 });

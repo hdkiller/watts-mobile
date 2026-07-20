@@ -3,9 +3,13 @@ import { describe, expect, it } from 'vitest';
 import { isDailyCheckinCompleted } from '../isDailyCheckinCompleted';
 
 describe('isDailyCheckinCompleted', () => {
-  it('is false when missing or empty', () => {
+  it('is false when check-in is missing', () => {
     expect(isDailyCheckinCompleted(null)).toBe(false);
-    expect(isDailyCheckinCompleted({ questions: [] })).toBe(false);
+    expect(isDailyCheckinCompleted(undefined)).toBe(false);
+  });
+
+  it('is true when there are no questions (nothing needed)', () => {
+    expect(isDailyCheckinCompleted({ questions: [] })).toBe(true);
   });
 
   it('is false when any question unanswered', () => {

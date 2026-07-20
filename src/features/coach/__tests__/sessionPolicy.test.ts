@@ -26,17 +26,38 @@ describe('sessionPolicy', () => {
     expect(decideSessionOpen([latest], now)).toEqual({ action: 'select', room: latest });
   });
 
-  it('creates when latest activity is older than 15 minutes', () => {
+  it('creates when latest activity is older than 15 minutes and no room is empty', () => {
     const now = Date.now();
     const latest = room({
       roomId: 'a',
       index: now - CHAT_SESSION_REUSE_MS - 1000,
+      lastMessage: { content: 'hi' },
     });
     expect(decideSessionOpen([latest], now)).toEqual({ action: 'create' });
   });
 
-  it('creates when index is missing', () => {
-    expect(decideSessionOpen([room({ roomId: 'a' })], Date.now())).toEqual({
+  it('reuses the newest empty room instead of creating when the session is stale', () => {
+    const now = Date.now();
+    const staleWithHistory = room({
+      roomId: 'a',
+      index: now - CHAT_SESSION_REUSE_MS - 1000,
+      lastMessage: { content: 'hi' },
+    });
+    const empty = room({
+      roomId: 'b',
+      index: now - CHAT_SESSION_REUSE_MS - 5000,
+      lastMessage: null,
+    });
+    expect(decideSessionOpen([staleWithHistory, empty], now)).toEqual({
+      action: 'select',
+      room: empty,
+    });
+  });
+
+  it('creates when index is missing and the room has history', () => {
+    expect(
+      decideSessionOpen([room({ roomId: 'a', lastMessage: { content: 'hi' } })], Date.now())
+    ).toEqual({
       action: 'create',
     });
   });

@@ -1,5 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 
+import {
+  isPlausibleRestingHr,
+  isPlausibleSleepHours,
+  plausibleRestingHrHistory,
+  plausibleSleepHistory,
+} from '@/src/features/wellness/plausibility';
+
 import { fetchDashboardProfile, fetchWellnessTrend } from './dashboardApi';
 import { calculateTrend } from './trend';
 
@@ -42,26 +49,47 @@ export function useRecentWellness() {
   // Filter out latest day's wellness from history to get prior baseline
   const priorHistory = trendData.filter((d) => d.date !== latestDateKey);
 
-  const sleepTrend = calculateTrend(
-    profile?.recentSleep,
-    priorHistory.map((h) => h.hoursSlept)
-  );
+  const recentSleep = isPlausibleSleepHours(profile?.recentSleep)
+    ? profile!.recentSleep
+    : null;
+  const restingHr = isPlausibleRestingHr(profile?.restingHr) ? profile!.restingHr : null;
+  const recentHRV = profile?.recentHRV ?? null;
+
+  const sleepTrend =
+    recentSleep != null
+      ? calculateTrend(
+          recentSleep,
+          plausibleSleepHistory(priorHistory.map((h) => h.hoursSlept))
+        )
+      : null;
 
   const hrvTrend = calculateTrend(
-    profile?.recentHRV,
+    recentHRV,
     priorHistory.map((h) => h.hrv)
   );
 
-  const rhrTrend = calculateTrend(
-    profile?.restingHr,
-    priorHistory.map((h) => h.restingHr)
-  );
+  const rhrTrend =
+    restingHr != null
+      ? calculateTrend(
+          restingHr,
+          plausibleRestingHrHistory(priorHistory.map((h) => h.restingHr))
+        )
+      : null;
 
   const isLoading = profileQuery.isLoading || trendQuery.isLoading;
   const isError = profileQuery.isError || trendQuery.isError;
 
+  const gatedProfile = profile
+    ? {
+        ...profile,
+        recentSleep,
+        restingHr,
+        recentHRV,
+      }
+    : null;
+
   return {
-    profile: profile || null,
+    profile: gatedProfile,
     sleepTrend,
     hrvTrend,
     rhrTrend,

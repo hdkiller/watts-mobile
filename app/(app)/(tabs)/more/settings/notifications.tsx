@@ -11,6 +11,7 @@ import {
 import type { NotificationPreferences } from '@/src/features/notifications/types';
 import { hapticLight, hapticSuccess, hapticError } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
+import { useThemeColors } from '@/src/theme/useThemeColors';
 
 function PreferenceRow({
   title,
@@ -25,15 +26,16 @@ function PreferenceRow({
   onValueChange: (val: boolean) => void;
   disabled?: boolean;
 }) {
+  const theme = useThemeColors();
   return (
-    <View className="flex-row items-center justify-between border-b border-zinc-800/80 px-4 py-4">
+    <View className="flex-row items-center justify-between border-b border-border/80 px-4 py-4">
       <View className="mr-4 flex-1">
-        <Text className="text-base font-semibold text-white">{title}</Text>
-        <Text className="mt-1 text-sm text-ink-muted leading-5">{description}</Text>
+        <Text className="text-base font-semibold text-text-primary">{title}</Text>
+        <Text className="mt-1 text-sm text-text-muted leading-5">{description}</Text>
       </View>
       <Switch
-        trackColor={{ false: '#27272a', true: Colors.brand }}
-        thumbColor={Platform.OS === 'ios' ? undefined : '#fafafa'}
+        trackColor={{ false: theme.border, true: Colors.brand }}
+        thumbColor={Platform.OS === 'ios' ? undefined : theme.textPrimary}
         value={value}
         onValueChange={onValueChange}
         disabled={disabled}
@@ -43,6 +45,8 @@ function PreferenceRow({
 }
 
 export default function NotificationSettingsScreen() {
+  const theme = useThemeColors();
+
   const { data: preferences, isLoading, isError, error, refetch } = useNotificationPreferencesQuery();
   const updateMutation = useUpdateNotificationPreferences();
 
@@ -70,15 +74,15 @@ export default function NotificationSettingsScreen() {
       />
       <SafeAreaView
         edges={{ bottom: true }}
-        style={{ flex: 1, backgroundColor: Colors.background }}
+        style={{ flex: 1, backgroundColor: theme.surface }}
       >
         {isLoading ? (
-          <View className="flex-1 items-center justify-center bg-surface-dark">
+          <View className="flex-1 items-center justify-center bg-surface">
             <ActivityIndicator color={Colors.brand} size="large" />
-            <Text className="mt-3 text-sm text-ink-muted">Loading preferences…</Text>
+            <Text className="mt-3 text-sm text-text-muted">Loading preferences…</Text>
           </View>
         ) : isError ? (
-          <View className="flex-1 bg-surface-dark px-6 pt-6">
+          <View className="flex-1 bg-surface px-6 pt-6">
             <Text className="text-red-400">
               {friendlyError(error, 'Failed to load preferences')}
             </Text>
@@ -86,15 +90,15 @@ export default function NotificationSettingsScreen() {
           </View>
         ) : (
           <ScrollView
-            className="flex-1 bg-surface-dark"
+            className="flex-1 bg-surface"
             contentContainerClassName="px-6 pb-12 pt-4"
           >
-            <Text className="text-2xl font-semibold text-white">Push notifications</Text>
-            <Text className="mt-1 text-sm text-ink-muted">
+            <Text className="text-2xl font-semibold text-text-primary">Push notifications</Text>
+            <Text className="mt-1 text-sm text-text-muted">
               Configure which updates you would like to receive as push notifications on this device.
             </Text>
 
-            <View className="mt-6 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">
+            <View className="mt-6 overflow-hidden rounded-xl border border-border bg-card">
               <PreferenceRow
                 title="Daily Recommendation"
                 description="Get notified when your daily training and recovery recommendation is ready."

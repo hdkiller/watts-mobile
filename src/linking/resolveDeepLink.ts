@@ -1,3 +1,4 @@
+import { APP_HREFS, migrateLegacyAppHref } from '@/src/linking/appHrefs';
 import {
   APP_SCHEME,
   OAUTH_CALLBACK_PATH,
@@ -74,42 +75,42 @@ export function resolveDeepLinkPath(pathname: string): ResolvedDeepLink {
   }
 
   if (path === '/today' || path === '/today/recommendation') {
-    return { kind: 'app', href: '/(app)/(tabs)/today', canonicalPath: path };
+    return { kind: 'app', href: APP_HREFS.today, canonicalPath: path };
   }
 
   const recommendationMatch = path.match(/^\/recommendations\/([^/]+)$/);
   if (recommendationMatch) {
-    return { kind: 'app', href: '/(app)/(tabs)/today', canonicalPath: path };
+    return { kind: 'app', href: APP_HREFS.today, canonicalPath: path };
   }
 
   const plannedMatch = path.match(/^\/planned\/([^/]+)$/);
   if (plannedMatch?.[1]) {
     return {
       kind: 'app',
-      href: `/(app)/planned/${encodeURIComponent(plannedMatch[1])}`,
+      href: APP_HREFS.plannedDetail(plannedMatch[1]),
       canonicalPath: path,
     };
   }
 
   if (path === '/activities') {
-    return { kind: 'app', href: '/(app)/activity', canonicalPath: path };
+    return { kind: 'app', href: APP_HREFS.activityList, canonicalPath: path };
   }
 
   const activityMatch = path.match(/^\/activities\/([^/]+)$/);
   if (activityMatch?.[1]) {
     return {
       kind: 'app',
-      href: `/(app)/activity/${encodeURIComponent(activityMatch[1])}`,
+      href: APP_HREFS.activityDetail(activityMatch[1]),
       canonicalPath: path,
     };
   }
 
   if (path === '/upcoming') {
-    return { kind: 'app', href: '/(app)/upcoming', canonicalPath: path };
+    return { kind: 'app', href: APP_HREFS.upcoming, canonicalPath: path };
   }
 
   if (path === '/coach' || path === '/chat') {
-    return { kind: 'app', href: '/(app)/(tabs)/coach', canonicalPath: path };
+    return { kind: 'app', href: APP_HREFS.coach, canonicalPath: path };
   }
 
   const chatMatch = path.match(/^\/chat\/([^/]+)$/);
@@ -117,17 +118,17 @@ export function resolveDeepLinkPath(pathname: string): ResolvedDeepLink {
     const roomId = decodeURIComponent(chatMatch[1]);
     return {
       kind: 'app',
-      href: `/(app)/(tabs)/coach?roomId=${encodeURIComponent(roomId)}`,
+      href: `${APP_HREFS.coach}?roomId=${encodeURIComponent(roomId)}`,
       canonicalPath: path,
     };
   }
 
   if (path === '/notifications') {
-    return { kind: 'app', href: '/(app)/notifications', canonicalPath: path };
+    return { kind: 'app', href: APP_HREFS.notifications, canonicalPath: path };
   }
 
   if (path === '/log') {
-    return { kind: 'app', href: '/(app)/(tabs)/log', canonicalPath: path };
+    return { kind: 'app', href: APP_HREFS.log, canonicalPath: path };
   }
 
   return { kind: 'unknown', reason: `No route mapping for ${path}` };
@@ -152,7 +153,8 @@ export function resolvePushNavigation(data: PushNavigationData): ResolvedDeepLin
   if (fromPath) {
     // Server may send Expo Router hrefs (e.g. recommend-today RECOMMENDATION_READY).
     if (fromPath.startsWith('/(app)')) {
-      return { kind: 'app', href: fromPath, canonicalPath: fromPath };
+      const href = migrateLegacyAppHref(fromPath);
+      return { kind: 'app', href, canonicalPath: fromPath };
     }
     return resolveDeepLink(fromPath);
   }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityIndicator, Text, useColorScheme, View } from 'react-native';
 
 import { Colors } from '@/src/theme/colors';
 
@@ -21,6 +21,7 @@ type Props = {
 };
 
 export function ActivityMap({ coordinates }: Props) {
+  const colorScheme = useColorScheme();
   const mapRef = useRef<any>(null);
   const [mapReady, setMapReady] = useState(false);
 
@@ -43,9 +44,9 @@ export function ActivityMap({ coordinates }: Props) {
 
   if (!MapView || !Polyline || !Marker) {
     return (
-      <View className="mt-6 h-[200px] w-full items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
+      <View className="mt-6 h-[200px] w-full items-center justify-center rounded-xl border border-border bg-card/40 p-4">
         <Text className="text-sm font-medium text-red-400">Route map preview unavailable</Text>
-        <Text className="mt-1 text-center text-xs text-ink-muted">
+        <Text className="mt-1 text-center text-xs text-text-muted">
           A native binary rebuild is required to link map modules.
         </Text>
       </View>
@@ -72,12 +73,12 @@ export function ActivityMap({ coordinates }: Props) {
 
   return (
     <View className="mt-6">
-      <Text className="text-xs uppercase tracking-wide text-ink-muted mb-3">Route Map</Text>
-      <View className="h-[200px] w-full overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/50">
+      <Text className="text-xs uppercase tracking-wide text-text-muted mb-3">Route Map</Text>
+      <View className="h-[200px] w-full overflow-hidden rounded-xl border border-border bg-card/50">
         <MapView
           ref={mapRef}
           className="h-full w-full"
-          userInterfaceStyle="dark"
+          userInterfaceStyle={colorScheme === 'light' ? 'light' : 'dark'}
           initialRegion={initialRegion}
           onMapReady={() => setMapReady(true)}
           showsUserLocation={false}

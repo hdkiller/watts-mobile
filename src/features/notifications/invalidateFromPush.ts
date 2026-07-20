@@ -16,7 +16,7 @@ export function workoutIdFromPushData(
     if (typeof candidate !== 'string' || !candidate.trim()) continue;
     const match =
       candidate.match(/\/activities\/([^/?#]+)/) ||
-      candidate.match(/\/(?:\(app\)\/)?activity\/([^/?#]+)/);
+      candidate.match(/\/(?:\(app\)\/)?(?:\(tabs\)\/today\/)?activity\/([^/?#]+)/);
     const id = match?.[1];
     if (id) {
       try {

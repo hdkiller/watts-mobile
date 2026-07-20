@@ -263,8 +263,8 @@ describe('mapPlannedDetail', () => {
       },
     });
     expect(detail.workIntensityLabel).toBe('IF 0.88');
-    expect(detail.completionLabel).toBe('Pending');
-    expect(detail.syncLabel).toBe('Synced');
+    expect(detail.completionLabel).toBe('Not started');
+    expect(detail.syncLabel).toBeNull();
     expect(detail.coachInstructions).toBe('Stay smooth on the climbs.');
     expect(detail.zoneSummary).toEqual({
       channelLabel: 'Power',
@@ -273,6 +273,43 @@ describe('mapPlannedDetail', () => {
         { name: 'Z4', rangeLabel: '250 W–300 W' },
       ],
     });
+  });
+
+  it('maps HR-zone step targets to Z labels with bpm ranges (not "2 bpm")', () => {
+    const detail = mapPlannedDetail({
+      id: 'p-hr-zone',
+      title: 'Treadmill Warmup Run',
+      completionStatus: 'PENDING',
+      syncStatus: 'PENDING',
+      structuredWorkout: {
+        zoneProfileSnapshot: {
+          heartRate: {
+            ranges: [
+              { name: 'Z1', min: 120, max: 140 },
+              { name: 'Z2', min: 141, max: 150 },
+              { name: 'Z3', min: 151, max: 165 },
+            ],
+          },
+        },
+        steps: [
+          {
+            name: 'Active',
+            durationSeconds: 1200,
+            heartRate: { value: 2, units: 'hr_zone' },
+          },
+          {
+            name: 'Easy',
+            durationSeconds: 300,
+            heartRate: { value: 1, units: 'zone' },
+          },
+        ],
+      },
+    });
+    expect(detail.structureSteps[0]?.intensityLabel).toBe('Z2 · 141 bpm–150 bpm');
+    expect(detail.structureSteps[1]?.intensityLabel).toBe('Z1 · 120 bpm–140 bpm');
+    expect(stepIntensity(detail.structureSteps[0]!).zoneIndex).toBe(1);
+    expect(detail.completionLabel).toBe('Not started');
+    expect(detail.syncLabel).toBe('Awaiting sync to device');
   });
 
   it('omits enrichment when fields are absent', () => {

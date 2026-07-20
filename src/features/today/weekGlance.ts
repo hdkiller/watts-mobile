@@ -33,14 +33,26 @@ function addLocalDays(d: Date, days: number): Date {
   return next;
 }
 
-/** Local calendar key YYYY-MM-DD. */
+const DATE_ONLY_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+/** Local calendar key YYYY-MM-DD. Date-only strings stay calendar-stable (not UTC midnight). */
 export function localDateKey(input: string | Date | null | undefined): string | null {
   if (input == null) return null;
-  const d = typeof input === 'string' ? new Date(input) : input;
-  if (Number.isNaN(d.getTime())) return null;
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
+  if (typeof input === 'string') {
+    const trimmed = input.trim();
+    const dateOnly = DATE_ONLY_RE.exec(trimmed);
+    if (dateOnly) return `${dateOnly[1]}-${dateOnly[2]}-${dateOnly[3]}`;
+    const d = new Date(trimmed);
+    if (Number.isNaN(d.getTime())) return null;
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+  if (Number.isNaN(input.getTime())) return null;
+  const y = input.getFullYear();
+  const m = String(input.getMonth() + 1).padStart(2, '0');
+  const day = String(input.getDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
 }
 
@@ -88,6 +100,8 @@ export function computeWeekGlance(
   let doneTss = 0;
   const doneByDay = new Map<string, number>();
   const plannedByDay = new Map<string, number>();
+  const plannedDays = new Set<string>();
+  const doneDays = new Set<string>();
 
   for (const item of recent ?? []) {
     const key = localDateKey(item.date);
@@ -96,7 +110,10 @@ export function computeWeekGlance(
     const tss = item.tss != null && Number.isFinite(item.tss) ? item.tss : 0;
     doneDurationSec += dur;
     doneTss += tss;
-    doneByDay.set(key, (doneByDay.get(key) ?? 0) + Math.max(dur, tss > 0 ? 1 : 0));
+    doneDays.add(key);
+    // Prefer TSS; fall back to durationSec/36 (~TSS-ish) so bars share one unit with planned.
+    const dayLoad = tss > 0 ? tss : dur > 0 ? dur / 36 : 0;
+    doneByDay.set(key, (doneByDay.get(key) ?? 0) + dayLoad);
   }
 
   let plannedTss = 0;
@@ -105,18 +122,19 @@ export function computeWeekGlance(
     if (!key || !keySet.has(key)) continue;
     const tss = item.tss != null && Number.isFinite(item.tss) ? item.tss : 0;
     plannedTss += tss;
-    plannedByDay.set(key, (plannedByDay.get(key) ?? 0) + Math.max(tss, 1));
+    plannedDays.add(key);
+    plannedByDay.set(key, (plannedByDay.get(key) ?? 0) + Math.max(tss, 0));
   }
 
-  const loads = keys.map((key) => (doneByDay.get(key) ?? 0) + (plannedByDay.get(key) ?? 0) * 0.35);
+  const loads = keys.map((key) => (doneByDay.get(key) ?? 0) + (plannedByDay.get(key) ?? 0));
   const maxLoad = Math.max(...loads, 1);
 
   const days: WeekDayBar[] = keys.map((dateKey, i) => ({
     dateKey,
     weekday: weekdayShort(dateKey),
     height: loads[i]! / maxLoad,
-    hasDone: (doneByDay.get(dateKey) ?? 0) > 0,
-    hasPlanned: (plannedByDay.get(dateKey) ?? 0) > 0,
+    hasDone: doneDays.has(dateKey),
+    hasPlanned: plannedDays.has(dateKey),
   }));
 
   const doneDurationLabel = formatHoursMinutes(doneDurationSec);

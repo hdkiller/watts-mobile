@@ -17,11 +17,18 @@ type AnimatedPressableProps = PressableProps & {
   layout?: ComponentProps<typeof Animated.View>['layout'];
 };
 
-/** Pressable with spring scale + opacity press feedback; use instead of `active:opacity-*`. */
+/**
+ * Pressable with spring scale + opacity press feedback; use instead of `active:opacity-*`.
+ * Layout animations (entering/exiting/layout) go on a wrapper view — Reanimated overwrites
+ * opacity/transform when a layout animation shares the node with an animated style.
+ */
 function AnimatedPressableBase({
   style,
   onPressIn,
   onPressOut,
+  entering,
+  exiting,
+  layout,
   ...rest
 }: AnimatedPressableProps) {
   const pressed = useSharedValue(0);
@@ -31,7 +38,7 @@ function AnimatedPressableBase({
     opacity: 1 - pressed.value * 0.15,
   }));
 
-  return (
+  const pressable = (
     <ReanimatedPressable
       {...rest}
       style={[pressStyle, style]}
@@ -45,6 +52,16 @@ function AnimatedPressableBase({
       }}
     />
   );
+
+  if (entering || exiting || layout) {
+    return (
+      <Animated.View entering={entering} exiting={exiting} layout={layout}>
+        {pressable}
+      </Animated.View>
+    );
+  }
+
+  return pressable;
 }
 
 export const AnimatedPressable = cssInterop(AnimatedPressableBase, {

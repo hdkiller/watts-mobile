@@ -14,14 +14,17 @@ import {
   isNutritionTrackingEnabled,
   profileSettingsWebPath } from '@/src/features/profile/mapProfile';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
-import { Colors } from '@/src/theme/colors';
+import { themePreferenceLabel } from '@/src/theme/themePreference';
+import { useThemeColors } from '@/src/theme/useThemeColors';
+import { useThemePreference } from '@/src/theme/useThemePreference';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 
 function RowIcon({ sf, emoji }: { sf: SFSymbol; emoji: string }) {
+  const theme = useThemeColors();
   return (
-    <View className="mr-3 h-9 w-9 items-center justify-center rounded-full bg-zinc-800">
+    <View className="mr-3 h-9 w-9 items-center justify-center rounded-full bg-border-strong">
       {Platform.OS === 'ios' ? (
-        <SymbolView name={sf} size={18} tintColor="#d4d4d8" />
+        <SymbolView name={sf} size={18} tintColor={theme.textBody} />
       ) : (
         <Text style={{ fontSize: 16 }}>{emoji}</Text>
       )}
@@ -30,19 +33,20 @@ function RowIcon({ sf, emoji }: { sf: SFSymbol; emoji: string }) {
 }
 
 function Chevron() {
+  const theme = useThemeColors();
   if (Platform.OS === 'ios') {
-    return <SymbolView name="chevron.right" size={14} tintColor={Colors.textMuted} />;
+    return <SymbolView name="chevron.right" size={14} tintColor={theme.textMuted} />;
   }
-  return <Text className="text-base text-ink-muted">›</Text>;
+  return <Text className="text-base text-text-muted">›</Text>;
 }
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <View className="mt-8">
-      <Text className="mb-2 text-xs font-semibold uppercase tracking-widest text-ink-muted">
+      <Text className="mb-2 text-xs font-semibold uppercase tracking-widest text-text-muted">
         {title}
       </Text>
-      <View className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">{children}</View>
+      <View className="overflow-hidden rounded-xl border border-border bg-card">{children}</View>
     </View>
   );
 }
@@ -66,14 +70,14 @@ function MenuRow({
   const body = (
     <View
       className={`flex-row items-center px-4 py-3.5 ${
-        isLast ? '' : 'border-b border-zinc-800/80'
+        isLast ? '' : 'border-b border-border/80'
       }`}
     >
       <RowIcon sf={sf} emoji={emoji} />
       <View className="min-w-0 flex-1">
-        <Text className="text-base font-medium text-white">{title}</Text>
+        <Text className="text-base font-medium text-text-primary">{title}</Text>
         {detail ? (
-          <Text className="mt-0.5 text-sm text-ink-muted" numberOfLines={1}>
+          <Text className="mt-0.5 text-sm text-text-muted" numberOfLines={1}>
             {detail}
           </Text>
         ) : null}
@@ -103,10 +107,13 @@ function MenuRow({
 }
 
 export default function SettingsScreen() {
+  const theme = useThemeColors();
+
   const { instanceUrl, signOut } = useAuth();
   const { data: athleteProfile } = useAthleteProfileQuery();
   const nutritionEnabled = isNutritionTrackingEnabled(athleteProfile);
   const { preference: logTabPreference } = useLogTabPreference();
+  const { preference: themePreference } = useThemePreference();
   const [healthStatus, setHealthStatus] = useState<string>('Checking…');
 
   useEffect(() => {
@@ -190,50 +197,56 @@ export default function SettingsScreen() {
       />
       <SafeAreaView
         edges={{ bottom: true }}
-        style={{ flex: 1, backgroundColor: Colors.background }}
+        style={{ flex: 1, backgroundColor: theme.surface }}
       >
         <ScrollView
-          className="flex-1 bg-surface-dark"
+          className="flex-1 bg-surface"
           contentContainerClassName="px-6 pb-12 pt-4"
         >
-          <Text className="text-2xl font-semibold text-white">Settings</Text>
-          <Text className="mt-1 text-sm text-ink-muted">
+          <Text className="text-sm text-text-muted">
             Field preferences for this device. Planning, integrations, and billing stay on the web.
           </Text>
 
           <Section title="General">
             <MenuRow
+              title="Appearance"
+              detail={themePreferenceLabel(themePreference)}
+              sf="circle.lefthalf.filled"
+              emoji="🌓"
+              onPress={() => router.push('/(app)/(tabs)/more/settings/appearance' as Href)}
+            />
+            <MenuRow
               title="Notifications"
               sf="bell"
               emoji="🔔"
-              onPress={() => router.push('/(app)/settings/notifications' as Href)}
+              onPress={() => router.push('/(app)/(tabs)/more/settings/notifications' as Href)}
             />
             <MenuRow
               title="Health Sync"
               detail={healthStatus}
               sf="heart"
               emoji="❤️"
-              onPress={() => router.push('/(app)/settings/health' as Href)}
+              onPress={() => router.push('/(app)/(tabs)/more/settings/health' as Href)}
             />
             <MenuRow
               title="Units & locale"
               sf="ruler"
               emoji="📏"
-              onPress={() => router.push('/(app)/settings/units' as Href)}
+              onPress={() => router.push('/(app)/(tabs)/more/settings/units' as Href)}
             />
             <MenuRow
               title="Sports"
               detail="Per-sport FTP, LTHR, Max HR"
               sf="figure.run"
               emoji="🏃"
-              onPress={() => router.push('/(app)/settings/sports' as Href)}
+              onPress={() => router.push('/(app)/(tabs)/more/settings/sports' as Href)}
             />
             <MenuRow
               title="Log defaults"
               detail={logTabPreferenceLabel(logTabPreference, nutritionEnabled)}
               sf="list.bullet.rectangle"
               emoji="📋"
-              onPress={() => router.push('/(app)/settings/log' as Href)}
+              onPress={() => router.push('/(app)/(tabs)/more/settings/log' as Href)}
             />
             <MenuRow
               title="Instance"
@@ -251,7 +264,7 @@ export default function SettingsScreen() {
               detail="Persona, nickname, About me"
               sf="bubble.left.and.bubble.right"
               emoji="💬"
-              onPress={() => router.push('/(app)/settings/coach' as Href)}
+              onPress={() => router.push('/(app)/(tabs)/more/settings/coach' as Href)}
               isLast
             />
           </Section>
@@ -262,7 +275,7 @@ export default function SettingsScreen() {
               detail="Weight, FTP, HR"
               sf="person.crop.circle"
               emoji="👤"
-              onPress={() => router.push('/(app)/athlete' as Href)}
+              onPress={() => router.push('/(app)/(tabs)/more/athlete' as Href)}
             />
             <MenuRow
               title="Export my data"

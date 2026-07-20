@@ -14,6 +14,9 @@ import type { ChatRoomSummary } from './types';
 function previewForRoom(room: ChatRoomSummary): string {
   const content = room.lastMessage?.content?.trim();
   if (content) return content;
+  // A lastMessage with empty content means the conversation exists but the server
+  // stored the text in `parts` (content column empty) — don't claim it's empty.
+  if (room.lastMessage) return 'Conversation';
   return 'No messages yet';
 }
 
@@ -55,12 +58,12 @@ export function RoomListSheet({
 }) {
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <View className="flex-1 bg-surface-dark">
-        <View className="flex-row items-center justify-between border-b border-zinc-800 px-5 py-4">
-          <Text className="text-xl font-semibold text-white">Chats</Text>
+      <View className="flex-1 bg-surface">
+        <View className="flex-row items-center justify-between border-b border-border px-5 py-4">
+          <Text className="text-xl font-semibold text-text-primary">Chats</Text>
           <View className="flex-row items-center gap-3">
             <Pressable onPress={onRefresh} className="active:opacity-70">
-              <Text className="text-sm font-semibold text-ink-muted">Refresh</Text>
+              <Text className="text-sm font-semibold text-text-muted">Refresh</Text>
             </Pressable>
             <Pressable onPress={onClose} className="active:opacity-70">
               <Text className="text-sm font-semibold text-brand">Done</Text>
@@ -72,7 +75,7 @@ export function RoomListSheet({
           className="mx-5 mt-4 items-center rounded-xl bg-brand py-3.5 active:opacity-80"
           onPress={onCreate}
         >
-          <Text className="text-base font-semibold text-zinc-950">New chat</Text>
+          <Text className="text-base font-semibold text-ink">New chat</Text>
         </Pressable>
 
         {loading && rooms.length === 0 ? (
@@ -85,24 +88,24 @@ export function RoomListSheet({
             data={rooms}
             keyExtractor={(item) => item.roomId}
             ListEmptyComponent={
-              <Text className="mt-8 text-center text-sm text-ink-muted">No chats yet.</Text>
+              <Text className="mt-8 text-center text-sm text-text-muted">No chats yet.</Text>
             }
             renderItem={({ item }) => {
               const active = item.roomId === activeRoomId;
               return (
                 <Pressable
                   className={`mb-3 rounded-2xl border px-4 py-3 active:opacity-80 ${
-                    active ? 'border-brand bg-brand/10' : 'border-zinc-700 bg-zinc-900'
+                    active ? 'border-brand bg-brand/10' : 'border-border-strong bg-card'
                   }`}
                   onPress={() => onSelect(item.roomId)}
                 >
                   <View className="flex-row items-center justify-between">
-                    <Text className="text-base font-semibold text-white" numberOfLines={1}>
+                    <Text className="text-base font-semibold text-text-primary" numberOfLines={1}>
                       {item.roomName || 'Chat'}
                     </Text>
-                    <Text className="ml-3 text-xs text-ink-muted">{timeForRoom(item)}</Text>
+                    <Text className="ml-3 text-xs text-text-muted">{timeForRoom(item)}</Text>
                   </View>
-                  <Text className="mt-1 text-sm text-ink-muted" numberOfLines={2}>
+                  <Text className="mt-1 text-sm text-text-muted" numberOfLines={2}>
                     {previewForRoom(item)}
                     {item.isReadOnly ? ' · Read-only' : ''}
                   </Text>

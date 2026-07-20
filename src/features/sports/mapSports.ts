@@ -1,3 +1,5 @@
+import { humanizeWorkoutType } from '@/src/lib/humanizeWorkoutType';
+
 import type { SportProfile, SportThresholdFormValues, SportThresholdPatch } from './types';
 
 function asFiniteNumber(value: unknown): number | null {
@@ -58,8 +60,22 @@ export function parseSportProfilesFromProfileResponse(json: unknown): SportProfi
 export function displaySportName(profile: SportProfile): string {
   if (profile.name?.trim()) return profile.name.trim();
   if (profile.isDefault) return 'Default';
-  if (profile.types.length > 0) return profile.types.slice(0, 2).join(', ');
+  if (profile.types.length > 0) {
+    return humanizeWorkoutType(profile.types[0]) ?? profile.types[0]!;
+  }
   return 'Sport profile';
+}
+
+/** Secondary types beyond the primary title, humanized (or null when redundant). */
+export function sportTypesSubtitle(profile: SportProfile): string | null {
+  if (profile.types.length === 0) return null;
+  const primary = displaySportName(profile).toLowerCase();
+  const extras = profile.types
+    .slice(profile.name?.trim() ? 0 : 1)
+    .map((t) => humanizeWorkoutType(t) ?? t)
+    .filter((label) => label.toLowerCase() !== primary);
+  if (extras.length === 0) return null;
+  return `Also: ${extras.join(' · ')}`;
 }
 
 export function formFromSportProfile(profile: SportProfile): SportThresholdFormValues {

@@ -47,11 +47,11 @@ export function TrainingLoadSheet({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-surface-dark">
-        <View className="flex-row items-start justify-between border-b border-zinc-800 px-5 py-4">
+      <View className="flex-1 bg-surface">
+        <View className="flex-row items-start justify-between border-b border-border px-5 py-4">
           <View className="min-w-0 flex-1 pr-3">
-            <Text className="text-xl font-semibold text-white">Training Load & Form</Text>
-            <Text className="mt-1 text-sm text-ink-muted">
+            <Text className="text-xl font-semibold text-text-primary">Training Load & Form</Text>
+            <Text className="mt-1 text-sm text-text-muted">
               Fitness (CTL), Fatigue (ATL), and Form (TSB) over the selected period.
             </Text>
           </View>
@@ -69,12 +69,12 @@ export function TrainingLoadSheet({
                   key={period}
                   onPress={() => setDays(period)}
                   className={`rounded-full px-3 py-1.5 ${
-                    selected ? 'bg-brand' : 'border border-zinc-700 bg-zinc-900'
+                    selected ? 'bg-brand' : 'border border-border-strong bg-card'
                   }`}
                 >
                   <Text
                     className={`text-xs font-semibold ${
-                      selected ? 'text-zinc-950' : 'text-zinc-300'
+                      selected ? 'text-ink' : 'text-text-body'
                     }`}
                   >
                     {period}d
@@ -93,15 +93,15 @@ export function TrainingLoadSheet({
               <Text className="text-red-400">
                 {friendlyError(query.error, 'Failed to load training load')}
               </Text>
-              <Text className="mt-2 text-sm text-ink-muted">
+              <Text className="mt-2 text-sm text-text-muted">
                 If this persists after a recent update, sign out and sign in again so the app can
                 request performance access.
               </Text>
               <Pressable
-                className="mt-4 items-center rounded-xl border border-zinc-700 py-3.5 active:opacity-80"
+                className="mt-4 items-center rounded-xl border border-border-strong py-3.5 active:opacity-80"
                 onPress={() => void query.refetch()}
               >
-                <Text className="text-base font-semibold text-white">Retry</Text>
+                <Text className="text-base font-semibold text-text-primary">Retry</Text>
               </Pressable>
             </View>
           ) : summary ? (
@@ -119,7 +119,7 @@ export function TrainingLoadSheet({
                 {summary.formStatus}
               </Text>
               {summary.formDescription ? (
-                <Text className="mt-1 text-sm text-ink-muted">{summary.formDescription}</Text>
+                <Text className="mt-1 text-sm text-text-muted">{summary.formDescription}</Text>
               ) : null}
 
               {chart && chart.series.length > 0 ? (
@@ -131,16 +131,16 @@ export function TrainingLoadSheet({
                   />
                 </View>
               ) : (
-                <Text className="mt-6 text-sm text-ink-muted">
+                <Text className="mt-6 text-sm text-text-muted">
                   Not enough activity TSS history to chart yet.
                 </Text>
               )}
 
               <Pressable
-                className="mt-8 items-center rounded-xl border border-zinc-700 py-3.5 active:opacity-80"
+                className="mt-8 items-center rounded-xl border border-border-strong py-3.5 active:opacity-80"
                 onPress={() => void openWeb()}
               >
-                <Text className="text-base font-semibold text-white">
+                <Text className="text-base font-semibold text-text-primary">
                   Open web Performance
                 </Text>
               </Pressable>
@@ -161,13 +161,13 @@ function SummaryCard({
   unit: string;
 }) {
   return (
-    <View className="w-[48%] rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-3">
-      <Text className="text-[10px] font-bold uppercase tracking-wide text-zinc-400">
+    <View className="w-[48%] rounded-xl border border-border bg-card px-3 py-3">
+      <Text className="text-[10px] font-bold uppercase tracking-wide text-text-muted">
         {label}
       </Text>
       <View className="mt-2 flex-row items-baseline gap-1">
-        <Text className="text-xl font-black text-white">{value}</Text>
-        {unit ? <Text className="text-[10px] font-semibold text-zinc-500">{unit}</Text> : null}
+        <Text className="text-xl font-black text-text-primary">{value}</Text>
+        {unit ? <Text className="text-[10px] font-semibold text-text-muted">{unit}</Text> : null}
       </View>
     </View>
   );

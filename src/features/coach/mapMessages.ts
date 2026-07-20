@@ -1,12 +1,18 @@
+import { displayAthleteText } from './seedContext';
 import {
   ACTIVE_TURN_STATUSES,
+  ACTIVITY_TOOL_NAMES,
   NUTRITION_TOOL_NAMES,
+  PLANNED_TOOL_NAMES,
+  RECOMMENDATION_TOOL_NAMES,
   RECOVERY_TOOL_NAMES,
   TERMINAL_TURN_STATUSES,
   WELLNESS_TOOL_NAMES,
   type CoachUIMessage,
   type PendingChatApproval,
   type StoredChatMessage,
+  type ToolDomain,
+  type ToolInProgressSummary,
   type ToolOutcomeStatus,
   type ToolOutcomeSummary,
 } from './types';
@@ -34,6 +40,15 @@ export function messageText(message: CoachUIMessage | StoredChatMessage | null |
       return '';
     })
     .join('');
+}
+
+/** Athlete-facing text: strips chat seed context from user bubbles. */
+export function displayMessageText(
+  message: CoachUIMessage | StoredChatMessage | null | undefined
+): string {
+  const raw = messageText(message);
+  if (!message || message.role !== 'user') return raw;
+  return displayAthleteText(raw);
 }
 
 export function messageImageParts(
@@ -176,12 +191,14 @@ export function shouldHideAssistantBubble(message: CoachUIMessage): boolean {
   const hasImages = messageImageParts(message).length > 0;
   const hasApprovals = extractPendingApprovals(message).length > 0;
   const hasToolOutcomes = toolOutcomeSummaries(message).length > 0;
+  const hasInProgress = toolInProgressSummaries(message).length > 0;
   if (
     message.metadata?.hideUntilContent &&
     !messageText(message).trim() &&
     !hasImages &&
     !hasApprovals &&
-    !hasToolOutcomes
+    !hasToolOutcomes &&
+    !hasInProgress
   ) {
     return true;
   }
@@ -247,6 +264,28 @@ export function humanizeToolName(toolName: string): string {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
+export function resolveToolDomain(toolName: string): ToolDomain {
+  if (NUTRITION_TOOL_NAMES.has(toolName)) return 'nutrition';
+  if (RECOVERY_TOOL_NAMES.has(toolName) || WELLNESS_TOOL_NAMES.has(toolName)) return 'wellness';
+  if (RECOMMENDATION_TOOL_NAMES.has(toolName) || PLANNED_TOOL_NAMES.has(toolName)) {
+    return 'planning';
+  }
+  if (ACTIVITY_TOOL_NAMES.has(toolName)) return 'workouts';
+  return 'other';
+}
+
+/** One-line approval preview from common arg keys (`title` | `name` | `date`). */
+export function approvalPreviewLine(args: unknown): string | null {
+  if (!args || typeof args !== 'object') return null;
+  const record = args as Record<string, unknown>;
+  for (const key of ['title', 'name', 'date'] as const) {
+    const value = record[key];
+    if (typeof value === 'string' && value.trim()) return value.trim();
+    if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  }
+  return null;
+}
+
 function resolveToolPartName(part: {
   type?: string;
   toolName?: string;
@@ -259,6 +298,15 @@ function resolveToolPartName(part: {
   return null;
 }
 
+function isInProgressToolState(state: string): boolean {
+  return (
+    state === 'input-streaming' ||
+    state === 'input-available' ||
+    state === 'partial-call' ||
+    state === 'call'
+  );
+}
+
 function resolveToolPartStatus(part: {
   state?: string;
   output?: unknown;
@@ -267,13 +315,7 @@ function resolveToolPartStatus(part: {
   errorText?: unknown;
 }): ToolOutcomeStatus | null {
   const state = String(part.state || '');
-  if (
-    state === 'approval-requested' ||
-    state === 'input-streaming' ||
-    state === 'input-available' ||
-    state === 'partial-call' ||
-    state === 'call'
-  ) {
+  if (state === 'approval-requested' || isInProgressToolState(state)) {
     return null;
   }
   if (state === 'output-denied' || state === 'denied' || state === 'approval-denied') {
@@ -305,6 +347,8 @@ function resolveToolPartStatus(part: {
 function curatedSuccessCopy(toolName: string): string | null {
   if (toolName === 'log_nutrition_meal') return 'Meal logged to your nutrition diary.';
   if (toolName === 'log_hydration_intake') return 'Hydration updated.';
+  if (toolName === 'get_nutrition_log') return 'Checked your nutrition log.';
+  if (toolName === 'get_daily_fueling_status') return 'Checked your fueling status.';
   if (NUTRITION_TOOL_NAMES.has(toolName)) return 'Nutrition log updated.';
   if (toolName === 'record_wellness_event') return 'Recovery event logged.';
   if (toolName === 'update_wellness_event') return 'Recovery event updated.';
@@ -313,6 +357,20 @@ function curatedSuccessCopy(toolName: string): string | null {
   if (toolName === 'get_wellness_metrics') return 'Checked your recovery metrics.';
   if (toolName === 'get_wellness_events') return 'Checked your recovery events.';
   if (WELLNESS_TOOL_NAMES.has(toolName)) return 'Wellness check saved.';
+  if (toolName === 'recommend_workout') return 'Workout recommendation ready.';
+  if (toolName === 'get_recommendation_details') return 'Checked recommendation details.';
+  if (toolName === 'list_pending_recommendations') return 'Checked pending recommendations.';
+  if (RECOMMENDATION_TOOL_NAMES.has(toolName)) return 'Recommendation updated.';
+  if (toolName === 'create_planned_workout') return 'Planned session created.';
+  if (toolName === 'update_planned_workout') return 'Planned session updated.';
+  if (toolName === 'reschedule_planned_workout') return 'Planned session moved.';
+  if (toolName === 'get_planned_workouts') return 'Checked your planned sessions.';
+  if (toolName === 'get_planned_workout_details') return 'Checked planned session details.';
+  if (PLANNED_TOOL_NAMES.has(toolName)) return 'Training plan updated.';
+  if (toolName === 'get_recent_workouts') return 'Checked your recent workouts.';
+  if (toolName === 'search_workouts') return 'Searched your workouts.';
+  if (toolName === 'get_workout_details') return 'Checked workout details.';
+  if (ACTIVITY_TOOL_NAMES.has(toolName)) return 'Workout history updated.';
   return null;
 }
 
@@ -328,7 +386,7 @@ function outcomeMessage(toolName: string, status: ToolOutcomeStatus): string {
 }
 
 /**
- * Compact in-thread tool outcomes for nutrition, recovery/wellness, and generic tools.
+ * Compact in-thread tool outcomes for curated companion domains + generic fallback.
  * Part shapes mirror coach-wattz web chat (`output-available` / `output-error` / `output-denied`).
  */
 export function toolOutcomeSummaries(message: CoachUIMessage): ToolOutcomeSummary[] {
@@ -363,6 +421,44 @@ export function toolOutcomeSummaries(message: CoachUIMessage): ToolOutcomeSummar
       toolName,
       status,
       message: outcomeMessage(toolName, status),
+      domain: resolveToolDomain(toolName),
+    });
+  }
+  return summaries;
+}
+
+/**
+ * Non-terminal tool parts shown as in-progress chips. Excludes ids that already
+ * have a terminal outcome summary on the same message.
+ */
+export function toolInProgressSummaries(message: CoachUIMessage): ToolInProgressSummary[] {
+  const terminalIds = new Set(toolOutcomeSummaries(message).map((outcome) => outcome.id));
+  const summaries: ToolInProgressSummary[] = [];
+  const seen = new Set<string>();
+
+  for (const [index, part] of (message.parts || []).entries()) {
+    if (!part || typeof part !== 'object') continue;
+    const typed = part as {
+      type?: string;
+      state?: string;
+      toolName?: string;
+      toolCallId?: string;
+    };
+    if (typed.type === 'tool-approval-request' || typed.type === 'tool-approval-response') {
+      continue;
+    }
+    const toolName = resolveToolPartName(typed);
+    if (!toolName) continue;
+    if (!isInProgressToolState(String(typed.state || ''))) continue;
+
+    const id = typed.toolCallId || `${toolName}-${index}-progress`;
+    if (terminalIds.has(id) || seen.has(id)) continue;
+    seen.add(id);
+    summaries.push({
+      id,
+      toolName,
+      label: `${humanizeToolName(toolName)}…`,
+      domain: resolveToolDomain(toolName),
     });
   }
   return summaries;

@@ -1,3 +1,4 @@
+import { migrateLegacyAppHref } from '@/src/linking/appHrefs';
 import {
   resolvePushNavigation,
   type PushNavigationData,
@@ -18,12 +19,14 @@ export function resolvePushOpen(data: PushNavigationData | null | undefined): Re
 
   const path = data.path?.trim();
   if (path?.startsWith('/(app)')) {
-    return { kind: 'app', href: path, canonicalPath: path };
+    const href = migrateLegacyAppHref(path);
+    return { kind: 'app', href, canonicalPath: path };
   }
 
   const url = data.url?.trim();
   if (url?.startsWith('/(app)')) {
-    return { kind: 'app', href: url, canonicalPath: url };
+    const href = migrateLegacyAppHref(url);
+    return { kind: 'app', href, canonicalPath: url };
   }
 
   return resolvePushNavigation(data);

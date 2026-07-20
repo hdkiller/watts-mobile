@@ -1,3 +1,34 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * Semantic theme tokens — light in :root, dark via prefers-color-scheme.
+ * Space-separated RGB channels so Tailwind `<alpha-value>` slots work (card/80).
+ * Canonical table: docs/DESIGN.md
+ */
+:root {
+  --color-surface: 250 250 250; /* #fafafa */
+  --color-card: 255 255 255;
+  --color-border: 228 228 231; /* zinc-200 */
+  --color-border-strong: 212 212 216; /* zinc-300 */
+  --color-text-primary: 9 9 11; /* zinc-950 */
+  --color-text-body: 63 63 70; /* zinc-700 */
+  --color-text-muted: 82 82 91; /* zinc-600 — AA on #fafafa */
+  --color-tint-error: 254 242 242; /* red-50 */
+  --color-tint-success: 240 253 244; /* green-50 */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-surface: 9 9 11; /* #09090b */
+    --color-card: 24 24 27; /* zinc-900 */
+    --color-border: 39 39 42; /* zinc-800 */
+    --color-border-strong: 63 63 70; /* zinc-700 */
+    --color-text-primary: 255 255 255;
+    --color-text-body: 228 228 231; /* zinc-200 */
+    --color-text-muted: 113 113 122; /* #71717a */
+    --color-tint-error: 69 10 10; /* red-950 */
+    --color-tint-success: 5 46 22; /* green-950 */
+  }
+}

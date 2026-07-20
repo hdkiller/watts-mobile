@@ -20,18 +20,18 @@ type ButtonProps = {
 
 const containerByVariant: Record<ButtonVariant, string> = {
   primary: 'bg-brand-action',
-  secondary: 'border border-zinc-700',
-  danger: 'bg-zinc-800',
+  secondary: 'border border-border-strong',
+  danger: 'bg-border-strong',
 };
 
 const labelByVariant: Record<ButtonVariant, string> = {
   primary: 'text-ink',
-  secondary: 'text-white',
+  secondary: 'text-text-primary',
   danger: 'text-red-400',
 };
 
 const spinnerByVariant: Record<ButtonVariant, string> = {
-  primary: Colors.background,
+  primary: Colors.ink, // dark ink on brand fill — theme-invariant
   secondary: Colors.brand,
   danger: Colors.danger,
 };

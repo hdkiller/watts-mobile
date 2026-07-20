@@ -24,6 +24,7 @@ import {
   websocketUrlFromInstance,
 } from './api';
 import { captureChatPhoto, pickChatImagesFromLibrary } from './attachments';
+import { CHAT_ROOMS_QUERY_KEY, chatMessagesQueryKey } from './chatQueryKeys';
 import { coachChatFetch, resolveChatMessagesApiUrl } from './coachFetch';
 import {
   applyAssistantTextDelta,
@@ -32,7 +33,7 @@ import {
   isActiveTurnStatus,
   isTerminalTurnStatus,
   mergeLoadedMessages,
-  messageText,
+  displayMessageText,
   upsertChatMessage,
   visibleCoachMessages,
 } from './mapMessages';
@@ -225,6 +226,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
       if (!silent) setLoading(true);
       const loaded = await fetchChatMessages(id);
       if (!activeRef.current || roomIdRef.current !== id) return;
+      queryClient.setQueryData(chatMessagesQueryKey(id), loaded);
       const transformed = hydrateCoachMessages(loaded);
       const merged = mergeLoadedMessages(messagesRef.current, transformed);
       setMessagesRef.current(merged);
@@ -242,7 +244,15 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
       setError(null);
       restartTurnPollingRef.current();
     } catch (err) {
-      if (!silent) {
+      const cached = queryClient.getQueryData<StoredChatMessage[]>(chatMessagesQueryKey(id));
+      if (cached && cached.length > 0 && (!silent || messagesRef.current.length === 0)) {
+        if (!activeRef.current || roomIdRef.current !== id) return;
+        const transformed = hydrateCoachMessages(cached);
+        setMessagesRef.current(transformed);
+        if (transformed.length > 0) setSeedUsed(true);
+        setError(null);
+        setNotice('You’re offline — showing last saved chat');
+      } else if (!silent) {
         setError(friendlyError(err, 'Failed to load messages'));
       }
     } finally {
@@ -253,7 +263,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
         void loadMessagesRef.current(id, { silent: true });
       }
     }
-  }, []);
+  }, [queryClient]);
 
   loadMessagesRef.current = loadMessages;
 
@@ -505,14 +515,22 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
     try {
       const loaded = await fetchChatRooms();
       if (!activeRef.current) return;
+      queryClient.setQueryData(CHAT_ROOMS_QUERY_KEY, loaded);
       setRooms(loaded);
+    } catch {
+      const cached = queryClient.getQueryData<ChatRoomSummary[]>(CHAT_ROOMS_QUERY_KEY);
+      if (cached && activeRef.current) setRooms(cached);
     } finally {
       if (activeRef.current) setRoomsLoading(false);
     }
-  }, []);
+  }, [queryClient]);
 
   const selectRoom = useCallback(
     async (nextRoomId: string) => {
+      // Close the sheet BEFORE any async work: flipping the pageSheet Modal's
+      // `visible` while the owner re-renders mid-transition can orphan an empty,
+      // undismissable sheet over the app (issue 060).
+      setRoomListOpen(false);
       const room = rooms.find((item) => item.roomId === nextRoomId);
       if (!room) {
         const loaded = await fetchChatRooms();
@@ -528,26 +546,24 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
             setRooms((prev) => [created, ...prev.filter((r) => r.roomId !== created.roomId)]);
             await applyActiveRoom(created);
           }
-          setRoomListOpen(false);
           return;
         }
         await applyActiveRoom(found);
-        setRoomListOpen(false);
         return;
       }
       await applyActiveRoom(room);
-      setRoomListOpen(false);
     },
     [applyActiveRoom, rooms]
   );
 
   const createRoom = useCallback(async () => {
+    // Close the sheet before async work — see selectRoom / issue 060.
+    setRoomListOpen(false);
     setSendError(null);
     try {
       const created = await createChatRoom();
       setRooms((prev) => [created, ...prev.filter((r) => r.roomId !== created.roomId)]);
       await applyActiveRoom(created);
-      setRoomListOpen(false);
       setNotice(null);
     } catch (err) {
       setSendError(friendlyError(err, 'Failed to create chat'));
@@ -570,6 +586,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
       try {
         const loadedRooms = await fetchChatRooms();
         if (cancelled || !activeRef.current) return;
+        queryClient.setQueryData(CHAT_ROOMS_QUERY_KEY, loadedRooms);
         setRooms(loadedRooms);
 
         if (targetRoomId) {
@@ -588,15 +605,37 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
         } else {
           const created = await createChatRoom();
           if (cancelled || !activeRef.current) return;
+          queryClient.setQueryData(CHAT_ROOMS_QUERY_KEY, (prev: ChatRoomSummary[] | undefined) => [
+            created,
+            ...(prev ?? loadedRooms).filter((r) => r.roomId !== created.roomId),
+          ]);
           setRooms((prev) => [created, ...prev.filter((r) => r.roomId !== created.roomId)]);
           await applyActiveRoom(created);
         }
         void connectWebSocket();
       } catch (err) {
-        if (!cancelled) {
-          setError(friendlyError(err, 'Failed to open Coach chat'));
-          setLoading(false);
+        if (cancelled || !activeRef.current) return;
+        const cachedRooms = queryClient.getQueryData<ChatRoomSummary[]>(CHAT_ROOMS_QUERY_KEY);
+        if (cachedRooms && cachedRooms.length > 0) {
+          setRooms(cachedRooms);
+          setNotice('You’re offline — showing last saved chat');
+          const targeted = targetRoomId ? findRoomById(cachedRooms, targetRoomId) : null;
+          const decision = targeted
+            ? ({ action: 'select' as const, room: targeted })
+            : decideSessionOpen(cachedRooms);
+          // Can't create rooms offline — reopen last cached room as a fallback.
+          const room =
+            decision.action === 'select' ? decision.room : cachedRooms[0];
+          if (room) {
+            await applyActiveRoom(room);
+          } else {
+            setError(friendlyError(err, 'Failed to open Coach chat'));
+            setLoading(false);
+          }
+          return;
         }
+        setError(friendlyError(err, 'Failed to open Coach chat'));
+        setLoading(false);
       }
     }
 
@@ -898,5 +937,5 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
 }
 
 export function previewMessageText(message: CoachUIMessage): string {
-  return messageText(message);
+  return displayMessageText(message);
 }

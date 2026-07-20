@@ -46,7 +46,7 @@ export function AnalysisReadyCard({ recent }: AnalysisReadyCardProps) {
   const title = ready.title.trim() || 'Workout';
 
   return (
-    <View className="mt-6 rounded-xl border border-zinc-800 bg-zinc-900/80 px-4 py-3">
+    <View className="mt-6 rounded-xl border border-border bg-card/80 px-4 py-3">
       <View className="flex-row items-start justify-between gap-3">
         <Pressable
           accessibilityRole="button"
@@ -56,11 +56,11 @@ export function AnalysisReadyCard({ recent }: AnalysisReadyCardProps) {
           onPress={() => {
             void markAnalysisSeen(ready.id);
             setReady(null);
-            router.push(`/(app)/activity/${ready.id}` as Href);
+            router.push(`/(app)/(tabs)/today/activity/${ready.id}` as Href);
           }}
         >
-          <Text className="text-xs uppercase tracking-wide text-ink-muted">Analysis ready</Text>
-          <Text className="mt-1 text-sm leading-5 text-zinc-200" numberOfLines={2}>
+          <Text className="text-xs uppercase tracking-wide text-text-muted">Analysis ready</Text>
+          <Text className="mt-1 text-sm leading-5 text-text-body" numberOfLines={2}>
             {title} analyzed → view
           </Text>
         </Pressable>
@@ -74,7 +74,7 @@ export function AnalysisReadyCard({ recent }: AnalysisReadyCardProps) {
             setReady(null);
           }}
         >
-          <Text className="text-base text-ink-muted">✕</Text>
+          <Text className="text-base text-text-muted">✕</Text>
         </Pressable>
       </View>
     </View>

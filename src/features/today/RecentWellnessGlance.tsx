@@ -5,6 +5,7 @@ import { Platform, Pressable, Text, View } from 'react-native';
 
 import { useRecentWellness } from '@/src/features/profile/useRecentWellness';
 import { WellnessOverviewSheet } from '@/src/features/wellness/WellnessOverviewSheet';
+import { useThemeColors } from '@/src/theme/useThemeColors';
 
 function localTodayKey(): string {
   const now = new Date();
@@ -75,21 +76,22 @@ function WellnessTile({
   sfIcon: SFSymbol;
   emojiIcon: string;
 }) {
+  const theme = useThemeColors();
   return (
-    <View className="flex-1 rounded-xl border border-zinc-800/80 bg-zinc-900 px-3 py-3.5 shadow-sm">
+    <View className="flex-1 rounded-xl border border-border/80 bg-card px-3 py-3.5 shadow-sm">
       <View className="flex-row items-center gap-1.5">
         {Platform.OS === 'ios' ? (
-          <SymbolView name={sfIcon} size={13} tintColor="#a1a1aa" />
+          <SymbolView name={sfIcon} size={13} tintColor={theme.textMuted} />
         ) : (
           <Text style={{ fontSize: 12 }}>{emojiIcon}</Text>
         )}
-        <Text className="text-[10px] font-bold uppercase tracking-wide text-zinc-400">
+        <Text className="text-[10px] font-bold uppercase tracking-wide text-text-muted">
           {label}
         </Text>
       </View>
       <View className="mt-3 flex-row items-baseline gap-0.5">
-        <Text className="text-xl font-black text-white">{value}</Text>
-        <Text className="text-[10px] font-semibold text-zinc-500"> {unit}</Text>
+        <Text className="text-xl font-black text-text-primary">{value}</Text>
+        <Text className="text-[10px] font-semibold text-text-muted"> {unit}</Text>
       </View>
       <View className="mt-2 h-4 flex-row items-center">
         <TrendBadge value={trend} lowerIsBetter={lowerIsBetter} />
@@ -112,7 +114,7 @@ export function RecentWellnessGlance() {
         {[1, 2, 3].map((i) => (
           <View
             key={i}
-            className="h-24 flex-1 animate-pulse rounded-xl border border-zinc-800 bg-zinc-900/40"
+            className="h-24 flex-1 animate-pulse rounded-xl border border-border bg-card/40"
           />
         ))}
       </View>
@@ -134,7 +136,7 @@ export function RecentWellnessGlance() {
   return (
     <View className="mt-6">
       <View className="flex-row items-center justify-between">
-        <Text className="text-xs uppercase tracking-wide text-ink-muted">
+        <Text className="text-xs uppercase tracking-wide text-text-muted">
           Recent Wellness
         </Text>
         <Pressable
@@ -152,14 +154,14 @@ export function RecentWellnessGlance() {
           accessibilityRole="button"
           accessibilityLabel="No recent wellness. Check in"
           onPress={goToWellnessCheckIn}
-          className="mt-3 rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-4 active:opacity-90"
+          className="mt-3 rounded-xl border border-border bg-card/60 px-4 py-4 active:opacity-90"
         >
-          <Text className="text-sm text-zinc-300">No recent wellness · Check in</Text>
+          <Text className="text-sm text-text-body">No recent wellness · Check in</Text>
         </Pressable>
       ) : (
         <>
           {caption ? (
-            <Text className="mt-1 text-[11px] text-ink-muted">{caption}</Text>
+            <Text className="mt-1 text-[11px] text-text-muted">{caption}</Text>
           ) : null}
           <Pressable
             accessibilityRole="button"

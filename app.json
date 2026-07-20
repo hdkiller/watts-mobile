@@ -6,14 +6,14 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "coachwatts",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#09090b"
+      "backgroundColor": "#fafafa"
     },
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.coachwatts.mobile",
       "icon": "./assets/images/icon.png",
       "associatedDomains": [
@@ -69,7 +69,14 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "@sentry/react-native",
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "watt-mind",
+          "project": "coach-watts-app",
+          "url": "https://de.sentry.io/"
+        }
+      ],
       [
         "expo-notifications",
         {
@@ -91,7 +98,7 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#09090b",
+          "backgroundColor": "#fafafa",
           "dark": {
             "image": "./assets/images/splash-icon.png",
             "backgroundColor": "#09090b"

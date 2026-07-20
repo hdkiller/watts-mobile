@@ -5,11 +5,14 @@ import { useQueryClient } from '@tanstack/react-query';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-screens/experimental';
 
+import { useOfflineCached } from '@/src/hooks/useOfflineCached';
+import { useTabScrollPadding } from '@/src/hooks/useTabScrollPadding';
+
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { AnimatedPressable } from '@/src/components/AnimatedPressable';
 import { Button } from '@/src/components/Button';
-import { formatLastUpdated, OfflineBanner } from '@/src/components/OfflineBanner';
+import { OfflineBanner } from '@/src/components/OfflineBanner';
 import { Skeleton, SkeletonScreen } from '@/src/components/Skeleton';
 import { SportIcon } from '@/src/components/SportIcon';
 import { useRecentActivityQuery, useUpcomingPlannedQuery } from '@/src/features/activity/useActivity';
@@ -36,23 +39,36 @@ import {
   confidenceFilledCount,
   formatDuration,
   heroToneForAction,
+  mapRecommendationDetail,
   type HeroTone,
 } from '@/src/features/today/mapTodayPayload';
 import { RecentlyTeaser } from '@/src/features/today/recently-teaser';
-import { fetchRecommendationStatus } from '@/src/features/today/api';
-import { syncTodayWidget } from '@/src/features/today/syncTodayWidget';
-import type { RecoverySentiment, TodayPlannedWorkout } from '@/src/features/today/types';
+import { CreateAdHocWorkoutSheet } from '@/src/features/today/CreateAdHocWorkoutSheet';
+import { RecommendationDetailSheet } from '@/src/features/today/RecommendationDetailSheet';
+import { RefineRecommendationSheet } from '@/src/features/today/RefineRecommendationSheet';
 import {
+  fetchAdHocGenerateStatus,
+  type AdHocWorkoutRequest,
+} from '@/src/features/today/adHocApi';
+import { fetchRecommendationStatus, fetchTodayView } from '@/src/features/today/api';
+import { syncTodayWidget } from '@/src/features/today/syncTodayWidget';
+import type { ActivityRecommendationApi, TodayPlannedWorkout } from '@/src/features/today/types';
+import {
+  TODAY_QUERY_KEY,
   useAcceptRecommendation,
+  useGenerateAdHocWorkout,
   useGenerateTodayRecommendation,
   useTodayQuery,
 } from '@/src/features/today/useToday';
 import { WeekGlanceStrip } from '@/src/features/today/week-glance-strip';
 import { hapticError, hapticSuccess } from '@/src/lib/haptics';
+import { humanizeWorkoutType } from '@/src/lib/humanizeWorkoutType';
+import { APP_HREFS } from '@/src/linking/appHrefs';
 import { Colors } from '@/src/theme/colors';
+import { useThemeColors } from '@/src/theme/useThemeColors';
 
 function openPlannedWorkout(id: string) {
-  router.push(`/(app)/planned/${id}` as Href);
+  router.push(APP_HREFS.plannedDetail(id) as Href);
 }
 
 function openDiscussWithCoach() {
@@ -102,7 +118,7 @@ function ConfidenceDots({
       {[1, 2, 3].map((n) => (
         <View
           key={n}
-          className={`h-1.5 w-1.5 rounded-full ${n <= filled ? fillClass : 'bg-zinc-600'}`}
+          className={`h-1.5 w-1.5 rounded-full ${n <= filled ? fillClass : 'bg-border-strong'}`}
         />
       ))}
     </View>
@@ -125,21 +141,21 @@ function PlannedSummaryCard({
 }) {
   return (
     <AnimatedPressable
-      className={`${hero ? 'mt-6 rounded-2xl' : 'mt-4 rounded-xl'} border border-zinc-800 bg-zinc-900/80 p-4`}
+      className={`${hero ? 'mt-6 rounded-2xl' : 'mt-4 rounded-xl'} border border-border bg-card/80 p-4`}
       onPress={() => openPlannedWorkout(planned.id)}
     >
       <View className="flex-row items-start gap-3">
         <SportIcon type={planned.type} size={hero ? 18 : 14} />
         <View className="min-w-0 flex-1">
-          <Text className="text-xs uppercase tracking-wide text-ink-muted">
+          <Text className="text-xs uppercase tracking-wide text-text-muted">
             {hero ? 'Today’s planned workout' : 'Planned workout'}
           </Text>
-          <Text className={`${hero ? 'mt-2 text-2xl' : 'mt-1 text-lg'} font-semibold text-white`}>
+          <Text className={`${hero ? 'mt-2 text-2xl' : 'mt-1 text-lg'} font-semibold text-text-primary`}>
             {planned.title}
           </Text>
-          <Text className="mt-2 text-sm text-ink-muted">
+          <Text className="mt-2 text-sm text-text-muted">
             {[
-              planned.type,
+              humanizeWorkoutType(planned.type),
               formatDuration(planned.durationSec),
               planned.tss != null ? `TSS ${Math.round(planned.tss)}` : null,
               planned.structureSummary,
@@ -148,7 +164,7 @@ function PlannedSummaryCard({
               .join(' · ')}
           </Text>
           {hero && planned.description ? (
-            <Text className="mt-3 text-base leading-6 text-zinc-200" numberOfLines={3}>
+            <Text className="mt-3 text-base leading-6 text-text-body" numberOfLines={3}>
               {planned.description}
             </Text>
           ) : null}
@@ -166,8 +182,11 @@ function EnterSection({ order, children }: { order: number; children: ReactNode 
 }
 
 export default function TodayScreen() {
+  const theme = useThemeColors();
+
   const { instanceUrl } = useAuth();
   const queryClient = useQueryClient();
+  const tabBottomPad = useTabScrollPadding();
   const { data, isLoading, isError, error, refetch, isRefetching, dataUpdatedAt } = useTodayQuery();
   const {
     data: activeRecovery,
@@ -189,9 +208,20 @@ export default function TodayScreen() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [genState, setGenState] = useState<'idle' | 'generating' | 'error' | 'quota'>('idle');
   const [genError, setGenError] = useState<string | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [refineOpen, setRefineOpen] = useState(false);
+  const [adhocOpen, setAdhocOpen] = useState(false);
+  const [adhocState, setAdhocState] = useState<'idle' | 'generating' | 'error' | 'quota'>('idle');
+  const [adhocError, setAdhocError] = useState<string | null>(null);
   const generateMutation = useGenerateTodayRecommendation();
+  const adhocMutation = useGenerateAdHocWorkout();
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const adhocPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const statusFailRef = useRef(0);
+  const adhocFailRef = useRef(0);
+  const generatingBusy = genState === 'generating' || generateMutation.isPending;
+  const adhocBusy = adhocState === 'generating' || adhocMutation.isPending;
+  const actionsBusy = generatingBusy || adhocBusy;
 
   const clearGeneratePoll = () => {
     if (pollRef.current) {
@@ -200,16 +230,30 @@ export default function TodayScreen() {
     }
   };
 
-  useEffect(() => () => clearGeneratePoll(), []);
+  const clearAdhocPoll = () => {
+    if (adhocPollRef.current) {
+      clearInterval(adhocPollRef.current);
+      adhocPollRef.current = null;
+    }
+  };
 
-  const onGenerate = async () => {
-    if (genState === 'generating' || generateMutation.isPending) return;
+  useEffect(
+    () => () => {
+      clearGeneratePoll();
+      clearAdhocPoll();
+    },
+    []
+  );
+
+  const onGenerate = async (userFeedback?: string) => {
+    if (genState === 'generating' || generateMutation.isPending || adhocBusy) return;
     clearGeneratePoll();
     statusFailRef.current = 0;
     setGenState('generating');
     setGenError(null);
     try {
-      const res = await generateMutation.mutateAsync(undefined);
+      const trimmed = userFeedback?.trim();
+      const res = await generateMutation.mutateAsync(trimmed || undefined);
       if (res.jobId) {
         let attempts = 0;
         const maxAttempts = 30;
@@ -261,21 +305,103 @@ export default function TodayScreen() {
     }
   };
 
-  const showCachedOffline = Boolean(isError && data);
+  const { showCachedOffline, lastUpdatedLabel } = useOfflineCached({
+    data,
+    isError,
+    dataUpdatedAt,
+  });
 
   useEffect(() => {
     void syncTodayWidget(data);
   }, [data]);
 
   const onAccept = async () => {
-    if (!data?.recommendationId || !data.canAccept) return;
+    if (!data?.recommendationId || !data.canAccept || actionsBusy) return;
     setActionError(null);
     try {
       await acceptMutation.mutateAsync(data.recommendationId);
       hapticSuccess();
+      setDetailOpen(false);
     } catch (err) {
       hapticError();
       setActionError(friendlyError(err, 'Accept failed'));
+    }
+  };
+
+  const onRefineSubmit = (feedback: string) => {
+    setRefineOpen(false);
+    void onGenerate(feedback);
+  };
+
+  const onAdhocSubmit = async (payload: AdHocWorkoutRequest) => {
+    if (adhocBusy || generatingBusy) return;
+    setAdhocOpen(false);
+    clearAdhocPoll();
+    adhocFailRef.current = 0;
+    setAdhocState('generating');
+    setAdhocError(null);
+    const priorPlannedId = data?.plannedWorkout?.id ?? null;
+    try {
+      const res = await adhocMutation.mutateAsync(payload);
+      let attempts = 0;
+      const maxAttempts = 30;
+      adhocPollRef.current = setInterval(() => {
+        void (async () => {
+          attempts++;
+          try {
+            let stillRunning = true;
+            if (res.jobId) {
+              const status = await fetchAdHocGenerateStatus(res.jobId);
+              stillRunning = status.isRunning;
+            }
+            adhocFailRef.current = 0;
+
+            const latest = await fetchTodayView();
+            void queryClient.setQueryData(TODAY_QUERY_KEY, latest);
+            void upcomingQuery.refetch();
+
+            const nextId = latest.plannedWorkout?.id ?? null;
+            const appeared = Boolean(nextId && nextId !== priorPlannedId);
+
+            if (!stillRunning || appeared) {
+              clearAdhocPoll();
+              setAdhocState('idle');
+              void refetch();
+              hapticSuccess();
+              return;
+            }
+
+            if (attempts >= maxAttempts) {
+              clearAdhocPoll();
+              hapticError();
+              setAdhocState('error');
+              setAdhocError('That took too long. Try again, or continue on the web.');
+            }
+          } catch {
+            adhocFailRef.current += 1;
+            if (adhocFailRef.current >= 3 || attempts >= maxAttempts) {
+              clearAdhocPoll();
+              hapticError();
+              setAdhocState('error');
+              setAdhocError('Couldn’t check generation status. Try again shortly.');
+            }
+          }
+        })();
+      }, 2500);
+    } catch (err: unknown) {
+      hapticError();
+      const status =
+        typeof err === 'object' && err !== null && 'status' in err
+          ? (err as { status?: number }).status
+          : undefined;
+      const message = err instanceof Error ? err.message : '';
+      if (status === 429 || message.includes('Quota')) {
+        setAdhocState('quota');
+        setAdhocError(message || 'Quota exceeded for workout generation.');
+      } else {
+        setAdhocState('error');
+        setAdhocError(friendlyError(err, 'Couldn’t start ad-hoc workout generation.'));
+      }
     }
   };
 
@@ -303,10 +429,10 @@ export default function TodayScreen() {
       <SafeAreaView
         testID="today-screen"
         edges={{ top: true }}
-        style={{ flex: 1, backgroundColor: Colors.background }}
+        style={{ flex: 1, backgroundColor: theme.surface }}
       >
         <SkeletonScreen>
-          <View className="flex-1 bg-surface-dark px-6 pt-4">
+          <View className="flex-1 bg-surface px-6 pt-4">
             <Skeleton className="h-4 w-28" />
             <Skeleton className="mt-2 h-7 w-48" />
             <Skeleton className="mt-6 h-44 rounded-2xl" />
@@ -336,17 +462,21 @@ export default function TodayScreen() {
   const emptyNoDecision = !hardError && !hasRecommendation && !planned;
   const heroTone = heroToneForAction(data?.action);
   const heroToneClasses = HERO_TONE_CLASSES[heroTone];
-  const lastUpdatedLabel = formatLastUpdated(dataUpdatedAt);
+  const recommendationDetail = mapRecommendationDetail(
+    (data?.raw as ActivityRecommendationApi | null | undefined) ?? null
+  );
+  const showGeneratePanel = emptyNoDecision || (hasRecommendation && genState !== 'idle');
 
   return (
     <SafeAreaView
       testID="today-screen"
       edges={{ top: true }}
-      style={{ flex: 1, backgroundColor: Colors.background }}
+      style={{ flex: 1, backgroundColor: theme.surface }}
     >
     <ScrollView
-      className="flex-1 bg-surface-dark"
-      contentContainerClassName="px-6 pb-10 pt-4"
+      className="flex-1 bg-surface"
+      contentContainerClassName="px-6 pt-4"
+      contentContainerStyle={{ paddingBottom: tabBottomPad }}
       refreshControl={
         <RefreshControl
           refreshing={
@@ -364,14 +494,14 @@ export default function TodayScreen() {
       }
     >
       <EnterSection order={0}>
-        <Text className="text-sm text-ink-muted">{dateLabel}</Text>
-        <Text className="mt-1 text-2xl font-semibold text-white">{greetingForNow()}</Text>
+        <Text className="text-sm text-text-muted">{dateLabel}</Text>
+        <Text className="mt-1 text-2xl font-semibold text-text-primary">{greetingForNow()}</Text>
       </EnterSection>
 
       <OfflineBanner visible={showCachedOffline} lastUpdatedLabel={lastUpdatedLabel} />
 
       {hardError ? (
-        <View className="mt-6 rounded-xl border border-red-900/50 bg-red-950/40 p-4">
+        <View className="mt-6 rounded-xl border border-danger/40 bg-tint-error p-4">
           <Text className="text-base text-red-300">
             {friendlyError(error, 'Could not load today')}
           </Text>
@@ -389,16 +519,16 @@ export default function TodayScreen() {
             accessibilityRole="button"
             accessibilityLabel="Do Quick Daily Coach Check-In"
             className="mt-6 flex-row items-center justify-between rounded-xl border border-brand bg-brand/5 p-4"
-            onPress={() => router.push('/(app)/daily-checkin' as Href)}
+            onPress={() => router.push(APP_HREFS.dailyCheckin as Href)}
           >
             <View className="flex-1 pr-3">
               <Text className="text-xs uppercase tracking-wide text-brand font-semibold">
                 Coach Check-In
               </Text>
-              <Text className="mt-1 text-base font-semibold text-white">
+              <Text className="mt-1 text-base font-semibold text-text-primary">
                 Do Quick Daily Coach Check-In
               </Text>
-              <Text className="mt-1 text-xs text-ink-muted">
+              <Text className="mt-1 text-xs text-text-muted">
                 Coach has questions prepared to adjust today's recommendation.
               </Text>
             </View>
@@ -407,7 +537,7 @@ export default function TodayScreen() {
         </EnterSection>
       ) : null}
 
-      {emptyNoDecision ? (
+      {showGeneratePanel ? (
         <AnalyzeReadinessPanel
           state={genState}
           errorMessage={genError}
@@ -418,13 +548,63 @@ export default function TodayScreen() {
         />
       ) : null}
 
+      {emptyNoDecision && genState === 'idle' ? (
+        <View className="mt-3">
+          <Button
+            variant="secondary"
+            label="Generate Ad-Hoc Workout"
+            onPress={() => setAdhocOpen(true)}
+            disabled={actionsBusy}
+          />
+        </View>
+      ) : null}
+
+      {adhocState === 'generating' ? (
+        <View className="mt-6 items-center rounded-2xl border border-border bg-card/80 p-5">
+          <Text className="text-base font-semibold text-text-primary">Generating workout…</Text>
+          <Text className="mt-1 text-center text-sm leading-5 text-text-muted">
+            AI is designing your session for today
+          </Text>
+        </View>
+      ) : null}
+
+      {adhocState === 'quota' ? (
+        <View className="mt-6 rounded-2xl border border-amber-900/40 bg-amber-950/25 p-5">
+          <Text className="text-xs uppercase tracking-wide text-modify">Plan limit</Text>
+          <Text className="mt-2 text-lg font-semibold text-text-primary">
+            Workout generation limit reached
+          </Text>
+          <Text className="mt-2 text-sm leading-5 text-text-body">
+            {adhocError || 'Update your plan on the web to generate more workouts.'}
+          </Text>
+          <View className="mt-5 gap-3">
+            <Button label="Open web" onPress={() => void openWeb()} />
+            <Button label="Back" variant="secondary" onPress={() => setAdhocState('idle')} />
+          </View>
+        </View>
+      ) : null}
+
+      {adhocState === 'error' ? (
+        <View className="mt-6 rounded-2xl border border-danger/40 bg-tint-error p-5">
+          <Text className="text-lg font-semibold text-text-primary">Couldn’t generate workout</Text>
+          <Text className="mt-2 text-sm leading-5 text-red-300">
+            {adhocError || 'Something went wrong. Try again, or continue on the web.'}
+          </Text>
+          <View className="mt-5 gap-3">
+            <Button label="Try again" onPress={() => setAdhocOpen(true)} />
+            <Button label="Open web" variant="secondary" onPress={() => void openWeb()} />
+            <Button label="Dismiss" variant="secondary" onPress={() => setAdhocState('idle')} />
+          </View>
+        </View>
+      ) : null}
+
       {hasRecommendation ? (
         <EnterSection order={1}>
           <View
-            className={`mt-6 rounded-2xl border border-zinc-800 border-l-4 ${heroToneClasses.accent} ${heroToneClasses.tint} p-5`}
+            className={`mt-6 rounded-2xl border border-border border-l-4 ${heroToneClasses.accent} ${heroToneClasses.tint} p-5`}
           >
             <View className="flex-row items-center">
-              <Text className="text-xs uppercase tracking-wide text-ink-muted">Today’s call</Text>
+              <Text className="text-xs uppercase tracking-wide text-text-muted">Today’s call</Text>
               {data!.confidence != null ? (
                 <ConfidenceDots confidence={data!.confidence} fillClass={heroToneClasses.fill} />
               ) : null}
@@ -433,10 +613,10 @@ export default function TodayScreen() {
               {data!.actionLabel}
             </Text>
             {data!.rationale ? (
-              <Text className="mt-3 text-base leading-6 text-zinc-200">{data!.rationale}</Text>
+              <Text className="mt-3 text-base leading-6 text-text-body">{data!.rationale}</Text>
             ) : null}
             {data!.modificationSummary && !data!.userAccepted ? (
-              <Text className="mt-3 text-sm text-zinc-400">
+              <Text className="mt-3 text-sm text-text-muted">
                 Proposed change: {data!.modificationSummary}
               </Text>
             ) : null}
@@ -477,7 +657,7 @@ export default function TodayScreen() {
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel="Accepted — view workout"
-                  className="flex-row items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-900/80 px-4 py-3.5 active:opacity-70"
+                  className="flex-row items-center justify-center gap-2 rounded-xl border border-border-strong bg-card/80 px-4 py-3.5 active:opacity-70"
                   onPress={() => openPlannedWorkout(planned.id)}
                 >
                   <Text className="text-base font-semibold text-green-400">✓</Text>
@@ -486,7 +666,7 @@ export default function TodayScreen() {
                   </Text>
                 </Pressable>
               ) : (
-                <View className="flex-row items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-900/80 px-4 py-3.5">
+                <View className="flex-row items-center justify-center gap-2 rounded-xl border border-border-strong bg-card/80 px-4 py-3.5">
                   <Text className="text-base font-semibold text-green-400">✓</Text>
                   <Text className="text-base font-semibold text-green-400">
                     {data.action === 'rest' ? 'Rest day accepted' : 'Accepted'}
@@ -500,6 +680,7 @@ export default function TodayScreen() {
                     label={data.action === 'rest' ? 'Accept rest day' : 'Accept recommendation'}
                     onPress={() => void onAccept()}
                     loading={acceptMutation.isPending}
+                    disabled={actionsBusy}
                   />
                 ) : null}
                 {planned ? (
@@ -507,14 +688,39 @@ export default function TodayScreen() {
                     variant="secondary"
                     label="View workout details"
                     onPress={() => openPlannedWorkout(planned.id)}
+                    disabled={actionsBusy}
                   />
                 ) : null}
               </>
             )}
+            <View className="flex-row gap-3">
+              <View className="flex-1">
+                <Button
+                  variant="secondary"
+                  label="View Details"
+                  onPress={() => setDetailOpen(true)}
+                  disabled={actionsBusy}
+                />
+              </View>
+              <View className="flex-1">
+                <Button
+                  label="Refine"
+                  onPress={() => setRefineOpen(true)}
+                  disabled={actionsBusy}
+                />
+              </View>
+            </View>
             <Button
               variant="secondary"
               label="Discuss with Coach"
               onPress={openDiscussWithCoach}
+              disabled={actionsBusy}
+            />
+            <Button
+              variant="secondary"
+              label="Generate Ad-Hoc Workout"
+              onPress={() => setAdhocOpen(true)}
+              disabled={actionsBusy}
             />
           </View>
           <EventCountdownChip />
@@ -524,8 +730,17 @@ export default function TodayScreen() {
       {plannedOnlyHero && planned ? (
         <EnterSection order={2}>
           <View className="mt-6 gap-3">
-            <Button label="View workout details" onPress={() => openPlannedWorkout(planned.id)} />
-
+            <Button
+              label="View workout details"
+              onPress={() => openPlannedWorkout(planned.id)}
+              disabled={actionsBusy}
+            />
+            <Button
+              variant="secondary"
+              label="Generate Ad-Hoc Workout"
+              onPress={() => setAdhocOpen(true)}
+              disabled={actionsBusy}
+            />
           </View>
           <EventCountdownChip />
         </EnterSection>
@@ -533,15 +748,39 @@ export default function TodayScreen() {
 
       {!hasRecommendation && !plannedOnlyHero ? <EventCountdownChip /> : null}
 
-      <EnterSection order={5}>
+      {/* No entering animation here: these glances swap fixed-height skeletons for
+          async-loaded content, and a layout animation on the shared wrapper leaves
+          stale measurements (sections overlapping — issue 058). */}
+      <View>
         <TrainingLoadGlance />
         <MonthlyProgressGlance />
         <WeekGlanceStrip recent={recentQuery.data} planned={upcomingQuery.data} />
         <ComingUpStrip excludePlannedId={planned?.id} />
         <RecentlyTeaser />
         <NutritionGlance />
-      </EnterSection>
+      </View>
     </ScrollView>
+
+    <RecommendationDetailSheet
+      visible={detailOpen}
+      detail={recommendationDetail}
+      recoveryItems={activeRecovery}
+      accepting={acceptMutation.isPending}
+      onClose={() => setDetailOpen(false)}
+      onAccept={() => void onAccept()}
+    />
+    <RefineRecommendationSheet
+      visible={refineOpen}
+      submitting={generatingBusy}
+      onClose={() => setRefineOpen(false)}
+      onSubmit={onRefineSubmit}
+    />
+    <CreateAdHocWorkoutSheet
+      visible={adhocOpen}
+      submitting={adhocBusy}
+      onClose={() => setAdhocOpen(false)}
+      onSubmit={(payload) => void onAdhocSubmit(payload)}
+    />
     </SafeAreaView>
   );
 }

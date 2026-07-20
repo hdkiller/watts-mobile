@@ -8,21 +8,27 @@ export type TodaySessionWidgetProps = {
   metaLine: string;
 };
 
-const TodaySessionWidget = (props: TodaySessionWidgetProps, _env: WidgetEnvironment) => {
+/** Widget colors follow the OS appearance via SwiftUI semantic styles where possible. */
+const TodaySessionWidget = (props: TodaySessionWidgetProps, env: WidgetEnvironment) => {
   'widget';
+  const dark = env.colorScheme !== 'light';
+  const muted = dark ? '#71717a' : '#52525b';
+  const primary = dark ? '#ffffff' : '#09090b';
+  const meta = dark ? '#a1a1aa' : '#71717a';
+
   return (
     <VStack modifiers={[padding({ all: 12 })]}>
-      <Text modifiers={[font({ size: 11, weight: 'semibold' }), foregroundStyle('#71717a')]}>
+      <Text modifiers={[font({ size: 11, weight: 'semibold' }), foregroundStyle(muted)]}>
         TODAY
       </Text>
       <Text modifiers={[font({ size: 16, weight: 'bold' }), foregroundStyle('#00DC82')]}>
         {props.actionLabel || 'Open Coach Watts'}
       </Text>
-      <Text modifiers={[font({ size: 14, weight: 'medium' }), foregroundStyle('#ffffff')]}>
+      <Text modifiers={[font({ size: 14, weight: 'medium' }), foregroundStyle(primary)]}>
         {props.sessionTitle || 'No session loaded'}
       </Text>
       {props.metaLine ? (
-        <Text modifiers={[font({ size: 12 }), foregroundStyle('#a1a1aa')]}>{props.metaLine}</Text>
+        <Text modifiers={[font({ size: 12 }), foregroundStyle(meta)]}>{props.metaLine}</Text>
       ) : null}
     </VStack>
   );

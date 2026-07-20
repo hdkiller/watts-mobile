@@ -10,6 +10,15 @@ type Props = {
   workoutId: string;
 };
 
+/** Title from series actually present (not a hard-coded "Power & heart rate"). */
+export function streamSeriesTitle(labels: string[]): string {
+  const cleaned = labels.map((l) => l.replace(/\s*\(.*?\)\s*/g, '').trim()).filter(Boolean);
+  if (cleaned.length === 0) return 'Streams';
+  if (cleaned.length === 1) return cleaned[0]!;
+  if (cleaned.length === 2) return `${cleaned[0]} & ${cleaned[1]}`;
+  return cleaned.join(' · ');
+}
+
 export function ActivityCharts({ workoutId }: Props) {
   const streams = useActivityStreamsQuery(workoutId);
   const curve = useActivityPowerCurveQuery(workoutId);
@@ -26,7 +35,7 @@ export function ActivityCharts({ workoutId }: Props) {
     return (
       <View className="mt-6 items-center py-4">
         <ActivityIndicator color={Colors.brand} />
-        <Text className="mt-2 text-sm text-ink-muted">Loading charts…</Text>
+        <Text className="mt-2 text-sm text-text-muted">Loading charts…</Text>
       </View>
     );
   }
@@ -34,8 +43,8 @@ export function ActivityCharts({ workoutId }: Props) {
   if (streams.isError && curve.isError) {
     return (
       <View className="mt-6">
-        <Text className="text-xs uppercase tracking-wide text-ink-muted">Charts</Text>
-        <Text className="mt-2 text-sm text-ink-muted">
+        <Text className="text-xs uppercase tracking-wide text-text-muted">Charts</Text>
+        <Text className="mt-2 text-sm text-text-muted">
           Charts unavailable for this workout.
         </Text>
       </View>
@@ -48,18 +57,20 @@ export function ActivityCharts({ workoutId }: Props) {
 
   return (
     <View className="mt-6">
-      <Text className="text-xs uppercase tracking-wide text-ink-muted">Charts</Text>
+      <Text className="text-xs uppercase tracking-wide text-text-muted">Charts</Text>
 
       {streamData && streamData.series.length > 0 ? (
         <View className="mt-4">
-          <Text className="mb-2 text-sm font-medium text-zinc-100">Power & heart rate</Text>
+          <Text className="mb-2 text-sm font-medium text-text-body">
+            {streamSeriesTitle(streamData.series.map((s) => s.label))}
+          </Text>
           <LineSeriesChart series={streamData.series} durationSec={streamData.durationSec} />
         </View>
       ) : null}
 
       {streamData?.zones && streamData.zones.bars.length > 0 ? (
         <View className="mt-6">
-          <Text className="mb-1 text-sm font-medium text-zinc-100">
+          <Text className="mb-1 text-sm font-medium text-text-body">
             {streamData.zones.channelLabel}
           </Text>
           <BarSeriesChart items={zoneBarsToItems(streamData.zones.bars)} />
@@ -68,9 +79,9 @@ export function ActivityCharts({ workoutId }: Props) {
 
       {curveData && curveData.points.length > 0 ? (
         <View className="mt-6">
-          <Text className="mb-1 text-sm font-medium text-zinc-100">Power curve</Text>
+          <Text className="mb-1 text-sm font-medium text-text-body">Power curve</Text>
           {curveData.peak20min != null ? (
-            <Text className="mb-2 text-xs text-ink-muted">
+            <Text className="mb-2 text-xs text-text-muted">
               Peak 20 min · {curveData.peak20min} W
             </Text>
           ) : null}

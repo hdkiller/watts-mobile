@@ -29,7 +29,7 @@ export function Skeleton({ className = '' }: { className?: string }) {
 
   return (
     <Animated.View style={animatedStyle}>
-      <View className={`rounded-lg bg-zinc-800 ${className}`} />
+      <View className={`rounded-lg bg-border-strong ${className}`} />
     </Animated.View>
   );
 }
@@ -38,7 +38,7 @@ export function Skeleton({ className = '' }: { className?: string }) {
 export function ListSkeleton({ rows = 5 }: { rows?: number }) {
   return (
     <SkeletonScreen>
-      <View className="flex-1 bg-surface-dark px-6 pt-4">
+      <View className="flex-1 bg-surface px-6 pt-4">
         {Array.from({ length: rows }, (_, i) => (
           <Skeleton key={i} className="mb-3 h-16 rounded-xl" />
         ))}
@@ -51,11 +51,35 @@ export function ListSkeleton({ rows = 5 }: { rows?: number }) {
 export function DetailSkeleton() {
   return (
     <SkeletonScreen>
-      <View className="flex-1 bg-surface-dark px-6 pt-4">
+      <View className="flex-1 bg-surface px-6 pt-4">
         <Skeleton className="h-7 w-3/4" />
         <Skeleton className="mt-3 h-4 w-1/2" />
         <Skeleton className="mt-8 h-28 rounded-xl" />
         <Skeleton className="mt-4 h-40 rounded-xl" />
+      </View>
+    </SkeletonScreen>
+  );
+}
+
+/** Coach chat open: header + alternating bubbles + composer bar. */
+export function CoachChatSkeleton() {
+  return (
+    <SkeletonScreen>
+      <View className="flex-1 bg-surface px-4 pt-3">
+        <View className="mb-4 flex-row items-center justify-between px-2">
+          <Skeleton className="h-5 w-28" />
+          <Skeleton className="h-5 w-16" />
+        </View>
+        <View className="flex-1 gap-3 px-1">
+          <Skeleton className="h-14 w-[72%] self-start rounded-2xl" />
+          <Skeleton className="h-20 w-[78%] self-end rounded-2xl" />
+          <Skeleton className="h-16 w-[68%] self-start rounded-2xl" />
+          <Skeleton className="h-12 w-[60%] self-end rounded-2xl" />
+        </View>
+        <View className="mt-3 mb-2 flex-row items-center gap-2 px-1 pb-3">
+          <Skeleton className="h-11 flex-1 rounded-xl" />
+          <Skeleton className="h-11 w-11 rounded-xl" />
+        </View>
       </View>
     </SkeletonScreen>
   );

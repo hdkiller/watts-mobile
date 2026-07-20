@@ -175,7 +175,7 @@ export function mapCompletionLabel(status: string | null | undefined): string | 
   const upper = status.trim().toUpperCase();
   switch (upper) {
     case 'PENDING':
-      return 'Pending';
+      return 'Not started';
     case 'COMPLETED':
       return 'Completed';
     case 'SKIPPED':
@@ -192,9 +192,10 @@ export function mapSyncLabel(status: string | null | undefined): string | null {
   const upper = status.trim().toUpperCase();
   switch (upper) {
     case 'SYNCED':
-      return 'Synced';
+      // Already on device — omit jargon from the athlete-facing status line.
+      return null;
     case 'PENDING':
-      return 'Sync pending';
+      return 'Awaiting sync to device';
     case 'ERROR':
     case 'FAILED':
       return 'Sync failed';
@@ -294,9 +295,22 @@ export function mapZoneSummary(structuredWorkout: unknown): PlannedZoneSummary |
   return null;
 }
 
+const DATE_ONLY_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+
 export function formatActivityDate(date: string | Date | null | undefined): string | null {
   if (date == null) return null;
-  const d = typeof date === 'string' ? new Date(date) : date;
+  let d: Date;
+  if (typeof date === 'string') {
+    const trimmed = date.trim();
+    const dateOnly = DATE_ONLY_RE.exec(trimmed);
+    if (dateOnly) {
+      d = new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]));
+    } else {
+      d = new Date(trimmed);
+    }
+  } else {
+    d = date;
+  }
   if (Number.isNaN(d.getTime())) return String(date);
   return d.toLocaleDateString(undefined, {
     weekday: 'short',
@@ -555,28 +569,123 @@ export function mapPlannedListItem(raw: PlannedListItemApi): PlannedListItem {
   };
 }
 
-function intensityFromStep(step: Record<string, unknown>): string | null {
+type StepTarget = {
+  value?: number;
+  range?: { min?: number; max?: number; start?: number; end?: number };
+  units?: string;
+};
+
+function unitsLookLikeZone(units: string | null | undefined): boolean {
+  if (!units || typeof units !== 'string') return false;
+  const u = units.toLowerCase().trim();
+  return (
+    u.includes('zone') ||
+    u === 'z' ||
+    /^z\d/.test(u) ||
+    u.startsWith('hr_zone') ||
+    u.startsWith('power_zone') ||
+    u.startsWith('pace_zone')
+  );
+}
+
+function targetRangeBounds(range: StepTarget['range']): { min: number | null; max: number | null } {
+  if (!range) return { min: null, max: null };
+  const min =
+    typeof range.min === 'number'
+      ? range.min
+      : typeof range.start === 'number'
+        ? range.start
+        : null;
+  const max =
+    typeof range.max === 'number'
+      ? range.max
+      : typeof range.end === 'number'
+        ? range.end
+        : null;
+  return { min, max };
+}
+
+function zoneLabelFromNumber(
+  zoneNumber: number,
+  bands: PlannedZoneBand[] | null | undefined
+): string | null {
+  const n = Math.round(zoneNumber);
+  if (!Number.isFinite(n) || n < 1 || n > 9) return null;
+  const band = bands?.find((b) => {
+    const match = /^Z\s*(\d+)\b/i.exec(b.name) || /(?:zone\s*)?(\d+)/i.exec(b.name);
+    return match != null && Number(match[1]) === n;
+  });
+  if (band?.rangeLabel) return `Z${n} · ${band.rangeLabel}`;
+  return `Z${n}`;
+}
+
+function intensityFromZoneTarget(
+  target: StepTarget,
+  bands: PlannedZoneBand[] | null | undefined
+): string | null {
+  if (!unitsLookLikeZone(target.units)) return null;
+  if (typeof target.value === 'number') {
+    return zoneLabelFromNumber(target.value, bands);
+  }
+  const { min, max } = targetRangeBounds(target.range);
+  if (min != null && max != null && min === max) {
+    return zoneLabelFromNumber(min, bands);
+  }
+  if (min != null && max != null) {
+    const lo = zoneLabelFromNumber(min, bands);
+    const hi = zoneLabelFromNumber(max, bands);
+    if (lo && hi) {
+      // "Z2 · …" / "Z3 · …" → "Z2–Z3" when bands differ; keep first band detail if same zone.
+      const loZone = /^Z(\d+)/.exec(lo)?.[1];
+      const hiZone = /^Z(\d+)/.exec(hi)?.[1];
+      if (loZone && hiZone && loZone !== hiZone) return `Z${loZone}–Z${hiZone}`;
+      return lo;
+    }
+  }
+  if (min != null) return zoneLabelFromNumber(min, bands);
+  if (max != null) return zoneLabelFromNumber(max, bands);
+  return null;
+}
+
+function intensityFromStep(
+  step: Record<string, unknown>,
+  bands?: PlannedZoneBand[] | null
+): string | null {
   const rpe = step.rpe;
   if (typeof rpe === 'number') return `RPE ${rpe}`;
 
-  const power = step.power as { value?: number; range?: { min?: number; max?: number } } | undefined;
-  if (power && typeof power.value === 'number') return `${Math.round(power.value)} W`;
-  if (power?.range && (power.range.min != null || power.range.max != null)) {
-    const min = power.range.min != null ? Math.round(power.range.min) : '?';
-    const max = power.range.max != null ? Math.round(power.range.max) : '?';
-    return `${min}–${max} W`;
+  const power = step.power as StepTarget | undefined;
+  if (power) {
+    const zoneLabel = intensityFromZoneTarget(power, bands);
+    if (zoneLabel) return zoneLabel;
+    if (typeof power.value === 'number') return `${Math.round(power.value)} W`;
+    const { min, max } = targetRangeBounds(power.range);
+    if (min != null || max != null) {
+      const lo = min != null ? Math.round(min) : '?';
+      const hi = max != null ? Math.round(max) : '?';
+      return `${lo}–${hi} W`;
+    }
   }
 
-  const hr = step.heartRate as { value?: number; range?: { min?: number; max?: number } } | undefined;
-  if (hr && typeof hr.value === 'number') return `${Math.round(hr.value)} bpm`;
-  if (hr?.range && (hr.range.min != null || hr.range.max != null)) {
-    const min = hr.range.min != null ? Math.round(hr.range.min) : '?';
-    const max = hr.range.max != null ? Math.round(hr.range.max) : '?';
-    return `${min}–${max} bpm`;
+  const hr = step.heartRate as StepTarget | undefined;
+  if (hr) {
+    const zoneLabel = intensityFromZoneTarget(hr, bands);
+    if (zoneLabel) return zoneLabel;
+    if (typeof hr.value === 'number') return `${Math.round(hr.value)} bpm`;
+    const { min, max } = targetRangeBounds(hr.range);
+    if (min != null || max != null) {
+      const lo = min != null ? Math.round(min) : '?';
+      const hi = max != null ? Math.round(max) : '?';
+      return `${lo}–${hi} bpm`;
+    }
   }
 
-  const pace = step.pace as { value?: number } | undefined;
-  if (pace && typeof pace.value === 'number') return `Pace ${pace.value}`;
+  const pace = step.pace as StepTarget | undefined;
+  if (pace) {
+    const zoneLabel = intensityFromZoneTarget(pace, bands);
+    if (zoneLabel) return zoneLabel;
+    if (typeof pace.value === 'number') return `Pace ${pace.value}`;
+  }
 
   const pct = step.intensity ?? step.percentFtp ?? step.ftpPercent;
   if (typeof pct === 'number') return `${Math.round(pct)}%`;
@@ -599,7 +708,12 @@ function stepName(step: Record<string, unknown>, index: number): string {
   return `Step ${index + 1}`;
 }
 
-function flattenSteps(nodes: unknown[], out: PlannedStructureStep[], depth = 0): void {
+function flattenSteps(
+  nodes: unknown[],
+  out: PlannedStructureStep[],
+  depth = 0,
+  bands?: PlannedZoneBand[] | null
+): void {
   if (depth > 3) return;
   for (const node of nodes) {
     if (!node || typeof node !== 'object') continue;
@@ -619,13 +733,13 @@ function flattenSteps(nodes: unknown[], out: PlannedStructureStep[], depth = 0):
           intensityLabel: null,
         });
       }
-      flattenSteps(nested, out, depth + 1);
+      flattenSteps(nested, out, depth + 1, bands);
       continue;
     }
     out.push({
       name: stepName(step, out.length),
       durationSec: stepDurationSec(step),
-      intensityLabel: intensityFromStep(step),
+      intensityLabel: intensityFromStep(step, bands),
     });
   }
 }
@@ -814,11 +928,12 @@ export function mapPlannedStructure(structuredWorkout: unknown): MappedPlannedSt
     return { steps: flattenStrengthExercises(root.exercises).slice(0, 24), isStrength: true };
   }
 
+  const bands = mapZoneSummary(structuredWorkout)?.bands ?? null;
   const out: PlannedStructureStep[] = [];
   if (Array.isArray(root.steps) && root.steps.length > 0) {
-    flattenSteps(root.steps, out);
+    flattenSteps(root.steps, out, 0, bands);
   } else if (Array.isArray(root.intervals) && root.intervals.length > 0) {
-    flattenSteps(root.intervals, out);
+    flattenSteps(root.intervals, out, 0, bands);
   }
   return { steps: out.slice(0, 24), isStrength: false };
 }

@@ -28,15 +28,15 @@ export function ActiveRecoveryBand({
 
   return (
     <View className="mt-6">
-      <Text className="text-xs font-semibold uppercase tracking-widest text-ink-muted">
+      <Text className="text-xs font-semibold uppercase tracking-widest text-text-muted">
         How you're doing
       </Text>
-      <Text className="mt-1.5 text-sm leading-5 text-ink-muted">
+      <Text className="mt-1.5 text-sm leading-5 text-text-muted">
         Coach Watts will use this when generating today’s guidance.
       </Text>
 
       {isError ? (
-        <View className="mt-3 rounded-xl border border-red-900/50 bg-red-950/40 p-3">
+        <View className="mt-3 rounded-xl border border-danger/40 bg-tint-error p-3">
           <Text className="text-sm text-red-300">
             {errorMessage || 'Could not load recovery context'}
           </Text>
@@ -53,10 +53,10 @@ export function ActiveRecoveryBand({
           {items!.map((item) => (
             <Pressable
               key={item.id}
-              className="mr-2 mt-2 rounded-full border border-zinc-700 bg-zinc-900/80 px-3 py-1.5 active:opacity-80"
+              className="mr-2 mt-2 rounded-full border border-border-strong bg-card/80 px-3 py-1.5 active:opacity-80"
               onPress={() => openRecoveryEvent(item)}
             >
-              <Text className="text-xs font-semibold text-zinc-200">
+              <Text className="text-xs font-semibold text-text-body">
                 {item.label}
                 {item.severity != null ? ` · ${item.severity}/10` : ''}
               </Text>
@@ -66,7 +66,7 @@ export function ActiveRecoveryBand({
       ) : null}
 
       {!isError && !hasItems ? (
-        <Text className="mt-3 text-sm text-ink-muted">No active recovery context for today.</Text>
+        <Text className="mt-3 text-sm text-text-muted">No active recovery context for today.</Text>
       ) : null}
 
       <View className="mt-4 flex-row flex-wrap items-center gap-x-4 gap-y-2">
@@ -85,7 +85,7 @@ export function ActiveRecoveryBand({
           hitSlop={8}
           onPress={() => router.push('/(app)/(tabs)/log?section=recovery' as Href)}
         >
-          <Text className="text-sm text-ink-muted">History</Text>
+          <Text className="text-sm text-text-muted">History</Text>
         </Pressable>
       </View>
     </View>

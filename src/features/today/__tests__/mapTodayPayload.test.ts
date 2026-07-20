@@ -6,6 +6,7 @@ import {
   fatigueSentimentFromLabel,
   formatDuration,
   heroToneForAction,
+  mapRecommendationDetail,
   mapTodayPayload,
   normalizeConfidence,
   recoverySentimentFromLabel,
@@ -141,6 +142,66 @@ describe('mapTodayPayload', () => {
     });
     expect(view.canAccept).toBe(false);
     expect(view.userAccepted).toBe(true);
+  });
+});
+
+describe('mapRecommendationDetail', () => {
+  it('returns null for missing recommendation', () => {
+    expect(mapRecommendationDetail(null)).toBeNull();
+  });
+
+  it('maps why, factors, original plan, and suggested changes', () => {
+    const detail = mapRecommendationDetail({
+      id: 'rec-detail',
+      recommendation: 'rest',
+      reasoning: 'Critically low sleep confirms rest.',
+      confidence: 0.95,
+      userAccepted: false,
+      analysisJson: {
+        key_factors: ['Planned rest day', 'Critically low sleep'],
+        planned_workout: {
+          original_title: 'Rest Day',
+          original_duration_min: 0,
+          original_tss: 0,
+        },
+        suggested_modifications: {
+          new_title: 'Easy spin',
+          new_duration_min: 45,
+          new_tss: 30,
+          description: 'Keep it easy',
+        },
+      },
+    });
+
+    expect(detail?.actionLabel).toBe('Rest day');
+    expect(detail?.confidencePercent).toBe(95);
+    expect(detail?.reasoning).toBe('Critically low sleep confirms rest.');
+    expect(detail?.keyFactors).toEqual(['Planned rest day', 'Critically low sleep']);
+    expect(detail?.originalPlan).toEqual({
+      title: 'Rest Day',
+      durationMin: 0,
+      tss: 0,
+    });
+    expect(detail?.suggestedChanges?.title).toBe('Easy spin');
+    expect(detail?.canAccept).toBe(true);
+  });
+
+  it('falls back to linked planned workout for original plan', () => {
+    const detail = mapRecommendationDetail({
+      id: 'rec-fallback',
+      recommendation: 'proceed',
+      plannedWorkout: {
+        id: 'pw-1',
+        title: 'Endurance',
+        durationSec: 3600,
+        tss: 55,
+      },
+    });
+    expect(detail?.originalPlan).toEqual({
+      title: 'Endurance',
+      durationMin: 60,
+      tss: 55,
+    });
   });
 });
 

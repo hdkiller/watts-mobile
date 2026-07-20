@@ -1,4 +1,4 @@
-import { Stack, router } from 'expo-router';
+import { Stack, router, type Href } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -138,8 +138,8 @@ export default function DailyCheckinScreen() {
 
     if (timedOut && isGenerating) {
       return (
-        <View className="flex-1 items-center justify-center p-6 bg-surface-dark">
-          <Text className="text-lg font-semibold text-white">Still preparing…</Text>
+        <View className="flex-1 items-center justify-center p-6 bg-surface">
+          <Text className="text-lg font-semibold text-text-primary">Still preparing…</Text>
           <Text className="mt-2 text-center text-sm text-red-400">
             Check-in generation timed out. Retry or continue on the web.
           </Text>
@@ -157,8 +157,8 @@ export default function DailyCheckinScreen() {
       const isQuota =
         displayErr instanceof Error && displayErr.message.includes('Quota');
       return (
-        <View className="flex-1 items-center justify-center p-6 bg-surface-dark">
-          <Text className="text-lg font-semibold text-white">
+        <View className="flex-1 items-center justify-center p-6 bg-surface">
+          <Text className="text-lg font-semibold text-text-primary">
             {isQuota ? 'Check-in limit reached' : 'Could not prepare check-in'}
           </Text>
           <Text className="mt-2 text-center text-sm text-red-400">
@@ -181,12 +181,12 @@ export default function DailyCheckinScreen() {
 
     if (isGenerating) {
       return (
-        <View className="flex-1 items-center justify-center p-6 bg-surface-dark">
+        <View className="flex-1 items-center justify-center p-6 bg-surface">
           <ActivityIndicator color={Colors.brand} size="large" />
-          <Text className="mt-4 text-base font-semibold text-white">
+          <Text className="mt-4 text-base font-semibold text-text-primary">
             Preparing your questions…
           </Text>
-          <Text className="mt-1 text-center text-xs text-ink-muted">
+          <Text className="mt-1 text-center text-xs text-text-muted">
             Coach is analyzing your recent training to tailor today's check-in.
           </Text>
         </View>
@@ -195,29 +195,37 @@ export default function DailyCheckinScreen() {
 
     if (!checkin?.questions || checkin.questions.length === 0) {
       return (
-        <View className="flex-1 items-center justify-center p-6 bg-surface-dark">
-          <Text className="text-base font-semibold text-white">No questions today</Text>
-          <Text className="mt-1 text-center text-xs text-ink-muted">
-            There are no checklist items required for your session today.
+        <View className="flex-1 items-center justify-center p-6 bg-surface">
+          <Text className="text-base font-semibold text-text-primary">Nothing to check in today</Text>
+          <Text className="mt-2 text-center text-sm text-text-muted">
+            Coach will ask when it matters.
           </Text>
-          <Button
-            className="mt-6 w-full"
-            label="Go Back"
-            onPress={() => router.back()}
-          />
+          <View className="mt-6 w-full gap-3">
+            <Button
+              label="Log wellness instead"
+              onPress={() => router.replace('/(app)/(tabs)/log?section=wellness' as Href)}
+            />
+            <Button
+              label="Generate questions"
+              variant="secondary"
+              loading={generateMutation.isPending}
+              onPress={handleRetryGenerate}
+            />
+            <Button label="Go Back" variant="secondary" onPress={() => router.back()} />
+          </View>
         </View>
       );
     }
 
     return (
       <ScrollView
-        className="flex-1 bg-surface-dark"
+        className="flex-1 bg-surface"
         contentContainerClassName="p-6"
         contentContainerStyle={{ paddingBottom: 48 + overlap }}
         keyboardShouldPersistTaps="handled"
       >
-        <Text className="text-xl font-bold text-white">Daily Coach Check-In</Text>
-        <Text className="mt-1 text-sm text-ink-muted">
+        <Text className="text-xl font-bold text-text-primary">Daily Coach Check-In</Text>
+        <Text className="mt-1 text-sm text-text-muted">
           Answer YES/NO to help Coach evaluate your readiness and tailor today's training.
         </Text>
         {isDailyCheckinCompleted(checkin) ? (
@@ -230,21 +238,21 @@ export default function DailyCheckinScreen() {
             return (
               <View
                 key={q.id}
-                className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4"
+                className="rounded-xl border border-border bg-card/40 p-4"
               >
-                <Text className="text-base leading-6 text-zinc-100">{q.text}</Text>
+                <Text className="text-base leading-6 text-text-body">{q.text}</Text>
                 <View className="mt-4 flex-row gap-3">
                   <Pressable
                     onPress={() => onAnswer(q.id, 'YES')}
                     className={`flex-1 items-center justify-center py-2.5 rounded-lg border ${
                       currentAnswer === 'YES'
                         ? 'border-brand bg-brand/10'
-                        : 'border-zinc-800 bg-zinc-900/60'
+                        : 'border-border bg-card/60'
                     }`}
                   >
                     <Text
                       className={`text-sm font-semibold ${
-                        currentAnswer === 'YES' ? 'text-brand' : 'text-zinc-400'
+                        currentAnswer === 'YES' ? 'text-brand' : 'text-text-muted'
                       }`}
                     >
                       YES
@@ -255,12 +263,12 @@ export default function DailyCheckinScreen() {
                     className={`flex-1 items-center justify-center py-2.5 rounded-lg border ${
                       currentAnswer === 'NO'
                         ? 'border-red-500 bg-red-500/10'
-                        : 'border-zinc-800 bg-zinc-900/60'
+                        : 'border-border bg-card/60'
                     }`}
                   >
                     <Text
                       className={`text-sm font-semibold ${
-                        currentAnswer === 'NO' ? 'text-red-400' : 'text-zinc-400'
+                        currentAnswer === 'NO' ? 'text-red-400' : 'text-text-muted'
                       }`}
                     >
                       NO
@@ -273,11 +281,11 @@ export default function DailyCheckinScreen() {
         </View>
 
         <View className="mt-6">
-          <Text className="text-xs uppercase tracking-wide text-ink-muted mb-2">
+          <Text className="text-xs uppercase tracking-wide text-text-muted mb-2">
             Notes for Coach (Optional)
           </Text>
           <TextInput
-            className="w-full min-h-[80px] rounded-lg border border-zinc-800 bg-zinc-900/40 px-3 py-2 text-base text-white"
+            className="w-full min-h-[80px] rounded-lg border border-border bg-card/40 px-3 py-2 text-base text-text-primary"
             placeholder="Add context about how you feel, soreness, stress..."
             placeholderTextColor="#71717a"
             multiline
@@ -311,7 +319,7 @@ export default function DailyCheckinScreen() {
           headerShown: true,
         }}
       />
-      <View ref={containerRef} className="flex-1 bg-surface-dark">
+      <View ref={containerRef} className="flex-1 bg-surface">
         {renderContent()}
       </View>
     </>

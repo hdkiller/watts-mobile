@@ -85,6 +85,14 @@ export function kgToDisplayWeight(weightKg: number | null, units: WeightUnits): 
   return Number(weightKg.toFixed(1));
 }
 
+/** Convert a display-unit weight back to kg for APIs that store kilograms. */
+export function displayWeightToKg(weight: number, units: WeightUnits): number {
+  if (units === 'Pounds') {
+    return Number((weight * LBS_TO_KG).toFixed(3));
+  }
+  return weight;
+}
+
 export function weightUnitLabel(units: WeightUnits): string {
   return units === 'Pounds' ? 'lbs' : 'kg';
 }

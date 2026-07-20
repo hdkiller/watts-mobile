@@ -40,16 +40,16 @@ export async function generateDailyCheckin(force = false): Promise<DailyCheckin>
 
   if (!response.ok) {
     let message = `Generation failed (${response.status})`;
+    let body: { message?: string; statusMessage?: string } | null = null;
     try {
-      const body = (await response.json()) as { message?: string; statusMessage?: string };
-      if (response.status === 429) {
-        throw new Error(body.message || 'Quota exceeded for daily check-in.');
-      }
-      message = body.message || body.statusMessage || message;
-    } catch (e: any) {
-      if (e.message) throw e;
+      body = (await response.json()) as { message?: string; statusMessage?: string };
+    } catch {
+      // Non-JSON error bodies (proxy HTML, plain text) keep the status fallback.
     }
-    throw new Error(message);
+    if (response.status === 429) {
+      throw new Error(body?.message || 'Quota exceeded for daily check-in.');
+    }
+    throw new Error(body?.message || body?.statusMessage || message);
   }
 
   return response.json();

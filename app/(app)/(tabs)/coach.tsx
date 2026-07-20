@@ -2,7 +2,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { CoachChat } from '@/src/features/coach/CoachChat';
-import { Colors } from '@/src/theme/colors';
+import { useThemeColors } from '@/src/theme/useThemeColors';
 
 function firstParam(value: string | string[] | undefined): string | null {
   if (Array.isArray(value)) return value[0] ?? null;
@@ -10,6 +10,8 @@ function firstParam(value: string | string[] | undefined): string | null {
 }
 
 export default function CoachScreen() {
+  const theme = useThemeColors();
+
   const params = useLocalSearchParams<{
     roomId?: string | string[];
     attach?: string | string[];
@@ -25,7 +27,7 @@ export default function CoachScreen() {
     <SafeAreaView
       testID="coach-screen"
       edges={{ top: true, bottom: true }}
-      style={{ flex: 1, backgroundColor: Colors.background }}
+      style={{ flex: 1, backgroundColor: theme.surface }}
     >
       <CoachChat
         targetRoomId={roomId}

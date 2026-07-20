@@ -1,9 +1,7 @@
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 
 import { useUnreadNotificationsCount } from '@/src/features/notifications/useNotifications';
-import { Colors } from '@/src/theme/colors';
-
-const tabContentStyle = { backgroundColor: Colors.background };
+import { useThemeColors } from '@/src/theme/useThemeColors';
 
 function moreBadgeLabel(count: number): string | null {
   if (count <= 0) return null;
@@ -13,15 +11,17 @@ function moreBadgeLabel(count: number): string | null {
 export default function TabsLayout() {
   const unreadCount = useUnreadNotificationsCount();
   const moreBadge = moreBadgeLabel(unreadCount);
+  const theme = useThemeColors();
+  const tabContentStyle = { backgroundColor: theme.surface };
 
   return (
     <NativeTabs
-      tintColor={Colors.brand}
-      backgroundColor={Colors.background}
-      iconColor={{ default: Colors.textMuted, selected: Colors.brand }}
+      tintColor={theme.brand}
+      backgroundColor={theme.surface}
+      iconColor={{ default: theme.textMuted, selected: theme.brand }}
       labelStyle={{
-        default: { color: Colors.textMuted },
-        selected: { color: Colors.brand },
+        default: { color: theme.textMuted },
+        selected: { color: theme.brand },
       }}
       minimizeBehavior="onScrollDown"
     >

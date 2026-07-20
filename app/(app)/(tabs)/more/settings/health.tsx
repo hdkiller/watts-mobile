@@ -15,12 +15,13 @@ import {
 } from '@/src/features/log/healthAuth';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
+import { useThemeColors } from '@/src/theme/useThemeColors';
 
 function StatusBadge({ status }: { status: string }) {
-  let bg = 'bg-zinc-800/80 border border-zinc-700/50';
-  let text = 'text-zinc-400';
+  let bg = 'bg-border-strong/80 border border-border-strong/50';
+  let text = 'text-text-muted';
   let label = 'Not connected';
-  let dotBg = 'bg-zinc-500';
+  let dotBg = 'bg-text-muted';
 
   if (status === 'connected' || status === 'unnecessary') {
     bg = 'bg-emerald-500/10 border border-emerald-500/25';
@@ -55,21 +56,21 @@ function PermissionRow({
   granted: boolean;
 }) {
   return (
-    <View className="flex-row items-center justify-between border-t border-zinc-800/60 py-3.5">
-      <Text className="text-sm font-medium text-white">{title}</Text>
+    <View className="flex-row items-center justify-between border-t border-border/60 py-3.5">
+      <Text className="text-sm font-medium text-text-primary">{title}</Text>
       <View className="flex-row items-center">
         <View
           className={`h-4.5 w-4.5 items-center justify-center rounded-full mr-2 ${
-            granted ? 'bg-emerald-500/15' : 'bg-zinc-800'
+            granted ? 'bg-emerald-500/15' : 'bg-border-strong'
           }`}
         >
           {granted ? (
             <Text className="text-xs text-emerald-400 font-bold">✓</Text>
           ) : (
-            <Text className="text-xs text-zinc-500 font-bold">×</Text>
+            <Text className="text-xs text-text-muted font-bold">×</Text>
           )}
         </View>
-        <Text className={`text-sm font-medium ${granted ? 'text-emerald-400' : 'text-zinc-500'}`}>
+        <Text className={`text-sm font-medium ${granted ? 'text-emerald-400' : 'text-text-muted'}`}>
           {granted ? 'Granted' : 'Denied'}
         </Text>
       </View>
@@ -78,6 +79,8 @@ function PermissionRow({
 }
 
 export default function HealthSyncSettingsScreen() {
+  const theme = useThemeColors();
+
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [authStatus, setAuthStatus] = useState<HealthStatusResult>({ status: 'loading' });
@@ -165,27 +168,26 @@ export default function HealthSyncSettingsScreen() {
       />
       <SafeAreaView
         edges={{ bottom: true }}
-        style={{ flex: 1, backgroundColor: Colors.background }}
+        style={{ flex: 1, backgroundColor: theme.surface }}
       >
         {loading ? (
-          <View className="flex-1 items-center justify-center bg-surface-dark">
+          <View className="flex-1 items-center justify-center bg-surface">
             <ActivityIndicator color={Colors.brand} size="large" />
-            <Text className="mt-3 text-sm text-ink-muted">Reading status…</Text>
+            <Text className="mt-3 text-sm text-text-muted">Reading status…</Text>
           </View>
         ) : (
           <ScrollView
-            className="flex-1 bg-surface-dark"
+            className="flex-1 bg-surface"
             contentContainerClassName="px-6 pb-12 pt-4"
           >
-            <Text className="text-2xl font-semibold text-white">Health Sync</Text>
-            <Text className="mt-2 text-sm text-ink-muted leading-5">
+            <Text className="text-sm text-text-muted leading-5">
               Connect your device's native health store to prefill sleep duration and body weight metrics in your daily wellness check-ins.
             </Text>
 
-            <View className="mt-6 rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
+            <View className="mt-6 rounded-xl border border-border bg-card/60 p-5">
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center">
-                  <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-zinc-800">
+                  <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-border-strong">
                     {isIOS ? (
                       <SymbolView name="heart.text.square.fill" size={20} tintColor="#ef4444" />
                     ) : (
@@ -193,10 +195,10 @@ export default function HealthSyncSettingsScreen() {
                     )}
                   </View>
                   <View>
-                    <Text className="text-base font-semibold text-white">
+                    <Text className="text-base font-semibold text-text-primary">
                       {isIOS ? 'Apple Health' : 'Health Connect'}
                     </Text>
-                    <Text className="text-xs text-ink-muted">
+                    <Text className="text-xs text-text-muted">
                       {isIOS ? 'HealthKit Integration' : 'Android Health Hub'}
                     </Text>
                   </View>
@@ -204,7 +206,7 @@ export default function HealthSyncSettingsScreen() {
                 <StatusBadge status={authStatus.status} />
               </View>
 
-              <Text className="mt-4 text-sm text-zinc-300 leading-5">
+              <Text className="mt-4 text-sm text-text-body leading-5">
                 {isIOS
                   ? 'Coach Watts requests read access to Apple Health to retrieve your body weight and sleep analysis for daily wellness logs.'
                   : 'Coach Watts connects to Health Connect to securely read sleep sessions and body weight records recorded on this device.'}
@@ -212,7 +214,7 @@ export default function HealthSyncSettingsScreen() {
 
               {/* iOS Specific Area */}
               {isIOS && (
-                <View className="mt-6 border-t border-zinc-800/80 pt-5">
+                <View className="mt-6 border-t border-border/80 pt-5">
                   {authStatus.status === 'should_request' ? (
                     <Button
                       label="Connect Apple Health"
@@ -220,18 +222,18 @@ export default function HealthSyncSettingsScreen() {
                       loading={busy}
                     />
                   ) : (
-                    <View className="rounded-lg bg-zinc-950/40 p-4 border border-zinc-800/50">
+                    <View className="rounded-lg bg-surface/40 p-4 border border-border/50">
                       <Text className="text-xs font-semibold uppercase text-brand tracking-wider mb-2">
                         Permissions Info
                       </Text>
-                      <Text className="text-xs text-ink-muted leading-4.5">
+                      <Text className="text-xs text-text-muted leading-4.5">
                         Permissions are managed by iOS. If sleep or weight metrics are not syncing, please verify that read permissions are enabled in the native iOS Health App:
                       </Text>
                       <View className="mt-2.5">
-                        <Text className="text-xs text-zinc-400">1. Open the native Health App</Text>
-                        <Text className="text-xs text-zinc-400">2. Tap your Profile picture in the top-right</Text>
-                        <Text className="text-xs text-zinc-400">3. Go to Sharing &gt; Apps &gt; Coach Watts</Text>
-                        <Text className="text-xs text-zinc-400">4. Make sure both Sleep and Weight reads are ON</Text>
+                        <Text className="text-xs text-text-muted">1. Open the native Health App</Text>
+                        <Text className="text-xs text-text-muted">2. Tap your Profile picture in the top-right</Text>
+                        <Text className="text-xs text-text-muted">3. Go to Sharing &gt; Apps &gt; Coach Watts</Text>
+                        <Text className="text-xs text-text-muted">4. Make sure both Sleep and Weight reads are ON</Text>
                       </View>
                     </View>
                   )}
@@ -242,7 +244,7 @@ export default function HealthSyncSettingsScreen() {
               {!isIOS && (
                 <View className="mt-4">
                   {authStatus.status === 'not_available' ? (
-                    <View className="mt-2 border-t border-zinc-800/80 pt-4">
+                    <View className="mt-2 border-t border-border/80 pt-4">
                       <Text className="text-sm text-red-400 mb-4 leading-5">
                         Health Connect is required but currently unavailable or not installed. Please install it from the Google Play Store to continue.
                       </Text>
@@ -293,9 +295,9 @@ export default function HealthSyncSettingsScreen() {
               )}
             </View>
 
-            <View className="mt-6 rounded-xl border border-zinc-800 bg-zinc-950/20 p-5">
-              <Text className="text-sm font-semibold text-white">🔒 Privacy First</Text>
-              <Text className="mt-2 text-xs text-ink-muted leading-4.5">
+            <View className="mt-6 rounded-xl border border-border bg-surface/20 p-5">
+              <Text className="text-sm font-semibold text-text-primary">🔒 Privacy First</Text>
+              <Text className="mt-2 text-xs text-text-muted leading-4.5">
                 Your health data stays on your device. Sleep and weight readings are only sent to your Coach Watts account when you review and save the check-in form. We do not write data to Apple Health or Health Connect, nor do we include health metrics in crash logs.
               </Text>
             </View>

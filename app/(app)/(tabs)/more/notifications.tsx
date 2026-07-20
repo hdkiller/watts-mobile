@@ -1,4 +1,5 @@
 import { Stack, type Href, router } from 'expo-router';
+import { useMemo } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -9,6 +10,10 @@ import {
 } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
+import {
+  formatNotificationTime,
+  markNotificationRepeats,
+} from '@/src/features/notifications/mapNotifications';
 import { resolvePushOpen } from '@/src/features/notifications/resolvePushOpen';
 import type { InboxNotification } from '@/src/features/notifications/types';
 import {
@@ -17,21 +22,6 @@ import {
   useNotificationsQuery,
 } from '@/src/features/notifications/useNotifications';
 import { Colors } from '@/src/theme/colors';
-
-function formatRelativeTime(iso: string): string {
-  const ms = Date.parse(iso);
-  if (!Number.isFinite(ms)) return '';
-  const deltaSec = Math.round((Date.now() - ms) / 1000);
-  if (deltaSec < 60) return 'Just now';
-  if (deltaSec < 3600) return `${Math.floor(deltaSec / 60)}m ago`;
-  if (deltaSec < 86_400) return `${Math.floor(deltaSec / 3600)}h ago`;
-  if (deltaSec < 86_400 * 7) return `${Math.floor(deltaSec / 86_400)}d ago`;
-  try {
-    return new Date(ms).toLocaleDateString();
-  } catch {
-    return '';
-  }
-}
 
 function openNotificationLink(link: string | null) {
   if (!link) return;
@@ -45,29 +35,37 @@ function NotificationRow({
   item,
   onOpen,
 }: {
-  item: InboxNotification;
+  item: InboxNotification & { isRepeat: boolean };
   onOpen: (item: InboxNotification) => void;
 }) {
+  const titleClass = item.isRepeat
+    ? 'font-medium text-text-muted'
+    : item.read
+      ? 'font-medium text-text-body'
+      : 'font-semibold text-text-primary';
+
   return (
     <Pressable
       className={`mb-3 rounded-xl border px-4 py-3.5 active:opacity-80 ${
-        item.read ? 'border-zinc-800 bg-zinc-900/50' : 'border-zinc-700 bg-zinc-900/90'
+        item.read || item.isRepeat
+          ? 'border-border bg-card/50'
+          : 'border-border-strong bg-card/90'
       }`}
       onPress={() => onOpen(item)}
     >
       <View className="flex-row items-start justify-between gap-3">
-        <Text
-          className={`flex-1 text-base ${item.read ? 'font-medium text-zinc-300' : 'font-semibold text-white'}`}
-        >
+        <Text className={`flex-1 text-base ${titleClass}`} numberOfLines={2}>
           {item.title}
         </Text>
         {!item.read ? <View className="mt-1.5 h-2 w-2 rounded-full bg-brand" /> : null}
       </View>
-      <Text className="mt-1.5 text-sm text-ink-muted" numberOfLines={3}>
+      <Text className="mt-1.5 text-sm text-text-muted" numberOfLines={3}>
         {item.body}
       </Text>
-      {formatRelativeTime(item.createdAt) ? (
-        <Text className="mt-2 text-xs text-zinc-500">{formatRelativeTime(item.createdAt)}</Text>
+      {formatNotificationTime(item.createdAt) ? (
+        <Text className="mt-2 text-xs text-text-muted">
+          {formatNotificationTime(item.createdAt)}
+        </Text>
       ) : null}
     </Pressable>
   );
@@ -79,6 +77,10 @@ export default function NotificationsScreen() {
   const markAll = useMarkAllNotificationsRead();
 
   const unreadCount = data?.unreadCount ?? 0;
+  const rows = useMemo(
+    () => markNotificationRepeats(data?.items ?? []),
+    [data?.items]
+  );
 
   const onOpen = (item: InboxNotification) => {
     if (!item.read) {
@@ -110,11 +112,11 @@ export default function NotificationsScreen() {
         }}
       />
       {isLoading && !data ? (
-        <View className="flex-1 items-center justify-center bg-surface-dark">
+        <View className="flex-1 items-center justify-center bg-surface">
           <ActivityIndicator color={Colors.brand} size="large" />
         </View>
       ) : isError ? (
-        <View className="flex-1 bg-surface-dark px-6 pt-6">
+        <View className="flex-1 bg-surface px-6 pt-6">
           <Text className="text-red-400">
             {friendlyError(error, 'Failed to load notifications')}
           </Text>
@@ -124,9 +126,9 @@ export default function NotificationsScreen() {
         </View>
       ) : (
         <FlatList
-          className="flex-1 bg-surface-dark"
+          className="flex-1 bg-surface"
           contentContainerClassName="px-6 pb-10 pt-4"
-          data={data?.items ?? []}
+          data={rows}
           keyExtractor={(item) => item.id}
           refreshControl={
             <RefreshControl
@@ -137,7 +139,7 @@ export default function NotificationsScreen() {
           }
           ListEmptyComponent={
             <View className="pt-8">
-              <Text className="text-base text-ink-muted">
+              <Text className="text-base text-text-muted">
                 No notifications yet. When a recommendation or analysis is ready, it will show up
                 here.
               </Text>

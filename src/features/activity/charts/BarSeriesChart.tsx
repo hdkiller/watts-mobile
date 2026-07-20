@@ -26,13 +26,13 @@ export function BarSeriesChart({ items, accent = Colors.brand }: Props) {
       {items.map((item) => (
         <View key={item.key} className="mt-3">
           <View className="flex-row items-baseline justify-between">
-            <Text className="text-sm text-zinc-100">{item.label}</Text>
-            <Text className="text-xs text-ink-muted">{item.valueLabel}</Text>
+            <Text className="text-sm text-text-body">{item.label}</Text>
+            <Text className="text-xs text-text-muted">{item.valueLabel}</Text>
           </View>
           {item.detail ? (
-            <Text className="mt-0.5 text-[11px] text-ink-muted">{item.detail}</Text>
+            <Text className="mt-0.5 text-[11px] text-text-muted">{item.detail}</Text>
           ) : null}
-          <View className="mt-1.5 h-2 overflow-hidden rounded-full bg-zinc-800">
+          <View className="mt-1.5 h-2 overflow-hidden rounded-full bg-border-strong">
             <View
               className="h-2 rounded-full"
               style={{

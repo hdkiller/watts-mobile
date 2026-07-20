@@ -11,6 +11,7 @@ import { isNutritionTrackingEnabled } from '@/src/features/profile/mapProfile';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { hapticLight } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
+import { useThemeColors } from '@/src/theme/useThemeColors';
 
 const OPTIONS: {
   value: LogTabPreference;
@@ -47,6 +48,8 @@ const OPTIONS: {
 ];
 
 export default function LogSettingsScreen() {
+  const theme = useThemeColors();
+
   const { data: athleteProfile } = useAthleteProfileQuery();
   const nutritionEnabled = isNutritionTrackingEnabled(athleteProfile);
   const { preference, setPreference } = useLogTabPreference();
@@ -61,19 +64,19 @@ export default function LogSettingsScreen() {
       />
       <SafeAreaView
         edges={{ bottom: true }}
-        style={{ flex: 1, backgroundColor: Colors.background }}
+        style={{ flex: 1, backgroundColor: theme.surface }}
       >
         <ScrollView
-          className="flex-1 bg-surface-dark"
+          className="flex-1 bg-surface"
           contentContainerClassName="px-6 pb-12 pt-4"
         >
-          <Text className="text-2xl font-semibold text-white">Log defaults</Text>
-          <Text className="mt-2 text-sm text-ink-muted">
+          <Text className="text-2xl font-semibold text-text-primary">Log defaults</Text>
+          <Text className="mt-2 text-sm text-text-muted">
             Choose which Log tab opens first. Deep links (Check in, History, Nutrition) still jump
             to the right section.
           </Text>
 
-          <View className="mt-6 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">
+          <View className="mt-6 overflow-hidden rounded-xl border border-border bg-card">
             {OPTIONS.map((option, index) => {
               const disabled = Boolean(option.needsNutrition && !nutritionEnabled);
               const selected = preference === option.value;
@@ -84,7 +87,7 @@ export default function LogSettingsScreen() {
                   accessibilityRole="button"
                   accessibilityState={{ selected, disabled }}
                   disabled={disabled}
-                  className={`px-4 py-4 ${isLast ? '' : 'border-b border-zinc-800/80'} ${
+                  className={`px-4 py-4 ${isLast ? '' : 'border-b border-border/80'} ${
                     disabled ? 'opacity-40' : 'active:opacity-80'
                   }`}
                   onPress={() => {
@@ -94,8 +97,8 @@ export default function LogSettingsScreen() {
                 >
                   <View className="flex-row items-start justify-between gap-3">
                     <View className="min-w-0 flex-1">
-                      <Text className="text-base font-semibold text-white">{option.title}</Text>
-                      <Text className="mt-1 text-sm text-ink-muted">
+                      <Text className="text-base font-semibold text-text-primary">{option.title}</Text>
+                      <Text className="mt-1 text-sm text-text-muted">
                         {disabled
                           ? 'Turn on nutrition tracking on the web to use this default.'
                           : option.detail}
@@ -104,12 +107,12 @@ export default function LogSettingsScreen() {
                     <View
                       className="mt-1 h-5 w-5 items-center justify-center rounded-full border"
                       style={{
-                        borderColor: selected ? Colors.brand : '#52525b',
+                        borderColor: selected ? Colors.brand : theme.textMuted,
                         backgroundColor: selected ? Colors.brand : 'transparent',
                       }}
                     >
                       {selected ? (
-                        <View className="h-2 w-2 rounded-full bg-zinc-950" />
+                        <View className="h-2 w-2 rounded-full bg-surface" />
                       ) : null}
                     </View>
                   </View>
@@ -118,7 +121,7 @@ export default function LogSettingsScreen() {
             })}
           </View>
 
-          <Text className="mt-4 text-sm text-ink-muted">
+          <Text className="mt-4 text-sm text-text-muted">
             Current default: {logTabPreferenceLabel(preference, nutritionEnabled)}
           </Text>
         </ScrollView>

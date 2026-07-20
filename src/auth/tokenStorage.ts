@@ -11,22 +11,37 @@ export type StoredTokens = {
   accessExpiresAt: number | null;
 };
 
+/**
+ * Persist tokens. Explicit `null` clears that field; `undefined` preserves the prior value
+ * (used by refresh rotation when the server omits a new refresh token / expiry).
+ */
 export async function saveTokens(tokens: {
   accessToken: string;
   refreshToken?: string | null;
   expiresIn?: number | null;
 }): Promise<StoredTokens> {
-  const accessExpiresAt =
-    typeof tokens.expiresIn === 'number' ? Date.now() + tokens.expiresIn * 1000 : null;
-
   await setItemAsync(ACCESS_KEY, tokens.accessToken);
 
-  if (tokens.refreshToken) {
-    await setItemAsync(REFRESH_KEY, tokens.refreshToken);
+  if (tokens.refreshToken !== undefined) {
+    if (tokens.refreshToken) {
+      await setItemAsync(REFRESH_KEY, tokens.refreshToken);
+    } else {
+      await deleteItemAsync(REFRESH_KEY);
+    }
   }
 
-  if (accessExpiresAt != null) {
-    await setItemAsync(EXPIRES_KEY, String(accessExpiresAt));
+  let accessExpiresAt: number | null;
+  if (tokens.expiresIn !== undefined) {
+    if (typeof tokens.expiresIn === 'number' && Number.isFinite(tokens.expiresIn)) {
+      accessExpiresAt = Date.now() + tokens.expiresIn * 1000;
+      await setItemAsync(EXPIRES_KEY, String(accessExpiresAt));
+    } else {
+      accessExpiresAt = null;
+      await deleteItemAsync(EXPIRES_KEY);
+    }
+  } else {
+    const expiresRaw = await getItemAsync(EXPIRES_KEY);
+    accessExpiresAt = expiresRaw ? Number(expiresRaw) : null;
   }
 
   const refreshToken =
