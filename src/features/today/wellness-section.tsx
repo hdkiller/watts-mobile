@@ -96,7 +96,7 @@ function WellnessTile({
         <Text className="text-xl font-black text-text-primary">{value}</Text>
         <Text className="text-[10px] font-semibold text-text-muted"> {unit}</Text>
       </View>
-      <View className="mt-2 h-4 flex-row items-center">
+      <View className="mt-1.5 min-h-5 flex-row items-center">
         <TrendBadge value={trend} lowerIsBetter={lowerIsBetter} />
       </View>
     </View>
