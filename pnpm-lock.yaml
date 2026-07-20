@@ -44,6 +44,9 @@ importers:
       expo-auth-session:
         specifier: ~57.0.4
         version: 57.0.4(expo@57.0.7)(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)
+      expo-build-properties:
+        specifier: ~57.0.6
+        version: 57.0.6(expo@57.0.7)
       expo-constants:
         specifier: ~57.0.6
         version: 57.0.6(expo@57.0.7)(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))
@@ -2510,6 +2513,11 @@ packages:
     peerDependencies:
       react: '*'
       react-native: '*'
+
+  expo-build-properties@57.0.6:
+    resolution: {integrity: sha512-/iEpjjBgOc8twOqtaDdVcerBRbZGyOFhhpsBch2IfxNFazbrOIIPXc97s732Fia8HiNkhwaHk3GkBB7zi4WZ3g==}
+    peerDependencies:
+      expo: '*'
 
   expo-constants@57.0.6:
     resolution: {integrity: sha512-OV+4XUshdO18TKNlo1cxUkXeJWgUOPgalvl8ofmc7kmPPHoyfz2hGJ94tyY/RND/GG5RREE+me9YHClNEzo+Ow==}
@@ -7708,6 +7716,13 @@ snapshots:
     transitivePeerDependencies:
       - expo
       - supports-color
+
+  expo-build-properties@57.0.6(expo@57.0.7):
+    dependencies:
+      '@expo/schema-utils': 57.0.2
+      expo: 57.0.7(@babel/core@7.29.7)(@expo/dom-webview@57.0.1)(@expo/metro-runtime@57.0.6)(expo-router@57.0.7)(expo-widgets@57.0.6)(react-dom@19.2.3(react@19.2.3))(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native-worklets@0.10.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3))(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)(typescript@6.0.3)
+      resolve-from: 5.0.0
+      semver: 7.8.5
 
   expo-constants@57.0.6(expo@57.0.7)(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3)):
     dependencies:

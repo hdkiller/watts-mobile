@@ -23,6 +23,34 @@ pnpm android      # npx expo run:android
 eas build -p ios --profile development
 ```
 
+## Free Personal Team — stripped device builds
+
+A free Apple ID cannot provision Push, Associated Domains, HealthKit, or App Groups.
+Until the paid Watt Mind org membership is active, use a capability-stripped iOS binary on a physical device; keep the full app on the simulator.
+
+```bash
+# Regenerate ios/ without paid entitlements (required when switching modes)
+pnpm ios:free-team:prebuild
+
+# Install Debug on a connected iPhone (needs Metro / laptop for day-to-day JS)
+pnpm ios:free-team:device
+
+# Install Release on a connected iPhone — JS bundled in; works unplugged on-the-go
+pnpm ios:free-team:device:release
+```
+
+These scripts set `IOS_FREE_TEAM=1`, which `app.config.ts` uses to drop those capabilities and skip the `expo-notifications`, `expo-widgets`, and HealthKit config plugins. Push, universal links, Health prefill, and the home-screen widget are unavailable on that binary; other flows still work.
+
+**Release + free team notes:** the app is still signed with your Personal Team development identity (not App Store). Free provisioning expires after **7 days** — reinstall when iOS says the app is no longer available. Prefer Debug while iterating; use Release when you want to leave the laptop behind.
+
+Switching back to the full app (simulator or paid team):
+
+```bash
+# Important: clean prebuild without IOS_FREE_TEAM so entitlements return
+npx expo prebuild --platform ios --clean
+pnpm ios
+```
+
 If pods look stale after a native package add:
 
 ```bash
