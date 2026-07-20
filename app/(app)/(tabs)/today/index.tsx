@@ -1,6 +1,6 @@
 import { router, type Href } from 'expo-router';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-screens/experimental';
@@ -15,7 +15,12 @@ import { Button } from '@/src/components/Button';
 import { OfflineBanner } from '@/src/components/OfflineBanner';
 import { Skeleton, SkeletonScreen } from '@/src/components/Skeleton';
 import { SportIcon } from '@/src/components/SportIcon';
-import { useRecentActivityQuery, useUpcomingPlannedQuery } from '@/src/features/activity/useActivity';
+import {
+  useCompletePlannedWorkout,
+  useRecentActivityQuery,
+  useSkipPlannedWorkout,
+  useUpcomingPlannedQuery,
+} from '@/src/features/activity/useActivity';
 import { NutritionGlance } from '@/src/features/nutrition/NutritionGlance';
 import { useTodayNutritionQuery } from '@/src/features/nutrition/useNutrition';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
@@ -25,16 +30,15 @@ import { isNutritionTrackingEnabled } from '@/src/features/profile/mapProfile';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { DASHBOARD_PROFILE_KEY } from '@/src/features/profile/useRecentWellness';
 import { useActiveRecoveryQuery } from '@/src/features/recovery/useRecovery';
-import { ActiveRecoveryBand } from '@/src/features/today/active-recovery-band';
 import { AnalysisReadyCard } from '@/src/features/today/analysis-ready-card';
 import { AnalyzeReadinessPanel } from '@/src/features/today/AnalyzeReadinessPanel';
 import { ComingUpStrip } from '@/src/features/today/coming-up-strip';
-import { EventCountdownChip } from '@/src/features/today/event-countdown-chip';
+import { MoreActionsSheet, type MoreAction } from '@/src/features/today/more-actions-sheet';
 import { TrainingLoadGlance } from '@/src/features/performance/TrainingLoadGlance';
 import { pmcQueryKey } from '@/src/features/performance/usePmc';
 import { MonthlyProgressGlance } from '@/src/features/stats/MonthlyProgressGlance';
 import { monthlyComparisonQueryKey } from '@/src/features/stats/useMonthlyProgress';
-import { RecentWellnessGlance } from '@/src/features/today/RecentWellnessGlance';
+import { WellnessSection } from '@/src/features/today/wellness-section';
 import {
   confidenceFilledCount,
   formatDuration,
@@ -202,6 +206,9 @@ export default function TodayScreen() {
   const nutritionEnabled = isNutritionTrackingEnabled(profileQuery.data);
   const nutritionQuery = useTodayNutritionQuery({ enabled: nutritionEnabled });
   const acceptMutation = useAcceptRecommendation();
+  const plannedId = data?.plannedWorkout?.id;
+  const completePlannedMutation = useCompletePlannedWorkout(plannedId);
+  const skipPlannedMutation = useSkipPlannedWorkout(plannedId);
 
   const checkinCompleted = isDailyCheckinCompleted(dailyCheckinQuery.data);
 
@@ -210,6 +217,7 @@ export default function TodayScreen() {
   const [genError, setGenError] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [refineOpen, setRefineOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [adhocOpen, setAdhocOpen] = useState(false);
   const [adhocState, setAdhocState] = useState<'idle' | 'generating' | 'error' | 'quota'>('idle');
   const [adhocError, setAdhocError] = useState<string | null>(null);
@@ -466,6 +474,20 @@ export default function TodayScreen() {
     (data?.raw as ActivityRecommendationApi | null | undefined) ?? null
   );
   const showGeneratePanel = emptyNoDecision || (hasRecommendation && genState !== 'idle');
+  const moreActions: MoreAction[] = [
+    { key: 'details', label: 'View details', onPress: () => setDetailOpen(true) },
+    ...(planned
+      ? [
+          {
+            key: 'workout',
+            label: 'View workout details',
+            onPress: () => openPlannedWorkout(planned.id),
+          },
+        ]
+      : []),
+    { key: 'coach', label: 'Discuss with Coach', onPress: openDiscussWithCoach },
+    { key: 'adhoc', label: 'Generate ad-hoc workout', onPress: () => setAdhocOpen(true) },
+  ];
 
   return (
     <SafeAreaView
@@ -531,7 +553,7 @@ export default function TodayScreen() {
                 Do Quick Daily Coach Check-In
               </Text>
               <Text className="mt-1 text-xs text-text-muted">
-                Coach has questions prepared to adjust today's recommendation.
+                Coach has questions prepared to adjust today’s recommendation.
               </Text>
             </View>
             <Text className="text-xl text-brand">→</Text>
@@ -640,22 +662,11 @@ export default function TodayScreen() {
         </EnterSection>
       ) : null}
 
-      <EnterSection order={3}>
-        <RecentWellnessGlance />
-      </EnterSection>
-
-      <ActiveRecoveryBand
-        items={activeRecovery}
-        isError={recoveryError}
-        errorMessage={friendlyError(recoveryErr, 'Could not load recovery context')}
-        onRetry={() => void refetchRecovery()}
-      />
-
       {actionError ? <Text className="mt-4 text-sm text-red-400">{actionError}</Text> : null}
 
       {hasRecommendation ? (
-        <EnterSection order={4}>
-          <View className="mt-6 gap-3">
+        <EnterSection order={3}>
+          <View className="mt-4 gap-3">
             {data?.userAccepted ? (
               planned ? (
                 <Pressable
@@ -677,64 +688,99 @@ export default function TodayScreen() {
                   </Text>
                 </View>
               )
-            ) : (
-              <>
-                {data?.canAccept ? (
-                  <Button
-                    label={data.action === 'rest' ? 'Accept rest day' : 'Accept recommendation'}
-                    onPress={() => void onAccept()}
-                    loading={acceptMutation.isPending}
-                    disabled={actionsBusy}
-                  />
-                ) : null}
-                {planned ? (
-                  <Button
-                    variant="secondary"
-                    label="View workout details"
-                    onPress={() => openPlannedWorkout(planned.id)}
-                    disabled={actionsBusy}
-                  />
-                ) : null}
-              </>
-            )}
+            ) : data?.canAccept ? (
+              <Button
+                label={data.action === 'rest' ? 'Accept rest day' : 'Accept recommendation'}
+                onPress={() => void onAccept()}
+                loading={acceptMutation.isPending}
+                disabled={actionsBusy}
+              />
+            ) : null}
             <View className="flex-row gap-3">
               <View className="flex-1">
                 <Button
                   variant="secondary"
-                  label="View Details"
-                  onPress={() => setDetailOpen(true)}
-                  disabled={actionsBusy}
-                />
-              </View>
-              <View className="flex-1">
-                <Button
                   label="Refine"
                   onPress={() => setRefineOpen(true)}
                   disabled={actionsBusy}
                 />
               </View>
+              <View className="flex-1">
+                <Button
+                  variant="secondary"
+                  label="More"
+                  onPress={() => setMoreOpen(true)}
+                  disabled={actionsBusy}
+                />
+              </View>
             </View>
-            <Button
-              variant="secondary"
-              label="Discuss with Coach"
-              onPress={openDiscussWithCoach}
-              disabled={actionsBusy}
-            />
-            <Button
-              variant="secondary"
-              label="Generate Ad-Hoc Workout"
-              onPress={() => setAdhocOpen(true)}
-              disabled={actionsBusy}
-            />
           </View>
-          <EventCountdownChip />
         </EnterSection>
       ) : null}
 
       {plannedOnlyHero && planned ? (
         <EnterSection order={2}>
-          <View className="mt-6 gap-3">
+          <View className="mt-4 gap-3">
+            <View className="flex-row gap-3">
+              <View className="flex-1">
+                <Button
+                  label="Complete"
+                  onPress={() => {
+                    Alert.alert('Mark complete?', 'This marks today’s planned session as completed.', [
+                      { text: 'Cancel', style: 'cancel' },
+                      {
+                        text: 'Complete',
+                        onPress: () => {
+                          setActionError(null);
+                          completePlannedMutation.mutate(undefined, {
+                            onError: (err) =>
+                              setActionError(friendlyError(err, 'Failed to complete workout')),
+                            onSuccess: () => hapticSuccess(),
+                          });
+                        },
+                      },
+                    ]);
+                  }}
+                  loading={completePlannedMutation.isPending}
+                  disabled={
+                    actionsBusy ||
+                    completePlannedMutation.isPending ||
+                    skipPlannedMutation.isPending
+                  }
+                />
+              </View>
+              <View className="flex-1">
+                <Button
+                  variant="secondary"
+                  label="Skip"
+                  onPress={() => {
+                    Alert.alert('Skip this workout?', 'This marks today’s planned session as skipped.', [
+                      { text: 'Cancel', style: 'cancel' },
+                      {
+                        text: 'Skip',
+                        style: 'destructive',
+                        onPress: () => {
+                          setActionError(null);
+                          skipPlannedMutation.mutate(undefined, {
+                            onError: (err) =>
+                              setActionError(friendlyError(err, 'Failed to skip workout')),
+                            onSuccess: () => hapticSuccess(),
+                          });
+                        },
+                      },
+                    ]);
+                  }}
+                  loading={skipPlannedMutation.isPending}
+                  disabled={
+                    actionsBusy ||
+                    completePlannedMutation.isPending ||
+                    skipPlannedMutation.isPending
+                  }
+                />
+              </View>
+            </View>
             <Button
+              variant="secondary"
               label="View workout details"
               onPress={() => openPlannedWorkout(planned.id)}
               disabled={actionsBusy}
@@ -746,11 +792,17 @@ export default function TodayScreen() {
               disabled={actionsBusy}
             />
           </View>
-          <EventCountdownChip />
         </EnterSection>
       ) : null}
 
-      {!hasRecommendation && !plannedOnlyHero ? <EventCountdownChip /> : null}
+      <EnterSection order={4}>
+        <WellnessSection
+          recoveryItems={activeRecovery}
+          recoveryError={recoveryError}
+          recoveryErrorMessage={friendlyError(recoveryErr, 'Could not load recovery context')}
+          onRetryRecovery={() => void refetchRecovery()}
+        />
+      </EnterSection>
 
       {/* No entering animation here: these glances swap fixed-height skeletons for
           async-loaded content, and a layout animation on the shared wrapper leaves
@@ -784,6 +836,7 @@ export default function TodayScreen() {
       onClose={() => setAdhocOpen(false)}
       onSubmit={(payload) => void onAdhocSubmit(payload)}
     />
+    <MoreActionsSheet visible={moreOpen} actions={moreActions} onClose={() => setMoreOpen(false)} />
     </SafeAreaView>
   );
 }

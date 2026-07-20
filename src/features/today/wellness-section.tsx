@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Platform, Pressable, Text, View } from 'react-native';
 
 import { useRecentWellness } from '@/src/features/profile/useRecentWellness';
+import type { RecoveryContextItem } from '@/src/features/recovery/types';
 import { WellnessOverviewSheet } from '@/src/features/wellness/WellnessOverviewSheet';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
@@ -78,7 +79,7 @@ function WellnessTile({
 }) {
   const theme = useThemeColors();
   return (
-    <View className="flex-1 rounded-xl border border-border/80 bg-card px-3 py-3.5 shadow-sm">
+    <View className="flex-1">
       <View className="flex-row items-center gap-1.5">
         {Platform.OS === 'ios' ? (
           <SymbolView name={sfIcon} size={13} tintColor={theme.textMuted} />
@@ -89,7 +90,7 @@ function WellnessTile({
           {label}
         </Text>
       </View>
-      <View className="mt-3 flex-row items-baseline gap-0.5">
+      <View className="mt-1 flex-row items-baseline gap-0.5">
         <Text className="text-xl font-black text-text-primary">{value}</Text>
         <Text className="text-[10px] font-semibold text-text-muted"> {unit}</Text>
       </View>
@@ -104,7 +105,28 @@ function goToWellnessCheckIn() {
   router.push('/(app)/(tabs)/log?section=wellness' as Href);
 }
 
-export function RecentWellnessGlance() {
+function openRecoveryEvent(item?: RecoveryContextItem) {
+  if (item) {
+    router.push(`/(app)/recovery-event?id=${encodeURIComponent(item.sourceRecordId)}` as Href);
+    return;
+  }
+  router.push('/(app)/recovery-event' as Href);
+}
+
+type WellnessSectionProps = {
+  recoveryItems: RecoveryContextItem[] | undefined;
+  recoveryError?: boolean;
+  recoveryErrorMessage?: string | null;
+  onRetryRecovery?: () => void;
+};
+
+/** Merged wellness card: recent metrics, active recovery context, and check-in entry points. */
+export function WellnessSection({
+  recoveryItems,
+  recoveryError,
+  recoveryErrorMessage,
+  onRetryRecovery,
+}: WellnessSectionProps) {
   const { profile, sleepTrend, hrvTrend, rhrTrend, isLoading } = useRecentWellness();
   const [overviewOpen, setOverviewOpen] = useState(false);
 
@@ -112,17 +134,13 @@ export function RecentWellnessGlance() {
     return (
       <View className="mt-6 flex-row gap-2.5">
         {[1, 2, 3].map((i) => (
-          <View
-            key={i}
-            className="h-24 flex-1 animate-pulse rounded-xl border border-border bg-card/40"
-          />
+          <View key={i} className="h-16 flex-1 animate-pulse rounded-lg bg-border/40" />
         ))}
       </View>
     );
   }
 
-  const sleepVal =
-    profile?.recentSleep != null ? profile.recentSleep.toFixed(1) : null;
+  const sleepVal = profile?.recentSleep != null ? profile.recentSleep.toFixed(1) : null;
   const hrvVal = profile?.recentHRV ?? null;
   const rhrVal = profile?.restingHr ?? null;
   const hasAnyMetric = sleepVal != null || hrvVal != null || rhrVal != null;
@@ -132,20 +150,19 @@ export function RecentWellnessGlance() {
   const overviewDate = profile?.latestWellnessDate
     ? profile.latestWellnessDate.slice(0, 10)
     : localTodayKey();
+  const hasRecoveryItems = Boolean(recoveryItems?.length);
 
   return (
     <View className="mt-6">
       <View className="flex-row items-center justify-between">
-        <Text className="text-xs uppercase tracking-wide text-text-muted">
-          Recent Wellness
-        </Text>
+        <Text className="text-xs uppercase tracking-wide text-text-muted">Wellness</Text>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Check in"
-          onPress={goToWellnessCheckIn}
+          accessibilityLabel="Wellness history"
+          onPress={() => router.push('/(app)/(tabs)/log?section=recovery' as Href)}
           hitSlop={8}
         >
-          <Text className="text-xs font-semibold text-brand">Check in</Text>
+          <Text className="text-xs font-semibold text-brand">History</Text>
         </Pressable>
       </View>
 
@@ -154,7 +171,7 @@ export function RecentWellnessGlance() {
           accessibilityRole="button"
           accessibilityLabel="No recent wellness. Check in"
           onPress={goToWellnessCheckIn}
-          className="mt-3 rounded-xl border border-border bg-card/60 px-4 py-4 active:opacity-90"
+          className="mt-3 active:opacity-90"
         >
           <Text className="text-sm text-text-body">No recent wellness · Check in</Text>
         </Pressable>
@@ -203,6 +220,46 @@ export function RecentWellnessGlance() {
           </Pressable>
         </>
       )}
+
+      {recoveryError ? (
+        <View className="mt-3 rounded-xl border border-danger/40 bg-tint-error p-3">
+          <Text className="text-sm text-red-300">
+            {recoveryErrorMessage || 'Could not load recovery context'}
+          </Text>
+          {onRetryRecovery ? (
+            <Pressable className="mt-2" hitSlop={8} onPress={onRetryRecovery}>
+              <Text className="font-semibold text-brand">Retry</Text>
+            </Pressable>
+          ) : null}
+        </View>
+      ) : null}
+
+      {!recoveryError ? (
+        <View className="mt-1 flex-row flex-wrap">
+          {hasRecoveryItems
+            ? recoveryItems!.map((item) => (
+                <Pressable
+                  key={item.id}
+                  className="mr-2 mt-2 rounded-full border border-border-strong bg-card/80 px-3 py-1.5 active:opacity-80"
+                  onPress={() => openRecoveryEvent(item)}
+                >
+                  <Text className="text-xs font-semibold text-text-body">
+                    {item.label}
+                    {item.severity != null ? ` · ${item.severity}/10` : ''}
+                  </Text>
+                </Pressable>
+              ))
+            : null}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Log recovery event"
+            className="mr-2 mt-2 rounded-full border border-dashed border-border-strong px-3 py-1.5 active:opacity-80"
+            onPress={() => openRecoveryEvent()}
+          >
+            <Text className="text-xs font-semibold text-text-muted">+ Log event</Text>
+          </Pressable>
+        </View>
+      ) : null}
 
       <WellnessOverviewSheet
         visible={overviewOpen}
