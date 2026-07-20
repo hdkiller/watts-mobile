@@ -23,6 +23,8 @@ pnpm android      # npx expo run:android
 eas build -p ios --profile development
 ```
 
+Android requires **`ANDROID_HOME`** (typically `~/Library/Android/sdk`) and `adb` on `PATH`. App `minSdkVersion` is **26** (`expo-build-properties` in `app.json`) because Health Connect’s client library requires API 26+.
+
 ## Free Personal Team — stripped device builds
 
 A free Apple ID cannot provision Push, Associated Domains, HealthKit, or App Groups.
@@ -105,11 +107,12 @@ Prefer lazy/`require` + a friendly “rebuild needed” message for optional med
 | `expo-haptics` | Key-moment haptics (PR #2) |
 | `expo-widgets` + `@expo/ui` | iOS Today session home-screen widget (`TodaySessionWidget`) |
 | `@kingstinct/react-native-healthkit` + `react-native-nitro-modules` | Log “Prefill from Health” (sleep + weight) on iOS |
-| `react-native-health-connect` | Same prefill on Android |
+| `react-native-health-connect` | Same prefill on Android (requires `minSdk` ≥ 26) |
+| `expo-build-properties` | Sets Android `minSdkVersion` 26 for Health Connect |
 | `@react-native-async-storage/async-storage` | Query persist + analysis-seen store (JS-native bridge; rebuild if autolinking misses it) |
 | `react-native-maps` | Activity detail lite route map (`ActivityMap`); Apple Maps on iOS, Google Maps on Android |
 
-**Maps notes:** Autolinking is enough for iOS (Apple Maps). Android uses Google Maps — if tiles stay blank in release/dev builds, set `android.config.googleMaps.apiKey` in `app.json` (or EAS secrets) and rebuild. `ActivityMap` lazy-requires the module and shows a rebuild hint when the binary is stale.
+**Maps notes:** Autolinking is enough for iOS (Apple Maps). Android uses Google Maps and **requires** a Maps SDK key at native build time — without `com.google.android.geo.API_KEY` in the manifest, `MapView` throws `IllegalStateException: API key not found` (often wrapped as Fabric `addViewAt`). Set `GOOGLE_MAPS_API_KEY` **and** `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` in `.env` / EAS env (`app.config.ts` → `android.config.googleMaps.apiKey`; `EXPO_PUBLIC_` is needed for the JS guard). Then run `npx expo prebuild -p android` so the meta-data is written into `AndroidManifest.xml`, and rebuild (`pnpm android` or EAS). Plain `expo run:android` alone does not always re-apply that config to an existing `android/` tree. Restrict the key to package `com.coachwatts.mobile` + your debug/release SHA-1. `ActivityMap` skips mounting the map on Android when the key is missing and shows a rebuild hint when the binary is stale.
 
 Widget App Group: `group.com.coachwatts.mobile`. Health data is never sent to Sentry/analytics — only to the wellness check-in when the athlete saves.
 

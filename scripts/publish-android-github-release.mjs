@@ -8,13 +8,16 @@
  *   pnpm release:android:github                 # EAS APK → attach to v<version>
  *   pnpm release:android:github -- --skip-build
  *   pnpm release:android:github -- --build-id <eas-build-id>
+ *   pnpm release:android:github -- --local
+ *   pnpm release:android:github -- --apk path/to/app.apk
  *   pnpm release:android:github -- --tag android-preview-smoke --draft
  *   pnpm release:android:github -- --dry-run
  *
  * Default tag is v<package.version> so the APK lands on the release-it GitHub
  * Release when that already exists (upload); otherwise a new release is created.
  *
- * Requires: logged-in `eas` (npx eas-cli) and `gh` with repo write access.
+ * Requires: `gh` with repo write access. Cloud/local EAS also need `eas` login;
+ * `--local` needs Android SDK (`ANDROID_HOME`) like `pnpm android`.
  */
 
 import { spawnSync } from 'node:child_process';
@@ -38,8 +41,10 @@ function usage(exitCode = 0) {
 
 Options:
   --profile <name>     EAS build profile (default: preview)
-  --build-id <id>      Reuse an existing finished EAS build (skips build)
-  --skip-build         Reuse the latest finished Android build for the profile
+  --local              Build the APK on this machine (eas build --local)
+  --apk <path>         Publish an existing APK (skips EAS build/download)
+  --build-id <id>      Wait for / reuse an EAS build id (skips starting a new one)
+  --skip-build         Reuse the latest finished cloud Android build for the profile
   --tag <tag>          GitHub release tag (default: v<version> from package.json)
   --title <title>      GitHub release title (create only)
   --notes <text>       Release notes body (create only; default: install notes)
@@ -56,6 +61,8 @@ Options:
 function parseArgs(argv) {
   const opts = {
     profile: 'preview',
+    local: false,
+    apk: null,
     buildId: null,
     skipBuild: false,
     tag: null,
@@ -84,6 +91,12 @@ function parseArgs(argv) {
         break;
       case '--profile':
         opts.profile = next();
+        break;
+      case '--local':
+        opts.local = true;
+        break;
+      case '--apk':
+        opts.apk = next();
         break;
       case '--build-id':
         opts.buildId = next();
@@ -121,14 +134,22 @@ function parseArgs(argv) {
   }
 
   if (opts.buildId) opts.skipBuild = true;
+  if (opts.apk) opts.skipBuild = true;
+  if (opts.local && (opts.buildId || opts.apk || opts.skipBuild)) {
+    throw new Error('Use only one of --local, --apk, --build-id, or --skip-build');
+  }
   return opts;
 }
 
-function run(command, args, { capture = false, allowFail = false } = {}) {
+function run(command, args, { capture = false, allowFail = false, inheritStderr = false } = {}) {
+  // capture+inheritStderr: keep JSON on stdout, stream progress/logs on stderr (eas --json).
+  const stdio = capture
+    ? ['ignore', 'pipe', inheritStderr ? 'inherit' : 'pipe']
+    : 'inherit';
   const result = spawnSync(command, args, {
     cwd: ROOT,
     encoding: 'utf8',
-    stdio: capture ? ['ignore', 'pipe', 'pipe'] : 'inherit',
+    stdio,
     shell: false,
   });
 
@@ -147,12 +168,29 @@ function run(command, args, { capture = false, allowFail = false } = {}) {
   return result;
 }
 
-function runJson(command, args) {
-  const result = run(command, args, { capture: true });
+function extractJson(text) {
+  const trimmed = (text || '').trim();
+  if (!trimmed) throw new Error('empty JSON');
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    // eas sometimes prints spinners/logs before the JSON payload
+    const start = Math.min(
+      ...['[', '{']
+        .map((ch) => trimmed.indexOf(ch))
+        .filter((i) => i >= 0),
+    );
+    if (!Number.isFinite(start) || start < 0) throw new Error('no JSON payload');
+    return JSON.parse(trimmed.slice(start));
+  }
+}
+
+function runJson(command, args, { inheritStderr = false } = {}) {
+  const result = run(command, args, { capture: true, inheritStderr });
   const stdout = (result.stdout || '').trim();
   if (!stdout) throw new Error(`${command} returned empty JSON`);
   try {
-    return JSON.parse(stdout);
+    return extractJson(stdout);
   } catch (error) {
     throw new Error(
       `Failed to parse JSON from ${command} ${args.join(' ')}:\n${stdout}\n${error}`,
@@ -167,8 +205,39 @@ function requireBin(bin, installHint) {
   }
 }
 
-function easJson(...args) {
-  return runJson('npx', ['eas-cli', ...args, '--json', '--non-interactive']);
+function easJson(args, { inheritStderr = false, nonInteractive = true } = {}) {
+  const flags = ['--json'];
+  // build:view rejects --non-interactive; build/list accept it.
+  if (nonInteractive) flags.push('--non-interactive');
+  return runJson('npx', ['eas-cli', ...args, ...flags], { inheritStderr });
+}
+
+function easBuildUrl(buildId) {
+  return `https://expo.dev/accounts/hdkillers-team/projects/coach-watts-app/builds/${buildId}`;
+}
+
+function waitForFinishedBuild(buildId, { pollSeconds = 30 } = {}) {
+  console.log(`Waiting for EAS build ${buildId} to finish…`);
+  console.log(`Logs: ${easBuildUrl(buildId)}`);
+  console.log('(Ctrl+C stops this waiter only — the cloud build keeps running.)\n');
+
+  for (;;) {
+    const build = unwrapBuild(
+      easJson(['build:view', buildId], { nonInteractive: false }),
+    );
+    const status = String(build.status || '').toLowerCase();
+    if (status === 'finished') return build;
+    if (status === 'errored' || status === 'canceled') {
+      throw new Error(
+        `EAS build ${buildId} ended with status ${build.status}. See ${easBuildUrl(buildId)}`,
+      );
+    }
+    console.log(`  status=${build.status || 'unknown'} — next check in ${pollSeconds}s`);
+    spawnSync(process.platform === 'win32' ? 'timeout' : 'sleep', [
+      process.platform === 'win32' ? '/T' : '',
+      String(pollSeconds),
+    ].filter(Boolean), { stdio: 'ignore' });
+  }
 }
 
 function gitShortSha() {
@@ -240,6 +309,32 @@ async function downloadApk(url, destPath) {
   writeFileSync(destPath, buffer);
 }
 
+async function materializeCloudApk(build, apkPath, dryRun) {
+  const url = assertFinishedApk(build);
+  if (dryRun) {
+    console.log(`[dry-run] would download:\n  ${url}\n→ ${apkPath}`);
+    return;
+  }
+  console.log(`\nDownloading APK → ${apkPath}`);
+  await downloadApk(url, apkPath);
+  const mb = (statSync(apkPath).size / (1024 * 1024)).toFixed(1);
+  console.log(`Downloaded ${mb} MB`);
+}
+
+function ensureAndroidSdk() {
+  const home = process.env.ANDROID_HOME || process.env.ANDROID_SDK_ROOT;
+  if (home && existsSync(home)) return;
+  const fallback = join(process.env.HOME || '', 'Library', 'Android', 'sdk');
+  if (existsSync(fallback)) {
+    process.env.ANDROID_HOME = fallback;
+    console.log(`Using ANDROID_HOME=${fallback}`);
+    return;
+  }
+  throw new Error(
+    'Android SDK not found. Set ANDROID_HOME (e.g. ~/Library/Android/sdk) or install Android Studio.',
+  );
+}
+
 function defaultNotes({ version, sha, profile, buildId, apkName }) {
   return `Android **preview** build for sideload testing (not Play Store).
 
@@ -281,16 +376,37 @@ async function main() {
   console.log(`Profile: ${opts.profile}`);
   console.log(`Tag:     ${tag}${existingRelease ? ' (existing GitHub release)' : ''}`);
   console.log(`Title:   ${title}`);
+  if (opts.local) console.log('Build:   local (this machine)');
   if (opts.dryRun) console.log('Mode:    dry-run');
 
-  let build;
-  if (opts.buildId) {
-    console.log(`\nFetching EAS build ${opts.buildId}…`);
-    build = unwrapBuild(easJson('build:view', opts.buildId));
+  mkdirSync(OUT_DIR, { recursive: true });
+  const apkName = `CoachWatts-${opts.profile}-${version}-${sha}.apk`;
+  const apkPath = join(OUT_DIR, apkName);
+
+  let build = {
+    id: opts.local ? 'local' : opts.apk ? 'local-apk' : 'unknown',
+    status: 'finished',
+  };
+
+  if (opts.apk) {
+    const sourceApk = resolve(opts.apk);
+    if (!opts.dryRun && !existsSync(sourceApk)) {
+      throw new Error(`APK not found: ${sourceApk}`);
+    }
+    if (opts.dryRun) {
+      console.log(`\n[dry-run] would copy ${sourceApk} → ${apkPath}`);
+    } else {
+      console.log(`\nUsing existing APK ${sourceApk}`);
+      copyFileSync(sourceApk, apkPath);
+    }
+  } else if (opts.buildId) {
+    console.log(`\nUsing EAS build ${opts.buildId}…`);
+    build = waitForFinishedBuild(opts.buildId);
+    await materializeCloudApk(build, apkPath, opts.dryRun);
   } else if (opts.skipBuild) {
     console.log(`\nFetching latest finished Android ${opts.profile} build…`);
     build = unwrapBuild(
-      easJson(
+      easJson([
         'build:list',
         '-p',
         'android',
@@ -300,46 +416,76 @@ async function main() {
         'finished',
         '--limit',
         '1',
-      ),
+      ]),
     );
+    await materializeCloudApk(build, apkPath, opts.dryRun);
   } else if (opts.dryRun) {
-    console.log('\n[dry-run] would run: eas build -p android --profile', opts.profile);
-    build = {
-      id: 'dry-run-build-id',
-      status: 'finished',
-      artifacts: {
-        applicationArchiveUrl: 'https://example.invalid/CoachWatts-dry-run.apk',
-      },
-    };
+    const where = opts.local ? 'locally (--local)' : 'on EAS cloud';
+    console.log(`\n[dry-run] would build Android ${opts.profile} ${where}`);
+    console.log(`[dry-run] would produce ${apkPath}`);
+  } else if (opts.local) {
+    console.log(`\nBuilding Android APK locally (profile=${opts.profile})…`);
+    console.log('Needs ANDROID_HOME / SDK like `pnpm android`. Gradle progress below.\n');
+    ensureAndroidSdk();
+    // Same as `pnpm android`: skip Sentry sourcemap upload so missing cli/auth
+    // cannot fail the Gradle release bundle step under pnpm.
+    process.env.SENTRY_DISABLE_AUTO_UPLOAD = 'true';
+    run('npx', [
+      'eas-cli',
+      'build',
+      '-p',
+      'android',
+      '--profile',
+      opts.profile,
+      '--local',
+      '--non-interactive',
+      '--output',
+      apkPath,
+      '-m',
+      `GitHub Release ${tag}`,
+    ]);
+    if (!existsSync(apkPath)) {
+      throw new Error(`Local EAS build finished but APK missing at ${apkPath}`);
+    }
+    const mb = (statSync(apkPath).size / (1024 * 1024)).toFixed(1);
+    console.log(`\nLocal APK ready (${mb} MB): ${apkPath}`);
   } else {
-    console.log(`\nStarting EAS Android build (profile=${opts.profile})…`);
+    console.log(`\nStarting EAS Android cloud build (profile=${opts.profile})…`);
+    console.log(
+      'Cloud builds often take 10–20+ minutes (queue + Gradle). Progress streams below.',
+    );
+    console.log(
+      'Prefer a machine build? Re-run with --local. Ctrl+C cancels waiting only — resume with --build-id.\n',
+    );
+
+    run('npx', [
+      'eas-cli',
+      'build',
+      '-p',
+      'android',
+      '--profile',
+      opts.profile,
+      '--wait',
+      '--non-interactive',
+      '-m',
+      `GitHub Release ${tag}`,
+    ]);
+
     build = unwrapBuild(
-      easJson(
-        'build',
+      easJson([
+        'build:list',
         '-p',
         'android',
-        '--profile',
+        '-e',
         opts.profile,
-        '--wait',
-        '-m',
-        `GitHub Release ${tag}`,
-      ),
+        '--status',
+        'finished',
+        '--limit',
+        '1',
+      ]),
     );
-  }
-
-  const url = assertFinishedApk(build);
-  mkdirSync(OUT_DIR, { recursive: true });
-
-  const apkName = `CoachWatts-${opts.profile}-${version}-${sha}.apk`;
-  const apkPath = join(OUT_DIR, apkName);
-
-  if (opts.dryRun) {
-    console.log(`[dry-run] would download:\n  ${url}\n→ ${apkPath}`);
-  } else {
-    console.log(`\nDownloading APK → ${apkPath}`);
-    await downloadApk(url, apkPath);
-    const mb = (statSync(apkPath).size / (1024 * 1024)).toFixed(1);
-    console.log(`Downloaded ${mb} MB`);
+    console.log(`Using finished build ${build.id}`);
+    await materializeCloudApk(build, apkPath, false);
   }
 
   let releaseUrl = existingRelease?.url || '';

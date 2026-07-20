@@ -17,7 +17,7 @@ This app is the **field companion**: today’s recommendation, check-in, light c
 | [docs/e2e.md](docs/e2e.md) | Maestro smoke + e2e auth seed (fixture token) |
 | [docs/deep-links.md](docs/deep-links.md) | Scheme / universal link path map + host association |
 | [docs/native-modules.md](docs/native-modules.md) | When adding Expo native deps: rebuild the dev client |
-| [docs/distribution.md](docs/distribution.md) | App Store / Play shipping hub → tasks + progress log under `docs/distribution/` |
+| [docs/distribution.md](docs/distribution.md) | App Store / Play hub, release-it versioning, GitHub Android APK → `docs/distribution/` tasks + log |
 | [docs/store-checklist.md](docs/store-checklist.md) | Brand chrome, About links, Sentry env for store builds |
 | [docs/store-privacy-checklist.md](docs/store-privacy-checklist.md) | App Privacy / Data safety questionnaire copy |
 | coach-wattz `docs/06-plans/mobile-companion-app.md` | Full living baseline (PR [#239](https://github.com/hdkiller/coach/pull/239); merge pending) |

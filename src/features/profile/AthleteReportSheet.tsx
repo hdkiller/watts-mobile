@@ -1,4 +1,5 @@
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { AthleteProfileReport } from './mapAthleteReport';
 
@@ -20,7 +21,7 @@ export function AthleteReportSheet({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-surface">
+      <SafeAreaView className="flex-1 bg-surface" edges={['top', 'bottom']}>
         <View className="flex-row items-start justify-between border-b border-border px-5 py-4">
           <View className="min-w-0 flex-1 pr-3">
             <Text className="text-xl font-semibold text-text-primary">AI Athlete Profile</Text>
@@ -95,7 +96,7 @@ export function AthleteReportSheet({
             </>
           )}
         </ScrollView>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }

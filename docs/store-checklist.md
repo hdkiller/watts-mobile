@@ -1,6 +1,6 @@
 # Store candidate checklist
 
-Track chrome and metadata for TestFlight / Play internal tracks. Shipping workflow, outstanding tasks, and progress history live under [distribution.md](./distribution.md). Local Maestro footing lives in [e2e.md](./e2e.md); CI wiring is still open.
+Track chrome and metadata for TestFlight / Play internal tracks. Shipping workflow, **release-it versioning**, outstanding tasks, and progress history live under [distribution.md](./distribution.md). Local Maestro footing lives in [e2e.md](./e2e.md); CI wiring is still open.
 
 ## Brand chrome
 
@@ -33,7 +33,7 @@ npx expo prebuild --platform ios --clean
 pnpm ios
 ```
 
-Local `pnpm ios` / `pnpm android` set `SENTRY_DISABLE_AUTO_UPLOAD=true` so missing upload auth does not fail the native build. Plugin config in `app.json` sets org `watt-mind` / project `coach-watts-app` (EU `de.sentry.io`). EAS store builds that upload symbols also need `SENTRY_AUTH_TOKEN`.
+Local `pnpm ios` / `pnpm android` set `SENTRY_DISABLE_AUTO_UPLOAD=true` so missing upload auth does not fail the native build. EAS `development` / `preview` profiles set the same flag (covers `eas build --local` and GitHub sideload APKs). Plugin config in `app.json` sets org `watt-mind` / project `coach-watts-app` (EU `de.sentry.io`). Production EAS builds that upload symbols also need `SENTRY_AUTH_TOKEN`.
 
 `ios/` is gitignored; a stale prebuild keeps the Expo chevron even when `assets/images/` is branded.
 

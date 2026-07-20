@@ -24,8 +24,11 @@ EAS can sign iOS production builds and release env is configured without committ
 | Profile | Use |
 |---------|-----|
 | `development` | Dev client, internal |
-| `preview` | Internal distribution |
-| `production` | App Store / TestFlight submit |
+| `preview` | Internal APK; `autoIncrement`; GitHub sideload via `pnpm release:android:github` |
+| `production` | Store submit; `autoIncrement` (versionCode / buildNumber) |
+| `e2e` | Extends development + fixture auth — never preview/production |
+
+User-facing version bumps are **not** EAS’s job — use `pnpm release:patch` (release-it). See [../../distribution.md](../../distribution.md)#version-releases-release-it.
 
 ## Done when
 

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Text, useColorScheme, View } from 'react-native';
+import { Platform, Text, useColorScheme, View } from 'react-native';
 
+import { GOOGLE_MAPS_API_KEY } from '@/src/config/env';
 import { Colors } from '@/src/theme/colors';
 
 let MapView: any;
@@ -12,13 +13,22 @@ try {
   MapView = MapsModule.default || MapsModule.MapView;
   Polyline = MapsModule.Polyline;
   Marker = MapsModule.Marker;
-} catch (e) {
+} catch {
   // Graceful fallback if native module is not compiled yet
 }
 
 type Props = {
   coordinates: { latitude: number; longitude: number }[];
 };
+
+function MapUnavailable({ message }: { message: string }) {
+  return (
+    <View className="mt-6 h-[200px] w-full items-center justify-center rounded-xl border border-border bg-card/40 p-4">
+      <Text className="text-sm font-medium text-red-400">Route map preview unavailable</Text>
+      <Text className="mt-1 text-center text-xs text-text-muted">{message}</Text>
+    </View>
+  );
+}
 
 export function ActivityMap({ coordinates }: Props) {
   const colorScheme = useColorScheme();
@@ -44,12 +54,14 @@ export function ActivityMap({ coordinates }: Props) {
 
   if (!MapView || !Polyline || !Marker) {
     return (
-      <View className="mt-6 h-[200px] w-full items-center justify-center rounded-xl border border-border bg-card/40 p-4">
-        <Text className="text-sm font-medium text-red-400">Route map preview unavailable</Text>
-        <Text className="mt-1 text-center text-xs text-text-muted">
-          A native binary rebuild is required to link map modules.
-        </Text>
-      </View>
+      <MapUnavailable message="A native binary rebuild is required to link map modules." />
+    );
+  }
+
+  // Google Maps SDK crashes on attach when the Android manifest key is missing.
+  if (Platform.OS === 'android' && !GOOGLE_MAPS_API_KEY) {
+    return (
+      <MapUnavailable message="Set GOOGLE_MAPS_API_KEY in .env and rebuild the Android binary." />
     );
   }
 

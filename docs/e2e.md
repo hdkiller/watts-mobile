@@ -21,7 +21,7 @@ When `EXPO_PUBLIC_E2E_AUTH=1`, bootstrap skips system-browser PKCE and seeds Sec
 | `EXPO_PUBLIC_E2E_ALLOWED_HOSTS` | Extra hostnames (comma-separated) beyond localhost / `127.0.0.1` / `10.0.2.2` |
 | `EXPO_PUBLIC_E2E_ALLOW_ANY_HOST` | `1` to skip host allowlist (staging only) |
 
-**Never** set these on production / store EAS profiles. Tokens in `EXPO_PUBLIC_*` are embedded in the JS bundle for that build.
+**Never** set these on **preview**, **production**, or store EAS profiles (or on GitHub Release APKs from `pnpm release:android:github`). Tokens in `EXPO_PUBLIC_*` are embedded in the JS bundle for that build. Use only the dedicated `e2e` EAS profile / local `.env` for Maestro.
 
 ### Simulator → instance URL
 

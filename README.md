@@ -109,6 +109,12 @@ Push, universal links, Health prefill, and the home-screen widget are unavailabl
 | `pnpm test:e2e` | All Maestro flows under `maestro/` |
 | `pnpm test:e2e:unauth` | Unauthenticated cold-start smoke |
 | `pnpm test:e2e:shell` | Authenticated tab-shell smoke |
+| `pnpm release` / `release:patch\|minor\|major` | release-it: bump version, CHANGELOG, tag, GitHub notes |
+| `pnpm release:android:github` | EAS preview APK → GitHub Release `vX.Y.Z` |
+
+### Releases (testers / stores)
+
+User-facing version: `pnpm release:patch` (release-it; clean git tree). Store build numbers auto-increment on EAS `preview` / `production`. Sideload Android APK for testers: `pnpm release:android:github` after a version tag. Full store path: [docs/distribution.md](./docs/distribution.md).
 
 ## Testing
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Modal, Pressable, Text, TextInput, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/src/components/Button';
 import { useThemeColors } from '@/src/theme/useThemeColors';
@@ -32,7 +33,7 @@ export function RefineRecommendationSheet({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-surface">
+      <SafeAreaView className="flex-1 bg-surface" edges={['top', 'bottom']}>
         <View className="flex-row items-start justify-between border-b border-border px-5 py-4">
           <View className="min-w-0 flex-1 pr-3">
             <Text className="text-xl font-semibold text-text-primary">Refine or Refresh</Text>
@@ -73,7 +74,7 @@ export function RefineRecommendationSheet({
           />
           <Button variant="secondary" label="Cancel" onPress={onClose} disabled={submitting} />
         </View>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }

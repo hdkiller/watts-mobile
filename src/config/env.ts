@@ -69,3 +69,19 @@ export const SENTRY_ENVIRONMENT =
 export const APP_SCHEME = 'coachwatts';
 
 export const APP_VERSION = Constants.expoConfig?.version ?? '0.1.0';
+
+/**
+ * Android Google Maps key (baked into the native binary via app.config).
+ * iOS uses Apple Maps and does not need this. Prefer GOOGLE_MAPS_API_KEY at
+ * prebuild time; EXPO_PUBLIC_GOOGLE_MAPS_API_KEY is accepted for EAS parity.
+ */
+export const GOOGLE_MAPS_API_KEY =
+  process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY?.trim() ||
+  process.env.GOOGLE_MAPS_API_KEY?.trim() ||
+  extraString('googleMapsApiKey') ||
+  (
+    Constants.expoConfig?.android?.config as
+      | { googleMaps?: { apiKey?: string } }
+      | undefined
+  )?.googleMaps?.apiKey?.trim() ||
+  '';

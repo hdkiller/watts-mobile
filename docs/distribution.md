@@ -30,9 +30,10 @@ Hub for shipping Coach Watts to **App Store** and (later) **Play Console**. Prod
 | [store-checklist.md](./store-checklist.md) | Brand chrome, About links, Sentry env |
 | [store-privacy-checklist.md](./store-privacy-checklist.md) | App Privacy / Data safety paste-ready copy |
 | [oauth-setup.md](./oauth-setup.md) | Official Mobile App client + redirects |
-| [e2e.md](./e2e.md) | Never enable e2e auth on store EAS profiles |
-| [native-modules.md](./native-modules.md) | Rebuild after native / plugin changes |
+| [e2e.md](./e2e.md) | Never enable e2e auth on store / preview EAS profiles |
+| [native-modules.md](./native-modules.md) | Rebuild after native / plugin changes; Android `minSdk` 26 |
 | [deep-links.md](./deep-links.md) | AASA / associated domains for review |
+| [../.release-it.json](../.release-it.json) | release-it: bump, CHANGELOG, git tag, GitHub Release notes |
 
 ## Enrollment (Watt Mind Kft.)
 
@@ -70,16 +71,33 @@ Shared work (do once): production OAuth, privacy copy, Sentry EAS secrets, seede
 
 ## Version releases (release-it)
 
-User-facing version lives in `package.json` (synced to `app.json` / Expo config). Store build numbers (`versionCode` / `buildNumber`) are remote via EAS (`cli.appVersionSource: remote` + `autoIncrement` on preview/production).
+Same stack as coach-wattz (`release-it` + conventional-changelog), without the web changelog CLI hooks.
+
+| Kind | Source of truth |
+|------|-----------------|
+| User-facing (`0.1.0`) | `package.json` → synced to `app.json` / Expo `version` via `scripts/sync-expo-version.mjs` |
+| Store build # (`versionCode` / `buildNumber`) | EAS remote (`cli.appVersionSource: remote` + `autoIncrement` on **preview** / **production**) |
 
 ```bash
+# Clean working tree required
 pnpm release:patch          # or release:minor / release:major / release
-# → bump, CHANGELOG.md, git tag vX.Y.Z, GitHub Release notes
+# → bump, CHANGELOG.md, commit, tag vX.Y.Z, GitHub Release notes
 
-pnpm release:android:github # EAS preview APK attached to vX.Y.Z (or created if missing)
+pnpm release:android:github              # EAS cloud preview APK → vX.Y.Z
+pnpm release:android:github -- --local   # build APK on this machine (Android SDK)
+pnpm release:android:github -- --apk path/to/app.apk
+pnpm release:android:github -- --dry-run
+pnpm release:android:github -- --skip-build   # reuse latest finished cloud APK
 ```
 
-Same release-it stack as coach-wattz (without the web changelog CLI hooks). Do not put `EXPO_PUBLIC_E2E_*` on preview/production builds.
+| EAS profile | Use |
+|-------------|-----|
+| `development` | Dev client (Metro) |
+| `preview` | Internal APK (`android.buildType: apk`); GitHub sideload / testers |
+| `production` | Store AAB/IPA → TestFlight / Play Internal |
+| `e2e` | Fixture auth only — never for testers or stores |
+
+Do **not** set `EXPO_PUBLIC_E2E_*` on preview/production. Android sideload/GitHub builds need API **26+** (`expo-build-properties` in `app.json`).
 
 ## Green light — iOS (Submit for Review)
 

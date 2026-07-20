@@ -6,6 +6,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Colors } from '@/src/theme/colors';
 
@@ -58,7 +59,7 @@ export function RoomListSheet({
 }) {
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <View className="flex-1 bg-surface">
+      <SafeAreaView className="flex-1 bg-surface" edges={['top', 'bottom']}>
         <View className="flex-row items-center justify-between border-b border-border px-5 py-4">
           <Text className="text-xl font-semibold text-text-primary">Chats</Text>
           <View className="flex-row items-center gap-3">
@@ -114,7 +115,7 @@ export function RoomListSheet({
             }}
           />
         )}
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }

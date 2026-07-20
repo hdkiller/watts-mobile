@@ -6,6 +6,7 @@ import {
   ScrollView,
   Text,
   View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
@@ -119,7 +120,7 @@ export function WellnessOverviewSheet({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-surface">
+      <SafeAreaView className="flex-1 bg-surface" edges={['top', 'bottom']}>
         <View className="flex-row items-start justify-between border-b border-border px-5 py-4">
           <View className="min-w-0 flex-1 pr-3">
             <Text className="text-xl font-semibold text-text-primary">Wellness Overview</Text>
@@ -211,7 +212,7 @@ export function WellnessOverviewSheet({
             </Pressable>
           </ScrollView>
         )}
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }

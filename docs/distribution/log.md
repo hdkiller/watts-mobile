@@ -14,6 +14,14 @@ Format:
 
 ---
 
+## 2026-07-20 — release-it + Android GitHub sideload
+
+- Added release-it (same pattern as coach-wattz): `pnpm release` / `release:patch|minor|major` → bump `package.json` + sync `app.json`, `CHANGELOG.md`, tag `vX.Y.Z`, GitHub Release notes.
+- EAS `preview` / `production` use `autoIncrement` with remote app version source; `preview` builds APK for sideload.
+- `pnpm release:android:github` builds/downloads preview APK and attaches it to `v<version>` (or creates the release).
+- Android `minSdkVersion` raised to **26** via `expo-build-properties` (Health Connect requirement).
+- Docs: [distribution.md](../distribution.md)#version-releases-release-it.
+
 ## 2026-07-20 — Play Console: fee paid, website verified
 
 - Organization Play Console signup in progress for Watt Mind Kft.

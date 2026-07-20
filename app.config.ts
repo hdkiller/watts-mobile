@@ -43,12 +43,33 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     plugins.push('./plugins/withIosFreeTeamStrip');
   }
 
+  const googleMapsApiKey =
+    process.env.GOOGLE_MAPS_API_KEY?.trim() ||
+    process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY?.trim() ||
+    '';
+
+  const android = {
+    ...(config.android ?? {}),
+    ...(googleMapsApiKey
+      ? {
+          config: {
+            ...(config.android?.config ?? {}),
+            googleMaps: {
+              ...(config.android?.config?.googleMaps ?? {}),
+              apiKey: googleMapsApiKey,
+            },
+          },
+        }
+      : {}),
+  };
+
   return {
     ...config,
     name: config.name ?? 'Coach Watts',
     slug: config.slug ?? 'coach-watts-app',
     version: packageVersion ?? config.version,
     ios,
+    android,
     plugins,
     extra: {
       ...extra,
@@ -62,6 +83,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         process.env.EAS_BUILD_ID ??
         undefined,
       sentryDist: process.env.EXPO_PUBLIC_SENTRY_DIST ?? process.env.EAS_BUILD_NUMBER ?? undefined,
+      /** Mirrored for runtime guards; native MapView still needs a rebuild with the key. */
+      googleMapsApiKey,
     },
   } as ExpoConfig;
 };
