@@ -14,6 +14,14 @@ type Props = {
   /** Override right-side x-axis label (default: duration as mm:ss). */
   endXLabel?: string;
   startXLabel?: string;
+  /** Hide the series legend for compact/inline embeds. */
+  showLegend?: boolean;
+  /** Hide the horizontal gridlines for compact/inline embeds. */
+  showGrid?: boolean;
+  /** Hide the x-axis start/end labels for compact/inline embeds. */
+  showXLabels?: boolean;
+  /** Override the default chart insets for compact/inline embeds. */
+  insets?: { left?: number; right?: number; top?: number; bottom?: number };
 };
 
 export function LineSeriesChart({
@@ -22,16 +30,20 @@ export function LineSeriesChart({
   height = 160,
   endXLabel,
   startXLabel = '0:00',
+  showLegend = true,
+  showGrid = true,
+  showXLabels = true,
+  insets,
 }: Props) {
   const theme = useThemeColors();
 
   const [width, setWidth] = useState(0);
   if (series.length === 0) return null;
 
-  const padL = 36;
-  const padR = 8;
-  const padT = 12;
-  const padB = 22;
+  const padL = insets?.left ?? 36;
+  const padR = insets?.right ?? 8;
+  const padT = insets?.top ?? 12;
+  const padB = insets?.bottom ?? 22;
   const innerW = Math.max(width - padL - padR, 1);
   const innerH = height - padT - padB;
 
@@ -65,20 +77,22 @@ export function LineSeriesChart({
     >
       {width > 0 ? (
         <Svg width={width} height={height}>
-          {yTicks.map((tick, i) => {
-            const y = toY(tick);
-            return (
-              <Line
-                key={`grid-${i}`}
-                x1={padL}
-                x2={width - padR}
-                y1={y}
-                y2={y}
-                stroke={theme.border}
-                strokeWidth={1}
-              />
-            );
-          })}
+          {showGrid
+            ? yTicks.map((tick, i) => {
+                const y = toY(tick);
+                return (
+                  <Line
+                    key={`grid-${i}`}
+                    x1={padL}
+                    x2={width - padR}
+                    y1={y}
+                    y2={y}
+                    stroke={theme.border}
+                    strokeWidth={1}
+                  />
+                );
+              })
+            : null}
           {series.map((s) => {
             const points = s.points.map((p) => `${toX(p.x)},${toY(p.y)}`).join(' ');
             return (
@@ -111,23 +125,27 @@ export function LineSeriesChart({
         <View style={{ height }} />
       )}
 
-      <View className="mt-1 flex-row justify-between px-1">
-        <Text className="text-[10px] text-text-muted">{startXLabel}</Text>
-        <Text className="text-[10px] text-text-muted">
-          {endXLabel ?? formatChartMinutes(maxX)}
-        </Text>
-      </View>
+      {showXLabels ? (
+        <View className="mt-1 flex-row justify-between px-1">
+          <Text className="text-[10px] text-text-muted">{startXLabel}</Text>
+          <Text className="text-[10px] text-text-muted">
+            {endXLabel ?? formatChartMinutes(maxX)}
+          </Text>
+        </View>
+      ) : null}
 
-      <View className="mt-2 flex-row flex-wrap">
-        {series.map((s) => (
-          <View key={s.key} className="mb-1 mr-4 flex-row items-center">
-            <View className="mr-1.5 h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />
-            <Text className="text-xs text-text-muted">
-              {s.label} ({s.unit})
-            </Text>
-          </View>
-        ))}
-      </View>
+      {showLegend ? (
+        <View className="mt-2 flex-row flex-wrap">
+          {series.map((s) => (
+            <View key={s.key} className="mb-1 mr-4 flex-row items-center">
+              <View className="mr-1.5 h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />
+              <Text className="text-xs text-text-muted">
+                {s.label} ({s.unit})
+              </Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
     </View>
   );
 }

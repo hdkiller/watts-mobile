@@ -22,16 +22,12 @@ import {
   mapMonthlyChartSeries,
   summarizeMonthlyProgress,
 } from './mapMonthlyComparison';
+import { monthlyMetricLabel } from './monthlyProgressPreference';
 import type { MonthlyMetric, MonthlyViewMode } from './types';
 import { useMonthlyComparisonQuery, useWorkoutSportsQuery } from './useMonthlyProgress';
+import { useMonthlyProgressMetric } from './useMonthlyProgressPreference';
 
-const METRICS: { key: MonthlyMetric; label: string }[] = [
-  { key: 'tss', label: 'TSS' },
-  { key: 'duration', label: 'Duration' },
-  { key: 'distance', label: 'Distance' },
-  { key: 'elevation', label: 'Elevation' },
-  { key: 'count', label: 'Count' },
-];
+const METRICS: MonthlyMetric[] = ['tss', 'duration', 'distance', 'elevation', 'count'];
 
 export function MonthlyProgressSheet({
   visible,
@@ -41,7 +37,7 @@ export function MonthlyProgressSheet({
   onClose: () => void;
 }) {
   const { instanceUrl } = useAuth();
-  const [metric, setMetric] = useState<MonthlyMetric>('tss');
+  const { metric, setMetric } = useMonthlyProgressMetric();
   const [sport, setSport] = useState('all');
   const [viewMode, setViewMode] = useState<MonthlyViewMode>('cumulative');
 
@@ -88,12 +84,12 @@ export function MonthlyProgressSheet({
         <ScrollView className="flex-1" contentContainerClassName="px-5 pb-10 pt-5">
           <Text className="text-xs uppercase tracking-wide text-text-muted">Metric</Text>
           <View className="mt-2 flex-row flex-wrap gap-2">
-            {METRICS.map((item) => {
-              const selected = item.key === metric;
+            {METRICS.map((key) => {
+              const selected = key === metric;
               return (
                 <Pressable
-                  key={item.key}
-                  onPress={() => setMetric(item.key)}
+                  key={key}
+                  onPress={() => void setMetric(key)}
                   className={`rounded-full px-3 py-1.5 ${
                     selected ? 'bg-brand' : 'border border-border-strong bg-card'
                   }`}
@@ -103,7 +99,7 @@ export function MonthlyProgressSheet({
                       selected ? 'text-ink' : 'text-text-body'
                     }`}
                   >
-                    {item.label}
+                    {monthlyMetricLabel(key)}
                   </Text>
                 </Pressable>
               );
@@ -180,7 +176,7 @@ export function MonthlyProgressSheet({
                   durationSec={chart.durationSec}
                   height={200}
                   startXLabel="1"
-                  endXLabel={String(Math.max(query.data.todayDay, 1))}
+                  endXLabel={String(chart.endDay)}
                 />
               </View>
               <View className="mt-4 flex-row flex-wrap items-center gap-x-4 gap-y-2">

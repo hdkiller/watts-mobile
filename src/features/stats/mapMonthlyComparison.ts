@@ -112,24 +112,20 @@ export function mapMonthlyChartSeries(
   payload: MonthlyComparisonPayload,
   metric: MonthlyMetric,
   viewMode: MonthlyViewMode
-): { series: StreamSeries[]; durationSec: number } {
-  const days = Math.max(payload.currentMonthName ? 31 : 31, payload.todayDay);
+): { series: StreamSeries[]; durationSec: number; endDay: number } {
+  // Match web MonthlyComparisonCard: x-axis is days 1–31. Current month stops at
+  // today; last month keeps the full curve so month-over-month shape is visible.
+  const endDay = 31;
   const pointsCurrent: { x: number; y: number }[] = [];
   const pointsLast: { x: number; y: number }[] = [];
 
-  for (let day = 1; day <= 31; day++) {
-    if (viewMode === 'cumulative' && day > payload.todayDay) break;
-
+  for (let day = 1; day <= endDay; day++) {
     const currentPoint =
       viewMode === 'cumulative'
         ? payload.currentCumulative[day]
         : payload.currentDaily[day];
     const lastPoint =
       viewMode === 'cumulative' ? payload.lastCumulative[day] : payload.lastDaily[day];
-
-    if (viewMode === 'daily' && day > payload.todayDay) {
-      // still plot last month daily through end of its range via last only
-    }
 
     if (currentPoint && day <= payload.todayDay) {
       pointsCurrent.push({ x: day - 1, y: currentPoint[metric] });
@@ -156,7 +152,7 @@ export function mapMonthlyChartSeries(
     },
   ].filter((s) => s.points.length > 0);
 
-  return { series, durationSec: Math.max(days - 1, 1) };
+  return { series, durationSec: Math.max(endDay - 1, 1), endDay };
 }
 
 export function formatSportLabel(sport: string): string {

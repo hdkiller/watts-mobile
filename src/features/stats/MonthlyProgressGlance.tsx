@@ -1,12 +1,21 @@
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-import { formatDeltaPercent, summarizeMonthlyProgress } from './mapMonthlyComparison';
+import { LineSeriesChart } from '@/src/features/activity/charts/LineSeriesChart';
+
+import {
+  formatDeltaPercent,
+  mapMonthlyChartSeries,
+  summarizeMonthlyProgress,
+} from './mapMonthlyComparison';
+import { monthlyMetricLabel } from './monthlyProgressPreference';
 import { MonthlyProgressSheet } from './MonthlyProgressSheet';
 import { useMonthlyComparisonQuery } from './useMonthlyProgress';
+import { useMonthlyProgressMetric } from './useMonthlyProgressPreference';
 
 export function MonthlyProgressGlance() {
   const query = useMonthlyComparisonQuery('all');
+  const { metric } = useMonthlyProgressMetric();
   const [open, setOpen] = useState(false);
 
   if (query.isLoading && !query.data) {
@@ -21,7 +30,8 @@ export function MonthlyProgressGlance() {
     return null;
   }
 
-  const summary = summarizeMonthlyProgress(query.data, 'tss');
+  const summary = summarizeMonthlyProgress(query.data, metric);
+  const chart = mapMonthlyChartSeries(query.data, metric, 'cumulative');
   const deltaClass =
     summary.percentDiff > 0
       ? 'text-emerald-400'
@@ -36,12 +46,12 @@ export function MonthlyProgressGlance() {
         accessibilityRole="button"
         accessibilityLabel="Open monthly progress"
         onPress={() => setOpen(true)}
-        className="mt-3 rounded-xl border border-border/80 bg-card px-4 py-3.5 active:opacity-90"
+        className="mt-3 active:opacity-90"
       >
         <View className="flex-row items-end justify-between gap-3">
           <View className="flex-1">
             <Text className="text-[10px] font-bold uppercase tracking-wide text-text-muted">
-              {query.data.currentMonthName} TSS
+              {query.data.currentMonthName} {monthlyMetricLabel(metric)}
             </Text>
             <Text className="mt-1 text-xl font-black text-text-primary">
               {summary.formattedCurrent}
@@ -56,8 +66,21 @@ export function MonthlyProgressGlance() {
             </Text>
           </View>
         </View>
+        {chart.series.length > 0 ? (
+          <View className="mt-2" pointerEvents="none">
+            <LineSeriesChart
+              series={chart.series}
+              durationSec={chart.durationSec}
+              height={64}
+              showLegend={false}
+              showGrid={false}
+              showXLabels={false}
+              insets={{ left: 0, right: 4, top: 4, bottom: 4 }}
+            />
+          </View>
+        ) : null}
         <Text className="mt-2 text-[11px] text-text-muted">
-          Month-to-date through day {query.data.todayDay} · tap for chart & filters
+          Month-to-date through day {query.data.todayDay} · tap for details & filters
         </Text>
       </Pressable>
 
