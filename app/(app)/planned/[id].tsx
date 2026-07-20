@@ -1,5 +1,4 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
 import { ScrollView, Text, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
@@ -11,15 +10,14 @@ import { DetailSkeleton } from '@/src/components/Skeleton';
 import { SportIcon } from '@/src/components/SportIcon';
 import { StructureProfile } from '@/src/features/activity/charts/StructureProfile';
 import {
-  absoluteInstanceUrl,
   formatActivityDate,
   formatDuration,
   plannedWorkoutWebPath,
   zoneIndexFromBandName,
-  stepIntensity,
-} from '@/src/features/activity/mapActivity';
+  stepIntensity } from '@/src/features/activity/mapActivity';
 import { usePlannedDetailQuery } from '@/src/features/activity/useActivity';
 import { zoneColor, Colors } from '@/src/theme/colors';
+import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 
 function plannedHeroStats(data: {
   durationSec: number | null;
@@ -46,9 +44,8 @@ export default function PlannedWorkoutDetailScreen() {
   const showCachedOffline = Boolean(isError && data);
 
   const openWeb = async () => {
-    if (!instanceUrl) return;
     const path = id ? plannedWorkoutWebPath(id) : '/';
-    await WebBrowser.openBrowserAsync(absoluteInstanceUrl(instanceUrl, path));
+    await openInstanceWeb(instanceUrl, path);
   };
 
   const statusLine = data

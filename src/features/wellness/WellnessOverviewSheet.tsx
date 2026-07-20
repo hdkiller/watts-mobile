@@ -1,4 +1,3 @@
-import * as WebBrowser from 'expo-web-browser';
 import { router, type Href } from 'expo-router';
 import {
   ActivityIndicator,
@@ -6,17 +5,16 @@ import {
   Pressable,
   ScrollView,
   Text,
-  View,
-} from 'react-native';
+  View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
-import { absoluteInstanceUrl } from '@/src/features/profile/mapProfile';
 import { Colors } from '@/src/theme/colors';
 
 import { wellnessDayWebPath } from './mapWellnessOverview';
 import type { WellnessBarSeries, WellnessOverviewMetric } from './types';
 import { useWellnessOverviewQuery } from './useWellnessOverview';
+import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 
 function formatOverviewDate(dateKey: string): string {
   try {
@@ -25,8 +23,7 @@ function formatOverviewDate(dateKey: string): string {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
-      year: 'numeric',
-    });
+      year: 'numeric' });
   } catch {
     return dateKey;
   }
@@ -34,8 +31,7 @@ function formatOverviewDate(dateKey: string): string {
 
 function TrendText({
   value,
-  lowerIsBetter,
-}: {
+  lowerIsBetter }: {
   value: number | null;
   lowerIsBetter: boolean;
 }) {
@@ -98,8 +94,7 @@ function TrendBars({ series }: { series: WellnessBarSeries }) {
 export function WellnessOverviewSheet({
   visible,
   date,
-  onClose,
-}: {
+  onClose }: {
   visible: boolean;
   date: string | null;
   onClose: () => void;
@@ -108,10 +103,8 @@ export function WellnessOverviewSheet({
   const query = useWellnessOverviewQuery(date, visible);
 
   const openWeb = async () => {
-    if (!instanceUrl || !date) return;
-    await WebBrowser.openBrowserAsync(
-      absoluteInstanceUrl(instanceUrl, wellnessDayWebPath(date))
-    );
+    if (!date) return;
+    await openInstanceWeb(instanceUrl, wellnessDayWebPath(date));
   };
 
   const onCheckIn = () => {

@@ -6,7 +6,7 @@ This app uses **`expo-dev-client`**, not Expo Go as the daily runtime. Adding or
 
 Rebuild after any of:
 
-- `pnpm add` / `expo install` of a package with iOS/Android native code (e.g. `expo-haptics`, `expo-image-picker`, `expo-notifications`, `expo-widgets`, `@kingstinct/react-native-healthkit`, `react-native-health-connect`, `@sentry/react-native`, `react-native-svg`)
+- `pnpm add` / `expo install` of a package with iOS/Android native code (e.g. `expo-haptics`, `expo-image-picker`, `expo-notifications`, `expo-widgets`, `@kingstinct/react-native-healthkit`, `react-native-health-connect`, `@sentry/react-native`, `react-native-svg`, `react-native-maps`)
 - New or changed **config plugin** entries in `app.json` (permissions, associated domains, splash, etc.)
 - Changes under `ios/` / `android/` that aren’t pure JS
 
@@ -79,6 +79,9 @@ Prefer lazy/`require` + a friendly “rebuild needed” message for optional med
 | `@kingstinct/react-native-healthkit` + `react-native-nitro-modules` | Log “Prefill from Health” (sleep + weight) on iOS |
 | `react-native-health-connect` | Same prefill on Android |
 | `@react-native-async-storage/async-storage` | Query persist + analysis-seen store (JS-native bridge; rebuild if autolinking misses it) |
+| `react-native-maps` | Activity detail lite route map (`ActivityMap`); Apple Maps on iOS, Google Maps on Android |
+
+**Maps notes:** Autolinking is enough for iOS (Apple Maps). Android uses Google Maps — if tiles stay blank in release/dev builds, set `android.config.googleMaps.apiKey` in `app.json` (or EAS secrets) and rebuild. `ActivityMap` lazy-requires the module and shows a rebuild hint when the binary is stale.
 
 Widget App Group: `group.com.coachwatts.mobile`. Health data is never sent to Sentry/analytics — only to the wellness check-in when the athlete saves.
 

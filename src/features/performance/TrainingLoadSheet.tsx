@@ -1,4 +1,3 @@
-import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -6,30 +5,27 @@ import {
   Pressable,
   ScrollView,
   Text,
-  View,
-} from 'react-native';
+  View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { LineSeriesChart } from '@/src/features/activity/charts/LineSeriesChart';
-import { absoluteInstanceUrl } from '@/src/features/profile/mapProfile';
 import { Colors } from '@/src/theme/colors';
 
 import {
   formStatusTextClass,
   mapPmcChartSeries,
   performanceWebPath,
-  roundLoad,
-} from './mapPmc';
+  roundLoad } from './mapPmc';
 import type { PmcPeriodDays } from './types';
 import { usePmcQuery } from './usePmc';
+import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 
 const PERIODS: PmcPeriodDays[] = [30, 60, 90];
 
 export function TrainingLoadSheet({
   visible,
-  onClose,
-}: {
+  onClose }: {
   visible: boolean;
   onClose: () => void;
 }) {
@@ -38,10 +34,7 @@ export function TrainingLoadSheet({
   const query = usePmcQuery(days, visible);
 
   const openWeb = async () => {
-    if (!instanceUrl) return;
-    await WebBrowser.openBrowserAsync(
-      absoluteInstanceUrl(instanceUrl, performanceWebPath())
-    );
+    await openInstanceWeb(instanceUrl, performanceWebPath());
   };
 
   const chart = query.data ? mapPmcChartSeries(query.data.data) : null;
@@ -162,8 +155,7 @@ export function TrainingLoadSheet({
 function SummaryCard({
   label,
   value,
-  unit,
-}: {
+  unit }: {
   label: string;
   value: number;
   unit: string;

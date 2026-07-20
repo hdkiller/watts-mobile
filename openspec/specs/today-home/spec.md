@@ -4,7 +4,7 @@
 TBD - created by archiving change phase-1-today-loop. Update Purpose after archive.
 ## Requirements
 ### Requirement: Today decision surface
-The Today tab SHALL present a single scrollable morning surface with: greeting/date, recommendation hero (action + short rationale) or planned-only hero when no recommendation but today’s planned workout exists, planned workout summary when available alongside a recommendation, optional compact recovery metrics, a named Active Recovery Context band, primary CTAs, then thin Coming up and Recently glances. The first viewport MUST remain one decision composition — glances MUST appear below primary CTAs (or below the recovery band when no CTAs are shown) and MUST NOT introduce calendar heatmaps, CTL grids, or dashboard stat strips.
+The Today tab SHALL present a single scrollable morning surface with: greeting/date, recommendation hero (action + short rationale) or planned-only hero when no recommendation but today’s planned workout exists, planned workout summary when available alongside a recommendation, a read-only Recent Wellness glance per `today-wellness-glance` when wellness data or an empty-state affordance applies, a named Active Recovery Context band, primary CTAs, then thin Coming up and Recently glances. The first viewport MUST remain one decision composition — glances MUST appear below primary CTAs (or below the recovery band when no CTAs are shown) and MUST NOT introduce calendar heatmaps, CTL grids, or dashboard stat strips. The system MUST NOT present recommendation-`analysisJson` Sleep/HRV labels as if they were device wellness biometrics once the Recent Wellness glance is available.
 
 #### Scenario: Recommendation present
 - **WHEN** today’s recommendation is loaded successfully
@@ -18,8 +18,16 @@ The Today tab SHALL present a single scrollable morning surface with: greeting/d
 - **WHEN** Today renders Coming up or Recently teasers
 - **THEN** those sections appear below the primary decision CTAs when CTAs are present
 
+#### Scenario: Recent Wellness context
+- **WHEN** recent wellness metrics are available
+- **THEN** Today shows the Recent Wellness glance as compact context near Active Recovery Context, not as a dashboard header above the hero
+
+#### Scenario: No AI biometric strip
+- **WHEN** the Recent Wellness glance is implemented
+- **THEN** Today does not show a separate Sleep/HRV tile strip derived only from recommendation analysis JSON
+
 ### Requirement: Empty and loading states
-The Today tab SHALL show a loading state while fetching and a clear empty state when no recommendation exists for today and no planned workout is available. When no recommendation exists but today’s planned workout is available, the planned workout SHALL be the hero decision surface. Empty/no-recommendation states MAY offer Open web (instance) and Retry; they MUST NOT present a fake on-device “generate recommendation” or Analyze Readiness action unless a real Bearer generate API is already wired.
+The Today tab SHALL show a loading state while fetching and a clear empty state when no recommendation exists for today and no planned workout is available. When no recommendation exists but today’s planned workout is available, the planned workout SHALL be the hero decision surface. Empty/no-recommendation states MAY offer Open web (instance) and Retry. When the Bearer Analyze Readiness generate API is available, the empty (no recommendation, no planned-only hero) state SHALL offer Analyze Readiness; the app MUST NOT present a fake generate action when that API is unavailable.
 
 #### Scenario: No recommendation
 - **WHEN** the today recommendation API returns null/empty and there is no planned workout for today
@@ -29,6 +37,14 @@ The Today tab SHALL show a loading state while fetching and a clear empty state 
 - **WHEN** there is no recommendation but today’s planned workout is available
 - **THEN** Today presents that planned workout as the primary decision surface (not only a secondary empty card)
 
+#### Scenario: Analyze Readiness available
+- **WHEN** there is no recommendation and no planned-only hero and generate is Bearer-available
+- **THEN** Today shows Analyze Readiness as a primary empty-state action
+
+#### Scenario: Analyze Readiness unavailable
+- **WHEN** generate is not Bearer-available
+- **THEN** Today does not show a decorative Analyze Readiness button
+
 ### Requirement: Planned workout entry point
 When a planned workout is associated with today, the Today tab SHALL let the user open a detail screen with title, duration, intensity/TSS, and interval summary when available.
 
@@ -37,7 +53,7 @@ When a planned workout is associated with today, the Today tab SHALL let the use
 - **THEN** the app navigates to a detail stack screen for that workout
 
 ### Requirement: Active recovery context on Today
-The Today tab SHALL show a named **Active Recovery Context** band with a clear header and short helper that Coach Watts uses this context when generating today’s guidance. The band SHALL include compact chips for recovery-context items active today when any exist, an honest empty state when none exist, and secondary actions: Log event (recovery-event create), Check in (Log tab wellness, without duplicating the wellness form on Today), and a quiet History affordance (Log recovery section and/or existing web escape patterns).
+The Today tab SHALL show a named **Active Recovery Context** band with a clear header and short helper that Coach Watts uses this context when generating today’s guidance. The band SHALL include compact chips for recovery-context items active today when any exist, an honest empty state when none exist, and secondary actions: Log event (recovery-event create), wellness Check in (Log tab wellness form, without duplicating the wellness form on Today), and a quiet History affordance (Log recovery section and/or existing web escape patterns). Wellness Check in MUST remain distinct from Daily Coach Check-In (AI questionnaire).
 
 #### Scenario: Active chips visible
 - **WHEN** one or more recovery-context items are active for the local today
@@ -45,11 +61,11 @@ The Today tab SHALL show a named **Active Recovery Context** band with a clear h
 
 #### Scenario: Empty recovery context
 - **WHEN** no recovery-context items are active for today
-- **THEN** the named band still renders with an empty-state message and secondary Log event / Check in actions
+- **THEN** the named band still renders with an empty-state message and secondary Log event / wellness Check in actions
 
-#### Scenario: Check in from Today
-- **WHEN** the user taps Check in on the Active Recovery Context band
-- **THEN** the app navigates to the Log tab (wellness section when supported) and MUST NOT render a second wellness form on Today
+#### Scenario: Wellness check in from Today
+- **WHEN** the user taps wellness Check in on the Active Recovery Context band
+- **THEN** the app navigates to the Log tab (wellness section when supported) and MUST NOT render a second wellness form on Today and MUST NOT open the AI Daily Coach Check-In questionnaire
 
 #### Scenario: Primary CTAs remain primary
 - **WHEN** Today renders with a recommendation
@@ -80,4 +96,47 @@ The Today tab SHALL show a thin Recently teaser of 1–2 recent activities reusi
 #### Scenario: No recent activities
 - **WHEN** the recent activity query returns an empty list
 - **THEN** Today shows a quiet empty line or omits dense empty chrome without blocking the decision hero
+
+### Requirement: Wellness overview does not block decision
+Loading or failure of the Wellness Overview detail query MUST NOT block rendering of the recommendation hero, planned workout, or primary CTAs. The overview sheet SHALL show its own loading and error states after open.
+
+#### Scenario: Overview fetch fails
+- **WHEN** the athlete opens Wellness Overview and the wellness detail request errors
+- **THEN** the sheet shows an honest error/retry state and Today behind the sheet remains usable after dismiss
+
+### Requirement: Training load glance does not block decision
+Loading or failure of the PMC query MUST NOT block rendering of the recommendation hero, planned workout, or primary CTAs.
+
+#### Scenario: PMC slow or failing
+- **WHEN** the performance PMC query is loading or errors
+- **THEN** the recommendation/planned decision surface still renders and the Training Load glance is omitted or shows a short unavailable state
+
+### Requirement: Wellness glance does not block decision
+Loading or failure of wellness/profile trend queries MUST NOT block rendering of the recommendation hero, planned workout, or primary CTAs. The Recent Wellness glance SHALL omit or show a quiet unavailable state on wellness fetch failure.
+
+#### Scenario: Wellness slow or failing
+- **WHEN** the wellness or profile dashboard query is loading or errors
+- **THEN** the recommendation/planned decision surface still renders and the glance is omitted or shows a short unavailable state
+
+### Requirement: Daily Coach Check-In entry on Today
+The Today tab SHALL offer Daily Coach Check-In when today’s AI questionnaire is incomplete, as a distinct action from Accept / Rest / Analyze Readiness and from Active Recovery Context wellness navigation. When the Bearer check-in APIs are unavailable, Today MUST NOT show a fake Daily Coach Check-In CTA.
+
+#### Scenario: Incomplete shows coach check-in
+- **WHEN** today’s AI Daily Coach Check-In is incomplete and Bearer check-in APIs are available
+- **THEN** Today shows Daily Coach Check-In as a clear action
+
+#### Scenario: Unavailable API
+- **WHEN** generate or answer check-in endpoints are not Bearer-capable for the client
+- **THEN** Today does not show a decorative Daily Coach Check-In button that cannot complete
+
+### Requirement: Monthly Progress glance does not block decision
+The Today tab MAY show a Monthly Progress glance below primary recommendation / Accept CTAs (alongside Training Load and week glances). Monthly Progress MUST NOT push primary CTAs out of the first-viewport decision composition when a recommendation exists, and MUST NOT introduce a first-viewport dashboard chart.
+
+#### Scenario: Placement
+- **WHEN** Monthly Progress data is available
+- **THEN** it appears as a thin context glance after decision CTAs, not as a hero dashboard card
+
+#### Scenario: Failure soft
+- **WHEN** monthly-comparison fails or is forbidden
+- **THEN** Today still presents the recommendation decision surface
 

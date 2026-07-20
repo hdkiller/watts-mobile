@@ -1,5 +1,4 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useRef } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 
@@ -12,24 +11,21 @@ import { SportIcon } from '@/src/components/SportIcon';
 import { ActivityCharts } from '@/src/features/activity/ActivityCharts';
 import { ActivityMap } from '@/src/features/activity/ActivityMap';
 import {
-  absoluteInstanceUrl,
   formatActivityDate,
   formatDuration,
-  workoutWebPath,
-} from '@/src/features/activity/mapActivity';
+  workoutWebPath } from '@/src/features/activity/mapActivity';
 import { resolveActivityRouteCoordinates } from '@/src/features/activity/route';
 import type {
   ActivityAnalysis,
   ActivitySummary,
-  AnalysisPhase,
-} from '@/src/features/activity/types';
+  AnalysisPhase } from '@/src/features/activity/types';
 import {
   useActivityStreamsQuery,
   useActivitySummaryQuery,
-  useRequestWorkoutAnalysis,
-} from '@/src/features/activity/useActivity';
+  useRequestWorkoutAnalysis } from '@/src/features/activity/useActivity';
 import { markAnalysisSeen } from '@/src/features/today/analysisReadyStore';
 import { hapticError, hapticSuccess } from '@/src/lib/haptics';
+import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 
 function activityHeroStats(data: ActivitySummary): HeroStat[] {
   const stats: HeroStat[] = [];
@@ -52,8 +48,7 @@ function AnalysisBlock({
   analysis,
   analyzing,
   analyzeError,
-  onAnalyze,
-}: {
+  onAnalyze }: {
   analysis: ActivityAnalysis;
   analyzing: boolean;
   analyzeError: string | null;
@@ -208,15 +203,13 @@ export default function ActivitySummaryScreen() {
   }, [id, data?.analysis.phase]);
 
   const openWeb = async () => {
-    if (!instanceUrl) return;
     const path = id ? workoutWebPath(id) : '/';
-    await WebBrowser.openBrowserAsync(absoluteInstanceUrl(instanceUrl, path));
+    await openInstanceWeb(instanceUrl, path);
   };
 
   const onAnalyze = () => {
     analyzeMutation.mutate(undefined, {
-      onError: () => hapticError(),
-    });
+      onError: () => hapticError() });
   };
 
   const analyzeError = analyzeMutation.error

@@ -7,12 +7,14 @@ import {
   Modal,
   Platform,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
   View,
 } from 'react-native';
 import { SymbolView, type SFSymbol } from 'expo-symbols';
 import { Button } from '@/src/components/Button';
+import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
 import { Colors } from '@/src/theme/colors';
 
 import {
@@ -209,6 +211,7 @@ export function CoachChat({
   const autoAttachHandled = useRef(false);
   const discussHandled = useRef(false);
   const [attachSheetOpen, setAttachSheetOpen] = useState(false);
+  const { containerRef, overlap } = useKeyboardOverlap();
   const chat = useCoachChat({ targetRoomId });
 
   useEffect(() => {
@@ -218,6 +221,15 @@ export function CoachChat({
     }, 50);
     return () => clearTimeout(timer);
   }, [chat.displayMessages, chat.streaming]);
+
+  // Keep the newest messages visible above the composer when the keyboard opens.
+  useEffect(() => {
+    if (overlap === 0) return;
+    const timer = setTimeout(() => {
+      listRef.current?.scrollToEnd({ animated: true });
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [overlap]);
 
   useEffect(() => {
     if (!autoAttach || autoAttachHandled.current || chat.loading || chat.isReadOnly) return;
@@ -300,7 +312,11 @@ export function CoachChat({
     : null;
 
   return (
-    <View className="flex-1 bg-surface-dark">
+    <View
+      ref={containerRef}
+      className="flex-1 bg-surface-dark"
+      style={{ paddingBottom: overlap }}
+    >
       <View className="border-b border-zinc-800 px-5 pb-3 pt-2">
         <View className="flex-row items-center justify-between gap-3">
           <Pressable
@@ -355,7 +371,11 @@ export function CoachChat({
       ) : null}
 
       {empty ? (
-        <View className="flex-1 px-5 pt-6">
+        <ScrollView
+          className="flex-1 px-5 pt-6"
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
+        >
           <Text className="text-base text-ink-muted">
             Ask Coach Watts about today’s recommendation or how you feel. Short questions work
             best — or attach a meal photo to log nutrition.
@@ -376,7 +396,7 @@ export function CoachChat({
               </Pressable>
             ))}
           </View>
-        </View>
+        </ScrollView>
       ) : (
         <FlatList
           ref={listRef}
@@ -392,6 +412,8 @@ export function CoachChat({
             />
           )}
           contentContainerStyle={{ paddingBottom: 16 }}
+          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+          keyboardShouldPersistTaps="handled"
           onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
         />
       )}

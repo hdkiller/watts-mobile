@@ -12,6 +12,7 @@ This app is the **field companion**: today’s recommendation, check-in, light c
 | [docs/product-baseline.md](docs/product-baseline.md) | Product positioning, v1 scope, IA, non-goals |
 | [docs/implementation-plan.md](docs/implementation-plan.md) | Delivery phases and checklist for this repo |
 | [docs/open-questions.md](docs/open-questions.md) | Decisions to resolve before/during Phase 0–1 |
+| [docs/issues.md](docs/issues.md) | Known issues / bugs tracked in-repo (maintain here) |
 | [docs/oauth-setup.md](docs/oauth-setup.md) | Public OAuth client + redirect URI registration |
 | [docs/e2e.md](docs/e2e.md) | Maestro smoke + e2e auth seed (fixture token) |
 | [docs/deep-links.md](docs/deep-links.md) | Scheme / universal link path map + host association |

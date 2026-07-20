@@ -16,6 +16,7 @@ import {
 } from '@/src/features/account/paths';
 import { useUnreadNotificationsCount } from '@/src/features/notifications/useNotifications';
 import { Colors } from '@/src/theme/colors';
+import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 
 function appVersionLabel(): string {
   const version = Constants.expoConfig?.version ?? '0.1.0';
@@ -120,8 +121,7 @@ export default function MoreScreen() {
   const [busy, setBusy] = useState(false);
 
   const openWeb = async () => {
-    if (!instanceUrl) return;
-    await WebBrowser.openBrowserAsync(instanceUrl);
+    await openInstanceWeb(instanceUrl, '/');
   };
 
   const openExternal = async (url: string) => {

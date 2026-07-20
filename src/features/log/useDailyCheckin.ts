@@ -41,7 +41,10 @@ export function useSubmitDailyCheckin() {
       userNotes?: string;
     }) => submitDailyCheckinAnswers(checkinId, answers, userNotes),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: DAILY_CHECKIN_QUERY_KEY });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: DAILY_CHECKIN_QUERY_KEY }),
+        queryClient.invalidateQueries({ queryKey: ['recovery-context'] }),
+      ]);
     },
   });
 }

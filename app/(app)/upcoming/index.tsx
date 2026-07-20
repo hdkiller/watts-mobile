@@ -1,5 +1,4 @@
 import { router, Stack, type Href } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
 import { useMemo } from 'react';
 import {
   Pressable,
@@ -27,6 +26,7 @@ import {
 } from '@/src/features/activity/useActivity';
 import { useUpcomingEventsQuery } from '@/src/features/events/useEvents';
 import { Colors } from '@/src/theme/colors';
+import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 
 function PlannedRow({
   item,
@@ -90,8 +90,7 @@ export default function UpcomingPlannedScreen() {
   );
 
   const openWeb = async () => {
-    if (!instanceUrl) return;
-    await WebBrowser.openBrowserAsync(`${instanceUrl.replace(/\/$/, '')}/calendar`);
+    await openInstanceWeb(instanceUrl, '/calendar');
   };
 
   return (

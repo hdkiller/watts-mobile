@@ -1,5 +1,4 @@
 import { Stack } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -9,27 +8,24 @@ import {
   Switch,
   Text,
   TextInput,
-  View,
-} from 'react-native';
+  View } from 'react-native';
 import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
 import {
-  absoluteInstanceUrl,
   aiPersonaOptions,
-  profileSettingsWebPath,
-} from '@/src/features/profile/mapProfile';
+  profileSettingsWebPath } from '@/src/features/profile/mapProfile';
 import {
   useAiSettingsAvailableQuery,
   useAiSettingsLiteQuery,
   useAthleteProfileQuery,
-  usePatchCoachIdentity,
-} from '@/src/features/profile/useProfile';
+  usePatchCoachIdentity } from '@/src/features/profile/useProfile';
 import type { AiPersona } from '@/src/features/profile/types';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
+import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 
 export default function CoachIdentityScreen() {
   const { instanceUrl } = useAuth();
@@ -59,15 +55,11 @@ export default function CoachIdentityScreen() {
   }, [aiQuery.data]);
 
   const openWebAiSettings = async () => {
-    if (!instanceUrl) return;
-    await WebBrowser.openBrowserAsync(absoluteInstanceUrl(instanceUrl, '/settings/ai'));
+    await openInstanceWeb(instanceUrl, '/settings/ai');
   };
 
   const openWebProfile = async () => {
-    if (!instanceUrl) return;
-    await WebBrowser.openBrowserAsync(
-      absoluteInstanceUrl(instanceUrl, profileSettingsWebPath())
-    );
+    await openInstanceWeb(instanceUrl, profileSettingsWebPath());
   };
 
   const onSave = async () => {
@@ -77,16 +69,13 @@ export default function CoachIdentityScreen() {
       await saveMutation.mutateAsync({
         profile: {
           nickname: nickname.trim() || null,
-          aiContext: aiContext.trim() || null,
-        },
+          aiContext: aiContext.trim() || null },
         aiAvailable,
         ai: aiAvailable
           ? {
               aiPersona: persona,
-              aiRequireToolApproval: requireToolApproval,
-            }
-          : undefined,
-      });
+              aiRequireToolApproval: requireToolApproval }
+          : undefined });
       hapticSuccess();
       setSuccessMessage('Coach identity saved.');
     } catch (err) {

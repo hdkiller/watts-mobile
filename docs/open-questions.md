@@ -64,5 +64,12 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 2026-07-20 | Wellness Overview on Today | Tap Recent Wellness tiles → read-only sheet (`GET /api/wellness/{date}`); 7-day trends in sheet (not inline); Check in → Log; no AI Analyze / PATCH logs |
 | 2026-07-20 | Training Load & Form on Today | Compact CTL/ATL/TSB glance below CTAs; PMC chart in sheet via `GET /api/performance/pmc` + `performance:read`; Open web `/performance`; no first-viewport CTL grid |
 | 2026-07-20 | Athlete Profile overview on More → Athlete | Identity + HR trio + AI report summary/Sync; reports/generate Bearer via `profile:read`/`profile:write`; full report → Open web `/profile/athlete` |
+| 2026-07-20 | Analyze Readiness on mobile | Empty Today → `POST /api/recommendations/today` + status poll under `recommendation:read`; quota/timeout honest; planned-only hero has no generate CTA |
+| 2026-07-20 | Daily Coach Check-In on Today | AI YES/NO questionnaire via checkin today/generate/answer (`health:*`); distinct from Log wellness; Active Recovery “Wellness check-in” copy |
+| 2026-07-20 | Lite in-app activity route map | `react-native-maps` on activity detail from streams `latlng` / `summaryPolyline`; explorer/GPX stay Open web; reverse prior “map → open web” for lite map only |
+| 2026-07-20 | App→web session handoff | `POST /api/auth/app-web-handoff` + consume; mobile `openInstanceWeb` mints then opens browser; bare URL fallback; privacy/terms/support stay direct |
+| 2026-07-20 | Training Load ±% trends on Today | CTL/ATL/TSB trend badges vs prior ~7 PMC days (web TrendIndicator parity); ATL lower-is-better; 403 → re-login cue |
+| 2026-07-20 | Monthly Progress on Today | Glance + sheet via `GET /api/stats/monthly-comparison` (`workout:read`); metric/sport/view filters; Open web `/dashboard` |
+| 2026-07-20 | Athlete AI report access | 403 → Sign out & sign in; lite in-app report sheet; Open full report via handoff `/profile/athlete` |
 
 When a row above is decided, move it here and update [product-baseline.md](./product-baseline.md) / [implementation-plan.md](./implementation-plan.md) if scope changes.

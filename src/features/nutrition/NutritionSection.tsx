@@ -1,18 +1,15 @@
 import { useRouter } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
   Text,
   TextInput,
-  View,
-} from 'react-native';
+  View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
-import { absoluteInstanceUrl } from '@/src/features/activity/mapActivity';
 import { Colors } from '@/src/theme/colors';
 
 import {
@@ -21,8 +18,7 @@ import {
   localDateYmd,
   nutritionWebPath,
   quickLogHasContent,
-  toNutritionUploadPayload,
-} from './mapNutrition';
+  toNutritionUploadPayload } from './mapNutrition';
 import {
   useLogNutritionItem,
   useQuickAddHydration,
@@ -34,13 +30,13 @@ import {
   type MealSlot,
   type NutritionQuickLogForm,
 } from './types';
+import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 
 function MacroField({
   label,
   value,
   onChangeText,
-  placeholder,
-}: {
+  placeholder }: {
   label: string;
   value: string;
   onChangeText: (v: string) => void;
@@ -69,8 +65,7 @@ export function NutritionSection() {
     isLoading,
     isError,
     error,
-    refetch,
-  } = useTodayNutritionQuery();
+    refetch } = useTodayNutritionQuery();
   const logMutation = useLogNutritionItem();
   const hydrationMutation = useQuickAddHydration();
 
@@ -121,8 +116,7 @@ export function NutritionSection() {
   };
 
   const openWeb = async () => {
-    if (!instanceUrl) return;
-    await WebBrowser.openBrowserAsync(absoluteInstanceUrl(instanceUrl, nutritionWebPath()));
+    await openInstanceWeb(instanceUrl, nutritionWebPath());
   };
 
   return (
@@ -272,8 +266,7 @@ export function NutritionSection() {
         onPress={() =>
           router.push({
             pathname: '/(app)/(tabs)/coach',
-            params: { attach: 'camera' },
-          })
+            params: { attach: 'camera' } })
         }
       />
       <Text className="mt-1.5 text-center text-xs text-ink-muted">

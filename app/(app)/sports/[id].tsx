@@ -1,5 +1,4 @@
 import { Stack, router, useLocalSearchParams, type Href } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -7,26 +6,24 @@ import {
   ScrollView,
   Text,
   TextInput,
-  View,
-} from 'react-native';
+  View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
-import { absoluteInstanceUrl } from '@/src/features/profile/mapProfile';
 import {
   displaySportName,
   formFromSportProfile,
   formHasInvalidNumbers,
   showThresholdPace,
   sportSettingsWebPath,
-  toSportThresholdPatch,
-} from '@/src/features/sports/mapSports';
+  toSportThresholdPatch } from '@/src/features/sports/mapSports';
 import type { SportThresholdFormValues } from '@/src/features/sports/types';
 import { usePatchSportThresholds, useSportProfilesQuery } from '@/src/features/sports/useSports';
 import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
 import { hapticError, hapticSuccess } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
+import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 
 export default function SportProfileEditorScreen() {
   const params = useLocalSearchParams<{ id?: string }>();
@@ -46,8 +43,7 @@ export default function SportProfileEditorScreen() {
     ftp: '',
     lthr: '',
     maxHr: '',
-    thresholdPace: '',
-  });
+    thresholdPace: '' });
   const [formError, setFormError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -65,8 +61,7 @@ export default function SportProfileEditorScreen() {
   };
 
   const openWeb = async () => {
-    if (!instanceUrl) return;
-    await WebBrowser.openBrowserAsync(absoluteInstanceUrl(instanceUrl, sportSettingsWebPath()));
+    await openInstanceWeb(instanceUrl, sportSettingsWebPath());
   };
 
   const onSave = async () => {
@@ -204,8 +199,7 @@ function Field({
   value,
   onChangeText,
   keyboardType,
-  editable,
-}: {
+  editable }: {
   label: string;
   value: string;
   onChangeText: (text: string) => void;

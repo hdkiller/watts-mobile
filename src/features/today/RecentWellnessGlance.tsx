@@ -14,6 +14,23 @@ function localTodayKey(): string {
   return `${y}-${m}-${d}`;
 }
 
+function staleCaption(
+  hasCurrentDayWellness: boolean,
+  latestWellnessDate: string | null
+): string | null {
+  if (hasCurrentDayWellness || !latestWellnessDate) return null;
+  const day = latestWellnessDate.slice(0, 10);
+  const today = localTodayKey();
+  if (day === today) return null;
+
+  const latest = new Date(`${day}T12:00:00`);
+  const now = new Date(`${today}T12:00:00`);
+  const diffDays = Math.round((now.getTime() - latest.getTime()) / (24 * 60 * 60 * 1000));
+  if (diffDays <= 0) return null;
+  if (diffDays === 1) return 'Yesterday';
+  return `${diffDays} days ago`;
+}
+
 function TrendBadge({
   value,
   lowerIsBetter = false,
@@ -51,16 +68,13 @@ function WellnessTile({
   emojiIcon,
 }: {
   label: string;
-  value: string | number | null;
+  value: string | number;
   unit: string;
   trend: number | null;
   lowerIsBetter?: boolean;
   sfIcon: SFSymbol;
   emojiIcon: string;
 }) {
-  const displayValue = value != null ? `${value}` : 'N/A';
-  const displayUnit = value != null ? ` ${unit}` : '';
-
   return (
     <View className="flex-1 rounded-xl border border-zinc-800/80 bg-zinc-900 px-3 py-3.5 shadow-sm">
       <View className="flex-row items-center gap-1.5">
@@ -74,8 +88,8 @@ function WellnessTile({
         </Text>
       </View>
       <View className="mt-3 flex-row items-baseline gap-0.5">
-        <Text className="text-xl font-black text-white">{displayValue}</Text>
-        <Text className="text-[10px] font-semibold text-zinc-500">{displayUnit}</Text>
+        <Text className="text-xl font-black text-white">{value}</Text>
+        <Text className="text-[10px] font-semibold text-zinc-500"> {unit}</Text>
       </View>
       <View className="mt-2 h-4 flex-row items-center">
         <TrendBadge value={trend} lowerIsBetter={lowerIsBetter} />
@@ -84,9 +98,12 @@ function WellnessTile({
   );
 }
 
+function goToWellnessCheckIn() {
+  router.push('/(app)/(tabs)/log?section=wellness' as Href);
+}
+
 export function RecentWellnessGlance() {
-  const { profile, sleepTrend, hrvTrend, rhrTrend, isLoading, isError } =
-    useRecentWellness();
+  const { profile, sleepTrend, hrvTrend, rhrTrend, isLoading } = useRecentWellness();
   const [overviewOpen, setOverviewOpen] = useState(false);
 
   if (isLoading && !profile) {
@@ -102,13 +119,15 @@ export function RecentWellnessGlance() {
     );
   }
 
-  if (isError || !profile) {
-    return null;
-  }
-
   const sleepVal =
-    profile.recentSleep != null ? profile.recentSleep.toFixed(1) : null;
-  const overviewDate = profile.latestWellnessDate
+    profile?.recentSleep != null ? profile.recentSleep.toFixed(1) : null;
+  const hrvVal = profile?.recentHRV ?? null;
+  const rhrVal = profile?.restingHr ?? null;
+  const hasAnyMetric = sleepVal != null || hrvVal != null || rhrVal != null;
+  const caption = profile
+    ? staleCaption(profile.hasCurrentDayWellness, profile.latestWellnessDate)
+    : null;
+  const overviewDate = profile?.latestWellnessDate
     ? profile.latestWellnessDate.slice(0, 10)
     : localTodayKey();
 
@@ -121,45 +140,67 @@ export function RecentWellnessGlance() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Check in"
-          onPress={() => router.push('/(app)/(tabs)/log' as Href)}
+          onPress={goToWellnessCheckIn}
           hitSlop={8}
         >
           <Text className="text-xs font-semibold text-brand">Check in</Text>
         </Pressable>
       </View>
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Open wellness overview"
-        onPress={() => setOverviewOpen(true)}
-        className="mt-3 flex-row gap-2.5 active:opacity-90"
-      >
-        <WellnessTile
-          label="Sleep"
-          value={sleepVal}
-          unit="hrs"
-          trend={sleepTrend}
-          sfIcon="moon.stars"
-          emojiIcon="🌙"
-        />
-        <WellnessTile
-          label="HRV"
-          value={profile.recentHRV}
-          unit="ms"
-          trend={hrvTrend}
-          sfIcon="waveform.path.ecg"
-          emojiIcon="💓"
-        />
-        <WellnessTile
-          label="Resting HR"
-          value={profile.restingHr}
-          unit="bpm"
-          trend={rhrTrend}
-          sfIcon="heart.fill"
-          emojiIcon="❤️"
-          lowerIsBetter
-        />
-      </Pressable>
+      {!hasAnyMetric ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="No recent wellness. Check in"
+          onPress={goToWellnessCheckIn}
+          className="mt-3 rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-4 active:opacity-90"
+        >
+          <Text className="text-sm text-zinc-300">No recent wellness · Check in</Text>
+        </Pressable>
+      ) : (
+        <>
+          {caption ? (
+            <Text className="mt-1 text-[11px] text-ink-muted">{caption}</Text>
+          ) : null}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Open wellness overview"
+            onPress={() => setOverviewOpen(true)}
+            className="mt-3 flex-row gap-2.5 active:opacity-90"
+          >
+            {sleepVal != null ? (
+              <WellnessTile
+                label="Sleep"
+                value={sleepVal}
+                unit="hrs"
+                trend={sleepTrend}
+                sfIcon="moon.stars"
+                emojiIcon="🌙"
+              />
+            ) : null}
+            {hrvVal != null ? (
+              <WellnessTile
+                label="HRV"
+                value={hrvVal}
+                unit="ms"
+                trend={hrvTrend}
+                sfIcon="waveform.path.ecg"
+                emojiIcon="💓"
+              />
+            ) : null}
+            {rhrVal != null ? (
+              <WellnessTile
+                label="Resting HR"
+                value={rhrVal}
+                unit="bpm"
+                trend={rhrTrend}
+                sfIcon="heart.fill"
+                emojiIcon="❤️"
+                lowerIsBetter
+              />
+            ) : null}
+          </Pressable>
+        </>
+      )}
 
       <WellnessOverviewSheet
         visible={overviewOpen}

@@ -1,26 +1,23 @@
 import { router, type Href } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
-import { absoluteInstanceUrl } from '@/src/features/profile/mapProfile';
 import { Colors } from '@/src/theme/colors';
 
 import {
   displaySportName,
   sportSettingsWebPath,
-  thresholdSummary,
-} from './mapSports';
+  thresholdSummary } from './mapSports';
 import { useSportProfilesQuery } from './useSports';
+import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 
 export function SportsSection() {
   const { instanceUrl } = useAuth();
   const { data, isLoading, isError, error, refetch, isRefetching } = useSportProfilesQuery();
 
   const openWeb = async () => {
-    if (!instanceUrl) return;
-    await WebBrowser.openBrowserAsync(absoluteInstanceUrl(instanceUrl, sportSettingsWebPath()));
+    await openInstanceWeb(instanceUrl, sportSettingsWebPath());
   };
 
   if (isLoading && !data) {

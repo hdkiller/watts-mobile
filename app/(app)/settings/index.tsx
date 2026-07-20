@@ -1,5 +1,4 @@
 import { router, type Href, Stack } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
 import { SymbolView, type SFSymbol } from 'expo-symbols';
 import { useState, useEffect, type ReactNode } from 'react';
 import { Alert, AppState, Platform, Pressable, ScrollView, Text, View } from 'react-native';
@@ -8,17 +7,15 @@ import { SafeAreaView } from 'react-native-screens/experimental';
 import { useAuth } from '@/src/auth/AuthContext';
 import { getHealthAuthStatus } from '@/src/features/log/healthAuth';
 import {
-  logTabPreferenceLabel,
-} from '@/src/features/log/logTabPreference';
+  logTabPreferenceLabel } from '@/src/features/log/logTabPreference';
 import { useLogTabPreference } from '@/src/features/log/useLogTabPreference';
 import {
-  absoluteInstanceUrl,
   dangerZoneWebPath,
   isNutritionTrackingEnabled,
-  profileSettingsWebPath,
-} from '@/src/features/profile/mapProfile';
+  profileSettingsWebPath } from '@/src/features/profile/mapProfile';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { Colors } from '@/src/theme/colors';
+import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 
 function RowIcon({ sf, emoji }: { sf: SFSymbol; emoji: string }) {
   return (
@@ -57,8 +54,7 @@ function MenuRow({
   emoji,
   onPress,
   showChevron = true,
-  isLast = false,
-}: {
+  isLast = false }: {
   title: string;
   detail?: string;
   sf: SFSymbol;
@@ -151,8 +147,7 @@ export default function SettingsScreen() {
   }, []);
 
   const openWebPath = async (path: string) => {
-    if (!instanceUrl) return;
-    await WebBrowser.openBrowserAsync(absoluteInstanceUrl(instanceUrl, path));
+    await openInstanceWeb(instanceUrl, path);
   };
 
   const handleInstancePress = () => {
@@ -167,8 +162,7 @@ export default function SettingsScreen() {
           onPress: async () => {
             await signOut();
             router.replace('/(auth)/instance');
-          },
-        },
+          } },
       ]
     );
   };
@@ -182,8 +176,7 @@ export default function SettingsScreen() {
         {
           text: 'Open web',
           style: 'destructive',
-          onPress: () => void openWebPath(dangerZoneWebPath()),
-        },
+          onPress: () => void openWebPath(dangerZoneWebPath()) },
       ]
     );
   };
@@ -193,8 +186,7 @@ export default function SettingsScreen() {
       <Stack.Screen
         options={{
           title: 'Settings',
-          headerShown: true,
-        }}
+          headerShown: true }}
       />
       <SafeAreaView
         edges={{ bottom: true }}

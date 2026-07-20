@@ -1,7 +1,21 @@
 import { apiFetch } from '@/src/api/client';
+import { ApiError } from '@/src/api/errors';
 
 import { mapTodayPayload } from './mapTodayPayload';
 import type { ActivityRecommendationApi, TodayViewModel } from './types';
+
+async function readApiError(response: Response, fallback: string): Promise<ApiError> {
+  let message = fallback;
+  let body: unknown;
+  try {
+    body = await response.json();
+    const parsed = body as { message?: string; statusMessage?: string };
+    message = parsed.message || parsed.statusMessage || message;
+  } catch {
+    // Non-JSON error bodies (proxy HTML, plain text) keep the status fallback.
+  }
+  return new ApiError(message, response.status, body);
+}
 
 export async function fetchTodayView(): Promise<TodayViewModel> {
   const response = await apiFetch('/api/recommendations/today');
@@ -10,7 +24,7 @@ export async function fetchTodayView(): Promise<TodayViewModel> {
     return mapTodayPayload(null);
   }
   if (!response.ok) {
-    throw new Error(`Failed to load today (${response.status})`);
+    throw new ApiError(`Failed to load today (${response.status})`, response.status);
   }
 
   const text = await response.text();
@@ -30,14 +44,7 @@ export async function acceptRecommendation(id: string): Promise<void> {
   });
 
   if (!response.ok) {
-    let message = `Accept failed (${response.status})`;
-    try {
-      const body = (await response.json()) as { message?: string; statusMessage?: string };
-      message = body.message || body.statusMessage || message;
-    } catch {
-      // ignore
-    }
-    throw new Error(message);
+    throw await readApiError(response, `Accept failed (${response.status})`);
   }
 }
 
@@ -50,21 +57,19 @@ export async function generateTodayRecommendation(userFeedback?: string): Promis
   const response = await apiFetch('/api/recommendations/today', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userFeedback }),
+    body: JSON.stringify(userFeedback ? { userFeedback } : {}),
   });
 
   if (!response.ok) {
-    let message = `Generation failed (${response.status})`;
-    try {
-      const body = (await response.json()) as { message?: string; statusMessage?: string };
-      if (response.status === 429) {
-        throw new Error(body.message || 'Quota exceeded for activity recommendation.');
-      }
-      message = body.message || body.statusMessage || message;
-    } catch (e: any) {
-      if (e.message) throw e;
+    const err = await readApiError(response, `Generation failed (${response.status})`);
+    if (response.status === 429) {
+      throw new ApiError(
+        err.message || 'Quota exceeded for activity recommendation.',
+        429,
+        err.body
+      );
     }
-    throw new Error(message);
+    throw err;
   }
 
   return response.json();
@@ -79,7 +84,7 @@ export async function fetchRecommendationStatus(jobId?: string): Promise<{
     : '/api/recommendations/status';
   const response = await apiFetch(path);
   if (!response.ok) {
-    throw new Error(`Failed to load status (${response.status})`);
+    throw new ApiError(`Failed to load status (${response.status})`, response.status);
   }
   return response.json();
 }

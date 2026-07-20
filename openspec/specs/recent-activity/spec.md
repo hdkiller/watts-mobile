@@ -37,11 +37,15 @@ Tapping a workout SHALL open a summary stack screen with core fields (title, dat
 - **THEN** the summary screen shows that analysis in-app rather than requiring Open web solely to read it
 
 ### Requirement: Web escape for deep analysis
-The summary screen SHALL offer Open web (or equivalent) for charts, streams, maps, and other explorer depth rather than porting those surfaces. AI analysis write-up and scores are in-app per `activity-ai-analysis`.
+The summary screen SHALL offer Open web (or equivalent) for map explorer depth, GPX, interval audit, and other analysis surfaces not implemented in-app, rather than porting those explorer surfaces. AI analysis write-up and scores are in-app per `activity-ai-analysis`. Stream/zone/power-curve charts are in-app per `activity-charts`. The lite interactive route map is in-app per `activity-workout-map`.
 
 #### Scenario: Open web from summary
 - **WHEN** the user chooses Open web from activity summary
 - **THEN** the system browser opens the instance URL for that workout or the instance home if a specific URL is unavailable
+
+#### Scenario: Route map does not require Open web
+- **WHEN** the workout has GPS coordinates and the athlete views activity summary
+- **THEN** they can see the lite in-app route map without using Open web solely for the route
 
 ### Requirement: Today Recently entry point
 Recent activity SHALL be reachable from a thin Recently teaser on the Today tab that reuses the same recent-activity query (`GET /api/workouts` with Bearer `workout:read`) and deep-links “See all” into the existing Recent activity list screen.

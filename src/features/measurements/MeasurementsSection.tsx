@@ -1,4 +1,3 @@
-import * as WebBrowser from 'expo-web-browser';
 import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -7,13 +6,11 @@ import {
   ScrollView,
   Text,
   TextInput,
-  View,
-} from 'react-native';
+  View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
-import { absoluteInstanceUrl } from '@/src/features/activity/mapActivity';
 import { weightUnit } from '@/src/features/profile/mapProfile';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
@@ -23,8 +20,7 @@ import {
   CUSTOM_UNIT_OPTIONS,
   DEFAULT_METRIC_KEY,
   MEASUREMENT_METRICS,
-  findMetricOption,
-} from './catalog';
+  findMetricOption } from './catalog';
 import {
   displayUnitLabel,
   emptyMeasurementForm,
@@ -35,19 +31,18 @@ import {
   measurementsWebPath,
   prefersImperialMass,
   toCreatePayload,
-  toDisplayValue,
-} from './mapMeasurements';
+  toDisplayValue } from './mapMeasurements';
 import type { BodyMeasurementEntry, CanonicalUnit, MeasurementFormValues } from './types';
 import {
   useBodyMeasurementsQuery,
   useCreateBodyMeasurement,
   useSoftDeleteBodyMeasurement,
 } from './useMeasurements';
+import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 
 function MetricPicker({
   value,
-  onChange,
-}: {
+  onChange }: {
   value: string;
   onChange: (next: string) => void;
 }) {
@@ -86,8 +81,7 @@ function MetricPicker({
                       active
                         ? {
                             borderColor: Colors.brand,
-                            backgroundColor: 'rgba(0, 220, 130, 0.1)',
-                          }
+                            backgroundColor: 'rgba(0, 220, 130, 0.1)' }
                         : { borderColor: '#3f3f46' }
                     }
                     onPress={() => {
@@ -117,8 +111,7 @@ function LatestCard({
   unitLabel,
   displayValue,
   onDelete,
-  deleting,
-}: {
+  deleting }: {
   entry: BodyMeasurementEntry;
   unitLabel: string;
   displayValue: number;
@@ -245,17 +238,13 @@ export function MeasurementsSection() {
                 setDeletingId(null);
               }
             })();
-          },
-        },
+          } },
       ]
     );
   };
 
   const openWeb = async () => {
-    if (!instanceUrl) return;
-    await WebBrowser.openBrowserAsync(
-      absoluteInstanceUrl(instanceUrl, measurementsWebPath())
-    );
+    await openInstanceWeb(instanceUrl, measurementsWebPath());
   };
 
   return (
@@ -297,8 +286,7 @@ export function MeasurementsSection() {
           touch();
           setForm((prev) => ({
             ...emptyMeasurementForm(next),
-            notes: prev.notes,
-          }));
+            notes: prev.notes }));
         }}
       />
 
@@ -331,8 +319,7 @@ export function MeasurementsSection() {
                     active
                       ? {
                           borderColor: Colors.brand,
-                          backgroundColor: 'rgba(0, 220, 130, 0.1)',
-                        }
+                          backgroundColor: 'rgba(0, 220, 130, 0.1)' }
                       : { borderColor: '#3f3f46' }
                   }
                   onPress={() => {

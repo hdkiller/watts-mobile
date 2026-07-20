@@ -78,7 +78,7 @@ export function ActiveRecoveryBand({
           hitSlop={8}
           onPress={() => router.push('/(app)/(tabs)/log?section=wellness' as Href)}
         >
-          <Text className="text-sm font-semibold text-brand">Check in</Text>
+          <Text className="text-sm font-semibold text-brand">Wellness check-in</Text>
         </Pressable>
         <Pressable
           className="py-1 active:opacity-70"

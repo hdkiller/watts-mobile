@@ -5,6 +5,7 @@ import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { friendlyError } from '@/src/api/errors';
 import { Colors } from '@/src/theme/colors';
 
+import { AthleteReportSheet } from './AthleteReportSheet';
 import {
   fetchLatestAthleteProfileReport,
   generateAthleteProfile,
@@ -18,9 +19,11 @@ export const ATHLETE_PROFILE_REPORT_KEY = ['reports', 'athlete-profile', 'latest
 export function AthleteProfileOverview({
   profile,
   onOpenWebReport,
+  onReauth,
 }: {
   profile: AthleteProfile;
   onOpenWebReport: () => void;
+  onReauth: () => void;
 }) {
   const queryClient = useQueryClient();
   const reportQuery = useQuery({
@@ -36,6 +39,7 @@ export function AthleteProfileOverview({
 
   const [syncing, setSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const flag = countryFlag(profile.country);
   const age = ageFromDob(profile.dob);
@@ -44,6 +48,12 @@ export function AthleteProfileOverview({
     reportQuery.isError &&
     ((reportQuery.error as { status?: number } | null)?.status === 401 ||
       (reportQuery.error as { status?: number } | null)?.status === 403);
+
+  const completedReport =
+    reportQuery.data?.status === 'COMPLETED' ? reportQuery.data : null;
+  const canOpenLiteSheet = Boolean(
+    completedReport?.executiveSummary || (completedReport?.sections.length ?? 0) > 0
+  );
 
   const onSync = async () => {
     setSyncError(null);
@@ -58,7 +68,14 @@ export function AthleteProfileOverview({
         setSyncError('Still generating. Pull to refresh or open web in a minute.');
       }
     } catch (err) {
-      setSyncError(friendlyError(err, 'Could not sync athlete profile'));
+      const status = (err as { status?: number } | null)?.status;
+      if (status === 401 || status === 403) {
+        setSyncError(
+          'This session cannot generate AI reports. Sign out and sign in again to refresh permissions.'
+        );
+      } else {
+        setSyncError(friendlyError(err, 'Could not sync athlete profile'));
+      }
     } finally {
       setSyncing(false);
     }
@@ -109,10 +126,16 @@ export function AthleteProfileOverview({
         ) : reportForbidden ? (
           <View className="mt-3">
             <Text className="text-sm text-ink-muted">
-              AI profile summary opens on the web for this account.
+              This session cannot read AI reports. Sign out and sign in again to refresh
+              permissions.
             </Text>
+            <Pressable className="mt-3 active:opacity-70" onPress={onReauth}>
+              <Text className="text-sm font-semibold text-brand">Sign out & sign in</Text>
+            </Pressable>
             <Pressable className="mt-3 active:opacity-70" onPress={onOpenWebReport}>
-              <Text className="text-sm font-semibold text-brand">Open web Athlete Profile</Text>
+              <Text className="text-sm font-semibold text-zinc-300">
+                Open web Athlete Profile
+              </Text>
             </Pressable>
           </View>
         ) : reportQuery.isError ? (
@@ -127,21 +150,28 @@ export function AthleteProfileOverview({
               <Text className="text-sm font-semibold text-brand">Retry</Text>
             </Pressable>
           </View>
-        ) : reportQuery.data?.status === 'PENDING' || reportQuery.data?.status === 'PROCESSING' ? (
+        ) : reportQuery.data?.status === 'PENDING' ||
+          reportQuery.data?.status === 'PROCESSING' ? (
           <Text className="mt-3 text-sm text-ink-muted">Generating your athlete profile…</Text>
-        ) : reportQuery.data?.executiveSummary ? (
-          <View className="mt-3">
-            {reportQuery.data.fitnessStatusLabel ? (
+        ) : completedReport?.executiveSummary ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="View AI athlete profile report"
+            disabled={!canOpenLiteSheet}
+            onPress={() => setSheetOpen(true)}
+            className="mt-3 active:opacity-90"
+          >
+            {completedReport.fitnessStatusLabel ? (
               <Text className="mb-2 text-xs font-semibold text-brand">
-                {reportQuery.data.fitnessStatusLabel}
+                {completedReport.fitnessStatusLabel}
               </Text>
             ) : null}
             <Text className="text-sm leading-5 text-zinc-200">
-              {reportQuery.data.executiveSummary}
+              {completedReport.executiveSummary}
             </Text>
-            {reportQuery.data.scores.length > 0 ? (
+            {completedReport.scores.length > 0 ? (
               <View className="mt-3 flex-row flex-wrap gap-2">
-                {reportQuery.data.scores.map((chip) => (
+                {completedReport.scores.map((chip) => (
                   <View
                     key={chip.key}
                     className="rounded-full border border-zinc-700 bg-zinc-950/60 px-2.5 py-1"
@@ -153,12 +183,15 @@ export function AthleteProfileOverview({
                 ))}
               </View>
             ) : null}
-            {reportQuery.data.recommendationsSummary ? (
+            {completedReport.recommendationsSummary ? (
               <Text className="mt-3 text-sm text-ink-muted">
-                {reportQuery.data.recommendationsSummary}
+                {completedReport.recommendationsSummary}
               </Text>
             ) : null}
-          </View>
+            {canOpenLiteSheet ? (
+              <Text className="mt-3 text-sm font-semibold text-brand">View report</Text>
+            ) : null}
+          </Pressable>
         ) : (
           <View className="mt-3">
             <Text className="text-sm text-ink-muted">
@@ -173,6 +206,16 @@ export function AthleteProfileOverview({
           <Text className="text-sm font-semibold text-brand">Open full report on web</Text>
         </Pressable>
       </View>
+
+      <AthleteReportSheet
+        visible={sheetOpen}
+        report={completedReport}
+        onClose={() => setSheetOpen(false)}
+        onOpenWeb={() => {
+          setSheetOpen(false);
+          onOpenWebReport();
+        }}
+      />
     </View>
   );
 }

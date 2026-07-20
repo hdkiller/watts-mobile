@@ -1,9 +1,9 @@
-import * as WebBrowser from 'expo-web-browser';
 import { Pressable, Text, View } from 'react-native';
 
 import { useAuth } from '@/src/auth/AuthContext';
 import { pickNextEvent } from '@/src/features/events/mapEvents';
 import { useUpcomingEventsQuery } from '@/src/features/events/useEvents';
+import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 
 export function EventCountdownChip() {
   const { instanceUrl } = useAuth();
@@ -14,8 +14,7 @@ export function EventCountdownChip() {
   if (!next) return null;
 
   const openWeb = async () => {
-    if (!instanceUrl) return;
-    await WebBrowser.openBrowserAsync(`${instanceUrl.replace(/\/$/, '')}/calendar`);
+    await openInstanceWeb(instanceUrl, '/calendar');
   };
 
   return (

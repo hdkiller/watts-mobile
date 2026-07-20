@@ -19,13 +19,13 @@ Auth: OAuth 2.0 + PKCE · tokens in Secure Store · `offline_access` for refresh
 
 ## v1 scope (priority order)
 
-1. **Today** — planned workout + AI recommendation (accept / modify / rest), short rationale
-2. **Log** — daily wellness (sleep, readiness/feel, notes, weight if already in flows) **and** recovery events (illness, fatigue, sleep disruption, etc. — parity with web “Log recovery event”)
-3. **Session detail** — today’s planned structure; completed-workout AI analysis + stream/zone/power-curve charts in-app; map / explorer depth → open web
+1. **Today** — planned workout + AI recommendation (accept / modify / rest), **Analyze Readiness** generate when empty, Daily Coach Check-In questionnaire, Recent Wellness glance, short rationale
+2. **Log** — daily wellness (sleep, readiness/feel, notes, weight if already in flows) **and** recovery events (illness, fatigue, sleep disruption, etc. — parity with web “Log recovery event”) — distinct from Today’s AI Daily Coach Check-In
+3. **Session detail** — today’s planned structure; completed-workout AI analysis + stream/zone/power-curve charts + **lite in-app route map** when GPS exists; map explorer / GPX / interval audit → open web
 4. **Recent activity** — last few workouts with sync/analysis status (not full calendar)
 5. **Coach chat** — short Q&A seeded with today + recovery; markdown-lite assistant replies; multi-tool feedback cards (nutrition, recovery/wellness, generic) with approve/deny — not nutrition-only
 6. **Notifications** — push + in-app inbox
-7. **Account glue** — instance URL, sign-in, notification prefs, Settings hub (units/locale, coach identity lite, Health Sync, export/delete via Open web), open web
+7. **Account glue** — instance URL, sign-in, notification prefs, Settings hub (units/locale, coach identity lite, Health Sync, export/delete via Open web), **Open web with Bearer→cookie session handoff**
 
 ## Explicit non-goals (v1)
 
@@ -38,7 +38,7 @@ Use **Open in browser** instead of half-porting these.
 Promoted from vague “later” into an explicit companion expansion:
 
 1. **Upcoming planned workouts** — More → Upcoming (capped next ~7–14 days via `GET /api/planned-workouts`); not a fifth tab or heatmap
-2. **Richer session details** — planned interval/step summary when payload allows; completed-workout summary metrics + AI analysis + charts in-app; map / interval audit → open web
+2. **Richer session details** — planned interval/step summary when payload allows; completed-workout summary metrics + AI analysis + charts + lite route map in-app; explorer / interval audit → open web
 3. **Athlete metrics edit** — More → Athlete: weight, FTP, max HR, LTHR for the **default** sport profile (`profile:write` / `PATCH /api/profile`); not full Profile Settings
 4. **Nutrition quick-log** — Log tab section: today’s totals glance, macro/meal item log, hydration quick-add (`nutrition:read` / `nutrition:write`); planning/grocery stay on web
 5. **Lite sport thresholds** — Settings → Sports: list sport profiles and edit per-sport FTP / LTHR / Max HR (pace when present); zones, detect-from-workouts, and advanced Sport Settings stay on web
@@ -47,17 +47,17 @@ Promoted from vague “later” into an explicit companion expansion:
 
 HealthKit / Health Connect · structured workout push to devices · stronger offline Today.
 
-**Shipped companion glances:** Today Training Load & Form (CTL/ATL/TSB summary + sheet chart; not a first-viewport CTL grid) · Wellness Overview sheet from Recent Wellness · Athlete Profile overview (AI summary) on More → Athlete.
+**Shipped companion glances:** Today Training Load & Form (CTL/ATL/TSB + ±% trends + sheet chart; not a first-viewport CTL grid) · Monthly Progress (month-to-date vs last month) · Recent Wellness (Sleep/HRV/RHR) + Wellness Overview sheet · Athlete Profile overview (AI summary + lite report sheet; full report Open web) · Daily Coach Check-In · Analyze Readiness generate · lite activity route map.
 
 ## Information architecture
 
 **Tabs:** Today · Log · Coach · More
 
-**Stacks:** recommendation detail, planned workout detail, activity summary, upcoming planned list, notification inbox, athlete metrics, nutrition log (Log stack), sign-in / instance setup, settings.
+**Stacks:** recommendation detail, planned workout detail, activity summary, upcoming planned list, notification inbox, athlete metrics, nutrition log (Log stack), daily coach check-in, sign-in / instance setup, settings.
 
-**Today (top → bottom):** greeting → optional analysis-ready card → recommendation hero (or planned-only hero) → planned summary when with a recommendation → optional recovery metrics → named **Active Recovery Context** band (chips + Log event / Check in / History) → Accept / Discuss with Coach → optional race/life **event countdown** chip → **This week** glance strip → thin **Coming up** (planned primary; quiet next-event line) → **Recently** teaser → optional **Nutrition** glance (when `nutritionTrackingEnabled`).
+**Today (top → bottom):** greeting → optional analysis-ready card → optional **Daily Coach Check-In** CTA → recommendation hero / Analyze Readiness empty / planned-only hero → planned summary when with a recommendation → **Recent Wellness** glance → named **Active Recovery Context** band (chips + Log event / Wellness check-in / History) → Accept / Discuss with Coach → optional race/life **event countdown** chip → **This week** glance strip → thin **Coming up** (planned primary; quiet next-event line) → **Recently** teaser → optional **Nutrition** glance (when `nutritionTrackingEnabled`).
 
-Recovery **writes** stay Log-first; Today shows named active context and secondary actions (not a second hero CTA). Coming up stays planned-first; race/life events are a countdown chip + optional line (not a calendar). Nutrition glance is totals-only; meal/hydration writes stay on Log. Offline: last cached Today + planned detail with a “last updated” stamp.
+Recovery **writes** stay Log-first; Today shows named active context and secondary actions (not a second hero CTA). AI Daily Coach Check-In is separate from Log wellness. Coming up stays planned-first; race/life events are a countdown chip + optional line (not a calendar). Nutrition glance is totals-only; meal/hydration writes stay on Log. Offline: last cached Today + planned detail with a “last updated” stamp. Instance **Open web** uses session handoff when available.
 
 **Log writes:** wellness + recovery events (+ nutrition quick-log when tracking enabled). Per-sport lite thresholds live under Settings → Sports.
 

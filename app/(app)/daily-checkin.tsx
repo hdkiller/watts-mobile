@@ -1,5 +1,5 @@
 import { Stack, router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -10,8 +10,11 @@ import {
 } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
+import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
 import { DetailSkeleton } from '@/src/components/Skeleton';
+import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
+import { isDailyCheckinCompleted } from '@/src/features/log/isDailyCheckinCompleted';
 import {
   useDailyCheckinQuery,
   useGenerateDailyCheckin,
@@ -22,7 +25,11 @@ import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
 import { hapticError, hapticSuccess } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
 
+const POLL_MS = 2500;
+const MAX_POLL_ATTEMPTS = 30; // ~75s
+
 export default function DailyCheckinScreen() {
+  const { instanceUrl } = useAuth();
   const todayQuery = useTodayQuery();
   const { data: checkin, isLoading, isError, error, refetch } = useDailyCheckinQuery();
   const generateMutation = useGenerateDailyCheckin();
@@ -32,6 +39,8 @@ export default function DailyCheckinScreen() {
   const [answers, setAnswers] = useState<Record<string, 'YES' | 'NO'>>({});
   const [userNotes, setUserNotes] = useState('');
   const [actionError, setActionError] = useState<string | null>(null);
+  const [timedOut, setTimedOut] = useState(false);
+  const pollAttemptsRef = useRef(0);
 
   const status = checkin?.status;
   const isGenerating = status === 'PENDING' || status === 'PROCESSING';
@@ -39,6 +48,8 @@ export default function DailyCheckinScreen() {
   // 1. Auto-trigger generation on mount if no check-in exists for today
   useEffect(() => {
     if (!isLoading && !checkin && !generateMutation.isPending && !generateMutation.isError) {
+      setTimedOut(false);
+      pollAttemptsRef.current = 0;
       generateMutation.mutate(false, {
         onError: (err) => {
           setActionError(friendlyError(err, 'Failed to generate questions'));
@@ -47,15 +58,23 @@ export default function DailyCheckinScreen() {
     }
   }, [checkin, isLoading]);
 
-  // 2. Poll today check-in while it is generating (PENDING / PROCESSING)
+  // 2. Poll today check-in while generating; cap ~75s then offer Retry / Open web
   useEffect(() => {
-    if (isGenerating) {
-      const interval = setInterval(() => {
-        void refetch();
-      }, 2500);
-      return () => clearInterval(interval);
+    if (!isGenerating) {
+      pollAttemptsRef.current = 0;
+      return;
     }
-  }, [isGenerating]);
+    const interval = setInterval(() => {
+      pollAttemptsRef.current += 1;
+      if (pollAttemptsRef.current >= MAX_POLL_ATTEMPTS) {
+        clearInterval(interval);
+        setTimedOut(true);
+        return;
+      }
+      void refetch();
+    }, POLL_MS);
+    return () => clearInterval(interval);
+  }, [isGenerating, refetch]);
 
   // 3. Prefill answers if check-in questions already carry answers
   useEffect(() => {
@@ -80,6 +99,8 @@ export default function DailyCheckinScreen() {
     }));
   };
 
+  const openWeb = () => void openInstanceWeb(instanceUrl, '/');
+
   const onSubmit = async () => {
     if (!checkin?.id) return;
     setActionError(null);
@@ -90,7 +111,6 @@ export default function DailyCheckinScreen() {
         userNotes: userNotes.trim() || undefined,
       });
       hapticSuccess();
-      // Invalidate today query so TodayScreen hides the check-in CTA card
       void todayQuery.refetch();
       router.back();
     } catch (err) {
@@ -101,10 +121,12 @@ export default function DailyCheckinScreen() {
 
   const handleRetryGenerate = () => {
     setActionError(null);
+    setTimedOut(false);
+    pollAttemptsRef.current = 0;
     generateMutation.mutate(true);
   };
 
-  const isCompleted =
+  const allAnswered =
     checkin?.questions &&
     checkin.questions.length > 0 &&
     checkin.questions.every((q) => answers[q.id] != null);
@@ -112,6 +134,22 @@ export default function DailyCheckinScreen() {
   const renderContent = () => {
     if (isLoading || (generateMutation.isPending && !checkin)) {
       return <DetailSkeleton />;
+    }
+
+    if (timedOut && isGenerating) {
+      return (
+        <View className="flex-1 items-center justify-center p-6 bg-surface-dark">
+          <Text className="text-lg font-semibold text-white">Still preparing…</Text>
+          <Text className="mt-2 text-center text-sm text-red-400">
+            Check-in generation timed out. Retry or continue on the web.
+          </Text>
+          <View className="mt-6 w-full gap-3">
+            <Button label="Try Again" onPress={handleRetryGenerate} />
+            <Button label="Open web" variant="secondary" onPress={openWeb} />
+            <Button label="Go Back" variant="secondary" onPress={() => router.back()} />
+          </View>
+        </View>
+      );
     }
 
     if (generateMutation.isError || isError) {
@@ -130,6 +168,7 @@ export default function DailyCheckinScreen() {
             {!isQuota ? (
               <Button label="Try Again" onPress={handleRetryGenerate} />
             ) : null}
+            <Button label="Open web" variant="secondary" onPress={openWeb} />
             <Button
               label="Go Back"
               variant="secondary"
@@ -181,6 +220,9 @@ export default function DailyCheckinScreen() {
         <Text className="mt-1 text-sm text-ink-muted">
           Answer YES/NO to help Coach evaluate your readiness and tailor today's training.
         </Text>
+        {isDailyCheckinCompleted(checkin) ? (
+          <Text className="mt-2 text-xs text-brand">Already completed — you can edit answers.</Text>
+        ) : null}
 
         <View className="mt-6 gap-6">
           {checkin.questions.map((q) => {
@@ -253,7 +295,7 @@ export default function DailyCheckinScreen() {
         <Button
           className="mt-8"
           label="Submit Check-In"
-          disabled={!isCompleted}
+          disabled={!allAnswered}
           loading={submitMutation.isPending}
           onPress={onSubmit}
         />

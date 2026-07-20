@@ -11,9 +11,18 @@ type Props = {
   series: StreamSeries[];
   durationSec: number;
   height?: number;
+  /** Override right-side x-axis label (default: duration as mm:ss). */
+  endXLabel?: string;
+  startXLabel?: string;
 };
 
-export function LineSeriesChart({ series, durationSec, height = 160 }: Props) {
+export function LineSeriesChart({
+  series,
+  durationSec,
+  height = 160,
+  endXLabel,
+  startXLabel = '0:00',
+}: Props) {
   const [width, setWidth] = useState(0);
   if (series.length === 0) return null;
 
@@ -101,8 +110,10 @@ export function LineSeriesChart({ series, durationSec, height = 160 }: Props) {
       )}
 
       <View className="mt-1 flex-row justify-between px-1">
-        <Text className="text-[10px] text-ink-muted">0:00</Text>
-        <Text className="text-[10px] text-ink-muted">{formatChartMinutes(maxX)}</Text>
+        <Text className="text-[10px] text-ink-muted">{startXLabel}</Text>
+        <Text className="text-[10px] text-ink-muted">
+          {endXLabel ?? formatChartMinutes(maxX)}
+        </Text>
       </View>
 
       <View className="mt-2 flex-row flex-wrap">

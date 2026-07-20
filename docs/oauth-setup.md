@@ -103,7 +103,9 @@ These match Coach Watts **REST** OAuth scope names (`recommendation:read`, `plan
 
 `performance:read` authorizes Bearer `GET /api/performance/pmc` (Today Training Load & Form). Existing sessions need re-login after this scope is added.
 
-`profile:read` / `profile:write` also cover Athlete Profile AI reports (`GET /api/reports?type=ATHLETE_PROFILE`) and Sync (`POST /api/profile/generate`) once those routes use `requireAuth`.
+`workout:read` also covers Monthly Progress (`GET /api/stats/monthly-comparison`, `GET /api/workouts/sports`).
+
+`profile:read` / `profile:write` cover Athlete Profile AI reports (`GET /api/reports?type=ATHLETE_PROFILE`) and Sync (`POST /api/profile/generate`). If More → Athlete shows a permissions / re-login prompt for AI reports, **sign out and sign in again** so the token picks up those scopes.
 
 `profile:write`, `nutrition:read`, `nutrition:write`, and `workout:write` (completed-workout AI analyze/regenerate) are in `REST_OAUTH_SCOPES` (no separate Official Mobile App allowlist). Re-consent on next login if the IdP requires incremental consent.
 
@@ -160,6 +162,19 @@ Curated companion tools (coach-wattz): nutrition `log_nutrition_meal`, `log_hydr
 ## Deep links vs OAuth callback
 
 `coachwatts://oauth/callback` is reserved for PKCE and is **not** rewritten by the product deep-link resolver. All other `coachwatts://…` paths (and https `https://coachwatts.com/go/…` when hosted) use the shared map in [deep-links.md](./deep-links.md).
+
+## App → web session handoff
+
+Instance **Open web** CTAs use a one-time Bearer→cookie bridge so athletes land signed in on the web app:
+
+| Step | Endpoint | Auth |
+|------|----------|------|
+| Mint | `POST /api/auth/app-web-handoff` body `{ returnTo?: "/path" }` | Bearer (any valid companion token) |
+| Consume | `GET /api/auth/app-web-handoff/consume?code=&returnTo=` | Public; single-use code (TTL ≤60s) |
+
+Mobile helper: `openInstanceWeb(instanceUrl, path)` in `src/features/account/openInstanceWeb.ts`. On mint failure it opens the bare instance URL. Privacy / terms / support links stay direct (no handoff).
+
+`returnTo` must be a same-origin relative path (`/…`); schemes, `//`, and `..` are rejected server-side.
 
 ## Verify
 

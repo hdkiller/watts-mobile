@@ -1,14 +1,6 @@
 import { router, type Href } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
-import { useEffect, useState, type ReactNode } from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-screens/experimental';
@@ -23,6 +15,8 @@ import { SportIcon } from '@/src/components/SportIcon';
 import { useRecentActivityQuery, useUpcomingPlannedQuery } from '@/src/features/activity/useActivity';
 import { NutritionGlance } from '@/src/features/nutrition/NutritionGlance';
 import { useTodayNutritionQuery } from '@/src/features/nutrition/useNutrition';
+import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
+import { isDailyCheckinCompleted } from '@/src/features/log/isDailyCheckinCompleted';
 import { useDailyCheckinQuery } from '@/src/features/log/useDailyCheckin';
 import { isNutritionTrackingEnabled } from '@/src/features/profile/mapProfile';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
@@ -30,10 +24,13 @@ import { DASHBOARD_PROFILE_KEY } from '@/src/features/profile/useRecentWellness'
 import { useActiveRecoveryQuery } from '@/src/features/recovery/useRecovery';
 import { ActiveRecoveryBand } from '@/src/features/today/active-recovery-band';
 import { AnalysisReadyCard } from '@/src/features/today/analysis-ready-card';
+import { AnalyzeReadinessPanel } from '@/src/features/today/AnalyzeReadinessPanel';
 import { ComingUpStrip } from '@/src/features/today/coming-up-strip';
 import { EventCountdownChip } from '@/src/features/today/event-countdown-chip';
 import { TrainingLoadGlance } from '@/src/features/performance/TrainingLoadGlance';
 import { pmcQueryKey } from '@/src/features/performance/usePmc';
+import { MonthlyProgressGlance } from '@/src/features/stats/MonthlyProgressGlance';
+import { monthlyComparisonQueryKey } from '@/src/features/stats/useMonthlyProgress';
 import { RecentWellnessGlance } from '@/src/features/today/RecentWellnessGlance';
 import {
   confidenceFilledCount,
@@ -187,17 +184,28 @@ export default function TodayScreen() {
   const nutritionQuery = useTodayNutritionQuery({ enabled: nutritionEnabled });
   const acceptMutation = useAcceptRecommendation();
 
-  const isDailyCheckinCompleted = dailyCheckinQuery.data
-    ? dailyCheckinQuery.data.questions.length > 0 &&
-      dailyCheckinQuery.data.questions.every((q) => q.answer != null)
-    : false;
+  const checkinCompleted = isDailyCheckinCompleted(dailyCheckinQuery.data);
 
   const [actionError, setActionError] = useState<string | null>(null);
   const [genState, setGenState] = useState<'idle' | 'generating' | 'error' | 'quota'>('idle');
   const [genError, setGenError] = useState<string | null>(null);
   const generateMutation = useGenerateTodayRecommendation();
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const statusFailRef = useRef(0);
+
+  const clearGeneratePoll = () => {
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+  };
+
+  useEffect(() => () => clearGeneratePoll(), []);
 
   const onGenerate = async () => {
+    if (genState === 'generating' || generateMutation.isPending) return;
+    clearGeneratePoll();
+    statusFailRef.current = 0;
     setGenState('generating');
     setGenError(null);
     try {
@@ -205,36 +213,50 @@ export default function TodayScreen() {
       if (res.jobId) {
         let attempts = 0;
         const maxAttempts = 30;
-        const poll = setInterval(async () => {
-          attempts++;
-          try {
-            const status = await fetchRecommendationStatus(res.jobId);
-            if (!status.isRunning) {
-              clearInterval(poll);
-              setGenState('idle');
-              void refetch();
-            } else if (attempts >= maxAttempts) {
-              clearInterval(poll);
-              setGenState('error');
-              setGenError('Generation timed out. Please try again.');
+        pollRef.current = setInterval(() => {
+          void (async () => {
+            attempts++;
+            try {
+              const status = await fetchRecommendationStatus(res.jobId);
+              statusFailRef.current = 0;
+              if (!status.isRunning) {
+                clearGeneratePoll();
+                setGenState('idle');
+                void refetch();
+              } else if (attempts >= maxAttempts) {
+                clearGeneratePoll();
+                hapticError();
+                setGenState('error');
+                setGenError('That took too long. Try again, or continue on the web.');
+              }
+            } catch {
+              statusFailRef.current += 1;
+              if (statusFailRef.current >= 3 || attempts >= maxAttempts) {
+                clearGeneratePoll();
+                hapticError();
+                setGenState('error');
+                setGenError('Couldn’t check generation status. Try again shortly.');
+              }
             }
-          } catch (err) {
-            clearInterval(poll);
-            setGenState('error');
-            setGenError('Failed to check generation status.');
-          }
+          })();
         }, 2500);
       } else {
         setGenState('idle');
         void refetch();
       }
-    } catch (err: any) {
-      if (err.message && err.message.includes('Quota')) {
+    } catch (err: unknown) {
+      hapticError();
+      const status =
+        typeof err === 'object' && err !== null && 'status' in err
+          ? (err as { status?: number }).status
+          : undefined;
+      const message = err instanceof Error ? err.message : '';
+      if (status === 429 || message.includes('Quota')) {
         setGenState('quota');
-        setGenError(err.message || 'Quota exceeded for activity recommendation.');
+        setGenError(message || 'Quota exceeded for activity recommendation.');
       } else {
         setGenState('error');
-        setGenError(friendlyError(err, 'Failed to generate recommendation'));
+        setGenError(friendlyError(err, 'Something went wrong. Try again, or continue on the web.'));
       }
     }
   };
@@ -258,8 +280,7 @@ export default function TodayScreen() {
   };
 
   const openWeb = async () => {
-    if (!instanceUrl) return;
-    await WebBrowser.openBrowserAsync(instanceUrl);
+    await openInstanceWeb(instanceUrl, '/');
   };
 
   const onRefresh = () => {
@@ -272,6 +293,8 @@ export default function TodayScreen() {
     void queryClient.invalidateQueries({ queryKey: DASHBOARD_PROFILE_KEY });
     void queryClient.invalidateQueries({ queryKey: ['wellness'] });
     void queryClient.invalidateQueries({ queryKey: pmcQueryKey(90) });
+    void queryClient.invalidateQueries({ queryKey: monthlyComparisonQueryKey('all') });
+    void queryClient.invalidateQueries({ queryKey: ['stats', 'monthly-comparison'] });
     if (nutritionEnabled) void nutritionQuery.refetch();
   };
 
@@ -360,7 +383,7 @@ export default function TodayScreen() {
 
       <AnalysisReadyCard recent={recentQuery.data} />
 
-      {!isDailyCheckinCompleted ? (
+      {!checkinCompleted ? (
         <EnterSection order={1}>
           <Pressable
             accessibilityRole="button"
@@ -385,54 +408,14 @@ export default function TodayScreen() {
       ) : null}
 
       {emptyNoDecision ? (
-        <View className="mt-6 rounded-xl border border-zinc-800 bg-zinc-900/80 p-5">
-          {genState === 'generating' ? (
-            <View className="items-center py-4">
-              <ActivityIndicator color={Colors.brand} size="small" />
-              <Text className="mt-3 text-base font-semibold text-white">Analyzing readiness…</Text>
-              <Text className="mt-1 text-center text-xs text-ink-muted animate-pulse">
-                Creating today's personalized AI recommendation
-              </Text>
-            </View>
-          ) : genState === 'quota' ? (
-            <View>
-              <Text className="text-lg font-semibold text-white">Recommendation limit reached</Text>
-              <Text className="mt-2 text-sm leading-5 text-red-300">
-                {genError || 'Update your plan on the web to generate more recommendations.'}
-              </Text>
-              <View className="mt-4 flex-row gap-4">
-                <Button label="Open web" className="flex-1" onPress={() => void openWeb()} />
-                <Button label="Retry" variant="secondary" onPress={() => setGenState('idle')} />
-              </View>
-            </View>
-          ) : genState === 'error' ? (
-            <View>
-              <Text className="text-lg font-semibold text-white">Generation failed</Text>
-              <Text className="mt-2 text-sm leading-5 text-red-300">
-                {genError || 'An error occurred while generating recommendation.'}
-              </Text>
-              <View className="mt-4 flex-row gap-4">
-                <Button label="Retry" className="flex-1" onPress={() => void onGenerate()} />
-                <Button label="Cancel" variant="secondary" onPress={() => setGenState('idle')} />
-              </View>
-            </View>
-          ) : (
-            <View>
-              <Text className="text-lg font-semibold text-white">No recommendation yet</Text>
-              <Text className="mt-2 text-sm leading-5 text-ink-muted">
-                Generate today’s personalized recommendation using your latest biometrics.
-              </Text>
-              <View className="mt-4 gap-3">
-                <Button
-                  label="Analyze Readiness"
-                  onPress={() => void onGenerate()}
-                  loading={generateMutation.isPending}
-                />
-
-              </View>
-            </View>
-          )}
-        </View>
+        <AnalyzeReadinessPanel
+          state={genState}
+          errorMessage={genError}
+          generatingPending={generateMutation.isPending}
+          onAnalyze={() => void onGenerate()}
+          onOpenWeb={() => void openWeb()}
+          onDismissQuota={() => setGenState('idle')}
+        />
       ) : null}
 
       {hasRecommendation ? (
@@ -552,6 +535,7 @@ export default function TodayScreen() {
 
       <EnterSection order={5}>
         <TrainingLoadGlance />
+        <MonthlyProgressGlance />
         <WeekGlanceStrip recent={recentQuery.data} planned={upcomingQuery.data} />
         <ComingUpStrip excludePlannedId={planned?.id} />
         <RecentlyTeaser />

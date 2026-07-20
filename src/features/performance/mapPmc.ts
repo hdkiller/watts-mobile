@@ -125,3 +125,47 @@ export function performanceWebPath(): string {
 export function roundLoad(value: number): number {
   return Math.round(value);
 }
+
+export function formatTsb(value: number): string {
+  const rounded = roundLoad(value);
+  return rounded > 0 ? `+${rounded}` : String(rounded);
+}
+
+/**
+ * Web dashboard TrendIndicator parity for PMC: current vs mean of prior series.
+ * Unlike wellness `calculateTrend`, allows signed baselines (TSB) and uses divisor 1 when mean is 0.
+ */
+export function calculateLoadTrend(
+  current: number | null | undefined,
+  history: (number | null | undefined)[]
+): number | null {
+  if (current == null || !Number.isFinite(current)) return null;
+  const valid = history.filter((v): v is number => v != null && Number.isFinite(v));
+  if (valid.length === 0) return null;
+  let mean = valid.reduce((a, b) => a + b, 0) / valid.length;
+  if (mean === 0) mean = 1;
+  return Math.round(((current - mean) / Math.abs(mean)) * 100);
+}
+
+/** Prior ~7 days: series tip excluded via slice(-8, -1), matching web AthleteProfileCard. */
+export function mapPmcTrends(payload: PmcPayload): {
+  ctl: number | null;
+  atl: number | null;
+  tsb: number | null;
+} {
+  const prior = payload.data.slice(-8, -1);
+  return {
+    ctl: calculateLoadTrend(
+      payload.summary.currentCTL,
+      prior.map((p) => p.ctl)
+    ),
+    atl: calculateLoadTrend(
+      payload.summary.currentATL,
+      prior.map((p) => p.atl)
+    ),
+    tsb: calculateLoadTrend(
+      payload.summary.currentTSB,
+      prior.map((p) => p.tsb)
+    ),
+  };
+}

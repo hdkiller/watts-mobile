@@ -26,8 +26,14 @@ Track chrome and metadata for TestFlight / Play internal tracks. Local Maestro f
 Regenerate from web mark if branding updates:
 
 ```bash
-# Source: ~/Develop/coach-wattz/public/icon.png → assets/images/* (see phase-3-store-polish)
+# Source: ~/Develop/coach-wattz/public/media/logo.png (same mark as consent /public/icon.png)
+# After changing assets/images/icon.png or splash, re-run native prebuild — `pnpm ios`
+# alone does NOT refresh AppIcon.appiconset in an existing ios/ folder:
+npx expo prebuild --platform ios --clean
+SENTRY_DISABLE_AUTO_UPLOAD=true pnpm ios
 ```
+
+`ios/` is gitignored; a stale prebuild keeps the Expo chevron even when `assets/images/` is branded.
 
 ## Privacy / health
 

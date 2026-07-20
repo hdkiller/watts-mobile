@@ -1,6 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Stack, router, type Href } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -8,14 +7,12 @@ import {
   ScrollView,
   Text,
   TextInput,
-  View,
-} from 'react-native';
+  View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { AthleteProfileOverview } from '@/src/features/profile/AthleteProfileOverview';
 import {
-  absoluteInstanceUrl,
   athleteProfileWebPath,
   emptyAthleteForm,
   formFromAthleteProfile,
@@ -23,16 +20,16 @@ import {
   patchHasFields,
   profileSettingsWebPath,
   toAthleteMetricsPatch,
-  weightUnitLabel,
-} from '@/src/features/profile/mapProfile';
+  weightUnitLabel } from '@/src/features/profile/mapProfile';
 import { ATHLETE_PROFILE_KEY, useAthleteProfileQuery, usePatchAthleteMetrics } from '@/src/features/profile/useProfile';
 import type { AthleteMetricsFormValues, AthleteProfile } from '@/src/features/profile/types';
 import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
 import { Colors } from '@/src/theme/colors';
+import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 
 export default function AthleteMetricsScreen() {
   const queryClient = useQueryClient();
-  const { instanceUrl, refreshUser } = useAuth();
+  const { instanceUrl, refreshUser, signOut } = useAuth();
   const { data, isLoading, isError, error, refetch } = useAthleteProfileQuery();
   const saveMutation = usePatchAthleteMetrics();
   const { containerRef, overlap } = useKeyboardOverlap();
@@ -59,17 +56,11 @@ export default function AthleteMetricsScreen() {
   };
 
   const openWebSettings = async () => {
-    if (!instanceUrl) return;
-    await WebBrowser.openBrowserAsync(
-      absoluteInstanceUrl(instanceUrl, profileSettingsWebPath())
-    );
+    await openInstanceWeb(instanceUrl, profileSettingsWebPath());
   };
 
   const openWebReport = async () => {
-    if (!instanceUrl) return;
-    await WebBrowser.openBrowserAsync(
-      absoluteInstanceUrl(instanceUrl, athleteProfileWebPath())
-    );
+    await openInstanceWeb(instanceUrl, athleteProfileWebPath());
   };
 
   const onSave = async () => {
@@ -142,6 +133,7 @@ export default function AthleteMetricsScreen() {
               <AthleteProfileOverview
                 profile={data}
                 onOpenWebReport={() => void openWebReport()}
+                onReauth={() => void signOut()}
               />
             ) : null}
 
@@ -223,8 +215,7 @@ function Field({
   value,
   onChangeText,
   keyboardType,
-  editable,
-}: {
+  editable }: {
   label: string;
   value: string;
   onChangeText: (text: string) => void;

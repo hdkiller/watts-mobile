@@ -1,11 +1,47 @@
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-import { formStatusTextClass, roundLoad } from './mapPmc';
+import { useAuth } from '@/src/auth/AuthContext';
+import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
+
+import {
+  formatTsb,
+  formStatusTextClass,
+  mapPmcTrends,
+  performanceWebPath,
+  roundLoad,
+} from './mapPmc';
 import { TrainingLoadSheet } from './TrainingLoadSheet';
 import { usePmcQuery } from './usePmc';
 
+function TrendBadge({
+  value,
+  lowerIsBetter = false,
+}: {
+  value: number | null;
+  lowerIsBetter?: boolean;
+}) {
+  if (value == null || value === 0) return null;
+
+  const isGood = lowerIsBetter ? value < 0 : value > 0;
+  const sign = value > 0 ? '↑' : '↓';
+  const percent = Math.abs(value);
+  const bgClass = isGood
+    ? 'bg-emerald-500/10 border border-emerald-500/20'
+    : 'bg-red-500/10 border border-red-500/20';
+  const textClass = isGood ? 'text-emerald-400' : 'text-red-400';
+
+  return (
+    <View className={`rounded-full px-1.5 py-0.5 ${bgClass}`}>
+      <Text className={`text-[9px] font-bold ${textClass}`}>
+        {sign} {percent}%
+      </Text>
+    </View>
+  );
+}
+
 export function TrainingLoadGlance() {
+  const { instanceUrl, signOut } = useAuth();
   const query = usePmcQuery(90);
   const [open, setOpen] = useState(false);
 
@@ -15,11 +51,46 @@ export function TrainingLoadGlance() {
     );
   }
 
+  const status = (query.error as { status?: number } | null)?.status;
+  const forbidden = query.isError && (status === 401 || status === 403);
+
+  if (forbidden) {
+    return (
+      <View className="mt-6 rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-3.5">
+        <Text className="text-xs uppercase tracking-wide text-ink-muted">
+          Training Load & Form
+        </Text>
+        <Text className="mt-2 text-sm text-ink-muted">
+          This session cannot read training load. Sign out and sign in again to refresh permissions.
+        </Text>
+        <View className="mt-3 flex-row flex-wrap gap-4">
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => void signOut()}
+            hitSlop={8}
+            className="active:opacity-70"
+          >
+            <Text className="text-sm font-semibold text-brand">Sign out & sign in</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => void openInstanceWeb(instanceUrl, performanceWebPath())}
+            hitSlop={8}
+            className="active:opacity-70"
+          >
+            <Text className="text-sm font-semibold text-zinc-300">Open web</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
+
   if (query.isError || !query.data) {
     return null;
   }
 
   const { summary } = query.data;
+  const trends = mapPmcTrends(query.data);
   const statusClass = formStatusTextClass(summary.formColor);
 
   return (
@@ -34,9 +105,25 @@ export function TrainingLoadGlance() {
         className="mt-3 rounded-xl border border-zinc-800/80 bg-zinc-900 px-4 py-3.5 active:opacity-90"
       >
         <View className="flex-row items-end justify-between gap-3">
-          <LoadCell label="Fitness" value={roundLoad(summary.currentCTL)} unit="CTL" />
-          <LoadCell label="Fatigue" value={roundLoad(summary.currentATL)} unit="ATL" />
-          <LoadCell label="Form" value={roundLoad(summary.currentTSB)} unit="TSB" />
+          <LoadCell
+            label="Fitness"
+            sublabel="CTL"
+            value={String(roundLoad(summary.currentCTL))}
+            trend={trends.ctl}
+          />
+          <LoadCell
+            label="Fatigue"
+            sublabel="ATL"
+            value={String(roundLoad(summary.currentATL))}
+            trend={trends.atl}
+            lowerIsBetter
+          />
+          <LoadCell
+            label="Form"
+            sublabel="TSB"
+            value={formatTsb(summary.currentTSB)}
+            trend={trends.tsb}
+          />
         </View>
         <Text className={`mt-3 text-xs font-semibold ${statusClass}`}>
           {summary.formStatus}
@@ -51,21 +138,26 @@ export function TrainingLoadGlance() {
 
 function LoadCell({
   label,
+  sublabel,
   value,
-  unit,
+  trend,
+  lowerIsBetter = false,
 }: {
   label: string;
-  value: number;
-  unit: string;
+  sublabel: string;
+  value: string;
+  trend: number | null;
+  lowerIsBetter?: boolean;
 }) {
   return (
     <View className="flex-1">
       <Text className="text-[10px] font-bold uppercase tracking-wide text-zinc-400">
         {label}
       </Text>
-      <View className="mt-1 flex-row items-baseline gap-1">
+      <Text className="text-[9px] font-normal lowercase text-zinc-500">({sublabel})</Text>
+      <View className="mt-1 flex-row flex-wrap items-center gap-1.5">
         <Text className="text-xl font-black text-white">{value}</Text>
-        <Text className="text-[10px] font-semibold text-zinc-500">{unit}</Text>
+        <TrendBadge value={trend} lowerIsBetter={lowerIsBetter} />
       </View>
     </View>
   );
