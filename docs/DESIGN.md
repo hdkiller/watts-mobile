@@ -83,7 +83,7 @@ Neutral surfaces use semantic tokens: cards `bg-card(/80)` with `border-border`,
 All in [`src/components/`](../src/components):
 
 - **`Button`** — the only way to render a full-width action button. Variants: `primary` (brand-action fill, dark label), `secondary` (border-strong outline), `danger` (border-strong fill, red label). Handles loading spinner, disabled dimming (`opacity-50`), press feedback, and accessibility props. Pass margins via `className`.
-- **`SportIcon`** — circular sport glyph derived from the workout `type` string. Sizes in use: 18 (detail/hero), 14 (list rows), 13 (Today teasers). SF Symbols on iOS, emoji fallback elsewhere. Add new sport mappings there, not inline.
+- **`SportIcon`** — circular sport glyph derived from the workout `type` string. Sizes in use: 18 (detail/hero), 14 (list rows), 13 (Today teasers). SF Symbols on iOS, Material Symbols on Android (emoji only as `SymbolView` fallback). Add new sport mappings there, not inline.
 - **`Skeleton` / `ListSkeleton` / `DetailSkeleton`** — loading placeholders. New screens get a skeleton that roughly matches their loaded layout.
 
 Inline text links (Retry, See all, Check in…): `text-sm font-semibold text-brand` on a Pressable with **`hitSlop={8}`** — every tappable target must reach ~44pt.

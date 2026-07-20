@@ -83,7 +83,7 @@ export function TrainingLoadGlance() {
         accessibilityRole="button"
         accessibilityLabel="Open training load and form"
         onPress={() => setOpen(true)}
-        className="mt-3 rounded-xl border border-border/80 bg-card px-4 py-3.5 active:opacity-90"
+        className="mt-3 active:opacity-90"
       >
         <View className="flex-row items-end justify-between gap-3">
           <LoadCell

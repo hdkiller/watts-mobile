@@ -23,6 +23,8 @@ export default function TabsLayout() {
         default: { color: theme.textMuted },
         selected: { color: theme.brand },
       }}
+      // Material 3 defaults to selected-only labels (icons misalign). Match iOS: always labeled.
+      labelVisibilityMode="labeled"
       minimizeBehavior="onScrollDown"
     >
       <NativeTabs.Trigger name="today" contentStyle={tabContentStyle}>

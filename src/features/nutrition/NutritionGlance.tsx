@@ -87,28 +87,27 @@ export function NutritionGlance() {
             <Text className="text-sm text-text-muted">No fuel logged yet today.</Text>
           ) : (
             <>
-              {today.fuelState != null ? (
-                <View className="mb-2.5 flex-row justify-end">
-                  <View className="rounded-full bg-tint-success px-2.5 py-1">
-                    <Text className="text-xs font-semibold text-success">
-                      {fuelStateLabel(today.fuelState)}
-                    </Text>
-                  </View>
-                </View>
-              ) : null}
-
-              <View className="flex-row items-baseline justify-between">
+              <View className="flex-row items-center justify-between gap-2">
                 <Text className="text-2xl font-semibold text-text-primary">
                   {today.calories}
                   <Text className="text-base font-normal text-text-muted">
                     {today.caloriesGoal != null ? ` / ${today.caloriesGoal} kcal` : ' kcal'}
                   </Text>
                 </Text>
-                {today.caloriesGoal != null ? (
-                  <Text className="text-sm text-text-muted">
-                    {Math.max(0, today.caloriesGoal - today.calories)} left
-                  </Text>
-                ) : null}
+                <View className="flex-row items-center gap-2">
+                  {today.caloriesGoal != null ? (
+                    <Text className="text-sm text-text-muted">
+                      {Math.max(0, today.caloriesGoal - today.calories)} left
+                    </Text>
+                  ) : null}
+                  {today.fuelState != null ? (
+                    <View className="rounded-full bg-tint-success px-2.5 py-1">
+                      <Text className="text-xs font-semibold text-success">
+                        {fuelStateLabel(today.fuelState)}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
               </View>
               <GoalBar
                 pct={goalProgressPct(today.calories, today.caloriesGoal)}

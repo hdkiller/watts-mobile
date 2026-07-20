@@ -1,22 +1,28 @@
-import { SymbolView, type SFSymbol } from 'expo-symbols';
-import { Platform, Text, View } from 'react-native';
+import { SymbolView, type AndroidSymbol, type SFSymbol } from 'expo-symbols';
+import { Text, View } from 'react-native';
 
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
-type Glyph = { sf: SFSymbol; emoji: string };
+type Glyph = { sf: SFSymbol; md: AndroidSymbol; emoji: string };
 
 const GLYPHS: { match: RegExp; glyph: Glyph }[] = [
-  { match: /ride|bike|cycl|gravel|mtb/, glyph: { sf: 'bicycle', emoji: '🚴' } },
-  { match: /run/, glyph: { sf: 'figure.run', emoji: '🏃' } },
-  { match: /swim/, glyph: { sf: 'figure.pool.swim', emoji: '🏊' } },
-  { match: /strength|weight|gym|lift/, glyph: { sf: 'dumbbell', emoji: '🏋️' } },
-  { match: /walk|hike/, glyph: { sf: 'figure.walk', emoji: '🚶' } },
-  { match: /row/, glyph: { sf: 'figure.rower', emoji: '🚣' } },
-  { match: /yoga|stretch|mobility/, glyph: { sf: 'figure.mind.and.body', emoji: '🧘' } },
-  { match: /rest|recover/, glyph: { sf: 'moon.zzz', emoji: '💤' } },
+  { match: /ride|bike|cycl|gravel|mtb/, glyph: { sf: 'bicycle', md: 'directions_bike', emoji: '🚴' } },
+  { match: /run/, glyph: { sf: 'figure.run', md: 'directions_run', emoji: '🏃' } },
+  { match: /swim/, glyph: { sf: 'figure.pool.swim', md: 'pool', emoji: '🏊' } },
+  {
+    match: /strength|weight|gym|lift/,
+    glyph: { sf: 'dumbbell', md: 'fitness_center', emoji: '🏋️' },
+  },
+  { match: /walk|hike/, glyph: { sf: 'figure.walk', md: 'directions_walk', emoji: '🚶' } },
+  { match: /row/, glyph: { sf: 'figure.rower', md: 'rowing', emoji: '🚣' } },
+  {
+    match: /yoga|stretch|mobility/,
+    glyph: { sf: 'figure.mind.and.body', md: 'self_improvement', emoji: '🧘' },
+  },
+  { match: /rest|recover/, glyph: { sf: 'moon.zzz', md: 'bedtime', emoji: '💤' } },
 ];
 
-const DEFAULT_GLYPH: Glyph = { sf: 'bolt.fill', emoji: '⚡️' };
+const DEFAULT_GLYPH: Glyph = { sf: 'bolt.fill', md: 'bolt', emoji: '⚡️' };
 
 function glyphForType(type: string | null | undefined): Glyph {
   if (!type) return DEFAULT_GLYPH;
@@ -39,11 +45,12 @@ export function SportIcon({
       className="items-center justify-center rounded-full bg-border-strong/80"
       style={{ width: size * 2, height: size * 2 }}
     >
-      {Platform.OS === 'ios' ? (
-        <SymbolView name={glyph.sf} size={size} tintColor={theme.textBody} />
-      ) : (
-        <Text style={{ fontSize: size - 2 }}>{glyph.emoji}</Text>
-      )}
+      <SymbolView
+        name={{ ios: glyph.sf, android: glyph.md, web: glyph.md }}
+        size={size}
+        tintColor={theme.textBody}
+        fallback={<Text style={{ fontSize: size - 2 }}>{glyph.emoji}</Text>}
+      />
     </View>
   );
 }

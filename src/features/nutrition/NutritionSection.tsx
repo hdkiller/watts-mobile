@@ -59,7 +59,7 @@ function MacroTile({
   barClassName: string;
 }) {
   return (
-    <View className="flex-1 items-center rounded-xl border border-border/60 bg-card/30 p-3 shadow-sm">
+    <View className="flex-1 items-center rounded-xl border border-border bg-card px-2.5 py-3">
       <Text className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
         {label}
       </Text>
@@ -198,7 +198,7 @@ export function NutritionSection() {
             <View className="gap-3">
               <View className="flex-row gap-3">
                 {/* Calories Tile */}
-                <View className="flex-1 rounded-xl border border-border/80 bg-card/80 p-3.5 shadow-sm">
+                <View className="flex-1 rounded-xl border border-border bg-card p-3.5">
                   <Text className="text-[10px] font-bold uppercase tracking-wide text-text-muted">Calories</Text>
                   <Text className="text-2xl font-black text-text-primary mt-2">
                     {today.calories}
@@ -212,7 +212,7 @@ export function NutritionSection() {
                   />
                 </View>
                 {/* Water Tile */}
-                <View className="flex-1 rounded-xl border border-border/80 bg-card/80 p-3.5 shadow-sm">
+                <View className="flex-1 rounded-xl border border-border bg-card p-3.5">
                   <Text className="text-[10px] font-bold uppercase tracking-wide text-text-muted">Water</Text>
                   <Text className="text-2xl font-black text-text-primary mt-2">
                     {(today.waterMl / 1000).toFixed(1)}

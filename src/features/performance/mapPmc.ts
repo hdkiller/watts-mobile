@@ -26,7 +26,7 @@ export function formStatusTextClass(color: string): string {
     case 'green':
       return 'text-emerald-400';
     case 'yellow':
-      return 'text-amber-300';
+      return 'text-text-muted';
     case 'blue':
       return 'text-sky-400';
     case 'orange':
