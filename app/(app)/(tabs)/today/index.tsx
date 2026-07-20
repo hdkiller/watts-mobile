@@ -513,6 +513,8 @@ export default function TodayScreen() {
 
       <AnalysisReadyCard recent={recentQuery.data} />
 
+      <NutritionGlance />
+
       {!checkinCompleted ? (
         <EnterSection order={1}>
           <Pressable
@@ -600,26 +602,28 @@ export default function TodayScreen() {
 
       {hasRecommendation ? (
         <EnterSection order={1}>
-          <View
-            className={`mt-6 rounded-2xl border border-border border-l-4 ${heroToneClasses.accent} ${heroToneClasses.tint} p-5`}
-          >
+          <View className="mt-6">
             <View className="flex-row items-center">
               <Text className="text-xs uppercase tracking-wide text-text-muted">Today’s call</Text>
               {data!.confidence != null ? (
                 <ConfidenceDots confidence={data!.confidence} fillClass={heroToneClasses.fill} />
               ) : null}
             </View>
-            <Text className={`mt-2 text-2xl font-semibold ${heroToneClasses.kicker}`}>
-              {data!.actionLabel}
-            </Text>
-            {data!.rationale ? (
-              <Text className="mt-3 text-base leading-6 text-text-body">{data!.rationale}</Text>
-            ) : null}
-            {data!.modificationSummary && !data!.userAccepted ? (
-              <Text className="mt-3 text-sm text-text-muted">
-                Proposed change: {data!.modificationSummary}
+            <View
+              className={`mt-3 rounded-2xl border border-border border-l-4 ${heroToneClasses.accent} ${heroToneClasses.tint} p-5`}
+            >
+              <Text className={`text-2xl font-semibold ${heroToneClasses.kicker}`}>
+                {data!.actionLabel}
               </Text>
-            ) : null}
+              {data!.rationale ? (
+                <Text className="mt-3 text-base leading-6 text-text-body">{data!.rationale}</Text>
+              ) : null}
+              {data!.modificationSummary && !data!.userAccepted ? (
+                <Text className="mt-3 text-sm text-text-muted">
+                  Proposed change: {data!.modificationSummary}
+                </Text>
+              ) : null}
+            </View>
           </View>
         </EnterSection>
       ) : null}
@@ -757,7 +761,6 @@ export default function TodayScreen() {
         <WeekGlanceStrip recent={recentQuery.data} planned={upcomingQuery.data} />
         <ComingUpStrip excludePlannedId={planned?.id} />
         <RecentlyTeaser />
-        <NutritionGlance />
       </View>
     </ScrollView>
 

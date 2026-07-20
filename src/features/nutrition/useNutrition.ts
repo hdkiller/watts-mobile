@@ -30,6 +30,14 @@ export function useLogNutritionItem() {
   });
 }
 
+export function useNextFuelingWindowQuery(options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: NEXT_FUELING_WINDOW_KEY,
+    queryFn: fetchNextFuelingWindow,
+    enabled: options?.enabled ?? true,
+  });
+}
+
 export function useQuickAddHydration() {
   const queryClient = useQueryClient();
   return useMutation({

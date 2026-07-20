@@ -3,9 +3,12 @@ import { describe, expect, it } from 'vitest';
 import {
   emptyQuickLogForm,
   formatMacroGrams,
+  formatWindowTime,
+  fuelStateLabel,
   goalProgressPct,
   localDateYmd,
   nutritionWebPath,
+  pickNextFuelingWindow,
   pickTodayNutrition,
   quickLogHasContent,
   toNutritionUploadPayload,
@@ -98,6 +101,123 @@ describe('pickTodayNutrition', () => {
     expect(result.caloriesGoal).toBeNull();
     expect(result.fluidGoalMl).toBeNull();
     expect(result.hasGoals).toBe(false);
+  });
+
+  it('maps fuelState from the fueling plan', () => {
+    const today = '2026-07-20';
+    const result = pickTodayNutrition(
+      {
+        nutrition: [
+          {
+            id: 'n4',
+            date: today,
+            calories: 100,
+            fuelingPlan: { dailyTotals: { fuelState: 3 } },
+          },
+        ],
+      },
+      today
+    );
+    expect(result.fuelState).toBe(3);
+    expect(fuelStateLabel(3)).toBe('Performance day');
+    expect(fuelStateLabel(2)).toBe('Steady day');
+    expect(fuelStateLabel(1)).toBe('Eco day');
+  });
+
+  it('treats an out-of-range fuelState as null', () => {
+    const today = '2026-07-20';
+    const result = pickTodayNutrition(
+      {
+        nutrition: [
+          { id: 'n5', date: today, calories: 100, fuelingPlan: { dailyTotals: { fuelState: 7 } } },
+        ],
+      },
+      today
+    );
+    expect(result.fuelState).toBeNull();
+  });
+});
+
+describe('pickNextFuelingWindow', () => {
+  const now = new Date('2026-07-20T12:00:00.000Z');
+
+  it('picks the earliest window that has not ended yet', () => {
+    const result = pickNextFuelingWindow(
+      {
+        windows: [
+          {
+            type: 'PRE_WORKOUT',
+            startTime: '2026-07-20T09:00:00.000Z',
+            endTime: '2026-07-20T09:30:00.000Z',
+            targetCarbs: 20,
+            targetProtein: 5,
+          },
+          {
+            type: 'DAILY_BASE',
+            slotName: 'Dinner',
+            startTime: '2026-07-20T18:00:00.000Z',
+            endTime: '2026-07-20T19:00:00.000Z',
+            targetCarbs: 72.4,
+            targetProtein: 38,
+          },
+          {
+            type: 'POST_WORKOUT',
+            startTime: '2026-07-20T20:00:00.000Z',
+            endTime: '2026-07-20T21:00:00.000Z',
+            targetCarbs: 40,
+            targetProtein: 25,
+          },
+        ],
+      },
+      now
+    );
+
+    expect(result?.label).toBe('Dinner');
+    expect(result?.targetCarbs).toBe(72);
+    expect(result?.targetProtein).toBe(38);
+    expect(formatWindowTime(result!.startTime)).toMatch(/^\d{2}:\d{2}$/);
+  });
+
+  it('falls back to a type label when slotName is absent', () => {
+    const result = pickNextFuelingWindow(
+      {
+        windows: [
+          {
+            type: 'POST_WORKOUT',
+            startTime: '2026-07-20T20:00:00.000Z',
+            endTime: '2026-07-20T21:00:00.000Z',
+            targetCarbs: 40,
+            targetProtein: 25,
+          },
+        ],
+      },
+      now
+    );
+    expect(result?.label).toBe('Post-workout');
+  });
+
+  it('returns null when there are no future windows', () => {
+    const result = pickNextFuelingWindow(
+      {
+        windows: [
+          {
+            type: 'DAILY_BASE',
+            startTime: '2026-07-20T06:00:00.000Z',
+            endTime: '2026-07-20T07:00:00.000Z',
+            targetCarbs: 10,
+            targetProtein: 5,
+          },
+        ],
+      },
+      now
+    );
+    expect(result).toBeNull();
+  });
+
+  it('returns null for malformed payloads', () => {
+    expect(pickNextFuelingWindow(null)).toBeNull();
+    expect(pickNextFuelingWindow({})).toBeNull();
+    expect(pickNextFuelingWindow({ windows: 'nope' })).toBeNull();
   });
 });
 
