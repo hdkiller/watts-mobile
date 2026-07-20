@@ -1,4 +1,4 @@
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, router, type Href } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
@@ -22,6 +22,7 @@ import type {
   ActivityAnalysis,
   ActivitySummary,
   AnalysisPhase,
+  PlanAdherenceGlance,
 } from '@/src/features/activity/types';
 import {
   useActivityStreamsQuery,
@@ -29,6 +30,7 @@ import {
   useRequestWorkoutAnalysis,
 } from '@/src/features/activity/useActivity';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
+import { openActivitySessionDiscuss } from '@/src/features/coach/openSessionDiscuss';
 import { markAnalysisSeen } from '@/src/features/today/analysisReadyStore';
 import { useOfflineCached } from '@/src/hooks/useOfflineCached';
 import { hapticError, hapticSuccess } from '@/src/lib/haptics';
@@ -213,6 +215,43 @@ function FullAnalysisDisclosure({ analysis }: { analysis: ActivityAnalysis }) {
   );
 }
 
+function PlanAdherenceBlock({ adherence }: { adherence: PlanAdherenceGlance }) {
+  const planId = adherence.plannedWorkoutId;
+  return (
+    <View className="mt-6">
+      <Text className="text-xs uppercase tracking-wide text-text-muted">Plan adherence</Text>
+      {adherence.phase === 'pending' || adherence.phase === 'failed' ? (
+        <Text
+          className={`mt-2 text-sm ${
+            adherence.phase === 'failed' ? 'text-red-400' : 'text-text-muted'
+          }`}
+        >
+          {adherence.statusLabel}
+        </Text>
+      ) : null}
+      {adherence.overallScore != null ? (
+        <Text className="mt-2 text-2xl font-semibold text-text-primary">
+          {adherence.overallScore}%
+        </Text>
+      ) : null}
+      {adherence.summary ? (
+        <Text className="mt-2 text-base leading-6 text-text-body">{adherence.summary}</Text>
+      ) : null}
+      {planId ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="View plan"
+          className="mt-3 self-start active:opacity-80"
+          hitSlop={8}
+          onPress={() => router.push(`/(app)/(tabs)/today/planned/${planId}` as Href)}
+        >
+          <Text className="text-sm font-semibold text-brand">View plan →</Text>
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
+
 function DescriptionBlock({ text }: { text: string }) {
   const [open, setOpen] = useState(false);
   if (looksLikeImportNotes(text)) {
@@ -336,6 +375,25 @@ export default function ActivitySummaryScreen() {
             </View>
           ) : null}
 
+          {data.planAdherence ? <PlanAdherenceBlock adherence={data.planAdherence} /> : null}
+
+          {data.exercises.length > 0 ? (
+            <View className="mt-6">
+              <Text className="text-xs uppercase tracking-wide text-text-muted">Exercises</Text>
+              {data.exercises.map((exercise, index) => (
+                <View
+                  key={`${exercise.name}-${index}`}
+                  className="mt-3 border-b border-border pb-3"
+                >
+                  <Text className="text-base text-text-body">{exercise.name}</Text>
+                  {exercise.prescription ? (
+                    <Text className="mt-1 text-sm text-text-muted">{exercise.prescription}</Text>
+                  ) : null}
+                </View>
+              ))}
+            </View>
+          ) : null}
+
           <AnalysisGlance
             analysis={data.analysis}
             analyzing={analyzeMutation.isPending}
@@ -352,8 +410,13 @@ export default function ActivitySummaryScreen() {
           {data.description ? <DescriptionBlock text={data.description} /> : null}
 
           <Button
-            variant="secondary"
             className="mt-8"
+            label="Discuss with Coach"
+            onPress={() => openActivitySessionDiscuss(data)}
+          />
+          <Button
+            variant="secondary"
+            className="mt-3"
             label="Open in Coach Watts for explorer & more"
             onPress={() => void openWeb()}
           />

@@ -2,6 +2,8 @@ import type { RecoveryContextItem } from '@/src/features/recovery/types';
 import type { TodayViewModel } from '@/src/features/today/types';
 import { isPlausibleSleepHours } from '@/src/features/wellness/plausibility';
 
+import type { SessionDiscussContext } from './sessionDiscussStore';
+
 export type SeedContextInput = {
   today?: TodayViewModel | null;
   activeRecovery?: RecoveryContextItem[] | null;
@@ -53,6 +55,28 @@ export function buildCoachSeedContext(input: SeedContextInput): string | null {
   return ['Context for this chat (facts only — do not invent a new plan):', ...lines].join('\n');
 }
 
+/**
+ * Short non-prescriptive seed when Coach is opened from planned/activity detail.
+ */
+export function buildSessionCoachSeedContext(session: SessionDiscussContext): string | null {
+  if (!session.title?.trim()) return null;
+  const lines: string[] = [];
+  const kindLabel = session.kind === 'planned' ? 'Planned workout' : 'Completed activity';
+  const identity = [session.title.trim()];
+  if (session.type) identity.push(session.type);
+  lines.push(`${kindLabel}: ${identity.join(' · ')}.`);
+  if (session.date) {
+    lines.push(`Date: ${session.date}.`);
+  }
+  if (session.metricsLine?.trim()) {
+    lines.push(`Key metrics: ${truncate(session.metricsLine.trim(), 120)}`);
+  }
+  if (session.adherenceLine?.trim()) {
+    lines.push(`Plan adherence: ${truncate(session.adherenceLine.trim(), 140)}`);
+  }
+  return ['Context for this chat (facts only — do not invent a new plan):', ...lines].join('\n');
+}
+
 const ATHLETE_QUESTION_MARKER = 'Athlete question:';
 
 export function withSeedPrefix(userText: string, seed: string | null | undefined): string {
@@ -77,6 +101,8 @@ export function displayAthleteText(text: string): string {
     raw.startsWith('Context for this chat') ||
     raw.includes("Today's recommendation:") ||
     raw.includes('Planned session:') ||
+    raw.includes('Planned workout:') ||
+    raw.includes('Completed activity:') ||
     raw.includes('Recovery strip:');
   if (!looksSeeded) return raw;
 

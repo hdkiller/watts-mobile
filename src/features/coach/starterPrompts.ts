@@ -8,6 +8,10 @@ export type StarterPrompt = {
 export const DISCUSS_TODAY_PROMPT =
   'Can we discuss today’s recommendation? I’m considering modifying or resting — what do you think?';
 
+/** Prefill/send text when planned/activity detail opens Coach. */
+export const DISCUSS_SESSION_PROMPT =
+  'Can we discuss this session? What should I focus on?';
+
 /** Brand-aligned empty-state prompts for the Coach tab. */
 export const COACH_STARTER_PROMPTS: StarterPrompt[] = [
   {

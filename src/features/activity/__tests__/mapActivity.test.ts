@@ -6,6 +6,9 @@ import {
   formatIntensityFactor,
   mapActivityAnalysis,
   mapCoachInstructions,
+  mapCompletedExercises,
+  mapFuelingPrepGlance,
+  mapPlanAdherence,
   mapPlannedDetail,
   mapPlannedStructure,
   mapWorkoutListItem,
@@ -249,6 +252,7 @@ describe('mapPlannedDetail', () => {
       workIntensity: 0.88,
       completionStatus: 'PENDING',
       syncStatus: 'SYNCED',
+      completedWorkouts: [{ id: 'w-done', title: 'Matched ride', type: 'Ride' }],
       structuredWorkout: {
         coachInstructions: 'Stay smooth on the climbs.',
         zoneProfileSnapshot: {
@@ -264,6 +268,9 @@ describe('mapPlannedDetail', () => {
     });
     expect(detail.workIntensityLabel).toBe('IF 0.88');
     expect(detail.completionLabel).toBe('Not started');
+    expect(detail.completionStatus).toBe('PENDING');
+    expect(detail.complianceActionable).toBe(true);
+    expect(detail.linkedCompleted?.id).toBe('w-done');
     expect(detail.syncLabel).toBeNull();
     expect(detail.coachInstructions).toBe('Stay smooth on the climbs.');
     expect(detail.zoneSummary).toEqual({
@@ -358,6 +365,121 @@ describe('mapWorkoutSummaryMetrics', () => {
         intensity: 3,
       })
     ).toEqual([]);
+  });
+
+  it('maps extended present-only metrics', () => {
+    const metrics = mapWorkoutSummaryMetrics({
+      id: 'w4',
+      averageCadence: 88.2,
+      calories: 640,
+      maxHr: 172,
+      maxWatts: 410,
+      variabilityIndex: 1.05,
+      efficiencyFactor: 1.42,
+    });
+    expect(metrics).toEqual([
+      { key: 'cadence', label: 'Cadence', value: '88 rpm' },
+      { key: 'calories', label: 'Calories', value: '640 kcal' },
+      { key: 'maxHr', label: 'Max HR', value: '172 bpm' },
+      { key: 'maxPower', label: 'Max power', value: '410 W' },
+      { key: 'vi', label: 'VI', value: '1.05' },
+      { key: 'ef', label: 'EF', value: '1.42' },
+    ]);
+  });
+});
+
+describe('mapPlanAdherence', () => {
+  it('maps ready adherence with score and plan link', () => {
+    expect(
+      mapPlanAdherence({
+        id: 'w1',
+        plannedWorkoutId: 'pw-1',
+        planAdherence: {
+          plannedWorkoutId: 'pw-1',
+          overallScore: 82,
+          summary: 'Solid execution on the tempo blocks.',
+          analysisStatus: 'COMPLETED',
+        },
+      })
+    ).toEqual({
+      plannedWorkoutId: 'pw-1',
+      overallScore: 82,
+      summary: 'Solid execution on the tempo blocks.',
+      phase: 'ready',
+      statusLabel: null,
+    });
+  });
+
+  it('shows pending status without inventing a score', () => {
+    expect(
+      mapPlanAdherence({
+        id: 'w2',
+        planAdherence: { analysisStatus: 'PENDING', plannedWorkoutId: 'pw-2' },
+      })
+    ).toMatchObject({
+      plannedWorkoutId: 'pw-2',
+      overallScore: null,
+      phase: 'pending',
+      statusLabel: 'Adherence analyzing…',
+    });
+  });
+
+  it('returns null when adherence is absent', () => {
+    expect(mapPlanAdherence({ id: 'w3' })).toBeNull();
+  });
+});
+
+describe('mapCompletedExercises', () => {
+  it('maps exercise names and compact prescriptions', () => {
+    expect(
+      mapCompletedExercises({
+        id: 'w1',
+        exercises: [
+          {
+            exercise: { title: 'Back squat' },
+            sets: [
+              { reps: 5, weight: 100, weightUnit: 'kg', rpe: 7 },
+              { reps: 5, weight: 100, weightUnit: 'kg', rpe: 8 },
+            ],
+          },
+        ],
+      })
+    ).toEqual([
+      {
+        name: 'Back squat',
+        prescription: '2 sets · 5 reps · 100 kg · RPE 7.5',
+      },
+    ]);
+  });
+
+  it('returns empty when exercises absent', () => {
+    expect(mapCompletedExercises({ id: 'w2' })).toEqual([]);
+  });
+});
+
+describe('mapFuelingPrepGlance', () => {
+  it('maps compact fueling labels', () => {
+    expect(
+      mapFuelingPrepGlance(
+        {
+          fuelingPlan: {
+            dailyTotals: { carbs: 320, calories: 2800, fuelState: 2 },
+            notes: ['Prioritize carbs in the pre-workout window.'],
+          },
+        },
+        'TRAIN_LOW'
+      )
+    ).toEqual({
+      carbsLabel: '320 g carbs',
+      caloriesLabel: '2800 kcal',
+      fuelStateLabel: 'Moderate fuel day',
+      strategyLabel: 'Train Low',
+      note: 'Prioritize carbs in the pre-workout window.',
+    });
+  });
+
+  it('returns null when plan is null', () => {
+    expect(mapFuelingPrepGlance({ fuelingPlan: null })).toBeNull();
   });
 });
 

@@ -21,7 +21,9 @@ export default function CoachScreen() {
   const attachRaw = firstParam(params.attach);
   const autoAttach =
     attachRaw === 'camera' || attachRaw === 'library' ? attachRaw : null;
-  const discussToday = firstParam(params.discuss) === '1';
+  const discussParam = firstParam(params.discuss);
+  const discussToday = discussParam === '1';
+  const discussSession = discussParam === 'session';
 
   return (
     <SafeAreaView
@@ -33,6 +35,7 @@ export default function CoachScreen() {
         targetRoomId={roomId}
         autoAttach={autoAttach}
         discussToday={discussToday}
+        discussSession={discussSession}
       />
     </SafeAreaView>
   );

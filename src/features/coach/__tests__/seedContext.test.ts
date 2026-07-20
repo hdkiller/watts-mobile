@@ -3,7 +3,12 @@ import { describe, expect, it } from 'vitest';
 import type { RecoveryContextItem } from '@/src/features/recovery/types';
 import type { TodayViewModel } from '@/src/features/today/types';
 
-import { buildCoachSeedContext, displayAthleteText, withSeedPrefix } from '../seedContext';
+import {
+  buildCoachSeedContext,
+  buildSessionCoachSeedContext,
+  displayAthleteText,
+  withSeedPrefix,
+} from '../seedContext';
 
 const baseToday = (): TodayViewModel => ({
   recommendationId: 'rec-1',
@@ -77,6 +82,36 @@ describe('buildCoachSeedContext', () => {
   });
 });
 
+describe('buildSessionCoachSeedContext', () => {
+  it('builds identity-focused seed without inventing prescriptions', () => {
+    const seed = buildSessionCoachSeedContext({
+      kind: 'activity',
+      id: 'w1',
+      title: 'Lunch ride',
+      type: 'Ride',
+      date: '2026-07-20',
+      metricsLine: '90 min · TSS 85',
+      adherenceLine: '82% — Solid tempo execution',
+    });
+    expect(seed).toContain('Completed activity: Lunch ride · Ride.');
+    expect(seed).toContain('Date: 2026-07-20.');
+    expect(seed).toContain('Key metrics: 90 min · TSS 85');
+    expect(seed).toContain('Plan adherence: 82% — Solid tempo execution');
+    expect(seed).toContain('do not invent a new plan');
+    expect(seed).not.toContain('You should');
+  });
+
+  it('returns null without a title', () => {
+    expect(
+      buildSessionCoachSeedContext({
+        kind: 'planned',
+        id: 'pw-1',
+        title: '   ',
+      })
+    ).toBeNull();
+  });
+});
+
 describe('displayAthleteText', () => {
   it('strips the seed block and keeps the athlete question', () => {
     const seeded = withSeedPrefix(
@@ -84,6 +119,19 @@ describe('displayAthleteText', () => {
       buildCoachSeedContext({ today: baseToday() })
     );
     expect(displayAthleteText(seeded)).toBe("What's the intent of today's planned session?");
+  });
+
+  it('strips session seed blocks', () => {
+    const seeded = withSeedPrefix(
+      'What should I focus on?',
+      buildSessionCoachSeedContext({
+        kind: 'planned',
+        id: 'pw-1',
+        title: 'Threshold',
+        type: 'Ride',
+      })
+    );
+    expect(displayAthleteText(seeded)).toBe('What should I focus on?');
   });
 
   it('leaves ordinary user text unchanged', () => {

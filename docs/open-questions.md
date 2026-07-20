@@ -22,7 +22,7 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 15 | **Week strip placement** | Today below CTAs vs Upcoming-only | **Decided** |
 | 16 | **Session notes / coach comments** | Planned `description` only vs per-workout comment thread | **Decided** |
 | 17 | **Store-candidate offline floor** | Online-only v1 vs cache last Today + planned read-only | **Decided** |
-| 18 | **Skip/miss API shape** | Reuse PATCH/`completionStatus` vs new mobile endpoint | Open — pair with coach-wattz; complete path already exists |
+| 18 | **Skip/miss API shape** | Reuse PATCH/`completionStatus` vs new mobile endpoint | **Decided:** `POST /api/planned-workouts/:id/skip` (`completionStatus: SKIPPED`) + Bearer `workout:write`; complete uses `POST …/complete` |
 | 19 | **Today Coming up: planned vs calendar events** | Planned workouts only vs also race/life calendar events | **Decided:** planned primary; race/life countdown via `GET /api/events` + `goal:read` |
 
 ## Decision log
@@ -48,6 +48,7 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 2026-07-19 | Modify UX = recommendation detail | Accept/Rest stay on Today; Modify opens detail for rationale; alternative chips only if server returns options — no on-device invention |
 | 2026-07-19 | Today planned-only fallback | No recommendation + planned workout → planned is the hero decision surface (complete / skip / detail / ask coach) |
 | 2026-07-19 | Planned compliance distinct from rec actions | Complete/skip planned via `completionStatus` / complete API; Accept/Rest remain recommendation mutations |
+| 2026-07-20 | Skip via dedicated Bearer endpoint | `POST /api/planned-workouts/:id/skip` sets `SKIPPED`; complete + fueling GET also Bearer (`workout:write` / `nutrition:read`); planned GET includes `completedWorkouts` |
 | 2026-07-19 | Week strip on Today | Thin next ~7 days below CTAs; Upcoming keeps full capped list; no month grid or drag-reschedule |
 | 2026-07-19 | Session notes = `description` | Show planned/activity description prominently; no per-workout comment thread in v1 (Coach tab for Q&A) |
 | 2026-07-19 | Store-candidate offline floor | Cache last successful Today + today’s planned detail read-only; writes queue or honest offline — not full offline-first |

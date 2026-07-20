@@ -31,7 +31,11 @@ import {
 } from './mapMessages';
 import { MarkdownLite } from './markdownLite';
 import { RoomListSheet } from './RoomListSheet';
-import { COACH_STARTER_PROMPTS, DISCUSS_TODAY_PROMPT } from './starterPrompts';
+import {
+  COACH_STARTER_PROMPTS,
+  DISCUSS_SESSION_PROMPT,
+  DISCUSS_TODAY_PROMPT,
+} from './starterPrompts';
 import type {
   CoachUIMessage,
   ToolDomain,
@@ -286,11 +290,14 @@ export function CoachChat({
   targetRoomId,
   autoAttach,
   discussToday = false,
+  discussSession = false,
 }: {
   targetRoomId?: string | null;
   autoAttach?: 'camera' | 'library' | null;
   /** When true, start (or open a new) chat seeded with today’s recommendation context. */
   discussToday?: boolean;
+  /** When true, start chat seeded with staged planned/activity session context. */
+  discussSession?: boolean;
 }) {
   const theme = useThemeColors();
   const listRef = useRef<FlatList<CoachUIMessage>>(null);
@@ -330,20 +337,22 @@ export function CoachChat({
   }, [autoAttach, chat.loading, chat.isReadOnly]);
 
   useEffect(() => {
-    if (!discussToday || discussHandled.current || chat.loading || chat.isReadOnly || chat.sending) {
+    const discuss = discussToday || discussSession;
+    if (!discuss || discussHandled.current || chat.loading || chat.isReadOnly || chat.sending) {
       return;
     }
     discussHandled.current = true;
+    const prompt = discussSession ? DISCUSS_SESSION_PROMPT : DISCUSS_TODAY_PROMPT;
     void (async () => {
       if (chat.displayMessages.length > 0) {
         await chat.createRoom();
       }
-      chat.applyStarter(DISCUSS_TODAY_PROMPT);
-      await chat.send(DISCUSS_TODAY_PROMPT);
+      chat.applyStarter(prompt);
+      await chat.send(prompt);
     })();
-    // One-shot when Coach finishes load for a discuss deep-link from Today.
+    // One-shot when Coach finishes load for a discuss deep-link.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [discussToday, chat.loading, chat.isReadOnly, chat.sending]);
+  }, [discussToday, discussSession, chat.loading, chat.isReadOnly, chat.sending]);
 
   const openAttachMenu = () => {
     if (chat.isReadOnly || chat.sending) return;

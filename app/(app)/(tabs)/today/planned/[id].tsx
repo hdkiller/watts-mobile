@@ -1,6 +1,6 @@
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, router, type Href } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
@@ -15,9 +15,18 @@ import {
   formatDuration,
   plannedWorkoutWebPath,
   zoneIndexFromBandName,
-  stepIntensity } from '@/src/features/activity/mapActivity';
-import { usePlannedDetailQuery } from '@/src/features/activity/useActivity';
+  stepIntensity,
+} from '@/src/features/activity/mapActivity';
+import {
+  useCompletePlannedWorkout,
+  usePlannedDetailQuery,
+  usePlannedFuelingQuery,
+  useSkipPlannedWorkout,
+} from '@/src/features/activity/useActivity';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
+import { openPlannedSessionDiscuss } from '@/src/features/coach/openSessionDiscuss';
+import { isNutritionTrackingEnabled } from '@/src/features/profile/mapProfile';
+import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { useOfflineCached } from '@/src/hooks/useOfflineCached';
 import { humanizeWorkoutType } from '@/src/lib/humanizeWorkoutType';
 import { zoneColor, Colors } from '@/src/theme/colors';
@@ -44,12 +53,21 @@ export default function PlannedWorkoutDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { instanceUrl } = useAuth();
   const { data, isLoading, isError, error, dataUpdatedAt } = usePlannedDetailQuery(id);
+  const profileQuery = useAthleteProfileQuery();
+  const nutritionOn = isNutritionTrackingEnabled(profileQuery.data);
+  const fuelingQuery = usePlannedFuelingQuery(id, {
+    strategy: data?.fuelingStrategy,
+    enabled: nutritionOn && Boolean(data),
+  });
+  const completeMutation = useCompletePlannedWorkout(id);
+  const skipMutation = useSkipPlannedWorkout(id);
   const { showCachedOffline, lastUpdatedLabel } = useOfflineCached({
     data,
     isError,
     dataUpdatedAt,
   });
   const [zonesExpanded, setZonesExpanded] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const openWeb = async () => {
     const path = id ? plannedWorkoutWebPath(id) : '/';
@@ -59,6 +77,39 @@ export default function PlannedWorkoutDetailScreen() {
   const statusLine = data
     ? [data.completionLabel, data.syncLabel].filter(Boolean).join(' · ')
     : null;
+
+  const busy = completeMutation.isPending || skipMutation.isPending;
+
+  const onComplete = () => {
+    Alert.alert('Mark complete?', 'This marks the planned session as completed.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Complete',
+        onPress: () => {
+          setActionError(null);
+          completeMutation.mutate(undefined, {
+            onError: (err) => setActionError(friendlyError(err, 'Failed to complete workout')),
+          });
+        },
+      },
+    ]);
+  };
+
+  const onSkip = () => {
+    Alert.alert('Skip this workout?', 'This marks the planned session as skipped.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Skip',
+        style: 'destructive',
+        onPress: () => {
+          setActionError(null);
+          skipMutation.mutate(undefined, {
+            onError: (err) => setActionError(friendlyError(err, 'Failed to skip workout')),
+          });
+        },
+      },
+    ]);
+  };
 
   return (
     <>
@@ -91,10 +142,68 @@ export default function PlannedWorkoutDetailScreen() {
             <Text className="mt-3 text-sm text-text-muted">{statusLine}</Text>
           ) : null}
 
+          {data.complianceActionable ? (
+            <View className="mt-4 flex-row gap-3">
+              <View className="flex-1">
+                <Button label="Complete" onPress={onComplete} loading={completeMutation.isPending} disabled={busy} />
+              </View>
+              <View className="flex-1">
+                <Button
+                  variant="secondary"
+                  label="Skip"
+                  onPress={onSkip}
+                  loading={skipMutation.isPending}
+                  disabled={busy}
+                />
+              </View>
+            </View>
+          ) : null}
+          {actionError ? <Text className="mt-3 text-sm text-red-400">{actionError}</Text> : null}
+
+          {data.linkedCompleted ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="View completed activity"
+              className="mt-4 rounded-xl border border-border bg-card/60 px-4 py-3 active:opacity-80"
+              onPress={() =>
+                router.push(`/(app)/(tabs)/today/activity/${data.linkedCompleted!.id}` as Href)
+              }
+            >
+              <Text className="text-xs uppercase tracking-wide text-text-muted">Completed activity</Text>
+              <Text className="mt-1 text-base font-medium text-text-body">
+                {data.linkedCompleted.title}
+              </Text>
+              <Text className="mt-1 text-sm text-brand">View activity →</Text>
+            </Pressable>
+          ) : null}
+
           {data.coachInstructions ? (
             <View className="mt-6">
               <Text className="text-xs uppercase tracking-wide text-text-muted">Coach cues</Text>
               <Text className="mt-2 text-base leading-6 text-text-body">{data.coachInstructions}</Text>
+            </View>
+          ) : null}
+
+          {fuelingQuery.data ? (
+            <View className="mt-6">
+              <Text className="text-xs uppercase tracking-wide text-text-muted">Fueling prep</Text>
+              <View className="mt-2 flex-row flex-wrap">
+                {[
+                  fuelingQuery.data.fuelStateLabel,
+                  fuelingQuery.data.carbsLabel,
+                  fuelingQuery.data.caloriesLabel,
+                  fuelingQuery.data.strategyLabel,
+                ]
+                  .filter(Boolean)
+                  .map((label) => (
+                    <Text key={label!} className="mb-1 mr-3 text-sm text-text-body">
+                      {label}
+                    </Text>
+                  ))}
+              </View>
+              {fuelingQuery.data.note ? (
+                <Text className="mt-1 text-sm leading-5 text-text-muted">{fuelingQuery.data.note}</Text>
+              ) : null}
             </View>
           ) : null}
 
@@ -200,8 +309,13 @@ export default function PlannedWorkoutDetailScreen() {
           ) : null}
 
           <Button
-            variant="secondary"
             className="mt-8"
+            label="Discuss with Coach"
+            onPress={() => openPlannedSessionDiscuss(data)}
+          />
+          <Button
+            variant="secondary"
+            className="mt-3"
             label="Open in Coach Watts"
             onPress={() => void openWeb()}
           />

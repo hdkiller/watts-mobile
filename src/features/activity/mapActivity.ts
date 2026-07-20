@@ -7,6 +7,10 @@ import type {
   AnalysisRecommendation,
   AnalysisScore,
   AnalysisSection,
+  CompletedExercise,
+  FuelingPrepApi,
+  FuelingPrepGlance,
+  PlanAdherenceGlance,
   PlannedDetail,
   PlannedDetailApi,
   PlannedListItem,
@@ -15,6 +19,7 @@ import type {
   PlannedZoneBand,
   PlannedZoneSummary,
   SummaryMetric,
+  WorkoutExerciseApi,
   WorkoutListItemApi,
   WorkoutSummaryApi,
 } from './types';
@@ -25,6 +30,8 @@ const ANALYSIS_SECTION_MAX = 6;
 const ANALYSIS_REC_MAX = 5;
 const ANALYSIS_BULLET_MAX = 5;
 const ANALYSIS_POINT_MAX = 4;
+const COMPLETED_EXERCISE_MAX = 24;
+const ADHERENCE_SUMMARY_MAX = 280;
 
 export function formatDuration(durationSec: number | null | undefined): string | null {
   if (durationSec == null || durationSec <= 0) return null;
@@ -159,6 +166,21 @@ function formatHr(bpm: unknown): string | null {
   return `${Math.round(bpm)} bpm`;
 }
 
+function formatCadence(rpm: unknown): string | null {
+  if (typeof rpm !== 'number' || !Number.isFinite(rpm) || rpm <= 0) return null;
+  return `${Math.round(rpm)} rpm`;
+}
+
+function formatCalories(kcal: unknown): string | null {
+  if (typeof kcal !== 'number' || !Number.isFinite(kcal) || kcal <= 0) return null;
+  return `${Math.round(kcal)} kcal`;
+}
+
+function formatRatio(value: unknown, digits = 2): string | null {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) return null;
+  return value.toFixed(digits);
+}
+
 function truncateDisplay(text: string, max: number): string {
   const trimmed = text.trim();
   if (trimmed.length <= max) return trimmed;
@@ -227,7 +249,172 @@ export function mapWorkoutSummaryMetrics(
   const intensity = formatIntensityFactor(raw.intensity);
   if (intensity) metrics.push({ key: 'intensity', label: 'Intensity', value: intensity });
 
+  const cadence = formatCadence(raw.averageCadence);
+  if (cadence) metrics.push({ key: 'cadence', label: 'Cadence', value: cadence });
+
+  const calories = formatCalories(raw.calories);
+  if (calories) metrics.push({ key: 'calories', label: 'Calories', value: calories });
+
+  const maxHr = formatHr(raw.maxHr);
+  if (maxHr) metrics.push({ key: 'maxHr', label: 'Max HR', value: maxHr });
+
+  const maxPower = formatWatts(raw.maxWatts);
+  if (maxPower) metrics.push({ key: 'maxPower', label: 'Max power', value: maxPower });
+
+  const vi = formatRatio(raw.variabilityIndex);
+  if (vi) metrics.push({ key: 'vi', label: 'VI', value: vi });
+
+  const ef = formatRatio(raw.efficiencyFactor);
+  if (ef) metrics.push({ key: 'ef', label: 'EF', value: ef });
+
   return metrics;
+}
+
+export function mapPlanAdherence(raw: WorkoutSummaryApi): PlanAdherenceGlance | null {
+  const adherence = raw.planAdherence;
+  if (!adherence || typeof adherence !== 'object') return null;
+
+  const plannedWorkoutId =
+    (typeof adherence.plannedWorkoutId === 'string' && adherence.plannedWorkoutId.trim()) ||
+    (typeof raw.plannedWorkoutId === 'string' && raw.plannedWorkoutId.trim()) ||
+    null;
+
+  const overallScore =
+    typeof adherence.overallScore === 'number' && Number.isFinite(adherence.overallScore)
+      ? Math.round(adherence.overallScore)
+      : null;
+  const summary =
+    typeof adherence.summary === 'string' && adherence.summary.trim()
+      ? truncateDisplay(adherence.summary, ADHERENCE_SUMMARY_MAX)
+      : null;
+
+  const status =
+    typeof adherence.analysisStatus === 'string' ? adherence.analysisStatus.trim().toUpperCase() : '';
+  let phase: PlanAdherenceGlance['phase'] = 'unknown';
+  let statusLabel: string | null = null;
+  if (status === 'COMPLETED' || status === 'READY') {
+    phase = 'ready';
+  } else if (status === 'PENDING' || status === 'PROCESSING' || status === 'NOT_STARTED') {
+    phase = 'pending';
+    statusLabel = 'Adherence analyzing…';
+  } else if (status === 'FAILED' || status === 'ERROR') {
+    phase = 'failed';
+    statusLabel = 'Adherence unavailable';
+  }
+
+  if (phase === 'ready' && overallScore == null && !summary) {
+    // No athlete-facing content yet — still show link when we have a plan id.
+    if (!plannedWorkoutId) return null;
+  }
+  if (phase === 'unknown' && overallScore == null && !summary && !plannedWorkoutId) {
+    return null;
+  }
+  if (phase === 'unknown' && (overallScore != null || summary)) {
+    phase = 'ready';
+  }
+
+  return {
+    plannedWorkoutId,
+    overallScore,
+    summary,
+    phase,
+    statusLabel,
+  };
+}
+
+function mapExercisePrescription(exercise: WorkoutExerciseApi): string | null {
+  const sets = Array.isArray(exercise.sets) ? exercise.sets : [];
+  if (sets.length === 0) return null;
+
+  const bits: string[] = [`${sets.length} set${sets.length === 1 ? '' : 's'}`];
+  const reps = sets.map((s) => s.reps).filter((r): r is number => typeof r === 'number' && r > 0);
+  if (reps.length > 0) {
+    const same = reps.every((r) => r === reps[0]);
+    bits.push(same ? `${reps[0]} reps` : `${Math.min(...reps)}–${Math.max(...reps)} reps`);
+  }
+  const weights = sets
+    .map((s) => s.weight)
+    .filter((w): w is number => typeof w === 'number' && w > 0);
+  if (weights.length > 0) {
+    const unit =
+      typeof sets[0]?.weightUnit === 'string' && sets[0].weightUnit.trim()
+        ? sets[0].weightUnit.trim()
+        : 'kg';
+    const same = weights.every((w) => w === weights[0]);
+    bits.push(same ? `${weights[0]} ${unit}` : `${Math.min(...weights)}–${Math.max(...weights)} ${unit}`);
+  }
+  const rpes = sets.map((s) => s.rpe).filter((r): r is number => typeof r === 'number' && r > 0);
+  if (rpes.length > 0) {
+    const avg = rpes.reduce((a, b) => a + b, 0) / rpes.length;
+    bits.push(`RPE ${avg.toFixed(1)}`);
+  }
+  return bits.join(' · ');
+}
+
+export function mapCompletedExercises(raw: WorkoutSummaryApi): CompletedExercise[] {
+  const list = Array.isArray(raw.exercises) ? raw.exercises : [];
+  const out: CompletedExercise[] = [];
+  for (const row of list) {
+    if (!row || typeof row !== 'object') continue;
+    const name =
+      (typeof row.exercise?.title === 'string' && row.exercise.title.trim()) ||
+      (typeof row.exercise?.name === 'string' && row.exercise.name.trim()) ||
+      null;
+    if (!name) continue;
+    out.push({
+      name,
+      prescription: mapExercisePrescription(row),
+    });
+    if (out.length >= COMPLETED_EXERCISE_MAX) break;
+  }
+  return out;
+}
+
+const FUEL_STATE_LABELS: Record<number, string> = {
+  1: 'Easy fuel day',
+  2: 'Moderate fuel day',
+  3: 'High fuel day',
+};
+
+export function mapFuelingPrepGlance(
+  raw: FuelingPrepApi | null | undefined,
+  strategy?: string | null
+): FuelingPrepGlance | null {
+  const plan = raw?.fuelingPlan;
+  if (!plan || typeof plan !== 'object') return null;
+  const totals = plan.dailyTotals;
+  if (!totals || typeof totals !== 'object') return null;
+
+  const carbs =
+    typeof totals.carbs === 'number' && Number.isFinite(totals.carbs) && totals.carbs > 0
+      ? `${Math.round(totals.carbs)} g carbs`
+      : null;
+  const calories =
+    typeof totals.calories === 'number' && Number.isFinite(totals.calories) && totals.calories > 0
+      ? `${Math.round(totals.calories)} kcal`
+      : null;
+  const fuelState =
+    typeof totals.fuelState === 'number' && Number.isFinite(totals.fuelState)
+      ? FUEL_STATE_LABELS[totals.fuelState] || `Fuel state ${totals.fuelState}`
+      : null;
+  const strategyLabel =
+    typeof strategy === 'string' && strategy.trim() && strategy.trim().toUpperCase() !== 'STANDARD'
+      ? titleCaseToken(strategy.trim())
+      : null;
+  const note =
+    Array.isArray(plan.notes) && typeof plan.notes[0] === 'string' && plan.notes[0].trim()
+      ? truncateDisplay(plan.notes[0], 160)
+      : null;
+
+  if (!carbs && !calories && !fuelState && !strategyLabel && !note) return null;
+
+  return {
+    carbsLabel: carbs,
+    caloriesLabel: calories,
+    fuelStateLabel: fuelState,
+    strategyLabel,
+    note,
+  };
 }
 
 export function mapCoachInstructions(structuredWorkout: unknown): string | null {
@@ -549,12 +736,20 @@ export function mapWorkoutSummary(
   distanceUnits: DistanceDisplayUnits = 'Kilometers'
 ): ActivitySummary {
   const base = mapWorkoutListItem(raw);
+  const adherence = mapPlanAdherence(raw);
+  const plannedWorkoutId =
+    adherence?.plannedWorkoutId ||
+    (typeof raw.plannedWorkoutId === 'string' && raw.plannedWorkoutId.trim()) ||
+    null;
   return {
     ...base,
     description: typeof raw.description === 'string' ? raw.description : null,
     loadLabel: loadLabel(base.tss, base.trainingLoad),
     metrics: mapWorkoutSummaryMetrics(raw, distanceUnits),
     analysis: mapActivityAnalysis(raw),
+    plannedWorkoutId,
+    planAdherence: adherence,
+    exercises: mapCompletedExercises(raw),
   };
 }
 
@@ -938,9 +1133,29 @@ export function mapPlannedStructure(structuredWorkout: unknown): MappedPlannedSt
   return { steps: out.slice(0, 24), isStrength: false };
 }
 
+function mapLinkedCompleted(raw: PlannedDetailApi): PlannedDetail['linkedCompleted'] {
+  const list = Array.isArray(raw.completedWorkouts) ? raw.completedWorkouts : [];
+  const first = list.find((row) => row && typeof row.id === 'string' && row.id.trim());
+  if (!first) return null;
+  return {
+    id: first.id,
+    title: first.title?.trim() || 'Completed activity',
+    date: first.date ? String(first.date) : null,
+    type: first.type ?? null,
+  };
+}
+
 export function mapPlannedDetail(raw: PlannedDetailApi): PlannedDetail {
   const base = mapPlannedListItem(raw);
   const structure = mapPlannedStructure(raw.structuredWorkout);
+  const completionStatus =
+    typeof raw.completionStatus === 'string' && raw.completionStatus.trim()
+      ? raw.completionStatus.trim().toUpperCase()
+      : null;
+  const terminal =
+    completionStatus === 'COMPLETED' ||
+    completionStatus === 'SKIPPED' ||
+    completionStatus === 'MISSED';
   return {
     ...base,
     description: typeof raw.description === 'string' ? raw.description : null,
@@ -948,9 +1163,16 @@ export function mapPlannedDetail(raw: PlannedDetailApi): PlannedDetail {
     structureIsStrength: structure.isStrength,
     workIntensityLabel: formatIntensityFactor(raw.workIntensity),
     completionLabel: mapCompletionLabel(raw.completionStatus),
+    completionStatus,
     syncLabel: mapSyncLabel(raw.syncStatus),
     coachInstructions: mapCoachInstructions(raw.structuredWorkout),
     zoneSummary: mapZoneSummary(raw.structuredWorkout),
+    fuelingStrategy:
+      typeof raw.fuelingStrategy === 'string' && raw.fuelingStrategy.trim()
+        ? raw.fuelingStrategy.trim()
+        : null,
+    linkedCompleted: mapLinkedCompleted(raw),
+    complianceActionable: !terminal,
   };
 }
 

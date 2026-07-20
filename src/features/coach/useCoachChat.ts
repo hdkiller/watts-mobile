@@ -37,7 +37,8 @@ import {
   upsertChatMessage,
   visibleCoachMessages,
 } from './mapMessages';
-import { buildCoachSeedContext, withSeedPrefix } from './seedContext';
+import { buildCoachSeedContext, buildSessionCoachSeedContext, withSeedPrefix } from './seedContext';
+import { takeSessionDiscuss } from './sessionDiscussStore';
 import { decideSessionOpen, findRoomById } from './sessionPolicy';
 import type { ChatRoomSummary, CoachUIMessage, PendingAttachment, StoredChatMessage } from './types';
 
@@ -729,10 +730,13 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
 
       let outbound = text;
       if (!seedUsedRef.current && messagesRef.current.length === 0 && text) {
+        const session = takeSessionDiscuss();
+        const sessionSeed = session ? buildSessionCoachSeedContext(session) : null;
         const today = queryClient.getQueryData<TodayViewModel>(TODAY_QUERY_KEY);
         const recoveryWindow = queryClient.getQueryData<RecoveryContextItem[]>(RECOVERY_CONTEXT_KEY);
         const recovery = recoveryWindow ? filterActiveToday(recoveryWindow) : undefined;
-        const seed = buildCoachSeedContext({ today, activeRecovery: recovery });
+        const seed =
+          sessionSeed || buildCoachSeedContext({ today, activeRecovery: recovery });
         outbound = withSeedPrefix(text, seed);
         setSeedUsed(true);
       } else if (!seedUsedRef.current && messagesRef.current.length === 0) {

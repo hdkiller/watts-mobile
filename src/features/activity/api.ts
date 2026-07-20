@@ -7,6 +7,7 @@ import type {
   WorkoutStreamsApi,
 } from './chartTypes';
 import {
+  mapFuelingPrepGlance,
   mapPlannedDetail,
   mapPlannedListItem,
   mapWorkoutListItem,
@@ -17,6 +18,8 @@ import { mapActivityStreamCharts, mapPowerCurveCharts } from './mapCharts';
 import type {
   ActivityListItem,
   ActivitySummary,
+  FuelingPrepApi,
+  FuelingPrepGlance,
   PlannedDetail,
   PlannedDetailApi,
   PlannedListItem,
@@ -170,4 +173,63 @@ export async function fetchPlannedWorkout(id: string): Promise<Record<string, un
     throw new Error(`Failed to load planned workout (${response.status})`);
   }
   return (await response.json()) as Record<string, unknown>;
+}
+
+/** Mark planned workout completed. Requires Bearer `workout:write`. */
+export async function completePlannedWorkout(
+  id: string,
+  options: { workoutId?: string } = {}
+): Promise<void> {
+  const response = await apiFetch(`/api/planned-workouts/${encodeURIComponent(id)}/complete`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      workoutId: options.workoutId ?? null,
+    }),
+  });
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(
+        response,
+        response.status === 403
+          ? 'Completing a workout requires write permission. Sign out and sign in again.'
+          : `Failed to complete workout (${response.status})`
+      )
+    );
+  }
+}
+
+/** Mark planned workout skipped. Requires Bearer `workout:write`. */
+export async function skipPlannedWorkout(id: string): Promise<void> {
+  const response = await apiFetch(`/api/planned-workouts/${encodeURIComponent(id)}/skip`, {
+    method: 'POST',
+  });
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(
+        response,
+        response.status === 403
+          ? 'Skipping a workout requires write permission. Sign out and sign in again.'
+          : `Failed to skip workout (${response.status})`
+      )
+    );
+  }
+}
+
+/** Fueling prep for a planned workout. Requires Bearer `nutrition:read`. Soft-fails to null. */
+export async function fetchPlannedFuelingPrep(
+  id: string,
+  strategy?: string | null
+): Promise<FuelingPrepGlance | null> {
+  const response = await apiFetch(
+    `/api/workouts/planned/${encodeURIComponent(id)}/fueling`
+  );
+  if (response.status === 401 || response.status === 403 || response.status === 404) {
+    return null;
+  }
+  if (!response.ok) {
+    return null;
+  }
+  const json = (await response.json()) as FuelingPrepApi;
+  return mapFuelingPrepGlance(json, strategy);
 }

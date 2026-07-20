@@ -1,16 +1,22 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import type { QueryClient } from '@tanstack/react-query';
+
 import { ATHLETE_PROFILE_KEY } from '@/src/features/profile/useProfile';
 import type { AthleteProfile } from '@/src/features/profile/types';
+import { TODAY_QUERY_KEY } from '@/src/features/today/useToday';
 
 import {
+  completePlannedWorkout,
   fetchActivityPowerCurve,
   fetchActivityStreamCharts,
   fetchActivitySummary,
+  fetchPlannedFuelingPrep,
   fetchPlannedWorkoutDetail,
   fetchRecentActivities,
   fetchUpcomingPlanned,
   requestWorkoutAnalysis,
+  skipPlannedWorkout,
 } from './api';
 import { RECENT_ACTIVITY_LIMIT, UPCOMING_PLANNED_LIMIT, UPCOMING_WINDOW_DAYS } from './types';
 
@@ -31,6 +37,21 @@ export function activityPowerCurveQueryKey(id: string) {
 
 export function plannedDetailQueryKey(id: string) {
   return ['activity', 'planned', id] as const;
+}
+
+export function plannedFuelingQueryKey(id: string) {
+  return ['activity', 'planned-fueling', id] as const;
+}
+
+async function invalidatePlannedCaches(queryClient: QueryClient, id?: string) {
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: TODAY_QUERY_KEY }),
+    queryClient.invalidateQueries({ queryKey: UPCOMING_PLANNED_QUERY_KEY }),
+    queryClient.invalidateQueries({ queryKey: RECENT_ACTIVITY_QUERY_KEY }),
+    id
+      ? queryClient.invalidateQueries({ queryKey: plannedDetailQueryKey(id) })
+      : Promise.resolve(),
+  ]);
 }
 
 export function useRecentActivityQuery() {
@@ -108,5 +129,37 @@ export function usePlannedDetailQuery(id: string | undefined) {
     queryKey: plannedDetailQueryKey(id ?? ''),
     queryFn: () => fetchPlannedWorkoutDetail(id!),
     enabled: Boolean(id),
+  });
+}
+
+export function useCompletePlannedWorkout(id: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (options?: { workoutId?: string }) => completePlannedWorkout(id!, options),
+    onSuccess: async () => {
+      await invalidatePlannedCaches(queryClient, id);
+    },
+  });
+}
+
+export function useSkipPlannedWorkout(id: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => skipPlannedWorkout(id!),
+    onSuccess: async () => {
+      await invalidatePlannedCaches(queryClient, id);
+    },
+  });
+}
+
+export function usePlannedFuelingQuery(
+  id: string | undefined,
+  options: { strategy?: string | null; enabled?: boolean } = {}
+) {
+  return useQuery({
+    queryKey: [...plannedFuelingQueryKey(id ?? ''), options.strategy ?? null],
+    queryFn: () => fetchPlannedFuelingPrep(id!, options.strategy),
+    enabled: Boolean(id) && (options.enabled ?? true),
+    staleTime: 60_000,
   });
 }

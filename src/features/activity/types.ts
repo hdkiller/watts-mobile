@@ -33,6 +33,29 @@ export type PlannedListItemApi = {
   trainingWeekId?: string | null;
 };
 
+export type PlanAdherenceApi = {
+  plannedWorkoutId?: string | null;
+  overallScore?: number | null;
+  summary?: string | null;
+  analysisStatus?: string | null;
+};
+
+export type WorkoutExerciseSetApi = {
+  reps?: number | null;
+  weight?: number | null;
+  weightUnit?: string | null;
+  rpe?: number | null;
+  durationSec?: number | null;
+  order?: number | null;
+};
+
+export type WorkoutExerciseApi = {
+  notes?: string | null;
+  order?: number | null;
+  exercise?: { title?: string | null; name?: string | null } | null;
+  sets?: WorkoutExerciseSetApi[] | null;
+};
+
 /** Raw workout detail from `GET /api/workouts/:id` (streams optional). */
 export type WorkoutSummaryApi = WorkoutListItemApi & {
   description?: string | null;
@@ -43,6 +66,15 @@ export type WorkoutSummaryApi = WorkoutListItemApi & {
   elevationGain?: number | null;
   /** Intensity factor on the workout row (not `intensityFactor`). */
   intensity?: number | null;
+  averageCadence?: number | null;
+  calories?: number | null;
+  maxHr?: number | null;
+  maxWatts?: number | null;
+  variabilityIndex?: number | null;
+  efficiencyFactor?: number | null;
+  plannedWorkoutId?: string | null;
+  planAdherence?: PlanAdherenceApi | null;
+  exercises?: WorkoutExerciseApi[] | null;
   aiAnalysis?: string | null;
   aiAnalysisJson?: unknown;
   aiAnalyzedAt?: string | Date | null;
@@ -53,6 +85,13 @@ export type WorkoutSummaryApi = WorkoutListItemApi & {
   executionScore?: number | null;
 };
 
+export type LinkedCompletedWorkoutApi = {
+  id: string;
+  title?: string | null;
+  date?: string | Date | null;
+  type?: string | null;
+};
+
 /** Raw planned detail from `GET /api/planned-workouts/:id`. */
 export type PlannedDetailApi = PlannedListItemApi & {
   structuredWorkout?: unknown;
@@ -60,6 +99,25 @@ export type PlannedDetailApi = PlannedListItemApi & {
   syncStatus?: string | null;
   /** Planned intensity factor (Prisma `workIntensity`, not `intensityFactor`). */
   workIntensity?: number | null;
+  fuelingStrategy?: string | null;
+  completedWorkouts?: LinkedCompletedWorkoutApi[] | null;
+};
+
+export type FuelingPlanApi = {
+  windows?: unknown;
+  dailyTotals?: {
+    calories?: number | null;
+    carbs?: number | null;
+    protein?: number | null;
+    fat?: number | null;
+    fuelState?: number | null;
+  } | null;
+  notes?: string[] | null;
+};
+
+export type FuelingPrepApi = {
+  workoutId?: string;
+  fuelingPlan?: FuelingPlanApi | null;
 };
 
 export type ActivityRowStatus = {
@@ -128,12 +186,29 @@ export type ActivityAnalysis = {
   hasContent: boolean;
 };
 
+export type PlanAdherenceGlance = {
+  plannedWorkoutId: string | null;
+  overallScore: number | null;
+  summary: string | null;
+  /** ready | pending | failed | unknown */
+  phase: 'ready' | 'pending' | 'failed' | 'unknown';
+  statusLabel: string | null;
+};
+
+export type CompletedExercise = {
+  name: string;
+  prescription: string | null;
+};
+
 export type ActivitySummary = ActivityListItem & {
   description: string | null;
   loadLabel: string | null;
   /** Present metrics only — empty when none available. */
   metrics: SummaryMetric[];
   analysis: ActivityAnalysis;
+  plannedWorkoutId: string | null;
+  planAdherence: PlanAdherenceGlance | null;
+  exercises: CompletedExercise[];
 };
 
 export type PlannedListItem = {
@@ -163,6 +238,13 @@ export type PlannedZoneSummary = {
   bands: PlannedZoneBand[];
 };
 
+export type LinkedCompletedWorkout = {
+  id: string;
+  title: string;
+  date: string | null;
+  type: string | null;
+};
+
 export type PlannedDetail = PlannedListItem & {
   description: string | null;
   structureSteps: PlannedStructureStep[];
@@ -170,9 +252,23 @@ export type PlannedDetail = PlannedListItem & {
   structureIsStrength: boolean;
   workIntensityLabel: string | null;
   completionLabel: string | null;
+  /** Raw uppercased completion status when known. */
+  completionStatus: string | null;
   syncLabel: string | null;
   coachInstructions: string | null;
   zoneSummary: PlannedZoneSummary | null;
+  fuelingStrategy: string | null;
+  linkedCompleted: LinkedCompletedWorkout | null;
+  /** True when Complete/Skip are still available. */
+  complianceActionable: boolean;
+};
+
+export type FuelingPrepGlance = {
+  carbsLabel: string | null;
+  caloriesLabel: string | null;
+  fuelStateLabel: string | null;
+  strategyLabel: string | null;
+  note: string | null;
 };
 
 export const RECENT_ACTIVITY_LIMIT = 10;

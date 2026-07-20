@@ -21,7 +21,7 @@ Auth: OAuth 2.0 + PKCE · tokens in Secure Store · `offline_access` for refresh
 
 1. **Today** — planned workout + AI recommendation (accept / modify / rest), **Analyze Readiness** generate when empty, Daily Coach Check-In questionnaire, Recent Wellness glance, short rationale
 2. **Log** — daily wellness (sleep, readiness/feel, notes, weight if already in flows) **and** recovery events (illness, fatigue, sleep disruption, etc. — parity with web “Log recovery event”) — distinct from Today’s AI Daily Coach Check-In
-3. **Session detail** — today’s planned structure; completed-workout AI analysis + stream/zone/power-curve charts + **lite in-app route map** when GPS exists; map explorer / GPX / interval audit → open web
+3. **Session detail** — today’s planned structure with **Complete / Skip**; completed-workout AI analysis + plan-adherence glance + richer summary metrics + strength exercises + stream/zone/power-curve charts + **lite in-app route map** when GPS exists; Discuss with Coach from either detail; fueling prep glance on planned when nutrition tracking is on; map explorer / GPX / interval audit → open web
 4. **Recent activity** — last few workouts with sync/analysis status (not full calendar)
 5. **Coach chat** — short Q&A seeded with today + recovery; markdown-lite assistant replies; compact tool feedback (curated nutrition / wellness / recommendations / planned lite / activity reads + generic fallback) with in-progress chips, domain tint, and approve/deny — not full web tool-card parity
 6. **Notifications** — push + in-app inbox
@@ -38,7 +38,7 @@ Use **Open in browser** instead of half-porting these.
 Promoted from vague “later” into an explicit companion expansion:
 
 1. **Upcoming planned workouts** — More → Upcoming (capped next ~7–14 days via `GET /api/planned-workouts`); not a fifth tab or heatmap
-2. **Richer session details** — planned interval/step summary when payload allows; completed-workout summary metrics + AI analysis + charts + lite route map in-app; explorer / interval audit → open web
+2. **Richer session details** — planned interval/step summary when payload allows; completed-workout summary metrics + AI analysis + charts + lite route map in-app; plan adherence + linked planned↔completed navigation; explorer / interval audit → open web
 3. **Athlete metrics edit** — More → Athlete: weight, FTP, max HR, LTHR for the **default** sport profile (`profile:write` / `PATCH /api/profile`); not full Profile Settings
 4. **Nutrition quick-log** — Log tab section: today’s totals glance, macro/meal item log, hydration quick-add (`nutrition:read` / `nutrition:write`); planning/grocery stay on web
 5. **Lite sport thresholds** — Settings → Sports: list sport profiles and edit per-sport FTP / LTHR / Max HR (pace when present); zones, detect-from-workouts, and advanced Sport Settings stay on web
