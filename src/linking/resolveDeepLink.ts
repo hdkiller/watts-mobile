@@ -131,6 +131,10 @@ export function resolveDeepLinkPath(pathname: string): ResolvedDeepLink {
     return { kind: 'app', href: APP_HREFS.log, canonicalPath: path };
   }
 
+  if (path === '/more') {
+    return { kind: 'app', href: APP_HREFS.more, canonicalPath: path };
+  }
+
   return { kind: 'unknown', reason: `No route mapping for ${path}` };
 }
 

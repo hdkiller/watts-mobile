@@ -25,7 +25,8 @@ function navigateFromPushData(data: Record<string, unknown> | undefined) {
     return;
   }
   try {
-    router.push(resolved.href as Href);
+    // Include tab-stack anchors (e.g. More root) so nested screens keep a back target.
+    router.push(resolved.href as Href, { withAnchor: true });
   } catch (error) {
     console.warn('Push navigation failed', error);
   }

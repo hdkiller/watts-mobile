@@ -1,5 +1,6 @@
-import { Stack } from 'expo-router';
-import { ActivityIndicator, Platform, ScrollView, Switch, Text, View } from 'react-native';
+import { Stack, type Href, router } from 'expo-router';
+import { SymbolView } from 'expo-symbols';
+import { ActivityIndicator, Platform, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { friendlyError } from '@/src/api/errors';
@@ -12,6 +13,14 @@ import type { NotificationPreferences } from '@/src/features/notifications/types
 import { hapticLight, hapticSuccess, hapticError } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
+
+function goBackToSettings() {
+  if (router.canGoBack()) {
+    router.back();
+    return;
+  }
+  router.replace('/(app)/(tabs)/more/settings' as Href);
+}
 
 function PreferenceRow({
   title,
@@ -70,6 +79,21 @@ export default function NotificationSettingsScreen() {
         options={{
           title: 'Notification settings',
           headerShown: true,
+          headerLeft: () => (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Back"
+              hitSlop={8}
+              className="mr-1 active:opacity-70"
+              onPress={goBackToSettings}
+            >
+              {Platform.OS === 'ios' ? (
+                <SymbolView name="chevron.left" size={22} tintColor={theme.textPrimary} />
+              ) : (
+                <Text style={{ color: theme.textPrimary, fontSize: 22, lineHeight: 24 }}>←</Text>
+              )}
+            </Pressable>
+          ),
         }}
       />
       <SafeAreaView

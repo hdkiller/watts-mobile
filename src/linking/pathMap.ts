@@ -15,6 +15,7 @@
  * | `/coach`                   | `/(app)/(tabs)/coach`                    |
  * | `/chat` / `/chat/:roomId`  | `/(app)/(tabs)/coach`                    |
  * | `/notifications`           | `/(app)/(tabs)/more/notifications`       |
+ * | `/more`                    | `/(app)/(tabs)/more`                     |
  * | `/oauth/callback`          | (AuthSession — not product)              |
  */
 

@@ -2,6 +2,11 @@ import { Stack } from 'expo-router';
 
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
+/** Keep More root under inbox/settings routes so deep links still get a back target. */
+export const unstable_settings = {
+  anchor: 'index',
+};
+
 export default function MoreStackLayout() {
   const theme = useThemeColors();
 
@@ -24,38 +29,7 @@ export default function MoreStackLayout() {
         name="notifications"
         options={{ headerShown: true, title: 'Notifications' }}
       />
-      <Stack.Screen
-        name="settings/index"
-        options={{ headerShown: true, title: 'Settings' }}
-      />
-      <Stack.Screen
-        name="settings/notifications"
-        options={{ headerShown: true, title: 'Notification settings' }}
-      />
-      <Stack.Screen
-        name="settings/health"
-        options={{ headerShown: true, title: 'Health Sync' }}
-      />
-      <Stack.Screen
-        name="settings/units"
-        options={{ headerShown: true, title: 'Units & locale' }}
-      />
-      <Stack.Screen
-        name="settings/appearance"
-        options={{ headerShown: true, title: 'Appearance' }}
-      />
-      <Stack.Screen
-        name="settings/log"
-        options={{ headerShown: true, title: 'Log defaults' }}
-      />
-      <Stack.Screen
-        name="settings/sports"
-        options={{ headerShown: true, title: 'Sports' }}
-      />
-      <Stack.Screen
-        name="settings/coach"
-        options={{ headerShown: true, title: 'Coach identity' }}
-      />
+      <Stack.Screen name="settings" options={{ headerShown: false }} />
       <Stack.Screen
         name="sports/[id]"
         options={{ headerShown: true, title: 'Sport profile' }}

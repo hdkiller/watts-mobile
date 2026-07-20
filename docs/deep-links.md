@@ -20,6 +20,7 @@ Paths are path-only. Scheme form: `coachwatts://today`. HTTPS form: `https://coa
 | `/chat/:roomId` | `/(app)/(tabs)/coach?roomId=` | Opens that chat room when it exists |
 | `/notifications` | `/(app)/(tabs)/more/notifications` | Inbox (More stack) |
 | `/log` | `/(app)/(tabs)/log` | Optional convenience |
+| `/more` | `/(app)/(tabs)/more` | More tab root |
 | `/oauth/callback` | — | Handled by expo-auth-session; **not** rewritten |
 
 Source of truth in code: [`src/linking/pathMap.ts`](../src/linking/pathMap.ts), resolver [`src/linking/resolveDeepLink.ts`](../src/linking/resolveDeepLink.ts).

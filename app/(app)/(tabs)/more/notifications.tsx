@@ -1,8 +1,10 @@
 import { Stack, type Href, router } from 'expo-router';
+import { SymbolView } from 'expo-symbols';
 import { useMemo } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Platform,
   Pressable,
   RefreshControl,
   Text,
@@ -22,6 +24,15 @@ import {
   useNotificationsQuery,
 } from '@/src/features/notifications/useNotifications';
 import { Colors } from '@/src/theme/colors';
+import { useThemeColors } from '@/src/theme/useThemeColors';
+
+function goBackToMore() {
+  if (router.canGoBack()) {
+    router.back();
+    return;
+  }
+  router.replace('/(app)/(tabs)/more' as Href);
+}
 
 function openNotificationLink(link: string | null) {
   if (!link) return;
@@ -72,6 +83,7 @@ function NotificationRow({
 }
 
 export default function NotificationsScreen() {
+  const theme = useThemeColors();
   const { data, isLoading, isError, error, refetch, isRefetching } = useNotificationsQuery();
   const markOne = useMarkNotificationRead();
   const markAll = useMarkAllNotificationsRead();
@@ -95,6 +107,21 @@ export default function NotificationsScreen() {
         options={{
           title: 'Notifications',
           headerShown: true,
+          headerLeft: () => (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Back"
+              hitSlop={8}
+              className="mr-1 active:opacity-70"
+              onPress={goBackToMore}
+            >
+              {Platform.OS === 'ios' ? (
+                <SymbolView name="chevron.left" size={22} tintColor={theme.textPrimary} />
+              ) : (
+                <Text style={{ color: theme.textPrimary, fontSize: 22, lineHeight: 24 }}>←</Text>
+              )}
+            </Pressable>
+          ),
           headerRight:
             unreadCount > 0
               ? () => (

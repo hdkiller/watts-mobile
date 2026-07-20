@@ -66,6 +66,14 @@ describe('resolveDeepLinkPath', () => {
       kind: 'app',
       href: APP_HREFS.notifications,
     });
+    expect(resolveDeepLinkPath('/more')).toMatchObject({
+      kind: 'app',
+      href: APP_HREFS.more,
+    });
+    expect(resolveDeepLinkPath('/log')).toMatchObject({
+      kind: 'app',
+      href: APP_HREFS.log,
+    });
   });
 
   it('keeps oauth callback out of product routing', () => {
