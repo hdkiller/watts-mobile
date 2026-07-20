@@ -1,11 +1,11 @@
 import { Stack } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, AppState, Platform, ScrollView, Text, View } from 'react-native';
 import * as Linking from 'expo-linking';
 import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { Button } from '@/src/components/Button';
+import { AppSymbol } from '@/src/components/AppSymbol';
 import {
   disconnectHealth,
   getHealthAuthStatus,
@@ -188,11 +188,12 @@ export default function HealthSyncSettingsScreen() {
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center">
                   <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-border-strong">
-                    {isIOS ? (
-                      <SymbolView name="heart.text.square.fill" size={20} tintColor="#ef4444" />
-                    ) : (
-                      <Text style={{ fontSize: 20 }}>❤️</Text>
-                    )}
+                    <AppSymbol
+                      sf="heart.text.square.fill"
+                      size={20}
+                      tintColor="#ef4444"
+                      fallback="❤️"
+                    />
                   </View>
                   <View>
                     <Text className="text-base font-semibold text-text-primary">

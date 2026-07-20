@@ -66,7 +66,7 @@ export function UpdateAccessCard({
             hitSlop={8}
             className="active:opacity-70"
           >
-            <Text className="text-sm font-semibold text-text-body">Open web</Text>
+            <Text className="text-sm font-semibold text-text-body">Open Coach Watts</Text>
           </Pressable>
         ) : null}
       </View>

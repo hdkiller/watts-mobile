@@ -1,14 +1,15 @@
 import Constants from 'expo-constants';
 import { router, type Href } from 'expo-router';
 import * as Linking from 'expo-linking';
-import { SymbolView, type SFSymbol } from 'expo-symbols';
+import type { SFSymbol } from 'expo-symbols';
 import * as WebBrowser from 'expo-web-browser';
 import { useState, type ReactNode } from 'react';
-import { Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
+import { AppSymbol } from '@/src/components/AppSymbol';
 import {
   PRIVACY_POLICY_URL,
   SUPPORT_URL,
@@ -34,21 +35,16 @@ function RowIcon({ sf, emoji }: { sf: SFSymbol; emoji: string }) {
   const theme = useThemeColors();
   return (
     <View className="mr-3 h-9 w-9 items-center justify-center rounded-full bg-border-strong">
-      {Platform.OS === 'ios' ? (
-        <SymbolView name={sf} size={18} tintColor={theme.textBody} />
-      ) : (
-        <Text style={{ fontSize: 16 }}>{emoji}</Text>
-      )}
+      <AppSymbol sf={sf} size={18} tintColor={theme.textBody} fallback={emoji} />
     </View>
   );
 }
 
 function Chevron() {
   const theme = useThemeColors();
-  if (Platform.OS === 'ios') {
-    return <SymbolView name="chevron.right" size={14} tintColor={theme.textMuted} />;
-  }
-  return <Text className="text-base text-text-muted">›</Text>;
+  return (
+    <AppSymbol sf="chevron.right" size={14} tintColor={theme.textMuted} fallback="›" />
+  );
 }
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
@@ -237,7 +233,7 @@ export default function MoreScreen() {
             onPress={() => router.push('/(app)/(tabs)/more/settings' as Href)}
           />
           <MenuRow
-            title="Open web"
+            title="Open Coach Watts"
             sf="globe"
             emoji="🌐"
             onPress={() => void openWeb()}

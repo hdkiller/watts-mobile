@@ -132,7 +132,7 @@ export function TrainingLoadSheet({
                 </View>
               ) : (
                 <Text className="mt-6 text-sm text-text-muted">
-                  Not enough activity TSS history to chart yet.
+                  Not enough training history to chart yet.
                 </Text>
               )}
 
@@ -141,7 +141,7 @@ export function TrainingLoadSheet({
                 onPress={() => void openWeb()}
               >
                 <Text className="text-base font-semibold text-text-primary">
-                  Open web Performance
+                  Open Performance
                 </Text>
               </Pressable>
             </>

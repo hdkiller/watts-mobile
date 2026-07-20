@@ -25,7 +25,7 @@ export function AthleteReportSheet({
           <View className="min-w-0 flex-1 pr-3">
             <Text className="text-xl font-semibold text-text-primary">AI Athlete Profile</Text>
             <Text className="mt-1 text-sm text-text-muted">
-              Lite report from your latest sync. Full history and share tools stay on web.
+              Summary from your latest sync.
             </Text>
           </View>
           <Pressable onPress={onClose} className="active:opacity-70" hitSlop={8}>
@@ -89,7 +89,7 @@ export function AthleteReportSheet({
 
               <Pressable className="mt-6 active:opacity-70" onPress={onOpenWeb}>
                 <Text className="text-sm font-semibold text-brand">
-                  Open full report on web
+                  Open full report
                 </Text>
               </Pressable>
             </>

@@ -1,10 +1,8 @@
 import { Slider } from '@expo/ui/community/slider';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
 import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -14,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { friendlyError } from '@/src/api/errors';
+import { AppSymbol } from '@/src/components/AppSymbol';
 import {
   emptyLogForm,
   formFromWellness,
@@ -55,7 +54,7 @@ const TAB_LABELS: Record<LogSection, string> = {
   nutrition: 'Nutrition',
   recovery: 'Recovery',
   wellness: 'Wellness',
-  measurements: 'Measure',
+  measurements: 'Measurements',
 };
 
 const SUBJECTIVE_DEFAULT = 5;
@@ -206,13 +205,13 @@ function RecoveryChip({ item }: { item: RecoveryContextItem }) {
         {item.severity != null ? ` · ${item.severity}/10` : ''}
       </Text>
       {readOnly ? (
-        Platform.OS === 'ios' ? (
-          <SymbolView name="eye" size={11} tintColor={theme.textMuted} style={{ marginLeft: 5 }} />
-        ) : (
-          <Text className="ml-1 text-[10px] text-text-muted" accessibilityElementsHidden>
-            👁
-          </Text>
-        )
+        <AppSymbol
+          sf="eye"
+          size={11}
+          tintColor={theme.textMuted}
+          fallback="👁"
+          style={{ marginLeft: 5 }}
+        />
       ) : null}
     </Pressable>
   );
@@ -498,7 +497,7 @@ export default function LogScreen() {
             {recoveryError ? (
               <View className="mt-3 rounded-xl border border-danger/40 bg-tint-error p-3">
                 <Text className="text-sm text-red-300">
-                  {friendlyError(recoveryErr, 'Could not load recovery context')}
+                  {friendlyError(recoveryErr, 'Couldn’t load recovery events')}
                 </Text>
                 <Pressable className="mt-2" hitSlop={8} onPress={() => void refetchRecovery()}>
                   <Text className="font-semibold text-brand">Retry</Text>
@@ -509,8 +508,7 @@ export default function LogScreen() {
             {!recoveryError && recoveryItems ? (
               recoveryItems.length === 0 ? (
                 <Text className="mt-4 text-sm text-text-muted">
-                  No recovery context in the last 7 days. Log an event when something affects
-                  training.
+                  No recovery events in the last 7 days. Log one when something affects training.
                 </Text>
               ) : (
                 <>
@@ -525,7 +523,7 @@ export default function LogScreen() {
                     </View>
                   ) : (
                     <Text className="mt-2 text-sm text-text-muted">
-                      Nothing active for today yet.
+                      Nothing active today.
                     </Text>
                   )}
 
@@ -557,7 +555,7 @@ export default function LogScreen() {
         {activeTab === 'wellness' && (
           <View className="mt-6">
             <Text className="mb-1 text-xs font-semibold uppercase tracking-widest text-text-muted">
-              Daily logs & subjective metrics
+              Daily check-in
             </Text>
             <Text className="text-sm text-text-muted">
               Mood, stress, fatigue, and soreness — plus sleep and weight for today.

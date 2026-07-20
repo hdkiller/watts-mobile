@@ -207,7 +207,7 @@ export function WellnessOverviewSheet({
               className="mt-3 items-center rounded-xl border border-border-strong py-3.5 active:opacity-80"
               onPress={() => void openWeb()}
             >
-              <Text className="text-base font-semibold text-text-primary">Open web</Text>
+              <Text className="text-base font-semibold text-text-primary">Open Coach Watts</Text>
             </Pressable>
           </ScrollView>
         )}

@@ -170,7 +170,7 @@ export function NutritionSection() {
         Nutrition
       </Text>
       <Text className="text-sm text-text-muted">
-        Today’s totals, quick meal log, and hydration. Planning and grocery stay on web.
+        Today’s totals, a quick meal log, and hydration.
       </Text>
 
       {isLoading && !today ? (
@@ -192,7 +192,7 @@ export function NutritionSection() {
         <View className="mt-4">
           {today.isEmpty && !today.hasGoals ? (
             <View className="rounded-xl border border-border bg-card px-4 py-4">
-              <Text className="text-sm text-text-muted">No nutrition logged yet today — start below.</Text>
+              <Text className="text-sm text-text-muted">No meals logged yet today.</Text>
             </View>
           ) : (
             <View className="gap-3">
@@ -393,7 +393,7 @@ export function NutritionSection() {
       <Button
         variant="secondary"
         className="mt-5"
-        label="Open web for planning"
+        label="Meal plans & grocery"
         onPress={() => void openWeb()}
       />
     </View>

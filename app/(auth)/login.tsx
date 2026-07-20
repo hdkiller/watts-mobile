@@ -45,7 +45,7 @@ export default function LoginScreen() {
         />
         <Text className="text-3xl font-semibold text-text-primary">Sign in</Text>
         <Text className="mt-2 text-base text-text-muted">
-          Connect with Coach Watts using OAuth PKCE. Tokens stay on this device.
+          Sign in to your Coach Watts account. Your session stays on this device.
         </Text>
 
         {!isDefault ? (

@@ -100,7 +100,7 @@ export default function LogSettingsScreen() {
                       <Text className="text-base font-semibold text-text-primary">{option.title}</Text>
                       <Text className="mt-1 text-sm text-text-muted">
                         {disabled
-                          ? 'Turn on nutrition tracking on the web to use this default.'
+                          ? 'Turn on nutrition tracking in Coach Watts to use this default.'
                           : option.detail}
                       </Text>
                     </View>

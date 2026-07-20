@@ -1,6 +1,7 @@
-import { SymbolView, type AndroidSymbol, type SFSymbol } from 'expo-symbols';
-import { Text, View } from 'react-native';
+import type { AndroidSymbol, SFSymbol } from 'expo-symbols';
+import { View } from 'react-native';
 
+import { AppSymbol } from '@/src/components/AppSymbol';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
 type Glyph = { sf: SFSymbol; md: AndroidSymbol; emoji: string };
@@ -45,11 +46,12 @@ export function SportIcon({
       className="items-center justify-center rounded-full bg-border-strong/80"
       style={{ width: size * 2, height: size * 2 }}
     >
-      <SymbolView
-        name={{ ios: glyph.sf, android: glyph.md, web: glyph.md }}
+      <AppSymbol
+        sf={glyph.sf}
+        md={glyph.md}
         size={size}
         tintColor={theme.textBody}
-        fallback={<Text style={{ fontSize: size - 2 }}>{glyph.emoji}</Text>}
+        fallback={glyph.emoji}
       />
     </View>
   );

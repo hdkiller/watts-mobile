@@ -109,6 +109,19 @@ export function resolveDeepLinkPath(pathname: string): ResolvedDeepLink {
     return { kind: 'app', href: APP_HREFS.upcoming, canonicalPath: path };
   }
 
+  if (path === '/events') {
+    return { kind: 'app', href: APP_HREFS.eventsList, canonicalPath: path };
+  }
+
+  const eventMatch = path.match(/^\/events\/([^/]+)$/);
+  if (eventMatch?.[1]) {
+    return {
+      kind: 'app',
+      href: APP_HREFS.eventDetail(eventMatch[1]),
+      canonicalPath: path,
+    };
+  }
+
   if (path === '/coach' || path === '/chat') {
     return { kind: 'app', href: APP_HREFS.coach, canonicalPath: path };
   }

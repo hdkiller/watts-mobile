@@ -141,11 +141,11 @@ export default function DailyCheckinScreen() {
         <View className="flex-1 items-center justify-center p-6 bg-surface">
           <Text className="text-lg font-semibold text-text-primary">Still preparing…</Text>
           <Text className="mt-2 text-center text-sm text-red-400">
-            Check-in generation timed out. Retry or continue on the web.
+            Check-in generation timed out. Retry or continue in Coach Watts.
           </Text>
           <View className="mt-6 w-full gap-3">
             <Button label="Try Again" onPress={handleRetryGenerate} />
-            <Button label="Open web" variant="secondary" onPress={openWeb} />
+            <Button label="Open Coach Watts" variant="secondary" onPress={openWeb} />
             <Button label="Go Back" variant="secondary" onPress={() => router.back()} />
           </View>
         </View>
@@ -168,7 +168,7 @@ export default function DailyCheckinScreen() {
             {!isQuota ? (
               <Button label="Try Again" onPress={handleRetryGenerate} />
             ) : null}
-            <Button label="Open web" variant="secondary" onPress={openWeb} />
+            <Button label="Open Coach Watts" variant="secondary" onPress={openWeb} />
             <Button
               label="Go Back"
               variant="secondary"

@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
-import { useAuth } from '@/src/auth/AuthContext';
 import { OfflineBanner } from '@/src/components/OfflineBanner';
 import { ListSkeleton } from '@/src/components/Skeleton';
 import { SportIcon } from '@/src/components/SportIcon';
@@ -22,8 +21,6 @@ import {
   useRecentActivityQuery,
   useUpcomingPlannedQuery,
 } from '@/src/features/activity/useActivity';
-import { useUpcomingEventsQuery } from '@/src/features/events/useEvents';
-import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 import { useOfflineCached } from '@/src/hooks/useOfflineCached';
 import { humanizeWorkoutType } from '@/src/lib/humanizeWorkoutType';
 import { Colors } from '@/src/theme/colors';
@@ -66,11 +63,9 @@ function PlannedRow({
 }
 
 export default function UpcomingPlannedScreen() {
-  const { instanceUrl } = useAuth();
   const { data, isLoading, isError, error, refetch, isRefetching, dataUpdatedAt } =
     useUpcomingPlannedQuery();
   const recent = useRecentActivityQuery();
-  const eventsQuery = useUpcomingEventsQuery();
   const { showCachedOffline, lastUpdatedLabel } = useOfflineCached({
     data,
     isError,
@@ -94,10 +89,6 @@ export default function UpcomingPlannedScreen() {
     () => buildComplianceIndex(recent.data, data),
     [recent.data, data]
   );
-
-  const openWeb = async () => {
-    await openInstanceWeb(instanceUrl, '/calendar');
-  };
 
   return (
     <>
@@ -123,43 +114,12 @@ export default function UpcomingPlannedScreen() {
           refreshControl={
             <RefreshControl
               refreshing={isRefetching}
-              onRefresh={() => {
-                void refetch();
-                void eventsQuery.refetch();
-              }}
+              onRefresh={() => void refetch()}
               tintColor={Colors.brand}
             />
           }
           ListHeaderComponent={
-            <View>
-              <OfflineBanner visible={showCachedOffline} lastUpdatedLabel={lastUpdatedLabel} />
-              {eventsQuery.data && eventsQuery.data.length > 0 ? (
-                <View className="mb-6">
-                  <Text className="text-xs font-semibold uppercase tracking-widest text-text-muted">
-                    Events
-                  </Text>
-                  <View className="mt-2">
-                    {eventsQuery.data.slice(0, 5).map((event) => (
-                      <Pressable
-                        key={event.id}
-                        className="mb-2 rounded-xl border border-border bg-card/80 px-4 py-3 active:opacity-80"
-                        onPress={() => void openWeb()}
-                      >
-                        <Text className="text-base font-semibold text-text-primary">{event.title}</Text>
-                        <Text className="mt-1 text-sm text-text-muted">
-                          {[event.countdownLabel, event.type].filter(Boolean).join(' · ')}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </View>
-                  {instanceUrl ? (
-                    <Pressable className="mt-1" hitSlop={8} onPress={() => void openWeb()}>
-                      <Text className="text-sm font-semibold text-brand">Open web for events</Text>
-                    </Pressable>
-                  ) : null}
-                </View>
-              ) : null}
-            </View>
+            <OfflineBanner visible={showCachedOffline} lastUpdatedLabel={lastUpdatedLabel} />
           }
           ListEmptyComponent={
             <View className="pt-8">

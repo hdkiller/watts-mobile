@@ -15,6 +15,9 @@ export const APP_HREFS = {
   plannedDetail: (id: string) =>
     `/(app)/(tabs)/today/planned/${encodeURIComponent(id)}` as const,
   upcoming: '/(app)/(tabs)/today/upcoming',
+  eventsList: '/(app)/(tabs)/today/events',
+  eventDetail: (id: string) =>
+    `/(app)/(tabs)/today/events/${encodeURIComponent(id)}` as const,
   athlete: '/(app)/(tabs)/more/athlete',
   notifications: '/(app)/(tabs)/more/notifications',
   settings: '/(app)/(tabs)/more/settings',
@@ -41,6 +44,8 @@ export function migrateLegacyAppHref(href: string): string {
     [/^\/\(app\)\/activity\/?$/, APP_HREFS.activityList],
     [/^\/\(app\)\/planned\/([^/?#]+)/, (m) => APP_HREFS.plannedDetail(decodeURIComponent(m[1]!))],
     [/^\/\(app\)\/upcoming\/?$/, APP_HREFS.upcoming],
+    [/^\/\(app\)\/events\/([^/?#]+)/, (m) => APP_HREFS.eventDetail(decodeURIComponent(m[1]!))],
+    [/^\/\(app\)\/events\/?$/, APP_HREFS.eventsList],
     [/^\/\(app\)\/notifications\/?$/, APP_HREFS.notifications],
     [/^\/\(app\)\/athlete\/?$/, APP_HREFS.athlete],
     [/^\/\(app\)\/settings\/notifications\/?$/, APP_HREFS.settingsNotifications],

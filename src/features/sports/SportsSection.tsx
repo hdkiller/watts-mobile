@@ -1,9 +1,9 @@
 import { router, type Href } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
-import { ActivityIndicator, Platform, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
+import { AppSymbol } from '@/src/components/AppSymbol';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
@@ -18,10 +18,9 @@ import { useSportProfilesQuery } from './useSports';
 
 function Chevron() {
   const theme = useThemeColors();
-  if (Platform.OS === 'ios') {
-    return <SymbolView name="chevron.right" size={14} tintColor={theme.textMuted} />;
-  }
-  return <Text className="text-base text-text-muted">›</Text>;
+  return (
+    <AppSymbol sf="chevron.right" size={14} tintColor={theme.textMuted} fallback="›" />
+  );
 }
 
 export function SportsSection() {
@@ -54,7 +53,7 @@ export function SportsSection() {
           </Pressable>
         </View>
         <Pressable className="mt-4 py-1 active:opacity-70" hitSlop={8} onPress={() => void openWeb()}>
-          <Text className="text-sm font-semibold text-brand">Open web Sport Settings</Text>
+          <Text className="text-sm font-semibold text-brand">Open Sport Settings</Text>
         </Pressable>
       </View>
     );
@@ -70,7 +69,7 @@ export function SportsSection() {
 
       {profiles.length === 0 ? (
         <Text className="mt-4 text-sm text-text-muted">
-          No sport profiles yet. Create them in web Profile Settings → Sports.
+          No sport profiles yet. Create them in Coach Watts → Sports.
         </Text>
       ) : (
         <View className="mt-3 gap-2">
@@ -121,7 +120,7 @@ export function SportsSection() {
         onPress={() => void openWeb()}
         disabled={isRefetching}
       >
-        <Text className="text-sm font-semibold text-brand">Open web Sport Settings</Text>
+        <Text className="text-sm font-semibold text-brand">Open Sport Settings</Text>
       </Pressable>
     </View>
   );

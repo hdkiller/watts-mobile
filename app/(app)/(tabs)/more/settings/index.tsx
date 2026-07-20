@@ -1,10 +1,11 @@
 import { router, type Href, Stack } from 'expo-router';
-import { SymbolView, type SFSymbol } from 'expo-symbols';
+import type { SFSymbol } from 'expo-symbols';
 import { useState, useEffect, type ReactNode } from 'react';
-import { Alert, AppState, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, AppState, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { useAuth } from '@/src/auth/AuthContext';
+import { AppSymbol } from '@/src/components/AppSymbol';
 import { getHealthAuthStatus } from '@/src/features/log/healthAuth';
 import {
   logTabPreferenceLabel } from '@/src/features/log/logTabPreference';
@@ -23,21 +24,16 @@ function RowIcon({ sf, emoji }: { sf: SFSymbol; emoji: string }) {
   const theme = useThemeColors();
   return (
     <View className="mr-3 h-9 w-9 items-center justify-center rounded-full bg-border-strong">
-      {Platform.OS === 'ios' ? (
-        <SymbolView name={sf} size={18} tintColor={theme.textBody} />
-      ) : (
-        <Text style={{ fontSize: 16 }}>{emoji}</Text>
-      )}
+      <AppSymbol sf={sf} size={18} tintColor={theme.textBody} fallback={emoji} />
     </View>
   );
 }
 
 function Chevron() {
   const theme = useThemeColors();
-  if (Platform.OS === 'ios') {
-    return <SymbolView name="chevron.right" size={14} tintColor={theme.textMuted} />;
-  }
-  return <Text className="text-base text-text-muted">›</Text>;
+  return (
+    <AppSymbol sf="chevron.right" size={14} tintColor={theme.textMuted} fallback="›" />
+  );
 }
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
@@ -177,11 +173,11 @@ export default function SettingsScreen() {
   const handleDeleteAccount = () => {
     Alert.alert(
       'Delete account',
-      'Account deletion is completed on the web Danger Zone. You may need to sign in on the web if session handoff is unavailable.',
+      'You’ll finish account deletion in Coach Watts. You may need to sign in again in the browser.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Open web',
+          text: 'Open Coach Watts',
           style: 'destructive',
           onPress: () => void openWebPath(dangerZoneWebPath()) },
       ]
@@ -204,7 +200,7 @@ export default function SettingsScreen() {
           contentContainerClassName="px-6 pb-12 pt-4"
         >
           <Text className="text-sm text-text-muted">
-            Field preferences for this device. Planning, integrations, and billing stay on the web.
+            Preferences for this device.
           </Text>
 
           <Section title="General">
@@ -290,7 +286,7 @@ export default function SettingsScreen() {
               onPress={handleDeleteAccount}
             />
             <MenuRow
-              title="Open web Profile Settings"
+              title="Open Profile Settings"
               sf="globe"
               emoji="🌐"
               onPress={() => void openWebPath(profileSettingsWebPath())}

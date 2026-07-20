@@ -304,7 +304,7 @@ export default function PlannedWorkoutDetailScreen() {
             <Text className="mt-6 text-base leading-6 text-text-body">{data.description}</Text>
           ) : data.structureSteps.length === 0 && !data.coachInstructions ? (
             <Text className="mt-6 text-sm text-text-muted">
-              No structure summary available. Open the web app for full planned-workout detail.
+              No structure summary here. Open Coach Watts for full details.
             </Text>
           ) : null}
 

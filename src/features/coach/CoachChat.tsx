@@ -12,8 +12,9 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { SymbolView, type SFSymbol } from 'expo-symbols';
+import type { SFSymbol } from 'expo-symbols';
 import { Button } from '@/src/components/Button';
+import { AppSymbol } from '@/src/components/AppSymbol';
 import { CoachChatSkeleton } from '@/src/components/Skeleton';
 import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
 import { Colors } from '@/src/theme/colors';
@@ -57,11 +58,7 @@ function ChatGlyph({
 }) {
   const theme = useThemeColors();
   const color = tint ?? theme.textPrimary;
-
-  if (Platform.OS === 'ios') {
-    return <SymbolView name={sf} size={size} tintColor={color} />;
-  }
-  return <Text style={{ fontSize: size - 2, color }}>{emoji}</Text>;
+  return <AppSymbol sf={sf} size={size} tintColor={color} fallback={emoji} />;
 }
 
 function domainGlyph(domain: ToolDomain): { sf: SFSymbol; emoji: string; tint: string } {

@@ -73,7 +73,7 @@ export function MonthlyProgressSheet({
           <View className="min-w-0 flex-1 pr-3">
             <Text className="text-xl font-semibold text-text-primary">Monthly Progress</Text>
             <Text className="mt-1 text-sm text-text-muted">
-              This month vs last month — same comparison as the web dashboard.
+              This month vs last month.
             </Text>
           </View>
           <Pressable onPress={onClose} className="active:opacity-70" hitSlop={8}>
@@ -203,7 +203,7 @@ export function MonthlyProgressSheet({
             className="mt-8 active:opacity-70"
             onPress={() => void openInstanceWeb(instanceUrl, dashboardWebPath())}
           >
-            <Text className="text-sm font-semibold text-brand">Open web dashboard</Text>
+            <Text className="text-sm font-semibold text-brand">Open dashboard</Text>
           </Pressable>
         </ScrollView>
       </View>

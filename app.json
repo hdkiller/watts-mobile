@@ -115,7 +115,10 @@
               "name": "TodaySessionWidget",
               "displayName": "Today’s session",
               "description": "Today’s Coach Watts recommendation and planned session.",
-              "supportedFamilies": ["systemSmall", "systemMedium"]
+              "supportedFamilies": [
+                "systemSmall",
+                "systemMedium"
+              ]
             }
           ]
         }

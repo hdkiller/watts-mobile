@@ -1,8 +1,14 @@
+import { readFileSync } from 'node:fs';
+
 import type { ConfigContext, ExpoConfig } from 'expo/config';
 
 /**
  * Dynamic Expo config. Static chrome lives in `app.json`; env/EAS injects
  * release observability without committing secrets.
+ *
+ * User-facing `version` is owned by package.json (release-it). Store build
+ * numbers (versionCode / buildNumber) are managed remotely by EAS when
+ * `cli.appVersionSource` is `remote`.
  *
  * Set `IOS_FREE_TEAM=1` before `expo prebuild` / `expo run:ios` to strip
  * paid Apple capabilities (Push, Associated Domains, HealthKit, App Groups /
@@ -12,6 +18,7 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
 export default ({ config }: ConfigContext): ExpoConfig => {
   const extra = (config.extra ?? {}) as Record<string, unknown>;
   const iosFreeTeam = isTruthyEnv(process.env.IOS_FREE_TEAM);
+  const packageVersion = readPackageVersion();
 
   const ios = { ...(config.ios ?? {}) };
   let plugins = [...(config.plugins ?? [])];
@@ -40,6 +47,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ...config,
     name: config.name ?? 'Coach Watts',
     slug: config.slug ?? 'coach-watts-app',
+    version: packageVersion ?? config.version,
     ios,
     plugins,
     extra: {
@@ -57,6 +65,16 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
   } as ExpoConfig;
 };
+
+function readPackageVersion(): string | undefined {
+  try {
+    const pkg = JSON.parse(readFileSync('./package.json', 'utf8')) as { version?: string };
+    const version = pkg.version?.trim();
+    return version || undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 function isTruthyEnv(value: string | undefined): boolean {
   if (!value) return false;

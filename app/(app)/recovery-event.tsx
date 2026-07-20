@@ -1,5 +1,5 @@
 import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { SymbolView, type SFSymbol } from 'expo-symbols';
+import type { SFSymbol } from 'expo-symbols';
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -16,6 +16,8 @@ import {
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { friendlyError } from '@/src/api/errors';
+import { Button } from '@/src/components/Button';
+import { AppSymbol } from '@/src/components/AppSymbol';
 import {
   applyTimePreset,
   emptyRecoveryEventForm,
@@ -42,7 +44,6 @@ import type {
   SeverityPresetId,
   TimePresetId,
 } from '@/src/features/recovery/types';
-import { Button } from '@/src/components/Button';
 import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
 import { hapticLight } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
@@ -99,11 +100,7 @@ function OptionGlyph({
       className="mr-3 items-center justify-center rounded-full bg-border-strong"
       style={{ width: box, height: box }}
     >
-      {Platform.OS === 'ios' ? (
-        <SymbolView name={sf} size={icon} tintColor={tint} />
-      ) : (
-        <Text style={{ fontSize: icon - 2 }}>{emoji}</Text>
-      )}
+      <AppSymbol sf={sf} size={icon} tintColor={tint} fallback={emoji} />
     </View>
   );
 }
@@ -213,7 +210,7 @@ export default function RecoveryEventScreen() {
 
   const onDelete = () => {
     if (!sourceRecordId || !existing?.deletable) return;
-    Alert.alert('Delete recovery event?', 'This removes the event from your recovery context.', [
+    Alert.alert('Delete recovery event?', 'This removes the event from your recovery history.', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',
@@ -258,7 +255,7 @@ export default function RecoveryEventScreen() {
       <View className="flex-1 bg-surface px-6 pt-4">
         <Text className="text-2xl font-semibold text-text-primary">{existing.label}</Text>
         <Text className="mt-2 text-sm text-text-muted">
-          Imported context is read-only. Open the web app to review the source.
+          Imported events are read-only. Open Coach Watts to review the source.
         </Text>
         <Text className="mt-4 text-base text-text-body">
           {existing.description || 'No additional context provided.'}

@@ -151,7 +151,7 @@ export function RecommendationDetailSheet({
                           </View>
                         </View>
                         <Text className="mt-1 text-sm text-text-muted">
-                          {item.description || 'Visible in today’s recovery context.'}
+                          {item.description || 'Logged in today’s recovery.'}
                         </Text>
                       </View>
                     ))}

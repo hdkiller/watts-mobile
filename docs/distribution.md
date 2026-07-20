@@ -68,6 +68,19 @@ Play has its own one-time registration fee and org verification (separate from A
 
 Shared work (do once): production OAuth, privacy copy, Sentry EAS secrets, seeded demo athlete, branded assets, delete-account path.
 
+## Version releases (release-it)
+
+User-facing version lives in `package.json` (synced to `app.json` / Expo config). Store build numbers (`versionCode` / `buildNumber`) are remote via EAS (`cli.appVersionSource: remote` + `autoIncrement` on preview/production).
+
+```bash
+pnpm release:patch          # or release:minor / release:major / release
+# → bump, CHANGELOG.md, git tag vX.Y.Z, GitHub Release notes
+
+pnpm release:android:github # EAS preview APK attached to vX.Y.Z (or created if missing)
+```
+
+Same release-it stack as coach-wattz (without the web changelog CLI hooks). Do not put `EXPO_PUBLIC_E2E_*` on preview/production builds.
+
 ## Green light — iOS (Submit for Review)
 
 1. Apple Developer Program active + ASC app for `com.coachwatts.mobile`

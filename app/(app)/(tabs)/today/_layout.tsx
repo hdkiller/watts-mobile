@@ -32,6 +32,14 @@ export default function TodayStackLayout() {
         name="upcoming/index"
         options={{ headerShown: true, title: 'Upcoming' }}
       />
+      <Stack.Screen
+        name="events/index"
+        options={{ headerShown: true, title: 'Upcoming Events' }}
+      />
+      <Stack.Screen
+        name="events/[id]"
+        options={{ headerShown: true, title: 'Event' }}
+      />
     </Stack>
   );
 }

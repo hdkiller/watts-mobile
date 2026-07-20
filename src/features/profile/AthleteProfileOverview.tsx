@@ -64,9 +64,9 @@ export function AthleteProfileOverview({
       const report = await pollAthleteProfileReport();
       queryClient.setQueryData(ATHLETE_PROFILE_REPORT_KEY, report);
       if (report?.status === 'FAILED') {
-        setSyncError('Profile generation failed. Try again or open web.');
+        setSyncError('Profile generation failed. Try again or open Coach Watts.');
       } else if (report?.status !== 'COMPLETED') {
-        setSyncError('Still generating. Pull to refresh or open web in a minute.');
+        setSyncError('Still generating. Pull to refresh, or open Coach Watts in a minute.');
       }
     } catch (err) {
       const status = (err as { status?: number } | null)?.status;
@@ -134,7 +134,7 @@ export function AthleteProfileOverview({
             </Pressable>
             <Pressable className="mt-3 active:opacity-70" onPress={onOpenWebReport}>
               <Text className="text-sm font-semibold text-text-body">
-                Open web Athlete Profile
+                Open Athlete Profile
               </Text>
             </Pressable>
           </View>
@@ -188,7 +188,7 @@ export function AthleteProfileOverview({
         ) : (
           <View className="mt-3">
             <Text className="text-sm text-text-muted">
-              No AI athlete profile yet. Sync to generate one, or open the web report.
+              No AI athlete profile yet. Sync to generate one, or open the full report.
             </Text>
           </View>
         )}
@@ -196,7 +196,7 @@ export function AthleteProfileOverview({
         {syncError ? <Text className="mt-3 text-sm text-red-400">{syncError}</Text> : null}
 
         <Pressable className="mt-4 active:opacity-70" onPress={onOpenWebReport}>
-          <Text className="text-sm font-semibold text-brand">Open full report on web</Text>
+          <Text className="text-sm font-semibold text-brand">Open full report</Text>
         </Pressable>
       </View>
 

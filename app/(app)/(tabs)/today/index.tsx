@@ -34,6 +34,7 @@ import { AnalysisReadyCard } from '@/src/features/today/analysis-ready-card';
 import { AnalyzeReadinessPanel } from '@/src/features/today/AnalyzeReadinessPanel';
 import { ComingUpStrip } from '@/src/features/today/coming-up-strip';
 import { MoreActionsSheet, type MoreAction } from '@/src/features/today/more-actions-sheet';
+import { UpcomingEventsGlance } from '@/src/features/today/UpcomingEventsGlance';
 import { TrainingLoadGlance } from '@/src/features/performance/TrainingLoadGlance';
 import { pmcQueryKey } from '@/src/features/performance/usePmc';
 import { MonthlyProgressGlance } from '@/src/features/stats/MonthlyProgressGlance';
@@ -279,7 +280,7 @@ export default function TodayScreen() {
                 clearGeneratePoll();
                 hapticError();
                 setGenState('error');
-                setGenError('That took too long. Try again, or continue on the web.');
+                setGenError('That took too long. Try again, or continue in Coach Watts.');
               }
             } catch {
               statusFailRef.current += 1;
@@ -308,7 +309,7 @@ export default function TodayScreen() {
         setGenError(message || 'Quota exceeded for activity recommendation.');
       } else {
         setGenState('error');
-        setGenError(friendlyError(err, 'Something went wrong. Try again, or continue on the web.'));
+        setGenError(friendlyError(err, 'Something went wrong. Try again, or continue in Coach Watts.'));
       }
     }
   };
@@ -383,7 +384,7 @@ export default function TodayScreen() {
               clearAdhocPoll();
               hapticError();
               setAdhocState('error');
-              setAdhocError('That took too long. Try again, or continue on the web.');
+              setAdhocError('That took too long. Try again, or continue in Coach Watts.');
             }
           } catch {
             adhocFailRef.current += 1;
@@ -599,10 +600,10 @@ export default function TodayScreen() {
             Workout generation limit reached
           </Text>
           <Text className="mt-2 text-sm leading-5 text-text-body">
-            {adhocError || 'Update your plan on the web to generate more workouts.'}
+            {adhocError || 'Update your plan in Coach Watts to generate more workouts.'}
           </Text>
           <View className="mt-5 gap-3">
-            <Button label="Open web" onPress={() => void openWeb()} />
+            <Button label="Open Coach Watts" onPress={() => void openWeb()} />
             <Button label="Back" variant="secondary" onPress={() => setAdhocState('idle')} />
           </View>
         </View>
@@ -612,11 +613,11 @@ export default function TodayScreen() {
         <View className="mt-6 rounded-2xl border border-danger/40 bg-tint-error p-5">
           <Text className="text-lg font-semibold text-text-primary">Couldn’t generate workout</Text>
           <Text className="mt-2 text-sm leading-5 text-red-300">
-            {adhocError || 'Something went wrong. Try again, or continue on the web.'}
+            {adhocError || 'Something went wrong. Try again, or continue in Coach Watts.'}
           </Text>
           <View className="mt-5 gap-3">
             <Button label="Try again" onPress={() => setAdhocOpen(true)} />
-            <Button label="Open web" variant="secondary" onPress={() => void openWeb()} />
+            <Button label="Open Coach Watts" variant="secondary" onPress={() => void openWeb()} />
             <Button label="Dismiss" variant="secondary" onPress={() => setAdhocState('idle')} />
           </View>
         </View>
@@ -799,7 +800,7 @@ export default function TodayScreen() {
         <WellnessSection
           recoveryItems={activeRecovery}
           recoveryError={recoveryError}
-          recoveryErrorMessage={friendlyError(recoveryErr, 'Could not load recovery context')}
+          recoveryErrorMessage={friendlyError(recoveryErr, 'Couldn’t load recovery events')}
           onRetryRecovery={() => void refetchRecovery()}
         />
       </EnterSection>
@@ -811,6 +812,7 @@ export default function TodayScreen() {
         <TrainingLoadGlance />
         <MonthlyProgressGlance />
         <WeekGlanceStrip recent={recentQuery.data} planned={upcomingQuery.data} />
+        <UpcomingEventsGlance />
         <ComingUpStrip excludePlannedId={planned?.id} />
         <RecentlyTeaser />
       </View>

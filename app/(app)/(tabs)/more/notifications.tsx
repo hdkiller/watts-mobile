@@ -1,5 +1,4 @@
 import { Stack, type Href, router } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
 import { useMemo } from 'react';
 import {
   ActivityIndicator,
@@ -12,6 +11,7 @@ import {
 } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
+import { AppSymbol } from '@/src/components/AppSymbol';
 import {
   formatNotificationTime,
   markNotificationRepeats,
@@ -111,15 +111,22 @@ export default function NotificationsScreen() {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Back"
-              hitSlop={8}
-              className="mr-1 active:opacity-70"
+              hitSlop={12}
               onPress={goBackToMore}
+              style={{
+                minWidth: 44,
+                minHeight: 44,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginLeft: Platform.OS === 'ios' ? -6 : 0,
+              }}
             >
-              {Platform.OS === 'ios' ? (
-                <SymbolView name="chevron.left" size={22} tintColor={theme.textPrimary} />
-              ) : (
-                <Text style={{ color: theme.textPrimary, fontSize: 22, lineHeight: 24 }}>←</Text>
-              )}
+              <AppSymbol
+                sf="chevron.left"
+                size={22}
+                tintColor={theme.textPrimary}
+                fallback="←"
+              />
             </Pressable>
           ),
           headerRight:

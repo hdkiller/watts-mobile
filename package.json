@@ -18,7 +18,12 @@
     "test:e2e:unauth": "maestro test maestro/smoke-unauth.yaml",
     "test:e2e:shell": "maestro test maestro/smoke-shell.yaml",
     "lint": "expo lint && node scripts/check-theme-tokens.mjs",
-    "lint:theme": "node scripts/check-theme-tokens.mjs"
+    "lint:theme": "node scripts/check-theme-tokens.mjs",
+    "release": "release-it",
+    "release:patch": "release-it patch",
+    "release:minor": "release-it minor",
+    "release:major": "release-it major",
+    "release:android:github": "node scripts/publish-android-github-release.mjs"
   },
   "dependencies": {
     "@ai-sdk/react": "^4.0.18",
@@ -68,10 +73,13 @@
     "tailwindcss": "3.4.17"
   },
   "devDependencies": {
+    "@release-it/conventional-changelog": "^10.0.4",
     "@types/react": "~19.2.17",
     "babel-preset-expo": "~57.0.3",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~57.0.0",
+    "release-it": "^19.2.2",
+    "release-it-pnpm": "^4.6.6",
     "typescript": "~6.0.3",
     "vitest": "^4.1.10"
   }

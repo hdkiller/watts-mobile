@@ -131,7 +131,7 @@ export default function SportProfileEditorScreen() {
           >
             <Text className="text-2xl font-semibold text-text-primary">{title}</Text>
             <Text className="mt-2 text-sm text-text-muted">
-              Lite thresholds for this sport. Zones and advanced Sport Settings stay on the web.
+              Edit thresholds for this sport.
             </Text>
 
             <Field
@@ -181,7 +181,7 @@ export default function SportProfileEditorScreen() {
               className="mt-3 items-center rounded-xl border border-border-strong py-3.5 active:opacity-80"
               onPress={() => void openWeb()}
             >
-              <Text className="text-base font-semibold text-text-primary">Open web Sport Settings</Text>
+              <Text className="text-base font-semibold text-text-primary">Open Sport Settings</Text>
             </Pressable>
 
             <Pressable

@@ -20,14 +20,14 @@ export const en = {
   'more.notificationsHint': 'Inbox & alerts',
   'more.notificationPrefs': 'Notification settings',
   'more.notificationPrefsHint': 'System',
-  'more.openWeb': 'Open web',
+  'more.openWeb': 'Open Coach Watts',
   'more.signOut': 'Sign out',
 
   'notifications.title': 'Notifications',
   'notifications.stubBody':
-    'Inbox arrives with push registration. Deep links already resolve here.',
+    'When a recommendation or analysis is ready, it will show up here.',
   'notifications.openSystemSettings': 'Open system settings',
-  'notifications.manageOnWeb': 'Manage on web',
+  'notifications.manageOnWeb': 'Manage in Coach Watts',
 } as const;
 
 export type MessageKey = keyof typeof en;

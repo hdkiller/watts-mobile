@@ -1,8 +1,9 @@
 import { router, type Href } from 'expo-router';
-import { SymbolView, type SFSymbol } from 'expo-symbols';
+import type { SFSymbol } from 'expo-symbols';
 import { useState } from 'react';
-import { Platform, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
+import { AppSymbol } from '@/src/components/AppSymbol';
 import { useRecentWellness } from '@/src/features/profile/useRecentWellness';
 import type { RecoveryContextItem } from '@/src/features/recovery/types';
 import { WellnessOverviewSheet } from '@/src/features/wellness/WellnessOverviewSheet';
@@ -81,11 +82,12 @@ function WellnessTile({
   return (
     <View className="flex-1">
       <View className="flex-row items-center gap-1.5">
-        {Platform.OS === 'ios' ? (
-          <SymbolView name={sfIcon} size={13} tintColor={theme.textMuted} />
-        ) : (
-          <Text style={{ fontSize: 12 }}>{emojiIcon}</Text>
-        )}
+        <AppSymbol
+          sf={sfIcon}
+          size={13}
+          tintColor={theme.textMuted}
+          fallback={emojiIcon}
+        />
         <Text className="text-[10px] font-bold uppercase tracking-wide text-text-muted">
           {label}
         </Text>
@@ -224,7 +226,7 @@ export function WellnessSection({
       {recoveryError ? (
         <View className="mt-3 rounded-xl border border-danger/40 bg-tint-error p-3">
           <Text className="text-sm text-red-300">
-            {recoveryErrorMessage || 'Could not load recovery context'}
+            {recoveryErrorMessage || 'Couldn’t load recovery events'}
           </Text>
           {onRetryRecovery ? (
             <Pressable className="mt-2" hitSlop={8} onPress={onRetryRecovery}>

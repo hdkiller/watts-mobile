@@ -4,11 +4,15 @@
 TBD - created by archiving change phase-1-today-loop. Update Purpose after archive.
 ## Requirements
 ### Requirement: Today decision surface
-The Today tab SHALL present a single scrollable morning surface with: greeting/date, recommendation hero (action + short rationale) or planned-only hero when no recommendation but today’s planned workout exists, planned workout summary when available alongside a recommendation, a read-only Recent Wellness glance per `today-wellness-glance` when wellness data or an empty-state affordance applies, a named Active Recovery Context band, primary CTAs, then thin Coming up and Recently glances. The first viewport MUST remain one decision composition — glances MUST appear below primary CTAs (or below the recovery band when no CTAs are shown) and MUST NOT introduce calendar heatmaps, CTL grids, or dashboard stat strips. The system MUST NOT present recommendation-`analysisJson` Sleep/HRV labels as if they were device wellness biometrics once the Recent Wellness glance is available.
+The Today tab SHALL present a single scrollable morning surface with: greeting/date, recommendation hero (action + short rationale) or planned-only hero when no recommendation but today’s planned workout exists, planned workout summary when available alongside a recommendation, a read-only Recent Wellness glance per `today-wellness-glance` when wellness data or an empty-state affordance applies, a named Active Recovery Context band, primary CTAs, then thin Coming up and Recently glances. The first viewport MUST remain one decision composition — glances MUST appear below primary CTAs (or below the recovery band when no CTAs are shown) and MUST NOT introduce calendar heatmaps, CTL grids, or dashboard stat strips. The system MUST NOT present recommendation-`analysisJson` Sleep/HRV labels as if they were device wellness biometrics once the Recent Wellness glance is available. When a recommendation is present, Today SHALL offer secondary **View Details** and **Refine** actions (alongside Discuss with Coach) without displacing Accept as the primary decision CTA.
 
 #### Scenario: Recommendation present
 - **WHEN** today’s recommendation is loaded successfully
 - **THEN** the hero shows the recommended action and a one-to-two line reason above the primary CTAs
+
+#### Scenario: View Details and Refine available
+- **WHEN** today’s recommendation is loaded successfully
+- **THEN** the user can open View Details and Refine from secondary actions on Today
 
 #### Scenario: First viewport focus
 - **WHEN** the Today tab renders with data
@@ -139,4 +143,30 @@ The Today tab MAY show a Monthly Progress glance below primary recommendation / 
 #### Scenario: Failure soft
 - **WHEN** monthly-comparison fails or is forbidden
 - **THEN** Today still presents the recommendation decision surface
+
+### Requirement: Ad-hoc entry on Today
+Today SHALL offer a secondary Generate Ad-Hoc Workout action when the Bearer generate API is available. The action MUST NOT replace Accept, Analyze Readiness, or planned-only primary decisions. The app MUST NOT show a decorative ad-hoc CTA when the endpoint is unavailable (401/missing scope).
+
+#### Scenario: Secondary with recommendation
+- **WHEN** today’s recommendation is present and ad-hoc generate is Bearer-available
+- **THEN** Today shows Generate Ad-Hoc Workout as a secondary action
+
+#### Scenario: Available without recommendation
+- **WHEN** there is no recommendation (empty or planned-only) and ad-hoc generate is Bearer-available
+- **THEN** Today still offers Generate Ad-Hoc Workout as a non-primary action
+
+#### Scenario: Unavailable
+- **WHEN** ad-hoc generate is not Bearer-available
+- **THEN** Today does not show a fake Generate Ad-Hoc Workout button
+
+#### Scenario: In flight
+- **WHEN** ad-hoc generation is running
+- **THEN** the generate CTA is disabled or shows a generating state
+
+### Requirement: Secondary recommendation tooling
+View Details and Refine SHALL remain secondary to Accept / Accept rest day. Opening either sheet MUST NOT auto-accept suggested modifications.
+
+#### Scenario: Opening details does not accept
+- **WHEN** the user opens View Details while suggested modifications are pending
+- **THEN** the recommendation remains unaccepted until the user explicitly accepts
 

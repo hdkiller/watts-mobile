@@ -25,7 +25,7 @@ export default function SportsSettingsScreen() {
           contentContainerClassName="px-6 pb-12 pt-4"
         >
           <Text className="text-sm text-text-muted">
-            Lite per-sport thresholds for the field. Full Sport Settings stay on the web.
+            Edit FTP, LTHR, and Max HR for each sport.
           </Text>
           <SportsSection />
         </ScrollView>

@@ -123,7 +123,7 @@ function AnalysisGlance({
 
       {!waiting && analysis.phase === 'quota' ? (
         <Text className="mt-3 text-sm text-red-400">
-          Analysis quota exceeded. Open Coach Watts on the web to review plan limits.
+          Analysis quota exceeded. Open Coach Watts to review plan limits.
         </Text>
       ) : null}
 
@@ -417,7 +417,7 @@ export default function ActivitySummaryScreen() {
           <Button
             variant="secondary"
             className="mt-3"
-            label="Open in Coach Watts for explorer & more"
+            label="Open in Coach Watts"
             onPress={() => void openWeb()}
           />
         </ScrollView>

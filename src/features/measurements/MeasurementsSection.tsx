@@ -257,7 +257,7 @@ export function MeasurementsSection() {
         Measurements
       </Text>
       <Text className="text-sm text-text-muted">
-        Log weight, body fat, and circumferences. Full history and preferred sources stay on web.
+        Log weight, body fat, and circumferences.
       </Text>
 
       <Pressable
@@ -266,7 +266,7 @@ export function MeasurementsSection() {
         hitSlop={8}
         onPress={() => void openWeb()}
       >
-        <Text className="text-sm font-semibold text-brand">Open on web</Text>
+        <Text className="text-sm font-semibold text-brand">View history</Text>
       </Pressable>
 
       {isLoading && !data ? (

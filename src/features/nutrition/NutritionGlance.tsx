@@ -1,7 +1,7 @@
 import { router, type Href } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
-import { ActivityIndicator, Platform, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
+import { AppSymbol } from '@/src/components/AppSymbol';
 import { isNutritionTrackingEnabled } from '@/src/features/profile/mapProfile';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { Colors } from '@/src/theme/colors';
@@ -69,7 +69,7 @@ export function NutritionGlance() {
     <View className="mt-8">
       <View className="flex-row items-baseline justify-between">
         <Text className="text-xs font-semibold uppercase tracking-widest text-text-muted">
-          Today’s fuel
+          Nutrition
         </Text>
         <Pressable className="py-1 active:opacity-70" onPress={openNutritionLog}>
           <Text className="text-sm font-semibold text-brand">Log meal</Text>
@@ -84,7 +84,7 @@ export function NutritionGlance() {
           onPress={openNutritionLog}
         >
           {!today || (today.isEmpty && !hasGoals) ? (
-            <Text className="text-sm text-text-muted">No fuel logged yet today.</Text>
+            <Text className="text-sm text-text-muted">No meals logged yet today.</Text>
           ) : (
             <>
               <View className="flex-row items-center justify-between gap-2">
@@ -140,11 +140,7 @@ export function NutritionGlance() {
               </View>
 
               <View className="mt-3.5 flex-row items-center gap-2">
-                {Platform.OS === 'ios' ? (
-                  <SymbolView name="drop.fill" size={13} tintColor="#60a5fa" />
-                ) : (
-                  <Text className="text-xs">💧</Text>
-                )}
+                <AppSymbol sf="drop.fill" size={13} tintColor="#60a5fa" fallback="💧" />
                 <Text className="text-sm font-semibold text-text-primary">
                   {today.waterMl}
                   <Text className="text-sm font-normal text-text-muted">
@@ -164,11 +160,12 @@ export function NutritionGlance() {
 
           {nextWindow ? (
             <View className="mt-3.5 flex-row items-center border-t border-border pt-3">
-              {Platform.OS === 'ios' ? (
-                <SymbolView name="clock.fill" size={14} tintColor={theme.textMuted} />
-              ) : (
-                <Text className="text-xs text-text-muted">⏱</Text>
-              )}
+              <AppSymbol
+                sf="clock.fill"
+                size={14}
+                tintColor={theme.textMuted}
+                fallback="⏱"
+              />
               <View className="ml-2 flex-1">
                 <Text className="text-xs text-text-muted">
                   Next window · {nextWindow.label} {formatWindowTime(nextWindow.startTime)}
@@ -177,9 +174,12 @@ export function NutritionGlance() {
                   {nextWindow.targetCarbs} g carbs · {nextWindow.targetProtein} g protein
                 </Text>
               </View>
-              {Platform.OS === 'ios' ? (
-                <SymbolView name="chevron.right" size={12} tintColor={theme.textMuted} />
-              ) : null}
+              <AppSymbol
+                sf="chevron.right"
+                size={12}
+                tintColor={theme.textMuted}
+                fallback="›"
+              />
             </View>
           ) : null}
         </Pressable>

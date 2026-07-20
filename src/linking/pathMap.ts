@@ -12,6 +12,8 @@
  * | `/activities`              | `/(app)/(tabs)/today/activity`           |
  * | `/activities/:id`          | `/(app)/(tabs)/today/activity/:id`       |
  * | `/upcoming`                | `/(app)/(tabs)/today/upcoming`           |
+ * | `/events`                  | `/(app)/(tabs)/today/events`             |
+ * | `/events/:id`              | `/(app)/(tabs)/today/events/:id`         |
  * | `/coach`                   | `/(app)/(tabs)/coach`                    |
  * | `/chat` / `/chat/:roomId`  | `/(app)/(tabs)/coach`                    |
  * | `/notifications`           | `/(app)/(tabs)/more/notifications`       |

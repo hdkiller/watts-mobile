@@ -53,6 +53,14 @@ describe('resolveDeepLinkPath', () => {
       kind: 'app',
       href: APP_HREFS.upcoming,
     });
+    expect(resolveDeepLinkPath('/events')).toMatchObject({
+      kind: 'app',
+      href: APP_HREFS.eventsList,
+    });
+    expect(resolveDeepLinkPath('/events/ev-1')).toMatchObject({
+      kind: 'app',
+      href: APP_HREFS.eventDetail('ev-1'),
+    });
     expect(resolveDeepLinkPath('/coach')).toMatchObject({
       kind: 'app',
       href: APP_HREFS.coach,

@@ -15,6 +15,8 @@ Paths are path-only. Scheme form: `coachwatts://today`. HTTPS form: `https://coa
 | `/activities` | `/(app)/(tabs)/today/activity` | Recent activity list (Today stack) |
 | `/activities/:id` | `/(app)/(tabs)/today/activity/:id` | Activity summary (Today stack) |
 | `/upcoming` | `/(app)/(tabs)/today/upcoming` | Upcoming planned list (Today stack) |
+| `/events` | `/(app)/(tabs)/today/events` | Upcoming race/life events list (Today stack) |
+| `/events/:id` | `/(app)/(tabs)/today/events/:id` | Lite read-only event detail (Today stack) |
 | `/coach` | `/(app)/(tabs)/coach` | Coach tab (session policy picks/creates room) |
 | `/chat` | `/(app)/(tabs)/coach` | Alias for Coach tab |
 | `/chat/:roomId` | `/(app)/(tabs)/coach?roomId=` | Opens that chat room when it exists |

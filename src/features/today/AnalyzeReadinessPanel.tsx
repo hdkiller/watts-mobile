@@ -46,10 +46,10 @@ export function AnalyzeReadinessPanel({
           <Text className="text-xs uppercase tracking-wide text-modify">Plan limit</Text>
           <Text className="mt-2 text-lg font-semibold text-text-primary">Recommendation limit reached</Text>
           <Text className="mt-2 text-sm leading-5 text-text-body">
-            {errorMessage || 'Update your plan on the web to generate more recommendations.'}
+            {errorMessage || 'Update your plan in Coach Watts to generate more recommendations.'}
           </Text>
           <View className="mt-5 gap-3">
-            <Button label="Open web" onPress={onOpenWeb} />
+            <Button label="Open Coach Watts" onPress={onOpenWeb} />
             <Button label="Back" variant="secondary" onPress={onDismissQuota} />
           </View>
         </View>
@@ -60,11 +60,11 @@ export function AnalyzeReadinessPanel({
           <Text className="text-xs uppercase tracking-wide text-red-400/90">Analyze Readiness</Text>
           <Text className="mt-2 text-lg font-semibold text-text-primary">Couldn’t analyze readiness</Text>
           <Text className="mt-2 text-sm leading-5 text-red-300">
-            {errorMessage || 'Something went wrong. Try again, or continue on the web.'}
+            {errorMessage || 'Something went wrong. Try again, or continue in Coach Watts.'}
           </Text>
           <View className="mt-5 gap-3">
             <Button label="Try again" onPress={onAnalyze} />
-            <Button label="Open web" variant="secondary" onPress={onOpenWeb} />
+            <Button label="Open Coach Watts" variant="secondary" onPress={onOpenWeb} />
           </View>
         </View>
       ) : null}
@@ -74,11 +74,11 @@ export function AnalyzeReadinessPanel({
           <Text className="text-xs uppercase tracking-wide text-text-muted">Ready when you are</Text>
           <Text className="mt-2 text-lg font-semibold text-text-primary">No recommendation yet</Text>
           <Text className="mt-2 text-sm leading-5 text-text-muted">
-            Generate today’s personalized call from your latest biometrics and recovery context.
+            Generate today’s recommendation from your latest readiness and recovery.
           </Text>
           <View className="mt-5 gap-3">
             <Button label="Analyze Readiness" onPress={onAnalyze} loading={generatingPending} />
-            <Button label="Open web" variant="secondary" onPress={onOpenWeb} />
+            <Button label="Open Coach Watts" variant="secondary" onPress={onOpenWeb} />
           </View>
         </View>
       ) : null}

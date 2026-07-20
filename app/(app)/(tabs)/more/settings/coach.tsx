@@ -136,8 +136,7 @@ export default function CoachIdentityScreen() {
           >
             <Text className="text-2xl font-semibold text-text-primary">Coach identity</Text>
             <Text className="mt-1 text-sm text-text-muted">
-              How Coach Watts addresses you and behaves in chat. Automation and voice stay on the
-              web.
+              How Coach Watts addresses you and behaves in chat.
             </Text>
 
             <View className="mt-6">
@@ -225,13 +224,13 @@ export default function CoachIdentityScreen() {
                 <Text className="text-base font-semibold text-text-primary">Persona & tool approval</Text>
                 <Text className="mt-1 text-sm text-text-muted leading-5">
                   These preferences need a server update before they can be edited in the app. Open
-                  web AI Coach settings for now — nickname and About me still save here.
+                  AI Coach settings for now — nickname and About me still save here.
                 </Text>
                 <Pressable
                   className="mt-3 self-start active:opacity-80"
                   onPress={() => void openWebAiSettings()}
                 >
-                  <Text className="text-sm font-medium text-brand">Open web AI settings</Text>
+                  <Text className="text-sm font-medium text-brand">Open AI settings</Text>
                 </Pressable>
               </View>
             )}
@@ -252,7 +251,7 @@ export default function CoachIdentityScreen() {
               className="mt-3 items-center rounded-xl border border-border-strong py-3.5 active:opacity-80"
               onPress={() => void openWebProfile()}
             >
-              <Text className="text-base font-semibold text-text-primary">Open web Profile Settings</Text>
+              <Text className="text-base font-semibold text-text-primary">Open Profile Settings</Text>
             </Pressable>
           </ScrollView>
         )}

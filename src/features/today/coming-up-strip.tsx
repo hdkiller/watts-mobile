@@ -10,8 +10,6 @@ import { SportIcon } from '@/src/components/SportIcon';
 import { humanizeWorkoutType } from '@/src/lib/humanizeWorkoutType';
 import type { PlannedListItem } from '@/src/features/activity/types';
 import { useUpcomingPlannedQuery } from '@/src/features/activity/useActivity';
-import { pickNextEvent } from '@/src/features/events/mapEvents';
-import { useUpcomingEventsQuery } from '@/src/features/events/useEvents';
 import { localDateKey } from '@/src/features/today/weekGlance';
 
 const TEASER_LIMIT = 3;
@@ -30,8 +28,6 @@ function isOnOrAfterToday(date: string | null): boolean {
 
 export function ComingUpStrip({ excludePlannedId }: ComingUpStripProps) {
   const { data, isError } = useUpcomingPlannedQuery();
-  const eventsQuery = useUpcomingEventsQuery();
-  const nextEvent = pickNextEvent(eventsQuery.data);
 
   const rows = useMemo(
     () =>
@@ -68,12 +64,6 @@ export function ComingUpStrip({ excludePlannedId }: ComingUpStripProps) {
           ))}
         </View>
       )}
-
-      {nextEvent ? (
-        <Text className="mt-3 text-sm text-text-muted" numberOfLines={1}>
-          Next event: {nextEvent.title} — {nextEvent.countdownLabel}
-        </Text>
-      ) : null}
     </View>
   );
 }
@@ -99,6 +89,7 @@ function ComingUpRow({ item }: { item: PlannedListItem }) {
         </Text>
         {meta ? <Text className="mt-1 text-sm text-text-muted">{meta}</Text> : null}
       </View>
+      <Text className="text-text-muted">›</Text>
     </Pressable>
   );
 }

@@ -148,7 +148,7 @@ export default function UnitsLocaleScreen() {
             keyboardShouldPersistTaps="handled"
           >
             <Text className="text-sm text-text-muted">
-              How distances, weight, temperature, and “today” are shown in the companion.
+              How distances, weight, temperature, and today’s date appear in the app.
             </Text>
 
             <View className="mt-6 overflow-hidden rounded-xl border border-border bg-card">
