@@ -555,9 +555,9 @@ export function CoachChat({
         </View>
       ) : null}
 
-      <View className="flex-row items-end gap-2 border-t border-border px-4 py-3">
+      <View className="flex-row items-center gap-2 border-t border-border px-4 py-3">
         <Pressable
-          className={`h-12 w-12 items-center justify-center rounded-full border border-border-strong ${
+          className={`h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border-strong ${
             chat.isReadOnly || chat.sending ? 'opacity-40' : 'active:opacity-80'
           }`}
           disabled={chat.isReadOnly || chat.sending}
@@ -568,16 +568,23 @@ export function CoachChat({
           <ChatGlyph sf="plus" emoji="＋" size={20} />
         </Pressable>
         <TextInput
-          className="max-h-28 flex-1 rounded-2xl border border-border-strong bg-card px-4 py-3 text-base text-text-primary"
+          className="max-h-28 min-h-11 flex-1 rounded-2xl border border-border-strong bg-card px-4 py-2.5 text-base leading-5 text-text-primary"
           placeholder={chat.isReadOnly ? 'Read-only chat' : 'Message Coach Watts'}
           placeholderTextColor={theme.textMuted}
           value={chat.input}
           onChangeText={chat.setInput}
           multiline
           editable={!chat.sending && !chat.isReadOnly}
+          // Android adds extra font padding that makes the field taller than the
+          // circular action buttons unless we opt out and center the text.
+          style={
+            Platform.OS === 'android'
+              ? { textAlignVertical: 'center', includeFontPadding: false }
+              : undefined
+          }
         />
         <Pressable
-          className={`h-12 w-12 items-center justify-center rounded-full ${
+          className={`h-11 w-11 shrink-0 items-center justify-center rounded-full ${
             canSend ? 'bg-brand' : 'bg-border-strong'
           }`}
           disabled={!canSend}

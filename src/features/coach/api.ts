@@ -1,4 +1,5 @@
 import { apiFetch } from '@/src/api/client';
+import { ApiError } from '@/src/api/errors';
 
 import type {
   ChatRoomStateSnapshot,
@@ -85,29 +86,38 @@ export async function uploadChatImage(file: {
   mediaType: string;
   filename: string;
 }): Promise<StorageUploadResponse> {
+  // RN multipart: always send a concrete image/* type — Android pickers often omit mimeType.
+  const mediaType =
+    file.mediaType && file.mediaType !== 'application/octet-stream'
+      ? file.mediaType
+      : 'image/jpeg';
+
   const form = new FormData();
   form.append(
     'file',
     {
       uri: file.uri,
-      type: file.mediaType,
+      type: mediaType,
       name: file.filename,
     } as unknown as Blob
   );
 
+  // Do not set Content-Type — fetch must add the multipart boundary.
   const response = await apiFetch('/api/storage/upload', {
     method: 'POST',
     body: form,
   });
   if (!response.ok) {
     let message = `Upload failed (${response.status})`;
+    let body: unknown;
     try {
-      const body = (await response.json()) as { message?: string; statusMessage?: string };
-      message = body.message || body.statusMessage || message;
+      body = await response.json();
+      const parsed = body as { message?: string; statusMessage?: string };
+      message = parsed.message || parsed.statusMessage || message;
     } catch {
       // ignore
     }
-    throw new Error(message);
+    throw new ApiError(message, response.status, body);
   }
   const body = (await response.json()) as StorageUploadResponse;
   if (!body?.url) {
