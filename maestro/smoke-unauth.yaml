@@ -1,6 +1,6 @@
 # Cold start without e2e auth — expects Sign in chrome.
 # Run with EXPO_PUBLIC_E2E_AUTH unset (normal .env / Metro).
-appId: com.coachwatts.mobile
+appId: com.coachwatts.app
 ---
 - launchApp:
     clearState: true

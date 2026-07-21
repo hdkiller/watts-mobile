@@ -1,6 +1,6 @@
 # 002 — App Store Connect app record
 
-**Area:** listing · **Priority:** high · **Status:** open
+**Area:** listing · **Priority:** high · **Status:** done
 
 **Depends on:** [001](./001-apple-developer-account.md)
 
@@ -10,12 +10,11 @@ Create the App Store Connect app so builds can upload and a listing can be fille
 
 ## Steps
 
-1. [ ] In App Store Connect → Apps → New App.
-2. [ ] Platforms: iOS. Name: **Coach Watts**. Bundle ID: `com.coachwatts.mobile` (register in Certificates, Identifiers & Profiles if missing).
-3. [ ] SKU: e.g. `coach-watts-mobile` (internal; stable).
-4. [ ] Primary language: English (U.S.) unless product decides otherwise.
-5. [ ] Confirm widget / App Group identifiers exist if ASC or Xcode signing prompts for them (`com.coachwatts.mobile.widgets`, `group.com.coachwatts.mobile`).
-6. [ ] Note ASC Apple ID / app id in [log.md](../log.md) (no secrets).
+1. [x] In App Store Connect → Apps → New App.
+2. [x] Platforms: iOS. Name: **Coach Watts**. Bundle ID: `com.coachwatts.app` (App ID registered on Watt Mind team).
+3. [x] SKU / primary language set in ASC (internal; stable).
+4. [x] Widget / App Group identifiers: `com.coachwatts.app.widgets`, `group.com.coachwatts.app`.
+5. [x] ASC Apple ID `6793247809`; SKU `coach-watts-app` (logged).
 
 ## Done when
 

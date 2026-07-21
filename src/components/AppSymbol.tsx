@@ -25,6 +25,7 @@ const SF_TO_MD = {
   ruler: 'straighten',
   'figure.run': 'directions_run',
   link: 'link',
+  'link.circle': 'devices',
   'bubble.left.and.bubble.right': 'forum',
   'square.and.arrow.up': 'ios_share',
   trash: 'delete',

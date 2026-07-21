@@ -169,7 +169,7 @@ Track separately (or as paired PRs) — mobile UI polish should not wait forever
 
 Product: [product-baseline.md](./product-baseline.md) § Activation model + § Next chapter. Repositions mobile from field-only to **activation companion**. Do not start until Health Sync / Connected Apps lite foundations needed for “connect last” are clear enough to wire.
 
-OpenSpec (suggested): `mobile-activation-onboarding` (proposal not created yet).
+OpenSpec: `openspec/changes/mobile-activation-onboarding` (proposal/design/specs/tasks ready).
 
 | Slice | Focus |
 |-------|--------|
@@ -183,13 +183,14 @@ OpenSpec (suggested): `mobile-activation-onboarding` (proposal not created yet).
 
 Checklist (high level):
 
-- [ ] coach-wattz: consent + onboarding-status goal/plan steps + plan lite Bearer
-- [ ] Official Mobile App scopes: `goal:write`, `plan:write` (REST names)
-- [ ] Mobile sign-up + consent gate
-- [ ] Activation wizard (resumable)
-- [ ] Goal lite + plan lite + first insight
-- [ ] Connect-last + Finish-setup card
-- [ ] Soft vs full activation analytics events
-- [ ] Align web conversion plan definitions
+- [x] coach-wattz: consent + onboarding-status goal/plan steps + plan lite Bearer
+- [x] Official Mobile App scopes: `goal:write`, `plan:write` (REST names)
+- [x] Mobile sign-up + consent gate
+- [x] Activation wizard (resumable)
+- [x] Goal lite + plan lite + first insight
+- [x] Connect-last + Finish-setup card
+- [x] Soft vs full activation analytics events (Sentry breadcrumbs)
+- [x] Align web conversion plan definitions
+- [ ] Manual empty-account device verify (OpenSpec task 7.6)
 
 **Exit:** brand-new account can soft-activate entirely on device (goal → plan → insight), optionally connect Health Sync, and land on a usable Today without opening web. Full activation when data imports.

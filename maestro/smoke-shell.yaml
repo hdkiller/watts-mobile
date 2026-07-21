@@ -1,6 +1,6 @@
 # Authenticated shell smoke — requires e2e auth seed (see docs/e2e.md).
 # iOS Simulator + local coach-wattz: EXPO_PUBLIC_E2E_INSTANCE_URL=http://localhost:3099
-appId: com.coachwatts.mobile
+appId: com.coachwatts.app
 ---
 - launchApp:
     clearState: true

@@ -136,6 +136,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setStatus((current) => (current === 'needs_instance' ? current : 'needs_login'));
       void queryClient.clear();
       void clearHealthSyncForIdentityTransition();
+      void import('@/src/features/activation/connectLater').then(({ clearConnectLater }) =>
+        clearConnectLater()
+      ).catch(() => {
+        /* best-effort */
+      });
     });
     return () => setAuthFailureHandler(null);
   }, []);
@@ -147,6 +152,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const normalized = normalizeInstanceUrl(url);
     if (previous && previous !== normalized) {
       await clearHealthSyncForIdentityTransition();
+      const { clearConnectLater } = await import('@/src/features/activation/connectLater');
+      await clearConnectLater();
       await clearTokens();
       setUser(null);
       queryClient.clear();
@@ -182,6 +189,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.warn('Failed to clear push registration on sign-out', error);
     }
     await clearHealthSyncForIdentityTransition();
+    try {
+      const { clearConnectLater } = await import('@/src/features/activation/connectLater');
+      await clearConnectLater();
+    } catch {
+      /* best-effort */
+    }
     await clearTokens();
     setUser(null);
     queryClient.clear();

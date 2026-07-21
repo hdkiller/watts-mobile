@@ -67,7 +67,9 @@ Fill and verify via OTP:
 
 1. Invite `hdkiller@gmail.com` (or Workspace user) as **Admin** — Settings → Users and permissions.
 2. Prepend outcome + owner email (no passwords) to [log.md](./log.md).
-3. Mark [task 010](./tasks/010-google-play-developer-account.md) done; continue [011](./tasks/011-play-console-app.md) (create app `com.coachwatts.mobile`).
+3. Mark [task 010](./tasks/010-google-play-developer-account.md) done; continue [011](./tasks/011-play-console-app.md) (create app `com.coachwatts.app`).
+
+**Status (2026-07-21):** Watt Mind Kft. Organization account **approved**. Developer ID `7883910200930974301` — [app list](https://play.google.com/console/u/1/developers/7883910200930974301/app-list). Task [010](./tasks/010-google-play-developer-account.md) done; next is [011](./tasks/011-play-console-app.md).
 
 ## If you’re stuck
 

@@ -24,6 +24,9 @@ import {
 import { NutritionGlance } from '@/src/features/nutrition/NutritionGlance';
 import { useTodayNutritionQuery } from '@/src/features/nutrition/useNutrition';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
+import { FinishSetupCard } from '@/src/features/activation/FinishSetupCard';
+import { useActivationStatus } from '@/src/features/activation/useActivationStatus';
+import { useIntegrationStatus } from '@/src/features/integrations/useIntegrationStatus';
 import { isDailyCheckinCompleted } from '@/src/features/log/isDailyCheckinCompleted';
 import { useDailyCheckinQuery } from '@/src/features/log/useDailyCheckin';
 import { isNutritionTrackingEnabled } from '@/src/features/profile/mapProfile';
@@ -206,6 +209,16 @@ export default function TodayScreen() {
   const dailyCheckinQuery = useDailyCheckinQuery();
   const nutritionEnabled = isNutritionTrackingEnabled(profileQuery.data);
   const nutritionQuery = useTodayNutritionQuery({ enabled: nutritionEnabled });
+  const {
+    isSuccess: integrationsReady,
+    connectedCount,
+  } = useIntegrationStatus();
+  const { data: activation } = useActivationStatus();
+  const showFinishSetup = Boolean(
+    activation?.supportsActivation && activation.softActivated && !activation.fullyActivated
+  );
+  const showConnectDeviceCue =
+    !showFinishSetup && integrationsReady && connectedCount === 0;
   const acceptMutation = useAcceptRecommendation();
   const plannedId = data?.plannedWorkout?.id;
   const completePlannedMutation = useCompletePlannedWorkout(plannedId);
@@ -474,7 +487,8 @@ export default function TodayScreen() {
   const recommendationDetail = mapRecommendationDetail(
     (data?.raw as ActivityRecommendationApi | null | undefined) ?? null
   );
-  const showGeneratePanel = emptyNoDecision || (hasRecommendation && genState !== 'idle');
+  const showGeneratePanel =
+    (!showFinishSetup && emptyNoDecision) || (hasRecommendation && genState !== 'idle');
   const moreActions: MoreAction[] = [
     { key: 'details', label: 'View details', onPress: () => setDetailOpen(true) },
     ...(planned
@@ -521,6 +535,14 @@ export default function TodayScreen() {
         <Text className="mt-1 text-2xl font-semibold text-text-primary">{greetingForNow()}</Text>
       </EnterSection>
 
+      {showFinishSetup ? (
+        <EnterSection order={0}>
+          <View className="mt-4">
+            <FinishSetupCard />
+          </View>
+        </EnterSection>
+      ) : null}
+
       <OfflineBanner visible={showCachedOffline} lastUpdatedLabel={lastUpdatedLabel} />
 
       {hardError ? (
@@ -536,9 +558,9 @@ export default function TodayScreen() {
 
       <AnalysisReadyCard recent={recentQuery.data} />
 
-      <NutritionGlance />
+      {!showFinishSetup ? <NutritionGlance /> : null}
 
-      {!checkinCompleted ? (
+      {!showFinishSetup && !checkinCompleted ? (
         <EnterSection order={1}>
           <Pressable
             accessibilityRole="button"
@@ -573,7 +595,7 @@ export default function TodayScreen() {
         />
       ) : null}
 
-      {emptyNoDecision && genState === 'idle' ? (
+      {!showFinishSetup && emptyNoDecision && genState === 'idle' ? (
         <View className="mt-3">
           <Button
             variant="secondary"
@@ -796,26 +818,42 @@ export default function TodayScreen() {
         </EnterSection>
       ) : null}
 
-      <EnterSection order={4}>
-        <WellnessSection
-          recoveryItems={activeRecovery}
-          recoveryError={recoveryError}
-          recoveryErrorMessage={friendlyError(recoveryErr, 'Couldn’t load recovery events')}
-          onRetryRecovery={() => void refetchRecovery()}
-        />
-      </EnterSection>
+      {showConnectDeviceCue ? (
+        <EnterSection order={4}>
+          <View className="mt-4">
+            <Button
+              variant="secondary"
+              label="Connect a device"
+              onPress={() => router.push(APP_HREFS.settingsConnectedApps as Href)}
+            />
+          </View>
+        </EnterSection>
+      ) : null}
 
-      {/* No entering animation here: these glances swap fixed-height skeletons for
-          async-loaded content, and a layout animation on the shared wrapper leaves
-          stale measurements (sections overlapping — issue 058). */}
-      <View>
-        <TrainingLoadGlance />
-        <MonthlyProgressGlance />
-        <WeekGlanceStrip recent={recentQuery.data} planned={upcomingQuery.data} />
-        <UpcomingEventsGlance />
-        <ComingUpStrip excludePlannedId={planned?.id} />
-        <RecentlyTeaser />
-      </View>
+      {!showFinishSetup ? (
+        <>
+          <EnterSection order={5}>
+            <WellnessSection
+              recoveryItems={activeRecovery}
+              recoveryError={recoveryError}
+              recoveryErrorMessage={friendlyError(recoveryErr, 'Couldn’t load recovery events')}
+              onRetryRecovery={() => void refetchRecovery()}
+            />
+          </EnterSection>
+
+          {/* No entering animation here: these glances swap fixed-height skeletons for
+              async-loaded content, and a layout animation on the shared wrapper leaves
+              stale measurements (sections overlapping — issue 058). */}
+          <View>
+            <TrainingLoadGlance />
+            <MonthlyProgressGlance />
+            <WeekGlanceStrip recent={recentQuery.data} planned={upcomingQuery.data} />
+            <UpcomingEventsGlance />
+            <ComingUpStrip excludePlannedId={planned?.id} />
+            <RecentlyTeaser />
+          </View>
+        </>
+      ) : null}
     </ScrollView>
 
     <RecommendationDetailSheet

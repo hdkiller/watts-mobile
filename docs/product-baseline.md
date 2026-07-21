@@ -81,7 +81,7 @@ Already delivered as the daily athlete loop (former v1 / v1.5):
 
 ## Next chapter — Activation onboarding
 
-Priority work that repositions the product. OpenSpec change TBD (`mobile-activation-onboarding` or similar).
+Priority work that repositions the product. OpenSpec change: `openspec/changes/mobile-activation-onboarding`.
 
 1. **Mobile-only account path** — sign up (not only returning sign-in); native consent gate parity with web `/onboarding`
 2. **Server-driven wizard** — resume from `GET /api/user/onboarding-status` (extend for goal + plan steps; keep `connectLater`)
@@ -127,7 +127,7 @@ Recovery **writes** stay Log-first. Coming up stays planned-only; race/life even
 
 **More hosts:** recent activity, upcoming planned, notifications inbox, athlete (+ **goals lite**), Settings hub, account glue.
 
-**Settings hub:** push prefs · Health Sync · **Connected Apps lite** · Units & locale · Instance · Coach identity lite · Sports thresholds lite · Export / Delete via Open web. Billing and full Profile/zone editors stay web.
+**Settings hub:** push prefs · Health Sync · **Connected Apps lite** (status + Connect/Fix/Manage via web handoff; disconnect/sync/ingest editors stay web) · Units & locale · Instance · Coach identity lite · Sports thresholds lite · Export / Delete via Open web. Billing and full Profile/zone editors stay web.
 
 First viewport (once activated) = one decision. No CTL grids or calendar heatmaps.
 

@@ -12,7 +12,7 @@ Select the tested build, attach review info, and submit.
 
 1. [ ] In ASC, choose the TestFlight build that passed [007](./007-testflight-smoke.md).
 2. [ ] Confirm privacy, listing, and compliance sections show no missing required fields.
-3. [ ] Fill App Review Information: contact, demo account, notes from [008](./008-reviewer-demo-account.md).
+3. [ ] Confirm App Review Information from [008](./008-reviewer-demo-account.md): contact saved; SIWA notes + Sign-In placeholders (no Google demo).
 4. [ ] Answer any remaining content-rights / advertising / gambling prompts accurately (companion: no ads expected).
 5. [ ] Submit for Review.
 6. [ ] Prepend outcome to [log.md](../log.md) (submitted / Waiting for Review / In Review / Approved / Rejected + reason).

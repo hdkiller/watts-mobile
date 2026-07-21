@@ -1,6 +1,6 @@
 # 001 — Apple ID + Developer Program enrollment
 
-**Area:** account · **Priority:** high · **Status:** blocked
+**Area:** account · **Priority:** high · **Status:** done
 
 ## Goal
 
@@ -13,7 +13,7 @@ Own the App Store listing under **Watt Mind Kft.**, with a durable company Accou
 | Program | **Organization** (not Individual) |
 | Legal entity | Watt Mind Kft. |
 | Domain | watt-mind.com |
-| Account Holder | New Apple ID: planned **`deploy@watt-mind.com`** — **not** `hdkiller@gmail.com` |
+| Account Holder | New Apple ID: **`deploy@watt-mind.com`** — **not** `hdkiller@gmail.com` |
 | Personal ID | `hdkiller@gmail.com` stays personal; invite to the team as Admin (or Developer) after enrollment |
 
 Why not enroll with the Gmail Apple ID: the App Store seller / legal entity should be the Kft.; Account Holder recovery and ownership stay with the company if personal access changes; Apple verifies Organization against entity docs + D‑U‑N‑S.
@@ -25,17 +25,17 @@ Why not enroll with the Gmail Apple ID: the App Store seller / legal entity shou
 3. [x] Create mailbox `deploy@watt-mind.com` (monitored / aliased).
 4. [x] Create **new** Apple ID with `deploy@watt-mind.com`; 2FA on; credentials in password manager (not git).
 5. [x] Enroll as **Organization** → Watt Mind Kft.; upload supporting documents.
-6. [ ] **Blocked:** wait for Apple review (“We’ll review the details you provided and contact you soon.”). Watch `deploy@watt-mind.com` (and spam).
-7. [ ] After approval: complete paid membership / agreements if prompted; record **Team ID** in [log.md](../log.md) (AASA needs `TEAMID.com.coachwatts.mobile`).
-8. [ ] Invite `hdkiller@gmail.com` as **Admin** (or Developer) so day-to-day work uses the personal Apple ID without it owning the account.
-9. [ ] Optionally invite Expo/EAS CI or other teammates with their own Apple IDs.
+6. [x] Apple entity review cleared; proceed to paid membership.
+7. [x] Pay Apple Developer Program membership — order **`W1458543323`** (confirmation + activation info → `deploy@watt-mind.com`, 2026-07-21).
+8. [x] Confirm membership is **active** in [Apple Developer](https://developer.apple.com/account) (entity: Watt Mind Korlatolt Felelossegu Tarsasag).
+9. [x] Record **Team ID** `42K8S6866N` in [log.md](../log.md) / [distribution.md](../../distribution.md) (AASA: `42K8S6866N.com.coachwatts.app`).
+10. [x] Invite `hdkiller@gmail.com` as **Admin**; invitation accepted (2026-07-21).
+11. [ ] Optionally invite Expo/EAS CI or other teammates with their own Apple IDs (can do later; not required to close this task).
 
 ## Blockers / notes
 
-- **Current blocker:** Apple entity verification in progress (docs uploaded 2026-07-20). Typical wait: a few business days; can be longer for new Orgs / non-US entities.
-- If Apple emails asking for more docs or a phone call, respond from the Account Holder context (`deploy@…`); log the outcome.
 - Secrets: never commit Apple ID passwords or recovery keys.
-- Do **not** start a parallel Individual enrollment on `hdkiller@gmail.com` while waiting.
+- Account Holder remains `deploy@watt-mind.com`; day-to-day via `hdkiller@gmail.com` Admin.
 
 ## Done when
 

@@ -90,16 +90,22 @@ nutrition:read
 nutrition:write
 recommendation:read
 plan:read
+plan:write
 goal:read
+goal:write
+availability:read
+availability:write
 performance:read
 chat:read
 chat:write
 offline_access
 ```
 
-These match Coach Watts **REST** OAuth scope names (`recommendation:read`, `plan:read` — not the MCP `recommendations:*` / `planning:*` names).
+These match Coach Watts **REST** OAuth scope names (`recommendation:read`, `plan:read` / `plan:write` — not the MCP `recommendations:*` / `planning:*` names).
 
-`goal:read` authorizes Bearer `GET /api/events` (race/life calendar countdown on Today). Re-consent on next login after this scope is added.
+`goal:read` authorizes Bearer `GET /api/events` (race/life calendar countdown on Today). `goal:write` is required for activation goal lite. Re-consent on next login after scopes are added.
+
+`plan:write` authorizes Bearer plan initialize / activate for the mobile activation wizard. `availability:read` / `availability:write` persist training days for plan lite.
 
 `performance:read` authorizes Bearer `GET /api/performance/pmc` (Today Training Load & Form). Existing sessions need re-login after this scope is added.
 

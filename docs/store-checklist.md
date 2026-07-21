@@ -11,6 +11,7 @@ Track chrome and metadata for TestFlight / Play internal tracks. Shipping workfl
 - [x] Android notification accent: `#00DC82` (brand green; was `#e11d48`) — **rebuild required** to pick up the `expo-notifications` plugin change (see [native-modules.md](./native-modules.md))
 - [ ] **Device verify:** cold-start a dev-client or release build; confirm shield splash (not Expo placeholder) and home-screen icon on **iOS and Android**
 - [ ] **Android push accent verify:** after rebuild, confirm notification small-icon tint is brand green
+- [ ] **ASC screenshots (marketing):** upload iPhone set on version 0.1.1 after TestFlight — [distribution/tasks/004-listing-metadata-assets.md](./distribution/tasks/004-listing-metadata-assets.md)
 
 ### Asset notes
 
@@ -40,7 +41,8 @@ Local `pnpm ios` / `pnpm android` set `SENTRY_DISABLE_AUTO_UPLOAD=true` so missi
 ## Privacy / health
 
 - [x] Questionnaire strings in [store-privacy-checklist.md](./store-privacy-checklist.md)
-- [ ] Paste into App Store Connect / Play Console when submitting
+- [x] Paste into App Store Connect (App Privacy published; see [distribution/tasks/003-privacy-and-compliance.md](./distribution/tasks/003-privacy-and-compliance.md))
+- [ ] Paste into Play Console Data safety when submitting (→ [distribution/tasks/012-play-data-safety-and-content.md](./distribution/tasks/012-play-data-safety-and-content.md))
 
 ### In-app legal / support (More → About)
 

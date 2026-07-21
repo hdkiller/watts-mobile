@@ -75,7 +75,7 @@ Universal Links / App Links will **not** open the app until these are live. Sche
 | URL | `https://coachwatts.com/.well-known/apple-app-site-association` (no file extension) |
 | Content-Type | `application/json` |
 | HTTPS | Required; no redirects on the AASA URL |
-| App ID | `<Apple Team ID>.com.coachwatts.mobile` |
+| App ID | `42K8S6866N.com.coachwatts.app` (Watt Mind Kft. Team ID) |
 
 Example body:
 
@@ -85,7 +85,7 @@ Example body:
     "apps": [],
     "details": [
       {
-        "appID": "TEAMID.com.coachwatts.mobile",
+        "appID": "42K8S6866N.com.coachwatts.app",
         "paths": ["/go", "/go/*"]
       }
     ]
@@ -93,14 +93,12 @@ Example body:
 }
 ```
 
-Replace `TEAMID` with the Apple Developer Team ID used for App Store / provisioning.
-
 ### Android Digital Asset Links
 
 | Item | Value |
 |------|--------|
 | URL | `https://coachwatts.com/.well-known/assetlinks.json` |
-| Package | `com.coachwatts.mobile` |
+| Package | `com.coachwatts.app` |
 | Fingerprints | SHA-256 of **upload** and **App Signing** certs (Play Console → App signing) |
 
 Example body:
@@ -111,7 +109,7 @@ Example body:
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "com.coachwatts.mobile",
+      "package_name": "com.coachwatts.app",
       "sha256_cert_fingerprints": ["AA:BB:…"]
     }
   }

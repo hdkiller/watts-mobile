@@ -19,6 +19,9 @@ import { themePreferenceLabel } from '@/src/theme/themePreference';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 import { useThemePreference } from '@/src/theme/useThemePreference';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
+import { connectedAppsHubDetail } from '@/src/features/integrations/mapCatalog';
+import { useIntegrationStatus } from '@/src/features/integrations/useIntegrationStatus';
+import { APP_HREFS } from '@/src/linking/appHrefs';
 
 function RowIcon({ sf, emoji }: { sf: SFSymbol; emoji: string }) {
   const theme = useThemeColors();
@@ -110,6 +113,15 @@ export default function SettingsScreen() {
   const nutritionEnabled = isNutritionTrackingEnabled(athleteProfile);
   const { preference: logTabPreference } = useLogTabPreference();
   const { preference: themePreference } = useThemePreference();
+  const {
+    rows: integrationRows,
+    isLoading: integrationsLoading,
+    isError: integrationsError,
+  } = useIntegrationStatus();
+  const connectedAppsDetail = connectedAppsHubDetail(integrationRows, {
+    isLoading: integrationsLoading,
+    isError: integrationsError,
+  });
   const [healthStatus, setHealthStatus] = useState<string>('Checking…');
 
   useEffect(() => {
@@ -222,7 +234,14 @@ export default function SettingsScreen() {
               detail={healthStatus}
               sf="heart"
               emoji="❤️"
-              onPress={() => router.push('/(app)/(tabs)/more/settings/health' as Href)}
+              onPress={() => router.push(APP_HREFS.settingsHealth as Href)}
+            />
+            <MenuRow
+              title="Connected Apps"
+              detail={connectedAppsDetail}
+              sf="link.circle"
+              emoji="🔌"
+              onPress={() => router.push(APP_HREFS.settingsConnectedApps as Href)}
             />
             <MenuRow
               title="Units & locale"

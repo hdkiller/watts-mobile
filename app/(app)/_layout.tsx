@@ -1,6 +1,7 @@
 import { Redirect, Stack } from 'expo-router';
 
 import { useAuth } from '@/src/auth/AuthContext';
+import { ActivationGate } from '@/src/features/activation/ActivationGate';
 import { PushNotificationsBootstrap } from '@/src/features/notifications/PushNotificationsBootstrap';
 import { HealthSyncRunner } from '@/src/features/health/HealthSyncRunner';
 import { OfflineWellnessFlush } from '@/src/features/log/OfflineWellnessFlush';
@@ -23,7 +24,7 @@ export default function AppLayout() {
   }
 
   return (
-    <>
+    <ActivationGate>
       <PushNotificationsBootstrap />
       <OfflineWellnessFlush />
       <HealthSyncRunner />
@@ -54,6 +55,6 @@ export default function AppLayout() {
           }}
         />
       </Stack>
-    </>
+    </ActivationGate>
   );
 }

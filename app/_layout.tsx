@@ -12,6 +12,7 @@ import type { ErrorBoundaryProps } from 'expo-router';
 
 import { AuthProvider, useAuth } from '@/src/auth/AuthContext';
 import { ErrorFallback } from '@/src/components/ErrorFallback';
+import { AuthAtmosphere } from '@/src/features/auth/AuthAtmosphere';
 import { useDeepLinkReturn } from '@/src/linking/useDeepLinkReturn';
 import { initSentry } from '@/src/sentry';
 import { Colors } from '@/src/theme/colors';
@@ -31,14 +32,25 @@ function RootNavigator() {
   useDeepLinkReturn();
 
   useEffect(() => {
-    if (status !== 'loading') {
-      SplashScreen.hideAsync();
-    }
+    if (status === 'loading') return;
+    // Wait two frames so the first authenticated/auth screen paints before splash drops.
+    let outer = 0;
+    let inner = 0;
+    outer = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => {
+        void SplashScreen.hideAsync();
+      });
+    });
+    return () => {
+      cancelAnimationFrame(outer);
+      cancelAnimationFrame(inner);
+    };
   }, [status]);
 
   if (status === 'loading') {
     return (
       <View className="flex-1 items-center justify-center bg-surface">
+        <AuthAtmosphere />
         <ActivityIndicator color={Colors.brand} size="large" />
       </View>
     );
@@ -55,6 +67,7 @@ function RootNavigator() {
       >
         <Stack.Screen name="index" />
         <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(activation)" />
         <Stack.Screen name="(app)" />
       </Stack>
     </>

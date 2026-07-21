@@ -6,10 +6,11 @@ Hub for shipping Coach Watts to **App Store** and (later) **Play Console**. Prod
 
 | Item | Value |
 |------|--------|
-| iOS bundle id | `com.coachwatts.mobile` |
-| Android package | `com.coachwatts.mobile` |
-| Widget extension | `com.coachwatts.mobile.widgets` |
-| App Group | `group.com.coachwatts.mobile` |
+| iOS bundle id | `com.coachwatts.app` |
+| Android package | `com.coachwatts.app` |
+| Widget extension | `com.coachwatts.app.widgets` |
+| App Group | `group.com.coachwatts.app` |
+| Apple Team ID | `42K8S6866N` (Watt Mind Kft.) |
 | Expo slug / EAS project | `coach-watts-app` / `3fad7b8c-dc45-4616-8d77-d48f44d161b2` |
 | Expo owner | `hdkillers-team` |
 | Hosted instance | `https://coachwatts.com` |
@@ -17,6 +18,8 @@ Hub for shipping Coach Watts to **App Store** and (later) **Play Console**. Prod
 | OAuth redirect | `coachwatts://oauth/callback` |
 | Privacy / terms | `https://coachwatts.com/privacy` · `https://coachwatts.com/terms` |
 | Support | `mailto:support@coachwatts.com` |
+| Play Console developer ID | `7883910200930974301` |
+| Play app ID | `4976128188579826786` (Coach Watts) |
 
 ## Doc map
 
@@ -45,29 +48,37 @@ Same legal entity for **both** stores. Account enrollments are independent and c
 |-------|--------|
 | Program | Apple Developer Program — **Organization** |
 | Account Holder | `deploy@watt-mind.com` |
-| Personal day-to-day | `hdkiller@gmail.com` → invite as Admin after approval |
-| Status | Docs uploaded; waiting on Apple review → [task 001](./distribution/tasks/001-apple-developer-account.md) |
+| Team ID | `42K8S6866N` |
+| Personal day-to-day | `hdkiller@gmail.com` (Admin; invitation accepted) |
+| Bundle ID | `com.coachwatts.app` |
+| ASC Apple ID | `6793247809` |
+| SKU | `coach-watts-app` |
+| Status | [001](./distribution/tasks/001-apple-developer-account.md)–[003](./distribution/tasks/003-privacy-and-compliance.md) done; [004](./distribution/tasks/004-listing-metadata-assets.md) listing **text** done — **marketing screenshots** still open; next eng: [005](./distribution/tasks/005-eas-credentials-and-secrets.md) → build → TestFlight |
 
 ### Google Play (Android)
 
 | Field | Value |
 |-------|--------|
 | Account | Play Console — **Organization** (Watt Mind Kft.) |
+| Developer ID | `7883910200930974301` |
+| Console | [App list](https://play.google.com/console/u/1/developers/7883910200930974301/app-list) |
 | Admin identity | Prefer Workspace / Google account on `watt-mind.com` (e.g. `deploy@` or Play-specific admin) |
-| Personal day-to-day | Invite personal Gmail/Workspace user as admin after org setup |
-| Status | Fee paid, website verified; **ID verification pending** → [task 010](./distribution/tasks/010-google-play-developer-account.md) |
-| Package | `com.coachwatts.mobile` |
-
-Play has its own one-time registration fee and org verification (separate from Apple/D‑U‑N‑S timing).
+| Personal day-to-day | Invite personal Gmail/Workspace user as admin if not already |
+| Status | App **created** (Draft). [010](./distribution/tasks/010-google-play-developer-account.md)–[011](./distribution/tasks/011-play-console-app.md) done. Next: finish App content → [012](./distribution/tasks/012-play-data-safety-and-content.md) + listing → [013](./distribution/tasks/013-play-listing-assets.md) |
+| Package | `com.coachwatts.app` |
+| Play app ID | `4976128188579826786` |
+| Dashboard | [Coach Watts](https://play.google.com/console/u/0/developers/7883910200930974301/app/4976128188579826786/app-dashboard) |
 
 ## Sequencing
 
 | Track | Priority | Why |
 |-------|----------|-----|
-| **iOS / App Store** | First store candidate | Already mid-enrollment; TestFlight path in tasks 001–009 |
+| **iOS / App Store** | First store candidate | Membership paid for Org Account Holder; finish 001 then TestFlight path 002–009 |
 | **Android / Play** | Parallel account setup OK; ship after or alongside iOS | Tasks 010–017; internal testing can start before iOS is approved |
 
-Shared work (do once): production OAuth, privacy copy, Sentry EAS secrets, seeded demo athlete, branded assets, delete-account path.
+Shared work (do once): production OAuth (+ hosted SIWA), privacy copy, Sentry EAS secrets, branded assets, delete-account path.  
+App Review sign-in: **Sign in with Apple** with a reviewer Apple ID — no dedicated Google demo ([008](./distribution/tasks/008-reviewer-demo-account.md)).  
+**Marketing (ASC):** upload iPhone screenshots on version **0.1.1** after TestFlight — see [004](./distribution/tasks/004-listing-metadata-assets.md).
 
 ## Version releases (release-it)
 
@@ -101,17 +112,18 @@ Do **not** set `EXPO_PUBLIC_E2E_*` on preview/production. Android sideload/GitHu
 
 ## Green light — iOS (Submit for Review)
 
-1. Apple Developer Program active + ASC app for `com.coachwatts.mobile`
+1. Apple Developer Program active + ASC app for `com.coachwatts.app`
 2. App Privacy labels + privacy policy URL from [store-privacy-checklist.md](./store-privacy-checklist.md)
-3. Production EAS secrets (`EXPO_PUBLIC_SENTRY_DSN`); no `EXPO_PUBLIC_E2E_*`
-4. `eas build -p ios --profile production` → TestFlight smoke
-5. Screenshots + description with **no medical claims**
-6. Review notes + **seeded** demo athlete (see issues/056)
-7. Branded splash/icon on release build
+3. Hosted IdP **Sign in with Apple** live on `coachwatts.com` (Guideline 4.8)
+4. Production EAS secrets (`EXPO_PUBLIC_SENTRY_DSN`); no `EXPO_PUBLIC_E2E_*`
+5. `eas build -p ios --profile production` → TestFlight smoke (incl. SIWA path)
+6. **Marketing:** iPhone screenshots uploaded on ASC **0.1.1** ([004](./distribution/tasks/004-listing-metadata-assets.md)); description with **no medical claims**
+7. App Review notes + SIWA instructions ([008](./distribution/tasks/008-reviewer-demo-account.md)); empty first-run risk → [issues/056.md](./issues/056.md)
+8. Branded splash/icon on release build
 
 ## Green light — Play (production)
 
-1. Play Console Organization verified for Watt Mind Kft. + app `com.coachwatts.mobile`
+1. Play Console Organization verified for Watt Mind Kft. + app `com.coachwatts.app`
 2. Data safety + content rating + privacy policy URL from [store-privacy-checklist.md](./store-privacy-checklist.md)
 3. Same production EAS secrets; Android keystore via EAS; Play service account for submit
 4. `eas build -p android --profile production` → Internal testing smoke

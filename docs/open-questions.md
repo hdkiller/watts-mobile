@@ -14,7 +14,7 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 8 | **Expo channel** | Managed Expo vs early dev client (needed for HealthKit in v1.5+) | **Decided:** `expo-dev-client` early; rebuild after native deps ([native-modules.md](./native-modules.md)) |
 | 9 | **Nutrition entry IA** | Log tab section vs More → Nutrition | **Decided:** Log (write surface) |
 | 10 | **Athlete metrics vs full settings** | Metrics-only editor vs port Profile Settings tabs | **Decided:** More → Athlete = default-profile metrics (weight, FTP, max HR, LTHR); Settings → Sports = lite per-sport FTP/LTHR/Max HR; zones / detect-from-workouts / full Sport Settings → Open web |
-| 20 | **Settings hub field-companion scope** | Thin device/daily prefs vs port web Profile/Settings | **Decided:** Settings hub = Notifications, Health Sync, Units & locale, Instance, Coach identity lite (nickname/persona/About me/tool approval), Export/Delete via Open web; push prefs stay separate from email Communication prefs; full Profile/Apps/Billing/zones stay web — see `openspec/changes/settings-field-companion` |
+| 20 | **Settings hub field-companion scope** | Thin device/daily prefs vs port web Profile/Settings | **Decided:** Settings hub = Notifications, Health Sync, **Connected Apps lite** (status + handoff Connect/Fix/Manage), Units & locale, Instance, Coach identity lite (nickname/persona/About me/tool approval), Export/Delete via Open web; push prefs stay separate from email Communication prefs; full Profile / Connected Apps editors / Billing / zones stay web — see `openspec/changes/settings-field-companion` + `connected-apps-lite` |
 | 11 | **Planned detail Bearer + structure** | Session-only `GET /api/planned-workouts/:id` vs `requireAuth` + structure fields for intervals | **Decided** |
 | 12 | **Upcoming vs Recent More entries** | Single “Workouts” hub vs separate Upcoming + Recent links | **Decided:** separate More rows (Recent activity + Upcoming) |
 | 13 | **Today when no recommendation** | Empty-only vs planned-hero fallback | **Decided** |
@@ -85,5 +85,7 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 2026-07-21 | Wizard UX connect-last | Health Sync primary; Strava/etc. optional; Skip does not block soft activation |
 | 2026-07-21 | Plan creation = native lite wizard | Initialize + preview + activate in-app; PlanDashboard/adapt/replan stay web |
 | 2026-07-21 | Reposition product baseline | Rewrite [product-baseline.md](./product-baseline.md); mirror coach-wattz `mobile-companion-app.md` |
+| 2026-07-21 | Connected Apps lite in Settings | Status list + handoff to `/settings/apps`; no native provider OAuth; Health Sync stays a distinct phone-local path; `GET /api/integrations/status` via Bearer `profile:read` — `connected-apps-lite` |
+| 2026-07-21 | Sign in with Apple for App Store 4.8 | SIWA on coach-wattz IdP (`/oauth/login` + web login/join); mobile stays PKCE in system browser; App Review uses SIWA with a reviewer Apple ID (no dedicated Google demo) — OpenSpec `sign-in-with-apple` |
 
 When a row above is decided, move it here and update [product-baseline.md](./product-baseline.md) / [implementation-plan.md](./implementation-plan.md) if scope changes.

@@ -11,6 +11,12 @@ export type UserInfo = {
 
 type ApiFetchOptions = RequestInit & {
   skipAuth?: boolean;
+  /**
+   * When true, a 401 is returned as-is without attempting refresh or clearing
+   * the session. Reserve this for optional capability endpoints that may still
+   * be session-only on older instances (e.g. integrations status).
+   */
+  softUnauthorized?: boolean;
 };
 
 let refreshPromise: Promise<StoredTokens> | null = null;
@@ -76,6 +82,13 @@ export async function apiFetch(path: string, options: ApiFetchOptions = {}): Pro
   const response = await fetch(url, { ...options, headers });
 
   if (response.status !== 401 || options.skipAuth) {
+    return response;
+  }
+
+  // Optional / capability endpoints (e.g. integrations status on older instances)
+  // often return 401 for Bearer even when the session is fine. Do not refresh or
+  // clear tokens — that would bounce the user to login or burn single-use refresh tokens.
+  if (options.softUnauthorized) {
     return response;
   }
 

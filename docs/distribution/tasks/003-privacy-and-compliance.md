@@ -1,6 +1,6 @@
 # 003 — Privacy labels & compliance
 
-**Area:** listing · **Priority:** high · **Status:** open
+**Area:** listing · **Priority:** high · **Status:** done
 
 **Depends on:** [002](./002-app-store-connect-app.md)  
 **Copy source:** [../../store-privacy-checklist.md](../../store-privacy-checklist.md)
@@ -11,13 +11,19 @@ Complete App Store Connect privacy and compliance so review is not blocked on qu
 
 ## Steps
 
-1. [ ] Paste **App Privacy** / Nutrition Labels using the data-types table in the privacy checklist (OAuth identity, health/fitness wellness + optional HealthKit prefill, chat content, photos optional, push token, Sentry diagnostics).
-2. [ ] Set privacy policy URL: `https://coachwatts.com/privacy`.
-3. [ ] Answer export compliance (standard HTTPS/TLS → typically no non-exempt encryption; confirm current Apple wording).
-4. [ ] Complete age rating questionnaire (no medical device claims).
-5. [ ] Confirm HealthKit usage matches declared purpose (sleep + weight **read** for check-in prefill only; no write).
-6. [ ] Double-check store description drafts later ([004](./004-listing-metadata-assets.md)) avoid diagnosis / “medical advice” language.
+1. [x] Paste **App Privacy** / Nutrition Labels (11 types): Name, Email, Health, Fitness, Precise Location, Photos or Videos, Other User Content, User ID, Device ID, Crash Data, Performance Data — App Functionality (+ Analytics for Crash/Performance); linked to identity; **not used for tracking**. Published in ASC.
+2. [x] Set privacy policy URL: `https://coachwatts.com/privacy`.
+3. [x] Export compliance: set `ITSAppUsesNonExemptEncryption` = `false` in `app.json` → `ios.infoPlist` (standard HTTPS/TLS only; no proprietary crypto). Confirmed on next production build / upload questionnaire.
+4. [x] Complete age rating questionnaire — result **9+** (most regions; Apple maps **12+** for Vietnam/Brazil); wellness topics yes; medical/treatment **none**; not a regulated medical device.
+5. [x] Category **Health & Fitness**; subtitle **AI endurance coach**; content rights: third-party with necessary rights.
+6. [x] Store description checked: companion positioning + explicit “not a medical device / no diagnosis” disclaimer ([004](./004-listing-metadata-assets.md)).
+
+## Related (account-level)
+
+- **DSA trader compliance** (Business → Complete Compliance Requirements): **Active** — trader; address from D‑U‑N‑S (Babati utca 26., Gödöllő 2100, Hungary); display contact `+36 302858822` / `deploy@watt-mind.com`.
+- China ICP / Vietnam game license: N/A (not filing; not a game).
+- App Accessibility showcase: intentionally **not** declared until features are verified on device.
 
 ## Done when
 
-- Privacy, policy URL, export compliance, and age rating are saved in ASC.
+- Privacy nutrition labels published, policy URL set, export compliance key in Info.plist, and age rating saved in ASC. ✅

@@ -1,21 +1,60 @@
 import { Link } from 'expo-router';
-import { useState } from 'react';
-import { Image, Pressable, Text, View } from 'react-native';
+import { type ReactNode, useEffect, useState } from 'react';
+import { Image, Linking, Pressable, Text, View } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { friendlyError } from '@/src/api/errors';
 import { getRedirectUri, isExpoGoRuntime } from '@/src/auth/oauth';
 import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
-import { useThemeColors } from '@/src/theme/useThemeColors';
+import {
+  PRIVACY_POLICY_URL,
+  TERMS_OF_SERVICE_URL,
+} from '@/src/features/account/paths';
+import { AuthAtmosphere } from '@/src/features/auth/AuthAtmosphere';
+import { useReduceMotion } from '@/src/hooks/useReduceMotion';
 
-const showDevRegistration = __DEV__ || isExpoGoRuntime();
+function EnterSection({
+  order,
+  reduceMotion,
+  children,
+}: {
+  order: number;
+  reduceMotion: boolean;
+  children: ReactNode;
+}) {
+  // Start nearly visible so we never flash a blank sheet while motion runs.
+  const translateY = useSharedValue(reduceMotion ? 0 : 12);
+  const opacity = useSharedValue(reduceMotion ? 1 : 0.94);
+
+  useEffect(() => {
+    if (reduceMotion) return;
+    const delay = order * 70;
+    translateY.value = withDelay(delay, withTiming(0, { duration: 320 }));
+    opacity.value = withDelay(delay, withTiming(1, { duration: 320 }));
+  }, [opacity, order, reduceMotion, translateY]);
+
+  const style = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  return <Animated.View style={style}>{children}</Animated.View>;
+}
 
 export default function LoginScreen() {
-  const theme = useThemeColors();
   const { instanceUrl, defaultInstanceUrl, signIn, error, clearError, saveInstance } = useAuth();
+  const reduceMotion = useReduceMotion();
   const [busy, setBusy] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+  /** Dev OAuth URI only after intentional reveal — never on first paint. */
+  const [showDevDetails, setShowDevDetails] = useState(false);
 
   const onSignIn = async () => {
     clearError();
@@ -32,77 +71,155 @@ export default function LoginScreen() {
 
   const message = localError || error;
   const isDefault = !instanceUrl || instanceUrl === defaultInstanceUrl;
+  const canRevealDev = __DEV__ || isExpoGoRuntime();
 
   return (
     <SafeAreaView testID="login-screen" className="flex-1 bg-surface">
+      <AuthAtmosphere />
+
       <View className="flex-1 justify-center px-6">
-        <Image
-          source={require('../../assets/images/wordmark.png')}
-          accessibilityLabel="Coach Watts"
-          style={{ width: 192, height: 40, marginBottom: 24 }}
-          resizeMode="contain"
-          tintColor={theme.textPrimary}
-        />
-        <Text className="text-3xl font-semibold text-text-primary">Sign in</Text>
-        <Text className="mt-2 text-base text-text-muted">
-          Sign in to your Coach Watts account. Your session stays on this device.
-        </Text>
+        <EnterSection order={0} reduceMotion={reduceMotion}>
+          <Pressable
+            accessibilityRole="image"
+            accessibilityLabel="Coach Watts"
+            onLongPress={() => {
+              if (canRevealDev) setShowDevDetails((v) => !v);
+            }}
+            delayLongPress={800}
+          >
+            <Image
+              source={require('../../assets/images/icon.png')}
+              accessibilityIgnoresInvertColors
+              style={{
+                width: 88,
+                height: 88,
+                borderRadius: 20,
+                marginBottom: 24,
+              }}
+              resizeMode="cover"
+            />
+          </Pressable>
+        </EnterSection>
+
+        <EnterSection order={1} reduceMotion={reduceMotion}>
+          <Text className="text-xs font-semibold uppercase tracking-widest text-brand">
+            Endurance coaching
+          </Text>
+          <Text className="mt-2 text-3xl font-semibold text-text-primary">Coach Watts</Text>
+          <Text className="mt-2 text-base leading-6 text-text-muted">
+            Create an account or sign in. Set your goal and plan on this device — your session stays
+            here.
+          </Text>
+        </EnterSection>
 
         {!isDefault ? (
-          <View className="mt-8 rounded-xl border border-border bg-card/80 p-4">
-            <Text className="text-xs uppercase tracking-wide text-text-muted">Instance URL</Text>
-            <Text className="mt-1 text-base text-text-primary">{instanceUrl}</Text>
-            <View className="mt-3 flex-row gap-4">
-              <Link href="/(auth)/instance" asChild>
-                <Pressable hitSlop={8}>
-                  <Text className="text-sm font-medium text-brand">Change URL</Text>
+          <EnterSection order={2} reduceMotion={reduceMotion}>
+            <View className="mt-8 rounded-xl border border-border bg-card/90 p-4">
+              <Text className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                Instance
+              </Text>
+              <Text className="mt-1 text-base text-text-primary" numberOfLines={2}>
+                {instanceUrl}
+              </Text>
+              <View className="mt-3 flex-row gap-4">
+                <Link href="/(auth)/instance" asChild>
+                  <Pressable hitSlop={8}>
+                    <Text className="text-sm font-medium text-brand">Change URL</Text>
+                  </Pressable>
+                </Link>
+                <Pressable
+                  hitSlop={8}
+                  onPress={async () => {
+                    try {
+                      setBusy(true);
+                      await saveInstance(defaultInstanceUrl);
+                    } catch (err) {
+                      setLocalError(friendlyError(err, 'Failed to restore default'));
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                >
+                  <Text className="text-sm font-medium text-red-400">Use hosted default</Text>
                 </Pressable>
-              </Link>
-              <Pressable
-                hitSlop={8}
-                onPress={async () => {
-                  try {
-                    setBusy(true);
-                    await saveInstance(defaultInstanceUrl);
-                  } catch (err) {
-                    setLocalError(friendlyError(err, 'Failed to restore default'));
-                  } finally {
-                    setBusy(false);
-                  }
-                }}
-              >
-                <Text className="text-sm font-medium text-red-400">Reset to default</Text>
-              </Pressable>
+              </View>
             </View>
-          </View>
+          </EnterSection>
         ) : null}
 
-        {message ? <Text className="mt-4 text-sm text-red-400">{message}</Text> : null}
+        {message ? (
+          <EnterSection order={2} reduceMotion={reduceMotion}>
+            <Text className="mt-4 text-sm text-red-400">{message}</Text>
+          </EnterSection>
+        ) : null}
 
-        <Button
-          testID="login-sign-in"
-          className="mt-6"
-          label="Sign in with Coach Watts"
-          onPress={() => void onSignIn()}
-          loading={busy}
-        />
+        <EnterSection order={3} reduceMotion={reduceMotion}>
+          <Button
+            testID="login-create-account"
+            className="mt-8"
+            label="Create account"
+            onPress={() => void onSignIn()}
+            loading={busy}
+          />
+          <Button
+            testID="login-sign-in"
+            className="mt-3"
+            variant="secondary"
+            label="Sign in"
+            onPress={() => void onSignIn()}
+            loading={busy}
+            disabled={busy}
+          />
+          <Text
+            testID="login-legal-notice"
+            className="mt-4 text-center text-xs leading-5 text-text-muted"
+          >
+            By continuing, you agree to our{' '}
+            <Text
+              className="font-medium text-brand"
+              onPress={() => void Linking.openURL(TERMS_OF_SERVICE_URL)}
+              accessibilityRole="link"
+            >
+              Terms of Service
+            </Text>{' '}
+            and{' '}
+            <Text
+              className="font-medium text-brand"
+              onPress={() => void Linking.openURL(PRIVACY_POLICY_URL)}
+              accessibilityRole="link"
+            >
+              Privacy Policy
+            </Text>
+            .
+          </Text>
+        </EnterSection>
 
         {isDefault ? (
-          <Link href="/(auth)/instance" asChild>
-            <Pressable className="mt-6 align-center self-center" hitSlop={8}>
-              <Text className="text-sm font-medium text-brand">Use self-hosted instance</Text>
-            </Pressable>
-          </Link>
+          <EnterSection order={4} reduceMotion={reduceMotion}>
+            <Link href="/(auth)/instance" asChild>
+              <Pressable className="mt-6 self-center" hitSlop={8}>
+                <Text className="text-sm font-medium text-brand">Use self-hosted instance</Text>
+              </Pressable>
+            </Link>
+          </EnterSection>
         ) : null}
 
-        {showDevRegistration ? (
-          <Text className="mt-6 text-xs leading-5 text-text-muted">
-            Redirect URI for OAuth app registration:{'\n'}
-            <Text className="text-text-body">{getRedirectUri()}</Text>
-            {isExpoGoRuntime()
-              ? '\n\nExpo Go detected — if sign-in fails with redirect_uri mismatch, register this exp:// URI via:\npnpm cw:cli oauth create-mobile-app --owner-email … --force --redirect-uri \'<uri above>\''
-              : '\n\nExpected registered URI: coachwatts://oauth/callback'}
-          </Text>
+        {canRevealDev && showDevDetails ? (
+          <View className="mt-8 rounded-xl border border-border bg-card/90 p-3">
+            <Text className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+              Developer
+            </Text>
+            <Text selectable className="mt-2 text-xs leading-5 text-text-muted">
+              Redirect URI:{'\n'}
+              {getRedirectUri()}
+              {isExpoGoRuntime()
+                ? '\n\nExpo Go — register this exp:// URI if sign-in fails with redirect_uri mismatch.'
+                : '\n\nExpected: coachwatts://oauth/callback'}
+            </Text>
+            <Pressable hitSlop={8} className="mt-2" onPress={() => setShowDevDetails(false)}>
+              <Text className="text-xs font-medium text-brand">Hide</Text>
+            </Pressable>
+          </View>
         ) : null}
       </View>
     </SafeAreaView>

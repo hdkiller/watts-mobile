@@ -58,11 +58,12 @@ Avoid phrases like “diagnoses injury”, “medical advice”, “treats illne
 
 Tracked as distribution [task 003](./distribution/tasks/003-privacy-and-compliance.md) (App Store) and [task 012](./distribution/tasks/012-play-data-safety-and-content.md) (Play):
 
-- [ ] Privacy Nutrition Labels / Data safety form filled using the table above
-- [ ] Privacy policy URL set for the listing (hosted or operator URL)
-- [ ] Health / fitness declarations match athlete-reported wellness + recovery, plus optional HealthKit / Health Connect reads: check-in prefill (sleep + weight) and, when Health Sync is enabled, the expanded read set (sleep + stages, RHR, HRV, heart-rate/power/cadence/speed streams, body metrics, SpO2, respiration, VO2max, steps, distance, exercise minutes, floors, calories, and workouts incl. GPS route when workouts sync is on) uploaded to the athlete's instance — declare **background collection** and **precise location** (workout routes) where the form asks
-- [ ] Push notification purpose string matches “coaching notifications” copy above
-- [ ] No medical claims in store description or screenshots captions
+- [x] Privacy Nutrition Labels filled in ASC using the table above (published)
+- [x] Play Data safety form filled using the table above (→ task 012; submitted 2026-07-21)
+- [x] Privacy policy URL set for the ASC listing (`https://coachwatts.com/privacy`)
+- [x] Health / fitness declarations match athlete-reported wellness + recovery, plus optional HealthKit / Health Connect reads (precise location for workout routes declared)
+- [x] Push / Device ID purpose covered via Device ID nutrition label (App Functionality)
+- [x] No medical claims in ASC store description (disclaimer included); re-check screenshot captions when assets land
 
 ## Related
 

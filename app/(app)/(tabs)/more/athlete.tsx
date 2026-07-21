@@ -27,6 +27,7 @@ import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
 import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
+import { GoalsLiteSection } from '@/src/features/goals/GoalsLiteSection';
 
 export default function AthleteMetricsScreen() {
   const theme = useThemeColors();
@@ -146,7 +147,9 @@ export default function AthleteMetricsScreen() {
               />
             ) : null}
 
-            <Text className="text-xl font-semibold text-text-primary">Edit metrics</Text>
+            <GoalsLiteSection />
+
+            <Text className="mt-8 text-xl font-semibold text-text-primary">Edit metrics</Text>
             <Text className="mt-2 text-sm text-text-muted">
               Default sport profile — per-sport thresholds live in{' '}
               <Text

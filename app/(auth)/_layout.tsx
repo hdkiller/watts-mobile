@@ -15,11 +15,21 @@ export default function AuthLayout() {
   return (
     <Stack
       screenOptions={{
+        headerShown: false,
         headerStyle: { backgroundColor: theme.surface },
         headerTintColor: theme.textPrimary,
         contentStyle: { backgroundColor: theme.surface },
         headerBackButtonDisplayMode: 'minimal',
       }}
-    />
+    >
+      <Stack.Screen name="login" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="instance"
+        options={{
+          headerShown: true,
+          title: 'Instance URL',
+        }}
+      />
+    </Stack>
   );
 }
