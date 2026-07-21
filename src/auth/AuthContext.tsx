@@ -31,6 +31,17 @@ import {
 
 wireQueryConnectivity();
 
+async function clearHealthSyncForIdentityTransition(): Promise<void> {
+  try {
+    const { clearHealthSyncOnSignOut } = await import(
+      '@/src/features/health/clearOnSignOut'
+    );
+    await clearHealthSyncOnSignOut();
+  } catch (error) {
+    console.warn('Failed to clear health sync state during account transition', error);
+  }
+}
+
 type AuthStatus = 'loading' | 'needs_instance' | 'needs_login' | 'authenticated';
 
 type AuthContextValue = {
@@ -77,6 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(info);
           setStatus('authenticated');
         } catch (err) {
+          await clearHealthSyncForIdentityTransition();
           setUser(null);
           setError(friendlyError(err, 'E2E auth seed failed — check token and instance URL'));
           setStatus('needs_login');
@@ -103,6 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(info);
         setStatus('authenticated');
       } catch {
+        await clearHealthSyncForIdentityTransition();
         setUser(null);
         setStatus('needs_login');
       }
@@ -113,7 +126,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    void bootstrap();
+    const initialBootstrap = setTimeout(() => void bootstrap(), 0);
+    return () => clearTimeout(initialBootstrap);
   }, [bootstrap]);
 
   useEffect(() => {
@@ -121,6 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       setStatus((current) => (current === 'needs_instance' ? current : 'needs_login'));
       void queryClient.clear();
+      void clearHealthSyncForIdentityTransition();
     });
     return () => setAuthFailureHandler(null);
   }, []);
@@ -131,6 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const previous = instanceUrl ?? (await getInstanceUrl());
     const normalized = normalizeInstanceUrl(url);
     if (previous && previous !== normalized) {
+      await clearHealthSyncForIdentityTransition();
       await clearTokens();
       setUser(null);
       queryClient.clear();
@@ -165,6 +181,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.warn('Failed to clear push registration on sign-out', error);
     }
+    await clearHealthSyncForIdentityTransition();
     await clearTokens();
     setUser(null);
     queryClient.clear();

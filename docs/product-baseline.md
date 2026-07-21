@@ -1,117 +1,199 @@
-# Product Baseline — Companion App
+# Product Baseline — Activation Companion
 
-Distilled from coach-wattz PR [#239](https://github.com/hdkiller/coach/pull/239). Update when product decisions change.
+Distilled from coach-wattz PR [#239](https://github.com/hdkiller/coach/pull/239), then **repositioned 2026-07-21** for mobile-first activation. Update when product decisions change. Mirror narrative: coach-wattz `docs/06-plans/mobile-companion-app.md`.
 
 ## Positioning
 
 | Surface | Role |
 |---------|------|
-| **Web** | Control room: planning, analytics, integrations, teams, nutrition planning depth, library, billing |
-| **Mobile** | Field companion: what should I do today, what’s coming up, check in, quick nutrition log, ask the coach |
+| **Web** | Control room: deep plan adapt/replan, analytics/explorer, teams, nutrition planning/grocery, library editing, billing, admin |
+| **Mobile** | **Activation companion**: get a new athlete alive without requiring the web app, then run the daily field loop (today, check-in, coach, push) |
 
-If a screen exists mainly to configure, explore, or architect training → web. Mobile ships the daily athlete loop plus light field writes (wellness, recovery, nutrition quick-log, athlete metrics).
+Mobile is no longer “field-only, assume web setup.” Accounts may be created and fully activated on device. Web remains the home for depth and architecture tools that do not fit a thumb-first morning path.
+
+### Design constraints
+
+1. **Activate, then accompany** — day-one path gets the athlete to goal + plan + insight; ongoing path stays the daily loop.
+2. **Lite over architect** — goal capture and plan *kickoff* are in-app; full PlanDashboard, block editing, adaptation wizards, analytics stay on web (or Coach tools later).
+3. **Connect last, clean** — data connection is required for *full* activation but sits late in the wizard and is skippable so Strava/Intervals login confusion does not block the door. Prefer Health Sync (system sheet) over OAuth apps.
+4. **Shared server truth** — onboarding/activation state lives on the API (`onboarding-status` and successors), not only in local UI checklists. Web and mobile must agree on “done.”
+5. **Do not clone `/dashboard`** — morning path still one decision; web escape hatch for out-of-scope depth.
+
+## Activation model
+
+### Fully activated (north star)
+
+An athlete is **fully activated** when all four are true, in this dependency order:
+
+```
+data → goal → plan → insight
+```
+
+| Step | Meaning |
+|------|---------|
+| **Data** | Usable training/wellness data from Health Sync and/or a connected app |
+| **Goal** | At least one primary goal captured (race/event, performance, consistency, or body) |
+| **Plan** | A training plan generated and **activated** (lite path) |
+| **Insight** | Athlete has seen a personalized coaching outcome (first-week plan reveal and/or today’s recommendation) |
+
+### Soft vs full activation
+
+| State | Criteria | Product behavior |
+|-------|----------|------------------|
+| **Soft-activated** | Goal + plan + first insight | Enter the companion tabs; Today may be provisional (“better after you connect”) |
+| **Fully activated** | Soft + usable data | Normal companion; setup prompts dismiss |
+| **Incomplete** | Missing any soft step | Resume activation wizard (server-driven) |
+
+### Wizard UX order (not the same as dependency order)
+
+High-friction credential steps come **last** so confused users still get a plan:
+
+```
+0. Account (sign up / sign in) + instance URL
+1. Consent (terms + health/biometric) — blocking, native
+2. Intent + goal lite
+3. Plan lite wizard (availability → generate → preview → activate)
+4. First insight reveal
+5. Connect data (LAST) — Health Sync primary · OAuth apps secondary · Skip / later OK
+→ Companion tabs + optional “Finish setup” card on Today until fully activated
+```
+
+Analytics should distinguish soft vs full activation. Align web conversion plan so both clients share the same definitions.
 
 ## Stack
 
-Expo (React Native) + TypeScript · Expo Router · NativeWind · TanStack Query · expo-secure-store · Expo Notifications · Sentry RN.
+Expo (React Native) + TypeScript · Expo Router · NativeWind · TanStack Query · expo-secure-store · Expo Notifications · Sentry RN · **`expo-dev-client`**.
 
-Auth: OAuth 2.0 + PKCE · tokens in Secure Store · `offline_access` for refresh.
+Auth: OAuth 2.0 + PKCE · tokens in Secure Store · `offline_access` for refresh. Sign-**up** and native consent are first-class (not web-only).
 
-## v1 scope (priority order)
+## Shipped companion loop (store-candidate base)
 
-1. **Today** — planned workout + AI recommendation (accept / modify / rest), **Analyze Readiness** generate when empty, Daily Coach Check-In questionnaire, Recent Wellness glance, short rationale
-2. **Log** — daily wellness (sleep, readiness/feel, notes, weight if already in flows) **and** recovery events (illness, fatigue, sleep disruption, etc. — parity with web “Log recovery event”) — distinct from Today’s AI Daily Coach Check-In
-3. **Session detail** — today’s planned structure with **Complete / Skip**; completed-workout AI analysis + plan-adherence glance + richer summary metrics + strength exercises + stream/zone/power-curve charts + **lite in-app route map** when GPS exists; Discuss with Coach from either detail; fueling prep glance on planned when nutrition tracking is on; map explorer / GPX / interval audit → open web
-4. **Recent activity** — last few workouts with sync/analysis status (not full calendar)
-5. **Coach chat** — short Q&A seeded with today + recovery; markdown-lite assistant replies; compact tool feedback (curated nutrition / wellness / recommendations / planned lite / activity reads + generic fallback) with in-progress chips, domain tint, and approve/deny — not full web tool-card parity
+Already delivered as the daily athlete loop (former v1 / v1.5):
+
+1. **Today** — planned workout + AI recommendation (accept / modify / rest), **Analyze Readiness** generate when empty, Daily Coach Check-In, Recent Wellness, Training Load & Form, Monthly Progress, Active Recovery Context, week strip, Upcoming Events glance, Coming up, Recently teaser, nutrition glance when tracking on
+2. **Log** — wellness + recovery events + nutrition quick-log (when tracking enabled)
+3. **Session detail** — planned Complete/Skip; activity AI analysis, adherence, charts, lite route map; fueling prep when on; explorer/GPX → Open web
+4. **Recent + Upcoming** — More lists (not a calendar heatmap)
+5. **Coach chat** — seeded Q&A, markdown-lite, tool feedback lite, sessions + media
 6. **Notifications** — push + in-app inbox
-7. **Account glue** — instance URL, sign-in, notification prefs, Settings hub (units/locale, coach identity lite, Health Sync, export/delete via Open web), **Open web with Bearer→cookie session handoff**
+7. **Account glue** — instance URL, sign-in, Settings hub (push prefs, Health Sync, units/locale, coach identity lite, sports thresholds lite, export/delete via Open web), **Open web with Bearer→cookie session handoff**
+8. **Athlete** — More → Athlete metrics + AI report overview (full report Open web)
 
-## Explicit non-goals (v1)
+## Next chapter — Activation onboarding
 
-Plan architect · analytics/explorer · coaching teams · integration OAuth connects · nutrition planning / grocery · library editing · billing/admin · full web Profile Settings / Athlete Profile generate · calendar heatmaps.
+Priority work that repositions the product. OpenSpec change TBD (`mobile-activation-onboarding` or similar).
 
-Use **Open in browser** instead of half-porting these.
+1. **Mobile-only account path** — sign up (not only returning sign-in); native consent gate parity with web `/onboarding`
+2. **Server-driven wizard** — resume from `GET /api/user/onboarding-status` (extend for goal + plan steps; keep `connectLater`)
+3. **Goal lite** — create/edit primary goal; optional AI suggest/accept; list under More or Athlete; `goal:read` / `goal:write`
+4. **Plan lite wizard** — availability + volume → `plans/initialize` (or documented Bearer equivalent) → first-week preview → activate; not PlanDashboard / adapt / replan
+5. **First insight** — week reveal + optional Analyze Readiness; honest copy when biometrics are thin
+6. **Connect-last** — Health Sync primary; Connected Apps lite (Strava/Intervals/…) secondary; Skip → soft-activated companion + Finish-setup card
+7. **Empty Today replacement** — retire stacked “No X yet” for incomplete activation (supersedes the spirit of [issues/056](./issues/056.md))
 
-## v1.5 scope (after store-candidate v1)
+### coach-wattz prerequisites (activation)
 
-Promoted from vague “later” into an explicit companion expansion:
+- Consent write path usable from mobile Bearer session
+- Official Mobile App scopes: `goal:write`, `planning:write` (and any plan-initialize/activate routes) documented + allowlisted
+- `onboarding-status` (or successor) exposes goal/plan/insight steps shared with web
+- Plan initialize + activate Bearer-ready for the lite path
+- Web conversion plan updated so activation ≠ “integration only”
 
-1. **Upcoming planned workouts** — More → Upcoming (capped next ~7–14 days via `GET /api/planned-workouts`); not a fifth tab or heatmap
-2. **Richer session details** — planned interval/step summary when payload allows; completed-workout summary metrics + AI analysis + charts + lite route map in-app; plan adherence + linked planned↔completed navigation; explorer / interval audit → open web
-3. **Athlete metrics edit** — More → Athlete: weight, FTP, max HR, LTHR for the **default** sport profile (`profile:write` / `PATCH /api/profile`); not full Profile Settings
-4. **Nutrition quick-log** — Log tab section: today’s totals glance, macro/meal item log, hydration quick-add (`nutrition:read` / `nutrition:write`); planning/grocery stay on web
-5. **Lite sport thresholds** — Settings → Sports: list sport profiles and edit per-sport FTP / LTHR / Max HR (pace when present); zones, detect-from-workouts, and advanced Sport Settings stay on web
+## Explicit non-goals
 
-## Later (v1.5+)
+Still **out** of native mobile (use Open web / handoff):
 
-HealthKit / Health Connect · structured workout push to devices · stronger offline Today.
+- Full **plan architect** (PlanDashboard, block/week editor, adaptation wizard, drag-reschedule)
+- Analytics builder / performance explorer / workout comparison / calendar heatmaps
+- Coaching teams / multi-athlete
+- Nutrition planning / grocery
+- Workout library editing
+- Billing / admin / developer portal
+- Full web Profile Settings / sport zone editors / detect-from-workouts
 
-**Shipped companion glances:** Today Training Load & Form (CTL/ATL/TSB + ±% trends + sheet chart; not a first-viewport CTL grid) · Monthly Progress (month-to-date vs last month) · Recent Wellness (Sleep/HRV/RHR) + Wellness Overview sheet · Athlete Profile overview (AI summary + lite report sheet; full report Open web) · Daily Coach Check-In · Analyze Readiness generate · lite activity route map.
+**Narrowed vs prior baseline:** goal capture, plan *kickoff*, Health Sync, and Connected Apps **lite** are **in scope**. Deep OAuth edge cases and obscure providers may still Open web.
 
 ## Information architecture
 
 **Tabs:** Today · Log · Coach · More
 
-**Stacks:** recommendation detail, planned workout detail, activity summary, upcoming planned list, notification inbox, athlete metrics, nutrition log (Log stack), daily coach check-in, sign-in / instance setup, settings.
+**Stacks (additions bold):** **activation wizard**, **goal lite**, **plan lite**, recommendation detail, planned workout detail, activity summary, upcoming planned list, notification inbox, athlete metrics, nutrition log (Log stack), daily coach check-in, sign-in / **sign-up** / instance setup, settings, **connected apps lite**.
 
-**Today (top → bottom):** greeting → optional analysis-ready card → optional **Daily Coach Check-In** CTA → recommendation hero / Analyze Readiness empty / planned-only hero → planned summary when with a recommendation → **Recent Wellness** glance → named **Active Recovery Context** band (chips + Log event / Wellness check-in / History) → Accept / Discuss with Coach → **This week** glance strip → **Upcoming Events** glance (when events exist; row → lite detail) → thin **Coming up** (planned workouts only) → **Recently** teaser → optional **Nutrition** glance (when `nutritionTrackingEnabled`).
+**Today (activated):** greeting → optional analysis-ready card → optional Daily Coach Check-In CTA → recommendation hero / Analyze Readiness empty / planned-only hero → planned summary when with a recommendation → Recent Wellness → Active Recovery Context → Accept / Discuss with Coach → This week → Upcoming Events → Coming up → Recently → optional Nutrition glance.
 
-Recovery **writes** stay Log-first; Today shows named active context and secondary actions (not a second hero CTA). AI Daily Coach Check-In is separate from Log wellness. Coming up stays planned-only; race/life events live in the Upcoming Events glance + list/detail (not a calendar; create/edit stays Open web). Nutrition glance is totals-only; meal/hydration writes stay on Log. Offline: last cached Today + planned detail with a “last updated” stamp. Instance **Open web** uses session handoff when available.
+**Today (incomplete activation):** single **Finish setup** / resume-wizard surface instead of a column of empty section cards. Soft-activated may show provisional plan week + quiet connect CTA.
 
-**Log writes:** wellness + recovery events (+ nutrition quick-log when tracking enabled). Per-sport lite thresholds live under Settings → Sports.
+Recovery **writes** stay Log-first. Coming up stays planned-only; race/life events via Upcoming Events (create/edit may move to goal/event lite later; until then Open web for event CRUD is OK). Offline: last cached Today + planned detail with “last updated.” Instance **Open web** uses session handoff when available.
 
-**More hosts:** recent activity, upcoming planned, notifications inbox, athlete metrics, Settings hub, account glue (open web / sign out).
+**More hosts:** recent activity, upcoming planned, notifications inbox, athlete (+ **goals lite**), Settings hub, account glue.
 
-**Settings hub (field companion):** push prefs · Health Sync · Units & locale · Instance · Coach identity lite (nickname / persona / About me / tool approval) · Export / Delete via Open web. Full Profile Settings, Connected Apps, Billing, sport zones stay on web.
+**Settings hub:** push prefs · Health Sync · **Connected Apps lite** · Units & locale · Instance · Coach identity lite · Sports thresholds lite · Export / Delete via Open web. Billing and full Profile/zone editors stay web.
 
-First viewport = one decision. No CTL grids or calendar heatmaps.
+First viewport (once activated) = one decision. No CTL grids or calendar heatmaps.
 
 ## Interaction principles
 
-1. Morning path < 30s
+1. Morning path &lt; 30s **once activated**
 2. Thumb-first primary CTAs on Today
-3. Today/Coach decide; Log writes (wellness + recovery events + nutrition quick-log)
+3. Today/Coach decide; Log writes (wellness + recovery + nutrition quick-log)
 4. Push deep-links to Today or detail (never a dead inbox)
-5. Honest empty/loading (“Waiting for Whoop sync…”)
+5. Honest empty/loading (“Waiting for Whoop sync…”) — and honest **provisional** plan copy before data
 6. Self-hosted instance URL first-class
 7. Web escape hatch for out-of-scope depth
 8. Do not clone `/dashboard`
+9. **Wizard resumable** — kill app mid-activation → return to current server step
+10. **Connect never blocks soft activation** — Skip is a first-class outcome
 
 ## Auth — suggested scopes
 
 | Scope | Why |
 |-------|-----|
-| `profile:read` | Name, basics, FTP display |
-| `profile:write` | Athlete metrics edit (v1.5) |
-| `workout:read` | Recent + planned / upcoming surface |
-| `workout:write` | Completed-workout AI analyze / regenerate |
-| `health:read` / `health:write` | Recovery strip + check-in |
-| `recommendations:read` / `recommendations:write` | Today + accept/dismiss |
-| `planning:read` | Today’s planned workout |
-| `nutrition:read` / `nutrition:write` | Nutrition quick-log (v1.5) |
+| `profile:read` / `profile:write` | Name, basics, athlete metrics |
+| `workout:read` / `workout:write` | Recent/planned; activity analyze; planned complete/skip |
+| `health:read` / `health:write` | Recovery, check-in, Daily Coach Check-In |
+| `recommendation:read` / `recommendation:write` | Today + accept/dismiss / Analyze Readiness *(REST names; not MCP `recommendations:*`)* |
+| `plan:read` / `plan:write` | Planned workouts + **plan lite initialize/activate** *(REST names)* |
+| `goal:read` / `goal:write` | Events countdown + **goal lite capture** |
+| `nutrition:read` / `nutrition:write` | Nutrition quick-log |
+| `chat:read` / `chat:write` | Coach tab |
 | `offline_access` | Refresh tokens |
-| `chat:read` / `chat:write` | Coach tab send/receive (+ room state / resume-retry on write) |
+
+Exact Official Mobile App allowlist must match coach-wattz `REST_OAUTH_SCOPES` / public scopes docs.
 
 ## Companion API (logical)
 
 | Capability | Contract |
 |------------|----------|
 | Bootstrap / home | Prefer `GET /api/mobile/today` (new) or documented composition |
-| Recommendation actions | Existing accept / dismiss |
+| Onboarding status | `GET /api/user/onboarding-status` (+ extend for goal/plan); consent write Bearer path |
+| Goal lite | `GET/POST/PATCH /api/goals` (+ optional suggest/review jobs) |
+| Plan lite | initialize / preview / activate (existing `plans/*` Bearer-ready) |
+| Recommendation actions | Existing accept / dismiss / today generate |
 | Wellness check-in | Existing wellness write |
 | Recovery event | `POST/PATCH/DELETE /api/recovery-context/journey*` + `GET /api/recovery-context` |
-| Recent activities | Limited workouts list (`GET /api/workouts`) |
-| Upcoming planned | `GET /api/planned-workouts` (date range + limit) |
-| Planned / activity detail | Planned + workout by id (Bearer); structure summary; activity AI + `/streams` + `/power-curve` charts |
-| Athlete metrics | `GET/PATCH /api/profile` (`profile:read` / `profile:write`) |
-| Nutrition quick-log | `GET/POST /api/nutrition` (+ hydration quick-add when Bearer-ready) |
-| Chat | Existing rooms/messages APIs + Bearer WebSocket (`websocket-token`); `@ai-sdk/react` on client; poll as degraded fallback |
-| Notifications | Existing `/api/notifications` |
-| Push register | `POST /api/mobile/devices` (new) |
+| Recent activities | `GET /api/workouts` |
+| Upcoming planned | `GET /api/planned-workouts` |
+| Planned / activity detail | Planned + workout by id; structure; AI + streams + power-curve |
+| Athlete metrics | `GET/PATCH /api/profile` |
+| Nutrition quick-log | `GET/POST /api/nutrition` (+ hydration) |
+| Chat | Rooms/messages + Bearer WebSocket |
+| Notifications | `/api/notifications` |
+| Push register | `POST /api/mobile/devices` |
+| Health platform ingest | Wellness/workout upload from HealthKit / Health Connect (opt-in) |
+| Connected apps lite | Documented connect/status for primary providers (or Open web handoff where Bearer OAuth is not ready) |
 
 Push events (initial): `RECOMMENDATION_READY`, `WORKOUT_ANALYSIS_READY`, `SYNC_COMPLETED`, `COACH_MESSAGE`.
 
 ## Non-functionals (baseline)
 
-iOS + Android via Expo · warm-cache Today < ~2s with skeleton · reuse Tolgee locales where practical · a11y on primary CTAs · no health metrics in analytics · Sentry + minimal product events.
+iOS + Android via Expo · warm-cache Today &lt; ~2s with skeleton · reuse Tolgee locales where practical · a11y on primary CTAs · no health metrics in analytics · Sentry + minimal product events (include activation funnel: consent → goal → plan → insight → data).
+
+## Decision log (reposition)
+
+| Date | Decision |
+|------|----------|
+| 2026-07-21 | Positioning → **activation companion** (mobile-first accounts allowed) |
+| 2026-07-21 | Fully activated = **data → goal → plan → insight** |
+| 2026-07-21 | Wizard UX = goal → plan → insight → **connect last** (Health Sync preferred; Skip OK) |
+| 2026-07-21 | Plan creation = **native lite wizard** (not full architect; not chat-only) |
+| 2026-07-21 | Docs = **reposition this baseline** (not a side “v2 chapter” while old non-goals remain) |

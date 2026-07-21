@@ -1,15 +1,15 @@
 # Agent Guidelines — Coach Watts Mobile
 
-This repository is the **native iOS/Android companion app** for [Coach Watts](https://coachwatts.com).
+This repository is the **native iOS/Android activation companion** for [Coach Watts](https://coachwatts.com).
 
-Web stays the control room (planning, analytics, integrations, coaching, billing).
-This app is the **field companion**: today’s recommendation, check-in, light chat, and push — not a full web port.
+Web stays the control room (deep plan adapt, analytics, teams, nutrition planning, billing).
+This app **activates new athletes on device** (consent → goal → plan lite → insight → connect data last), then runs the daily field loop: today, check-in, coach, push — not a full web port.
 
 ## Source of truth
 
 | Doc | Role |
 |-----|------|
-| [docs/product-baseline.md](docs/product-baseline.md) | Product positioning, v1 scope, IA, non-goals |
+| [docs/product-baseline.md](docs/product-baseline.md) | Product positioning (activation companion), shipped loop, activation chapter, IA, non-goals |
 | [docs/implementation-plan.md](docs/implementation-plan.md) | Delivery phases and checklist for this repo |
 | [docs/open-questions.md](docs/open-questions.md) | Decisions to resolve before/during Phase 0–1 |
 | [docs/issues.md](docs/issues.md) | Known issues / bugs tracked in-repo (maintain here) |
@@ -52,15 +52,15 @@ Do **not** use Capacitor wrapping Nuxt for v1. Prefer Expo over Flutter / separa
 API base (hosted): `https://coachwatts.com/api/`  
 Local coach-wattz (workspace default): `http://localhost:3099/api/`
 
-## v1 product summary
+## Product summary
 
-**In (v1):** Today (recommendation + planned workout), Log (wellness check-in + recovery events), recent activities (lite), Coach chat (seeded), notifications, account glue (instance URL, sign-in, open web).
+**Shipped loop:** Today (recommendation + planned), Log (wellness + recovery + nutrition quick-log), session detail, recent/upcoming, Coach chat, notifications, athlete metrics, Settings (Health Sync, etc.), account glue.
 
-**In (v1.5):** Upcoming planned, richer session details, athlete metrics edit, nutrition quick-log.
+**Next — activation onboarding:** mobile-only sign-up + consent, goal lite, plan lite wizard, first insight, connect-last (Health Sync primary; OAuth apps optional/skip). Fully activated = data → goal → plan → insight.
 
-**Out:** Plan architect, analytics/explorer, coaching teams, integration OAuth connects, nutrition planning/grocery, library editing, billing/admin, full Profile Settings.
+**Out:** Full plan architect/adapt, analytics/explorer, coaching teams, nutrition planning/grocery, library editing, billing/admin, full Profile Settings / zones.
 
-IA: bottom tabs **Today · Log · Coach · More**.
+IA: bottom tabs **Today · Log · Coach · More** (+ activation wizard stacks). See [docs/product-baseline.md](docs/product-baseline.md).
 
 ## Working rules
 

@@ -109,6 +109,8 @@ Regressions/new findings from re-checking the app on device after the big implem
 | [060](./issues/060.md) | Coach room switcher can strand an opaque empty sheet (hard-stuck) | Coach | high | S | done |
 | [061](./issues/061.md) | Chat list: empty "New Chat" pile-up; previews always "No messages yet" | Coach | medium | S | done |
 | [062](./issues/062.md) | Reanimated warnings: layout animations fight AnimatedPressable props | animations | medium | S | done |
+| [063](./issues/063.md) | Health Sync: stamp `lastSource` + workout `platformSessionId` idempotency | health/API | medium | M | done |
+| [064](./issues/064.md) | Health Sync: persist steps / distance / floors / exerciseMinutes on wellness | health/API | medium | M | done |
 
 Verified working from the earlier batches: sleep plausibility gate (implausible "0.2 hrs" no longer shown on Today), rest-day hero tone + confidence dots, per-tab routing restructure, Coach composer/keyboard, week-glance bars, and **038** (seed context hidden — user bubble now shows only the athlete's question).
 

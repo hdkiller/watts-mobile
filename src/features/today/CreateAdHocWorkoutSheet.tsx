@@ -94,7 +94,7 @@ export function CreateAdHocWorkoutSheet({
       type: form.type,
       durationText,
       intensity: form.intensity,
-      notes: form.notes,
+      notes: form.notes ?? '',
     });
     if (!result.ok) {
       setFormError(result.error);

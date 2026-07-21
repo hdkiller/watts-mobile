@@ -28,6 +28,8 @@ async function getHealthKitAuthStatus(): Promise<HealthStatusResult> {
 
     const { AuthorizationRequestStatus } = await import('@kingstinct/react-native-healthkit');
 
+    // Prefill-only scope — the expanded sync set is requested separately when
+    // the user enables Sync to Coach Watts (see health/syncPermissions.ts).
     const requestStatus = await HK.getRequestStatusForAuthorization({
       toRead: ['HKQuantityTypeIdentifierBodyMass', 'HKCategoryTypeIdentifierSleepAnalysis'],
     });

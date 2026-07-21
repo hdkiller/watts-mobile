@@ -2,6 +2,7 @@ import { Redirect, Stack } from 'expo-router';
 
 import { useAuth } from '@/src/auth/AuthContext';
 import { PushNotificationsBootstrap } from '@/src/features/notifications/PushNotificationsBootstrap';
+import { HealthSyncRunner } from '@/src/features/health/HealthSyncRunner';
 import { OfflineWellnessFlush } from '@/src/features/log/OfflineWellnessFlush';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
@@ -25,6 +26,7 @@ export default function AppLayout() {
     <>
       <PushNotificationsBootstrap />
       <OfflineWellnessFlush />
+      <HealthSyncRunner />
       <Stack
         screenOptions={{
           headerShown: false,

@@ -6,7 +6,7 @@ This app uses **`expo-dev-client`**, not Expo Go as the daily runtime. Adding or
 
 Rebuild after any of:
 
-- `pnpm add` / `expo install` of a package with iOS/Android native code (e.g. `expo-haptics`, `expo-image-picker`, `expo-notifications`, `expo-widgets`, `@kingstinct/react-native-healthkit`, `react-native-health-connect`, `@sentry/react-native`, `react-native-svg`, `react-native-maps`)
+- `pnpm add` / `expo install` of a package with iOS/Android native code (e.g. `expo-haptics`, `expo-image-picker`, `expo-notifications`, `expo-widgets`, `expo-background-task`, `expo-task-manager`, `expo-file-system`, `@kingstinct/react-native-healthkit`, `react-native-health-connect`, `@sentry/react-native`, `react-native-svg`, `react-native-maps`)
 - New or changed **config plugin** entries in `app.json` (permissions, associated domains, splash, etc.)
 - Changes under `ios/` / `android/` that aren’t pure JS
 
@@ -106,8 +106,8 @@ Prefer lazy/`require` + a friendly “rebuild needed” message for optional med
 |---------|-------------|
 | `expo-haptics` | Key-moment haptics (PR #2) |
 | `expo-widgets` + `@expo/ui` | iOS Today session home-screen widget (`TodaySessionWidget`) |
-| `@kingstinct/react-native-healthkit` + `react-native-nitro-modules` | Log “Prefill from Health” (sleep + weight) on iOS |
-| `react-native-health-connect` | Same prefill on Android (requires `minSdk` ≥ 26) |
+| `@kingstinct/react-native-healthkit` + `react-native-nitro-modules` | Log “Prefill from Health” + Health Sync (iOS). Rebuild after expanding `HEALTHKIT_SYNC_READ_TYPES`, HealthKit usage strings, or enabling `background: true` / `com.apple.developer.healthkit.background-delivery` in `app.json`. |
+| `react-native-health-connect` + `./plugins/withHealthConnectPermissionDelegate` | Android Health Connect prefill/sync. The local plugin initializes `HealthConnectPermissionDelegate` in `MainActivity.onCreate` — without it, `requestPermission` crashes with `lateinit property requestPermission has not been initialized`. Requires `minSdk` ≥ 26 and a native rebuild after plugin or `android.permission.health.READ_*` changes (floors, power, speed, cadence, background). |
 | `expo-build-properties` | Sets Android `minSdkVersion` 26 for Health Connect |
 | `@react-native-async-storage/async-storage` | Query persist + analysis-seen store (JS-native bridge; rebuild if autolinking misses it) |
 | `react-native-maps` | Activity detail lite route map (`ActivityMap`); Apple Maps on iOS, Google Maps on Android |

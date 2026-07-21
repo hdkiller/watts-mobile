@@ -24,6 +24,12 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 17 | **Store-candidate offline floor** | Online-only v1 vs cache last Today + planned read-only | **Decided** |
 | 18 | **Skip/miss API shape** | Reuse PATCH/`completionStatus` vs new mobile endpoint | **Decided:** `POST /api/planned-workouts/:id/skip` (`completionStatus: SKIPPED`) + Bearer `workout:write`; complete uses `POST …/complete` |
 | 19 | **Today Coming up: planned vs calendar events** | Planned workouts only vs also race/life calendar events | **Decided:** planned primary; race/life countdown via `GET /api/events` + `goal:read` |
+| 21 | **Mobile product positioning** | Field companion only vs activation companion vs mobile-first coach | **Decided:** activation companion — see [product-baseline.md](./product-baseline.md) |
+| 22 | **Mobile-only accounts (never touch web)** | Require web setup first vs full on-device activation | **Decided:** yes — sign-up, consent, goal, plan lite, insight on mobile |
+| 23 | **Day-one activation north star** | Data-only vs goal+plan vs both | **Decided:** fully activated = data → goal → plan → insight; soft = goal+plan+insight |
+| 24 | **Activation wizard order vs connect friction** | Data-first wizard vs connect-last | **Decided:** UX = goal → plan → insight → **connect last** (Health Sync preferred; Skip OK); criteria still require data for *full* activation |
+| 25 | **Plan creation on mobile** | Open web vs Coach chat tool vs native lite wizard | **Decided:** native lite wizard (not full PlanDashboard / adapt) |
+| 26 | **Baseline docs shape** | Side “v2 chapter” vs reposition baseline | **Decided:** reposition [product-baseline.md](./product-baseline.md) (and coach-wattz mobile companion doc) |
 
 ## Decision log
 
@@ -72,5 +78,12 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 2026-07-20 | Training Load ±% trends on Today | CTL/ATL/TSB trend badges vs prior ~7 PMC days (web TrendIndicator parity); ATL lower-is-better; 403 → re-login cue |
 | 2026-07-20 | Monthly Progress on Today | Glance + sheet via `GET /api/stats/monthly-comparison` (`workout:read`); metric/sport/view filters; Open web `/dashboard` |
 | 2026-07-20 | Athlete AI report access | 403 → Sign out & sign in; lite in-app report sheet; Open full report via handoff `/profile/athlete` |
+| 2026-07-20 | Health platform ingest | Opt-in Sync to Coach Watts + Sync workouts sub-toggle; always push; backend merge; Settings ledger/retry — `health-platform-ingest` |
+| 2026-07-20 | Wellness `lastSource` for mobile health | Mobile OAuth upserts stamp `lastSource` as `oauth:<appId>`; platform (`healthkit` / `health_connect`) is in `rawJson` only until coach-wattz accepts an explicit source — see [issues/063](./issues/063.md) |
+| 2026-07-21 | Positioning → activation companion | Mobile-first accounts; activate on device then daily loop; web keeps deep architect/analytics |
+| 2026-07-21 | Fully activated = data → goal → plan → insight | Soft-activated (goal+plan+insight) may enter tabs; Finish-setup until data |
+| 2026-07-21 | Wizard UX connect-last | Health Sync primary; Strava/etc. optional; Skip does not block soft activation |
+| 2026-07-21 | Plan creation = native lite wizard | Initialize + preview + activate in-app; PlanDashboard/adapt/replan stay web |
+| 2026-07-21 | Reposition product baseline | Rewrite [product-baseline.md](./product-baseline.md); mirror coach-wattz `mobile-companion-app.md` |
 
 When a row above is decided, move it here and update [product-baseline.md](./product-baseline.md) / [implementation-plan.md](./implementation-plan.md) if scope changes.

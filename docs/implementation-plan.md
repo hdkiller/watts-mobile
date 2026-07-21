@@ -5,8 +5,9 @@ Phased delivery for this repository. Product detail: [product-baseline.md](./pro
 ## Current state
 
 - Phase 0–4 companion OpenSpecs shipped and archived under `openspec/changes/archive/2026-07-19-*` (auth, Today, Log, notifications/push, coach chat, recent/upcoming, deep links, store polish, athlete metrics, nutrition quick-log).
-- No active OpenSpec changes. Follow-ups: prod redeploy of coach-wattz Bearer notifications/push APIs if inbox still 401s; AASA/assetlinks host association for https deep links.
-- coach-wattz baseline PR [#239](https://github.com/hdkiller/coach/pull/239) still draft — merge when ready.
+- Active work: Health Sync / Connected Apps lite OpenSpecs; product baseline **repositioned 2026-07-21** to activation companion ([product-baseline.md](./product-baseline.md)).
+- Phase 5 (activation onboarding) proposed below — OpenSpec not created yet.
+- Follow-ups: AASA/assetlinks host association for https deep links; coach-wattz baseline PR [#239](https://github.com/hdkiller/coach/pull/239) still draft — merge when ready (now includes activation reposition).
 - OAuth client registered as **Official Mobile App** in local + production; wire `EXPO_PUBLIC_OAUTH_CLIENT_ID` from [oauth-setup.md](./oauth-setup.md).
 
 ## Phase 0 — Platform & auth
@@ -112,7 +113,7 @@ Checklist:
 - [ ] Soft offline queue for check-in (harden)
 - [ ] Stronger offline Today cache
 - [ ] Weekly glance (lite load/form — not CTL)
-- [ ] HealthKit / Health Connect ingest
+- [x] HealthKit / Health Connect ingest (opt-in auto sync + history; see `openspec/changes/health-platform-ingest`)
 - [ ] Structured workout export to devices / Intervals
 
 **coach-wattz prerequisites (Phase 4 / workouts glance):**
@@ -163,3 +164,32 @@ Track separately (or as paired PRs) — mobile UI polish should not wait forever
 - Upcoming + recent workouts glance with usable detail stacks
 - Athlete metrics editable on device
 - Nutrition quick-log on Log (planning/grocery still web-only)
+
+## Phase 5 — Activation companion
+
+Product: [product-baseline.md](./product-baseline.md) § Activation model + § Next chapter. Repositions mobile from field-only to **activation companion**. Do not start until Health Sync / Connected Apps lite foundations needed for “connect last” are clear enough to wire.
+
+OpenSpec (suggested): `mobile-activation-onboarding` (proposal not created yet).
+
+| Slice | Focus |
+|-------|--------|
+| Account + consent | Sign-up path; native terms + health consent; Bearer consent write |
+| Wizard shell | Server-driven resume via `onboarding-status` (+ goal/plan steps) |
+| Goal lite | Primary goal create/edit; optional AI suggest |
+| Plan lite | Availability → generate → preview → activate |
+| First insight | Week reveal + optional Analyze Readiness; provisional copy |
+| Connect last | Health Sync primary; Connected Apps lite; Skip → Finish-setup on Today |
+| Empty Today | Replace stacked empties for incomplete activation ([issues/056](./issues/056.md)) |
+
+Checklist (high level):
+
+- [ ] coach-wattz: consent + onboarding-status goal/plan steps + plan lite Bearer
+- [ ] Official Mobile App scopes: `goal:write`, `plan:write` (REST names)
+- [ ] Mobile sign-up + consent gate
+- [ ] Activation wizard (resumable)
+- [ ] Goal lite + plan lite + first insight
+- [ ] Connect-last + Finish-setup card
+- [ ] Soft vs full activation analytics events
+- [ ] Align web conversion plan definitions
+
+**Exit:** brand-new account can soft-activate entirely on device (goal → plan → insight), optionally connect Health Sync, and land on a usable Today without opening web. Full activation when data imports.

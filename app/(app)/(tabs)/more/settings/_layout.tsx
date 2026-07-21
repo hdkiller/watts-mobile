@@ -23,6 +23,7 @@ export default function SettingsStackLayout() {
       <Stack.Screen name="index" options={{ title: 'Settings' }} />
       <Stack.Screen name="notifications" options={{ title: 'Notification settings' }} />
       <Stack.Screen name="health" options={{ title: 'Health Sync' }} />
+      <Stack.Screen name="health-history" options={{ title: 'Sync history' }} />
       <Stack.Screen name="units" options={{ title: 'Units & locale' }} />
       <Stack.Screen name="appearance" options={{ title: 'Appearance' }} />
       <Stack.Screen name="log" options={{ title: 'Log defaults' }} />

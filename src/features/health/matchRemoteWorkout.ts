@@ -1,0 +1,105 @@
+import { localDateYmd } from './mapToWellnessPayload';
+import { sportLabel } from './sportTypes';
+import type { PlatformWorkoutSession, RemoteWorkoutMatchCandidate } from './types';
+import { WORKOUT_MATCH_TOLERANCE_MS } from './types';
+
+const DATE_ONLY_RE = /^\d{4}-\d{2}-\d{2}$/;
+/** Max duration difference accepted when only a calendar date is available. */
+const DATE_ONLY_DURATION_TOLERANCE_S = 10 * 60;
+
+export function platformWorkoutExternalId(session: PlatformWorkoutSession): string {
+  // Keep this identical to the API's Workout.externalId construction/column bound.
+  return `health_${session.platform}_${session.platformSessionId}`.slice(0, 500);
+}
+
+function normalizedSport(value?: string | null): string | null {
+  if (!value) return null;
+  const sport = value.toLowerCase().replace(/[^a-z]/g, '');
+  if (/^(ride|riding|bike|biking|cycling)$/.test(sport)) return 'cycling';
+  if (/^(run|running|trailrun|trailrunning)$/.test(sport)) return 'running';
+  if (/^(swim|swimming)$/.test(sport)) return 'swimming';
+  if (/^(walk|walking|hike|hiking)$/.test(sport)) return 'walking';
+  return sport;
+}
+
+/**
+ * Heuristic presence match: start time within tolerance and optional duration
+ * closeness. Date-only remote dates fall back to same-local-day + duration.
+ */
+export function matchRemoteWorkout(
+  session: PlatformWorkoutSession,
+  remotes: RemoteWorkoutMatchCandidate[]
+): RemoteWorkoutMatchCandidate | null {
+  const startMs = new Date(session.startedAt).getTime();
+  if (!Number.isFinite(startMs)) return null;
+  const sessionYmd = localDateYmd(new Date(startMs));
+  const sessionSport = normalizedSport(session.sportType);
+  const exactExternalId = platformWorkoutExternalId(session);
+
+  const exact = remotes.find((remote) => remote.externalId === exactExternalId);
+  if (exact) return exact;
+
+  let best: { remote: RemoteWorkoutMatchCandidate; score: number } | null = null;
+
+  for (const remote of remotes) {
+    if (!remote.date) continue;
+    const remoteSport = normalizedSport(remote.type);
+    if (sessionSport && remoteSport && sessionSport !== remoteSport) continue;
+
+    let score: number;
+    if (DATE_ONLY_RE.test(remote.date)) {
+      // No time component — match on local calendar day, requiring duration
+      // agreement when both sides have one so same-day workouts don't collide.
+      if (remote.date !== sessionYmd) continue;
+      if (session.durationSec == null || remote.durationSec == null) continue;
+      const durDelta =
+        session.durationSec != null &&
+        remote.durationSec != null &&
+        Number.isFinite(remote.durationSec)
+          ? Math.abs(session.durationSec - remote.durationSec)
+          : null;
+      if (durDelta != null && durDelta > DATE_ONLY_DURATION_TOLERANCE_S) continue;
+      // Rank below any timestamp match of equal duration closeness.
+      score = WORKOUT_MATCH_TOLERANCE_MS + (durDelta ?? DATE_ONLY_DURATION_TOLERANCE_S) * 10;
+    } else {
+      const remoteMs = new Date(remote.date).getTime();
+      if (!Number.isFinite(remoteMs)) continue;
+      const delta = Math.abs(remoteMs - startMs);
+      if (delta > WORKOUT_MATCH_TOLERANCE_MS) continue;
+
+      score = delta;
+      if (
+        session.durationSec != null &&
+        remote.durationSec != null &&
+        Number.isFinite(remote.durationSec)
+      ) {
+        const durDelta = Math.abs(session.durationSec - remote.durationSec);
+        // Prefer closer duration when starts are similar
+        score += durDelta * 10;
+      }
+    }
+
+    if (!best || score < best.score) {
+      best = { remote, score };
+    }
+  }
+
+  return best?.remote ?? null;
+}
+
+export function workoutHistoryTitle(session: PlatformWorkoutSession): string {
+  const when = new Date(session.startedAt);
+  const timeLabel = Number.isFinite(when.getTime())
+    ? when.toLocaleString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      })
+    : session.startedAt;
+  const mins =
+    session.durationSec != null ? Math.round(session.durationSec / 60) : null;
+  const dur = mins != null && mins > 0 ? ` · ${mins} min` : '';
+  const name = session.title ?? sportLabel(session.sportType) ?? 'Workout';
+  return `${name}${dur} · ${timeLabel}`;
+}

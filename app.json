@@ -17,12 +17,13 @@
       "infoPlist": {
         "NSCameraUsageDescription": "Coach Watts uses the camera so you can photograph meals and share them in Coach chat for nutrition logging.",
         "NSPhotoLibraryUsageDescription": "Coach Watts accesses your photo library so you can attach meal photos in Coach chat for nutrition logging.",
-        "NSHealthShareUsageDescription": "Coach Watts reads last night’s sleep and your latest weight so you can prefill today’s wellness check-in. Health data stays on your device until you save the check-in.",
+        "NSHealthShareUsageDescription": "Coach Watts reads sleep, heart rate (incl. workout heart-rate and power/cadence/speed streams), HRV, body metrics, steps, distance, exercise minutes, floors, GPS workout routes, and workouts from Apple Health to prefill check-ins and, when you enable Health Sync, upload them to your Coach Watts instance.",
         "NSHealthUpdateUsageDescription": "Coach Watts does not write health data to Apple Health."
       },
       "entitlements": {
         "com.apple.developer.healthkit": true,
-        "com.apple.developer.healthkit.access": []
+        "com.apple.developer.healthkit.access": [],
+        "com.apple.developer.healthkit.background-delivery": true
       }
     },
     "android": {
@@ -35,7 +36,27 @@
       "package": "com.coachwatts.mobile",
       "permissions": [
         "android.permission.health.READ_SLEEP",
-        "android.permission.health.READ_WEIGHT"
+        "android.permission.health.READ_WEIGHT",
+        "android.permission.health.READ_RESTING_HEART_RATE",
+        "android.permission.health.READ_HEART_RATE",
+        "android.permission.health.READ_HEART_RATE_VARIABILITY",
+        "android.permission.health.READ_BODY_FAT",
+        "android.permission.health.READ_OXYGEN_SATURATION",
+        "android.permission.health.READ_RESPIRATORY_RATE",
+        "android.permission.health.READ_VO2_MAX",
+        "android.permission.health.READ_STEPS",
+        "android.permission.health.READ_DISTANCE",
+        "android.permission.health.READ_FLOORS_CLIMBED",
+        "android.permission.health.READ_ACTIVE_CALORIES_BURNED",
+        "android.permission.health.READ_TOTAL_CALORIES_BURNED",
+        "android.permission.health.READ_BASAL_METABOLIC_RATE",
+        "android.permission.health.READ_EXERCISE",
+        "android.permission.health.READ_EXERCISE_ROUTES",
+        "android.permission.health.READ_POWER",
+        "android.permission.health.READ_SPEED",
+        "android.permission.health.READ_CYCLING_PEDALING_CADENCE",
+        "android.permission.health.READ_STEPS_CADENCE",
+        "android.permission.health.READ_HEALTH_DATA_IN_BACKGROUND"
       ],
       "predictiveBackGestureEnabled": false,
       "intentFilters": [
@@ -121,11 +142,14 @@
       [
         "@kingstinct/react-native-healthkit",
         {
-          "NSHealthShareUsageDescription": "Coach Watts reads last night’s sleep and your latest weight so you can prefill today’s wellness check-in. Health data stays on your device until you save the check-in.",
-          "NSHealthUpdateUsageDescription": "Coach Watts does not write health data to Apple Health."
+          "NSHealthShareUsageDescription": "Coach Watts reads sleep, heart rate (incl. workout heart-rate and power/cadence/speed streams), HRV, body metrics, steps, distance, exercise minutes, floors, GPS workout routes, and workouts from Apple Health to prefill check-ins and, when you enable Health Sync, upload them to your Coach Watts instance.",
+          "NSHealthUpdateUsageDescription": "Coach Watts does not write health data to Apple Health.",
+          "background": true
         }
       ],
       "react-native-health-connect",
+      "./plugins/withHealthConnectPermissionDelegate",
+      "expo-background-task",
       [
         "expo-build-properties",
         {
