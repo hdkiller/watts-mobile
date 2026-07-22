@@ -11,6 +11,7 @@ import { useTabScrollPadding } from '@/src/hooks/useTabScrollPadding';
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { AnimatedPressable } from '@/src/components/AnimatedPressable';
+import { AppSymbol } from '@/src/components/AppSymbol';
 import { Button } from '@/src/components/Button';
 import { OfflineBanner } from '@/src/components/OfflineBanner';
 import { Skeleton, SkeletonScreen } from '@/src/components/Skeleton';
@@ -21,6 +22,7 @@ import {
   useSkipPlannedWorkout,
   useUpcomingPlannedQuery,
 } from '@/src/features/activity/useActivity';
+import { FuelStateDecisionLink } from '@/src/features/nutrition/FuelStateDecisionLink';
 import { NutritionGlance } from '@/src/features/nutrition/NutritionGlance';
 import { useTodayNutritionQuery } from '@/src/features/nutrition/useNutrition';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
@@ -538,8 +540,27 @@ export default function TodayScreen() {
       }
     >
       <EnterSection order={0}>
-        <Text className="text-sm text-text-muted">{dateLabel}</Text>
-        <Text className="mt-1 text-2xl font-semibold text-text-primary">{greetingForNow()}</Text>
+        <View className="flex-row items-center justify-between">
+          <View>
+            <Text className="text-sm text-text-muted">{dateLabel}</Text>
+            <Text className="mt-1 text-2xl font-semibold text-text-primary">{greetingForNow()}</Text>
+          </View>
+          {nutritionEnabled ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Scan meal photo"
+              className="h-10 w-10 items-center justify-center rounded-full border border-border bg-card active:opacity-70"
+              onPress={() =>
+                router.push({
+                  pathname: APP_HREFS.log,
+                  params: { action: 'camera', t: String(Date.now()) },
+                } as Href)
+              }
+            >
+              <AppSymbol sf="camera.fill" size={18} tintColor={theme.brand} fallback="📷" />
+            </Pressable>
+          ) : null}
+        </View>
       </EnterSection>
 
       {showFinishSetup ? (
@@ -565,28 +586,26 @@ export default function TodayScreen() {
 
       <AnalysisReadyCard recent={recentQuery.data} />
 
-      {!showFinishSetup ? <NutritionGlance /> : null}
-
       {!showFinishSetup && !checkinCompleted ? (
         <EnterSection order={1}>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Do Quick Daily Coach Check-In"
-            className="mt-6 flex-row items-center justify-between rounded-xl border border-brand bg-brand/5 p-4"
+            className="mt-6 py-1 active:opacity-80"
             onPress={() => router.push(APP_HREFS.dailyCheckin as Href)}
           >
-            <View className="flex-1 pr-3">
-              <Text className="text-xs uppercase tracking-wide text-brand font-semibold">
-                Coach Check-In
+            <Text className="text-xs font-semibold uppercase tracking-wide text-brand">
+              Coach Check-In
+            </Text>
+            <View className="mt-1 flex-row items-center justify-between">
+              <Text className="text-xl font-semibold text-text-primary">
+                Daily Coach Check-In
               </Text>
-              <Text className="mt-1 text-base font-semibold text-text-primary">
-                Do Quick Daily Coach Check-In
-              </Text>
-              <Text className="mt-1 text-xs text-text-muted">
-                Coach has questions prepared to adjust today’s recommendation.
-              </Text>
+              <AppSymbol sf="chevron.right" size={16} tintColor={theme.brand} fallback="›" />
             </View>
-            <Text className="text-xl text-brand">→</Text>
+            <Text className="mt-1.5 text-sm leading-5 text-text-muted">
+              Coach has questions prepared to adjust today’s recommendation.
+            </Text>
           </Pressable>
         </EnterSection>
       ) : null}
@@ -599,18 +618,9 @@ export default function TodayScreen() {
           onAnalyze={() => void onGenerate()}
           onOpenWeb={() => void openWeb()}
           onDismissQuota={() => setGenState('idle')}
+          onAdhoc={!showFinishSetup && emptyNoDecision ? () => setAdhocOpen(true) : undefined}
+          adhocDisabled={actionsBusy}
         />
-      ) : null}
-
-      {!showFinishSetup && emptyNoDecision && genState === 'idle' ? (
-        <View className="mt-3">
-          <Button
-            variant="secondary"
-            label="Generate Ad-Hoc Workout"
-            onPress={() => setAdhocOpen(true)}
-            disabled={actionsBusy}
-          />
-        </View>
       ) : null}
 
       {adhocState === 'generating' ? (
@@ -676,6 +686,7 @@ export default function TodayScreen() {
                 </Text>
               ) : null}
             </View>
+            {!showFinishSetup ? <FuelStateDecisionLink /> : null}
           </View>
         </EnterSection>
       ) : null}
@@ -683,6 +694,7 @@ export default function TodayScreen() {
       {plannedOnlyHero && planned ? (
         <EnterSection order={1}>
           <PlannedSummaryCard planned={planned} hero />
+          {!showFinishSetup ? <FuelStateDecisionLink /> : null}
         </EnterSection>
       ) : null}
 
@@ -839,6 +851,9 @@ export default function TodayScreen() {
 
       {!showFinishSetup ? (
         <>
+          {/* Full nutrition glance stays below primary decision CTAs (not above the hero). */}
+          <NutritionGlance />
+
           <EnterSection order={5}>
             <WellnessSection
               recoveryItems={activeRecovery}

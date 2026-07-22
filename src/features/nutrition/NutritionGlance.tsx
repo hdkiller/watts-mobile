@@ -73,7 +73,7 @@ function MacroColumn({
       <View className="flex-row items-center justify-between">
         <Text className="text-xs font-semibold text-text-muted">{label}</Text>
         {pct != null ? (
-          <Text className="text-[10px] font-semibold text-text-muted">{pct}%</Text>
+          <Text className="text-xs font-medium text-text-muted">{pct}%</Text>
         ) : null}
       </View>
       <Text className="mt-1 text-sm font-bold text-text-primary">
@@ -123,7 +123,7 @@ export function NutritionGlance() {
       {isLoading && !today ? (
         <ActivityIndicator className="mt-3" color={Colors.brand} />
       ) : (
-        <View className="mt-3 rounded-xl border border-border bg-card/60 px-4 py-3.5">
+        <View className="mt-3 rounded-2xl border border-border bg-card/60 p-4">
           {!today || (today.isEmpty && !hasGoals) ? (
             <Pressable className="active:opacity-70" onPress={openNutritionLog}>
               <Text className="text-sm text-text-muted">No meals logged yet today.</Text>
@@ -145,15 +145,15 @@ export function NutritionGlance() {
                   </Text>
                 </Text>
 
-                <View className="flex-row items-center gap-2">
+                <View className="flex-row items-center gap-2.5">
                   {today.caloriesGoal != null ? (
-                    <Text className="text-sm text-text-muted">
+                    <Text className="text-xs font-medium text-text-muted">
                       {Math.max(0, today.caloriesGoal - today.calories)} left
                     </Text>
                   ) : null}
 
                   {today.fuelState != null ? (
-                    <View className="rounded-full bg-tint-success px-2.5 py-1">
+                    <View className="rounded-full bg-tint-success px-2.5 py-0.5">
                       <Text className="text-xs font-semibold text-success">
                         {fuelStateLabel(today.fuelState)}
                       </Text>

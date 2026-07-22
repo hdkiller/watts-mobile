@@ -1,4 +1,4 @@
-import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import { Button } from '@/src/components/Button';
 import { Colors } from '@/src/theme/colors';
@@ -12,13 +12,15 @@ type Props = {
   onAnalyze: () => void;
   onOpenWeb: () => void;
   onDismissQuota: () => void;
+  onAdhoc?: () => void;
+  adhocDisabled?: boolean;
 };
 
 const shellByState: Record<AnalyzeReadinessState, string> = {
-  idle: 'border-border bg-card/80',
-  generating: 'border-border bg-card/80',
-  error: 'border-danger/40 bg-tint-error',
-  quota: 'border-amber-900/40 bg-amber-950/25',
+  idle: 'py-1',
+  generating: 'rounded-2xl border border-border bg-card/80 p-5',
+  error: 'rounded-2xl border border-danger/40 bg-tint-error p-5',
+  quota: 'rounded-2xl border border-amber-900/40 bg-amber-950/25 p-5',
 };
 
 export function AnalyzeReadinessPanel({
@@ -28,9 +30,11 @@ export function AnalyzeReadinessPanel({
   onAnalyze,
   onOpenWeb,
   onDismissQuota,
+  onAdhoc,
+  adhocDisabled = false,
 }: Props) {
   return (
-    <View className={`mt-6 rounded-2xl border p-5 ${shellByState[state]}`}>
+    <View className={`mt-6 ${shellByState[state]}`}>
       {state === 'generating' ? (
         <View className="items-center py-2">
           <ActivityIndicator color={Colors.brand} size="small" />
@@ -43,7 +47,7 @@ export function AnalyzeReadinessPanel({
 
       {state === 'quota' ? (
         <View>
-          <Text className="text-xs uppercase tracking-wide text-modify">Plan limit</Text>
+          <Text className="text-xs uppercase tracking-wide text-modify font-semibold">Plan limit</Text>
           <Text className="mt-2 text-lg font-semibold text-text-primary">Recommendation limit reached</Text>
           <Text className="mt-2 text-sm leading-5 text-text-body">
             {errorMessage || 'Update your plan in Coach Watts to generate more recommendations.'}
@@ -57,7 +61,7 @@ export function AnalyzeReadinessPanel({
 
       {state === 'error' ? (
         <View>
-          <Text className="text-xs uppercase tracking-wide text-red-400/90">Analyze Readiness</Text>
+          <Text className="text-xs uppercase tracking-wide text-red-400/90 font-semibold">Analyze Readiness</Text>
           <Text className="mt-2 text-lg font-semibold text-text-primary">Couldn’t analyze readiness</Text>
           <Text className="mt-2 text-sm leading-5 text-red-300">
             {errorMessage || 'Something went wrong. Try again, or continue in Coach Watts.'}
@@ -71,17 +75,33 @@ export function AnalyzeReadinessPanel({
 
       {state === 'idle' ? (
         <View>
-          <Text className="text-xs uppercase tracking-wide text-text-muted">Ready when you are</Text>
-          <Text className="mt-2 text-lg font-semibold text-text-primary">No recommendation yet</Text>
-          <Text className="mt-2 text-sm leading-5 text-text-muted">
-            Generate today’s recommendation from your latest readiness and recovery.
+          <Text className="text-xs uppercase tracking-wide font-semibold text-brand">
+            Today’s Recommendation
           </Text>
-          <View className="mt-5 gap-3">
+          <Text className="mt-1 text-xl font-semibold text-text-primary">Ready when you are</Text>
+          <Text className="mt-1.5 text-sm leading-5 text-text-muted">
+            Generate today’s recommendation from your latest readiness and recovery biometrics.
+          </Text>
+          <View className="mt-4 gap-3">
             <Button label="Analyze Readiness" onPress={onAnalyze} loading={generatingPending} />
-            <Button label="Open Coach Watts" variant="secondary" onPress={onOpenWeb} />
+            {onAdhoc ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Generate Ad-Hoc Workout"
+                disabled={adhocDisabled}
+                className={`items-center py-2 active:opacity-70 ${adhocDisabled ? 'opacity-50' : ''}`}
+                onPress={onAdhoc}
+                hitSlop={8}
+              >
+                <Text className="text-sm font-medium text-text-muted">
+                  Or generate an ad-hoc workout →
+                </Text>
+              </Pressable>
+            ) : null}
           </View>
         </View>
       ) : null}
     </View>
   );
 }
+
