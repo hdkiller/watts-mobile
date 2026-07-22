@@ -33,7 +33,7 @@ function addLocalDays(d: Date, days: number): Date {
   return next;
 }
 
-const DATE_ONLY_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+const DATE_ONLY_RE = /^(\d{4})-(\d{2})-(\d{2})(?:[T ]00:00:00(?:\.0+)?(?:Z|[+-]00:?00)?)?$/;
 
 /** Local calendar key YYYY-MM-DD. Date-only strings stay calendar-stable (not UTC midnight). */
 export function localDateKey(input: string | Date | null | undefined): string | null {

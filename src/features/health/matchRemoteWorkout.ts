@@ -3,7 +3,7 @@ import { sportLabel } from './sportTypes';
 import type { PlatformWorkoutSession, RemoteWorkoutMatchCandidate } from './types';
 import { WORKOUT_MATCH_TOLERANCE_MS } from './types';
 
-const DATE_ONLY_RE = /^\d{4}-\d{2}-\d{2}$/;
+const DATE_ONLY_RE = /^\d{4}-\d{2}-\d{2}(?:[T ]00:00:00(?:\.0+)?(?:Z|[+-]00:?00)?)?$/;
 /** Max duration difference accepted when only a calendar date is available. */
 const DATE_ONLY_DURATION_TOLERANCE_S = 10 * 60;
 

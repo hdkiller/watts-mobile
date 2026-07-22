@@ -21,6 +21,7 @@ import {
   useRecentActivityQuery,
   useUpcomingPlannedQuery,
 } from '@/src/features/activity/useActivity';
+import { localDateKey } from '@/src/features/today/weekGlance';
 import { useOfflineCached } from '@/src/hooks/useOfflineCached';
 import { humanizeWorkoutType } from '@/src/lib/humanizeWorkoutType';
 import { Colors } from '@/src/theme/colors';
@@ -74,13 +75,10 @@ export default function UpcomingPlannedScreen() {
   const futurePlanned = useMemo(
     () =>
       (data ?? []).filter((item) => {
-        const key = item.date ? new Date(item.date) : null;
-        if (!key || Number.isNaN(key.getTime())) return false;
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const day = new Date(key);
-        day.setHours(0, 0, 0, 0);
-        return day.getTime() >= today.getTime();
+        const itemKey = localDateKey(item.date);
+        if (!itemKey) return false;
+        const todayKey = localDateKey(new Date())!;
+        return itemKey >= todayKey;
       }),
     [data]
   );

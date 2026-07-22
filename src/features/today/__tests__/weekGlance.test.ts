@@ -63,8 +63,10 @@ describe('weekGlance', () => {
     expect(localDateKey(new Date(2026, 6, 19, 23, 30, 0))).toBe('2026-07-19');
   });
 
-  it('treats date-only strings as local calendar days (not UTC midnight)', () => {
+  it('treats date-only strings and UTC midnight ISO strings as calendar days', () => {
     expect(localDateKey('2026-07-20')).toBe('2026-07-20');
+    expect(localDateKey('2026-07-20T00:00:00.000Z')).toBe('2026-07-20');
+    expect(localDateKey('2026-07-20T00:00:00Z')).toBe('2026-07-20');
   });
 
   it('keeps planned-day bars visible when done days use duration/TSS', () => {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  formatActivityDate,
   formatDistanceMeters,
   formatDuration,
   formatIntensityFactor,
@@ -657,3 +658,12 @@ describe('zoneIndexFromBandName', () => {
     expect(zoneIndexFromBandName('Custom', 2)).toBe(2);
   });
 });
+
+describe('formatActivityDate', () => {
+  it('formats date-only strings and UTC midnight ISO strings as calendar dates', () => {
+    expect(formatActivityDate('2026-07-23')).toContain('Jul 23');
+    expect(formatActivityDate('2026-07-23T00:00:00.000Z')).toContain('Jul 23');
+    expect(formatActivityDate('2026-07-23T00:00:00Z')).toContain('Jul 23');
+  });
+});
+
