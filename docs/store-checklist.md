@@ -1,6 +1,6 @@
 # Store candidate checklist
 
-Track chrome and metadata for TestFlight / Play internal tracks. Shipping workflow, **release-it versioning**, outstanding tasks, and progress history live under [distribution.md](./distribution.md). Local Maestro footing lives in [e2e.md](./e2e.md); CI wiring is still open.
+Track chrome and metadata for TestFlight / Play internal tracks. Shipping workflow, **release-it versioning**, outstanding tasks, and progress history live under [distribution.md](./distribution.md) (**iOS = local Xcode Archive**, **Android = local Gradle AAB**, not EAS). Local Maestro footing lives in [e2e.md](./e2e.md); CI wiring is still open.
 
 ## Brand chrome
 
@@ -81,9 +81,9 @@ See [.env.example](../.env.example).
 OpenSpec: [`store-subscriptions-revenuecat`](../openspec/changes/store-subscriptions-revenuecat/proposal.md) · distribution [tasks 018–022](./distribution/tasks.md).
 
 - [x] RevenueCat account created
-- [ ] RevenueCat project ownership/plan/restore behavior and Apple/Google/Stripe connections recorded (no secrets)
+- [~] RevenueCat project IDs + Apple catalog/`supporter`/`pro` mapping recorded ([018](./distribution/tasks/018-revenuecat-project.md)); ownership/plan/restore + Google/Stripe still open
 - [ ] Apple Paid Apps Agreement + tax/banking active; Google merchant payments profile active
-- [ ] Supporter/Pro monthly/annual products localized, priced, and mapped through RevenueCat
+- [~] Apple Supporter/Pro monthly/annual products drafted + mapped in RevenueCat; Google products + ASC service levels / Paid Apps still open
 - [ ] `coach-wattz` provider-neutral entitlement lifecycle + Stripe backfill + Bearer reconciliation ready
 - [ ] Settings → Subscription & Billing shows canonical tier/provider and hosted-only purchase/restore/manage
 - [ ] Localized price/period, auto-renew terms, Terms, Privacy, Restore, and provider management visible in review build

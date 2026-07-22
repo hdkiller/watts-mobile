@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-screens/experimental';
 import { useAuth } from '@/src/auth/AuthContext';
 import { AppSymbol } from '@/src/components/AppSymbol';
 import {
+  helpCenterWebPath,
   PRIVACY_POLICY_URL,
   SUPPORT_URL,
   TERMS_OF_SERVICE_URL,
@@ -260,6 +261,13 @@ export default function MoreScreen() {
             sf="bell"
             emoji="🔔"
             onPress={() => router.push('/(app)/(tabs)/more/notifications' as Href)}
+          />
+          <MenuRow
+            title="Help Center & Support"
+            detail="Documentation, tickets & community"
+            sf="questionmark.circle"
+            emoji="❓"
+            onPress={() => void openInstanceWeb(instanceUrl, helpCenterWebPath())}
           />
           <MenuRow
             title="Settings"

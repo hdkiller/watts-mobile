@@ -14,6 +14,49 @@ Format:
 
 ---
 
+## 2026-07-23 — Play payments profile linked; subscriptions blocked on APK
+
+- Linked existing Watt Mind Kft. Google payments profile (`3878-8777-9292`, Organization profile for Play) to developer `7883910200930974301`; filled public merchant details (coachwatts.com / support@coachwatts.com / CoachWatts).
+- Subscriptions page now loads for Coach Watts but **Create subscription** stays locked until an APK/AAB is uploaded (“Upload a new APK”).
+- Still open: payout bank method, 15% service-fee account group, Play products → RevenueCat Google app. See [019](./tasks/019-paid-agreements-and-products.md).
+
+## 2026-07-23 — RevenueCat V2 secret + MCP / local API env
+
+- Created RC secret API key **Cursor MCP / local API** (V2; customer + project-config read/write). Stored only in gitignored `.env` as `REVENUECAT_API_V2_SECRET_KEY` with `REVENUECAT_PROJECT_ID=12d4d797`.
+- Wired RevenueCat Cloud MCP (`https://mcp.revenuecat.ai/mcp`) in Cursor user config; project [`.cursor/mcp.json`](../../.cursor/mcp.json) uses `${env:REVENUECAT_API_V2_SECRET_KEY}`.
+- Also set local public Test Store key + Supporter/Pro product ID lists in `.env`; placeholders in `.env.example`. REST API v2 smoke (`GET …/apps`) OK.
+- Documented in [018](./tasks/018-revenuecat-project.md). Production webhook secrets remain coach-wattz-only.
+
+## 2026-07-22 — RevenueCat App Store app + catalog mapping
+
+- Added RC App Store app **Coach Watts (App Store)** (`app17fce11c8d`) for bundle `com.coachwatts.app` with valid In-App Purchase key (`376Y9C7VR2`); project `12d4d797`.
+- Created four App Store products matching ASC IDs; entitlements `supporter` / `pro`; updated current offering `default` with packages `$rc_monthly`, `$rc_annual`, `pro_monthly`, `pro_annual`.
+- Public iOS SDK key set in local `.env` (`EXPO_PUBLIC_REVENUECAT_IOS_API_KEY`). Non-secret IDs recorded in [018](./tasks/018-revenuecat-project.md).
+- Still open on 018: Watt Mind owner/plan/restore policy, Google app, Stripe, ASC Server Notification URL paste, optional ASC API key for import.
+  - **Correction (2026-07-23):** Apple catalog mapping + local V2/MCP secrets are done; remaining 018 items unchanged.
+
+## 2026-07-22 — Apple subscription group + four draft products
+
+- ASC group **Coach Watts** (`22257011`) with draft products (Prepare for Submission), EN localizations, all-country availability, USD base prices matching web list:
+  - `coachwatts_pro_monthly` (`6793680130`) — $14.99 / 1 month
+  - `coachwatts_pro_annual` (`6793680902`) — $119.00 / 1 year
+  - `coachwatts_supporter_monthly` (`6793681933`) — $8.99 / 1 month
+  - `coachwatts_supporter_annual` (`6793682172`) — $89.99 / 1 year
+- Group EN display name set to **Coach Watts**. IDs recorded in [019](./tasks/019-paid-agreements-and-products.md).
+- Still open: Paid Apps agreement (legal entity verifying), tax/banking, service-level reorder (Pro both level 1, Supporter both level 2), review screenshot, Google products, RevenueCat mapping (018).
+
+## 2026-07-22 — Android Play builds: local Gradle preferred (not EAS)
+
+- **Decision:** Play Internal / production AABs are built locally with `expo prebuild -p android` → upload-keystore signing → `./gradlew bundleRelease` → Play Console upload. Do not use `eas build -p android` / `eas submit -p android` as the default path.
+- Updated [014](./tasks/014-eas-android-credentials.md) and [015](./tasks/015-android-production-build.md); hub notes in [distribution.md](../distribution.md).
+- `versionCode` is manual (`expo.android.versionCode` / Gradle), logged here per upload. GitHub sideload APKs should prefer `--local` / `--apk` over cloud EAS.
+
+## 2026-07-22 — iOS store builds: local Xcode preferred (not EAS)
+
+- **Decision:** TestFlight / App Store iOS binaries are built on a Mac with `expo prebuild` → Xcode Archive → Organizer/Transporter. Do not use `eas build -p ios` / `eas submit -p ios` as the default path.
+- Updated [005](./tasks/005-eas-credentials-and-secrets.md) (signing + local production env) and [006](./tasks/006-ios-production-build.md) (Archive upload steps); hub notes in [distribution.md](../distribution.md).
+- iOS build numbers are manual (`ios.buildNumber` / Xcode Current Project Version), logged here per upload.
+
 ## 2026-07-22 — RevenueCat backend and native acquisition foundation implemented
 
 - Added provider-neutral subscription persistence, canonical projection/backfill, scoped summary/reconcile APIs, authenticated idempotent RevenueCat webhook ingestion, Stripe tracking, audit diagnostics, and the operations runbook in `coach-wattz` ([task 020](./tasks/020-subscription-backend.md)).

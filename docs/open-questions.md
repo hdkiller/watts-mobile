@@ -99,5 +99,7 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 2026-07-22 | Existing provider suppresses duplicate purchase | Stripe/Apple/Google active access is honored across mobile; manage through the owning provider; collisions grant highest valid tier and require resolution |
 | 2026-07-22 | Push vs email channel matrix (pu-001) | Morning rec: Expo primary (not gated on `dailyCoach` schedule), email independent; analysis: Expo XOR email when push eligible; trial/billing/marketing/founder never push; `SYNC_COMPLETED` no OS push — `~/Develop/watts-marketing/knowledge/push/channel-matrix-pu-001.md` |
 | 2026-07-22 | Mobile push prefs server-backed (364/365) | coach-wattz `GET/PUT /api/mobile/devices/preferences` + send gates; mobile follow-up OpenSpec `mobile-push-prefs-server-sync` |
+| 2026-07-22 | iOS store/TestFlight builds are local Xcode | Prefer Mac Archive over EAS cloud for iOS — [distribution.md](./distribution.md), tasks 005–006 |
+| 2026-07-22 | Android Play builds are local Gradle | Prefer `bundleRelease` + manual Play upload over EAS cloud — [distribution.md](./distribution.md), tasks 014–015 |
 
 When a row above is decided, move it here and update [product-baseline.md](./product-baseline.md) / [implementation-plan.md](./implementation-plan.md) if scope changes.

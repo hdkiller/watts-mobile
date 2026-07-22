@@ -4,6 +4,10 @@ export function notificationsWebPath(): string {
   return '/notifications';
 }
 
+export function helpCenterWebPath(): string {
+  return '/help-center';
+}
+
 export function privacyWebPath(): string {
   return '/privacy';
 }
@@ -15,5 +19,7 @@ export function privacyWebPath(): string {
  */
 export const PRIVACY_POLICY_URL = 'https://coachwatts.com/privacy';
 export const TERMS_OF_SERVICE_URL = 'https://coachwatts.com/terms';
+export const HELP_CENTER_URL = 'https://coachwatts.com/help-center';
 /** Opens via Linking when mailto:; web URLs open via expo-web-browser. */
 export const SUPPORT_URL = 'mailto:support@coachwatts.com';
+

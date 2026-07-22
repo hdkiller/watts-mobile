@@ -52,7 +52,7 @@ On version **0.1.1 Prepare for Submission** / App Information:
 | **Nominations / featuring** | Pitch to Apple editorial | Optional after launch |
 | **App Accessibility** | Accessibility Nutrition Labels | Optional |
 
-**Not marketing / not in ASC media:** App icon and splash come from the **uploaded IPA** (`assets/images/` → EAS build), not a separate ASC icon upload.
+**Not marketing / not in ASC media:** App icon and splash come from the **uploaded IPA** (`assets/images/` → local Xcode Archive), not a separate ASC icon upload.
 
 ### Handoff checklist for marketing
 

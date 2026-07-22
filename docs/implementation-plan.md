@@ -5,7 +5,7 @@ Phased delivery for this repository. Product detail: [product-baseline.md](./pro
 ## Current state
 
 - Phase 0–4 companion OpenSpecs shipped and archived under `openspec/changes/archive/2026-07-19-*` (auth, Today, Log, notifications/push, coach chat, recent/upcoming, deep links, store polish, athlete metrics, nutrition quick-log).
-- Active work: Health Sync / Connected Apps lite OpenSpecs; product baseline **repositioned 2026-07-21** to activation companion ([product-baseline.md](./product-baseline.md)). RevenueCat account created and native store subscriptions proposed as `store-subscriptions-revenuecat` (2026-07-22).
+- Active work: Health Sync / Connected Apps lite OpenSpecs; product baseline **repositioned 2026-07-21** to activation companion ([product-baseline.md](./product-baseline.md)). RevenueCat Apple catalog mapped + local V2/MCP env; native store subscriptions OpenSpec `store-subscriptions-revenuecat` (2026-07-22/23).
 - Phase 5 (activation onboarding) proposed below — OpenSpec not created yet.
 - Follow-ups: AASA/assetlinks host association for https deep links; coach-wattz baseline PR [#239](https://github.com/hdkiller/coach/pull/239) still draft — merge when ready (now includes activation reposition).
 - OAuth client registered as **Official Mobile App** in local + production; wire `EXPO_PUBLIC_OAUTH_CLIENT_ID` from [oauth-setup.md](./oauth-setup.md).
@@ -215,11 +215,12 @@ High-level checklist:
 
 - [x] RevenueCat account created
 - [x] OpenSpec proposal/design/specs/tasks created
-- [ ] Decide RevenueCat plan, restore policy, store prices, and trial eligibility
+- [x] Apple App Store app + four products + `supporter`/`pro` entitlements + `default` offering mapped in RevenueCat; local V2/MCP env documented ([018](./distribution/tasks/018-revenuecat-project.md))
+- [ ] Decide RevenueCat plan, restore policy, and trial eligibility (store prices decided: web parity)
 - [ ] Complete paid-commerce agreements/payment profiles
-- [ ] Build provider-neutral `coach-wattz` entitlement/reconciliation path
-- [ ] Configure Apple/Google/Stripe products and RevenueCat mappings
-- [ ] Add native purchase/status/restore/manage experience and rebuild binaries
+- [~] Build provider-neutral `coach-wattz` entitlement/reconciliation path (foundation landed; production keys/webhook hardening open)
+- [~] Configure Apple/Google/Stripe products and RevenueCat mappings (Apple done; Google + Stripe open)
+- [~] Add native purchase/status/restore/manage experience and rebuild binaries (foundation landed; public keys in local `.env`, acquisition still default-off)
 - [ ] Pass Apple sandbox/TestFlight and Google Internal Testing lifecycle matrix
 - [ ] Submit subscription products with matching store builds and record review outcomes
 

@@ -20,13 +20,13 @@ Hub for shipping Coach Watts to **App Store** and **Play Console**, including th
 | Support | `mailto:support@coachwatts.com` |
 | Play Console developer ID | `7883910200930974301` |
 | Play app ID | `4976128188579826786` (Coach Watts) |
-| RevenueCat | Account created 2026-07-22; project/app identifiers and durable Watt Mind ownership pending [018](./distribution/tasks/018-revenuecat-project.md) |
+| RevenueCat | Project `12d4d797`; App Store app `app17fce11c8d`; Apple catalog + `supporter`/`pro` mapped; local V2/MCP env set — durable Watt Mind ownership/plan/Google/Stripe still [018](./distribution/tasks/018-revenuecat-project.md) |
 
 ## Doc map
 
 | Doc | Role |
 |-----|------|
-| **This file** | Overview, identifiers, green-light summary, maintenance rules |
+| **This file** | Overview, identifiers, **local iOS/Android build preference**, green-light summary, maintenance rules |
 | [distribution/tasks.md](./distribution/tasks.md) | Outstanding / done task index |
 | [distribution/tasks/](./distribution/tasks/) | Per-task detail (status, steps, blockers) |
 | [distribution/log.md](./distribution/log.md) | Append-only history of decisions and progress |
@@ -55,7 +55,8 @@ Same legal entity for **both** stores. Account enrollments are independent and c
 | Bundle ID | `com.coachwatts.app` |
 | ASC Apple ID | `6793247809` |
 | SKU | `coach-watts-app` |
-| Status | [001](./distribution/tasks/001-apple-developer-account.md)–[003](./distribution/tasks/003-privacy-and-compliance.md) done; [004](./distribution/tasks/004-listing-metadata-assets.md) listing **text** done — **marketing screenshots** still open; next eng: [005](./distribution/tasks/005-eas-credentials-and-secrets.md) → build → TestFlight |
+| Status | [001](./distribution/tasks/001-apple-developer-account.md)–[003](./distribution/tasks/003-privacy-and-compliance.md) done; [004](./distribution/tasks/004-listing-metadata-assets.md) listing **text** done — **marketing screenshots** still open; next eng: [005](./distribution/tasks/005-eas-credentials-and-secrets.md) → **local Xcode Archive** ([006](./distribution/tasks/006-ios-production-build.md)) → TestFlight |
+| iOS build path | **Local Mac / Xcode** (preferred). Not EAS cloud for TestFlight / App Store. |
 
 ### Google Play (Android)
 
@@ -66,20 +67,30 @@ Same legal entity for **both** stores. Account enrollments are independent and c
 | Console | [App list](https://play.google.com/console/u/1/developers/7883910200930974301/app-list) |
 | Admin identity | Prefer Workspace / Google account on `watt-mind.com` (e.g. `deploy@` or Play-specific admin) |
 | Personal day-to-day | Invite personal Gmail/Workspace user as admin if not already |
-| Status | App **created** (Draft). [010](./distribution/tasks/010-google-play-developer-account.md)–[011](./distribution/tasks/011-play-console-app.md) done. Next: finish App content → [012](./distribution/tasks/012-play-data-safety-and-content.md) + listing → [013](./distribution/tasks/013-play-listing-assets.md) |
+| Status | App **created** (Draft). [010](./distribution/tasks/010-google-play-developer-account.md)–[011](./distribution/tasks/011-play-console-app.md) done. Next: finish App content → [012](./distribution/tasks/012-play-data-safety-and-content.md) + listing → [013](./distribution/tasks/013-play-listing-assets.md); eng build: [014](./distribution/tasks/014-eas-android-credentials.md) → **local Gradle AAB** ([015](./distribution/tasks/015-android-production-build.md)) |
 | Package | `com.coachwatts.app` |
 | Play app ID | `4976128188579826786` |
 | Dashboard | [Coach Watts](https://play.google.com/console/u/0/developers/7883910200930974301/app/4976128188579826786/app-dashboard) |
+| Android build path | **Local Gradle** (preferred). Not EAS cloud for Play Internal / production. |
 
 ## Sequencing
 
 | Track | Priority | Why |
 |-------|----------|-----|
-| **iOS / App Store** | First store candidate | Membership paid for Org Account Holder; finish 001 then TestFlight path 002–009 |
-| **Android / Play** | Parallel account setup OK; ship after or alongside iOS | Tasks 010–017; internal testing can start before iOS is approved |
+| **iOS / App Store** | First store candidate | Membership paid for Org Account Holder; TestFlight path 002–009 via **local Xcode Archive** (not EAS) |
+| **Android / Play** | Parallel account setup OK; ship after or alongside iOS | Tasks 010–017 via **local Gradle AAB** (not EAS); internal testing can start before iOS is approved |
 | **Hosted subscriptions** | After or independent of free candidate | Tasks 018–022; requires both store catalogs, backend authority, native SDK, and lifecycle QA |
 
-Shared work (do once): production OAuth (+ hosted SIWA), privacy copy, Sentry EAS secrets, branded assets, delete-account path.  
+### Build preference
+
+| Platform | Preferred release binary path |
+|----------|-------------------------------|
+| **iOS** | Mac: `expo prebuild -p ios` → Xcode **Archive** → Organizer / Transporter → ASC / TestFlight ([005](./distribution/tasks/005-eas-credentials-and-secrets.md), [006](./distribution/tasks/006-ios-production-build.md)) |
+| **Android** | `expo prebuild -p android` → upload-keystore signing → `./gradlew bundleRelease` → Play Console ([014](./distribution/tasks/014-eas-android-credentials.md), [015](./distribution/tasks/015-android-production-build.md)) |
+
+Do **not** treat `eas build` / `eas submit` as the default shipping path on either platform. EAS profiles remain optional (CI/fallback, GitHub sideload helper).
+
+Shared work (do once): production OAuth (+ hosted SIWA), privacy copy, Sentry DSN + Android Maps keys in local `.env`, upload keystore in password manager, branded assets, delete-account path.  
 App Review sign-in: **Sign in with Apple** with a reviewer Apple ID — no dedicated Google demo ([008](./distribution/tasks/008-reviewer-demo-account.md)).  
 **Marketing (ASC):** upload iPhone screenshots on version **0.1.1** after TestFlight — see [004](./distribution/tasks/004-listing-metadata-assets.md).
 
@@ -89,10 +100,10 @@ RevenueCat is the selected Apple/Google subscription integration. Coach Watts se
 
 | Workstream | Task | Status |
 |------------|------|--------|
-| RevenueCat ownership, plan, restore policy, store connections | [018](./distribution/tasks/018-revenuecat-project.md) | in-progress (account created) |
-| Apple Paid Apps Agreement/tax/banking; Google merchant profile; prices/products | [019](./distribution/tasks/019-paid-agreements-and-products.md) | open |
-| `coach-wattz` provider-neutral persistence, lifecycle, Stripe backfill, Bearer reconcile | [020](./distribution/tasks/020-subscription-backend.md) | open |
-| Expo RevenueCat SDK + hosted purchase/restore/status/manage UI | [021](./distribution/tasks/021-native-subscription-experience.md) | open |
+| RevenueCat ownership, plan, restore policy, store connections | [018](./distribution/tasks/018-revenuecat-project.md) | in-progress (Apple app + catalog + local MCP/API env; Google/Stripe/ownership open) |
+| Apple Paid Apps Agreement/tax/banking; Google merchant profile; prices/products | [019](./distribution/tasks/019-paid-agreements-and-products.md) | in-progress (ASC draft products; Paid Apps / tax blocked on entity verify) |
+| `coach-wattz` provider-neutral persistence, lifecycle, Stripe backfill, Bearer reconcile | [020](./distribution/tasks/020-subscription-backend.md) | in-progress |
+| Expo RevenueCat SDK + hosted purchase/restore/status/manage UI | [021](./distribution/tasks/021-native-subscription-experience.md) | in-progress |
 | Sandbox/TestFlight/Internal lifecycle matrix + IAP review | [022](./distribution/tasks/022-subscription-store-test-review.md) | open |
 
 The original free-app submission may proceed while these are open. Do not expose a production paywall until all five workstreams are ready.
@@ -104,36 +115,37 @@ Same stack as coach-wattz (`release-it` + conventional-changelog), without the w
 | Kind | Source of truth |
 |------|-----------------|
 | User-facing (`0.1.0`) | `package.json` → synced to `app.json` / Expo `version` via `scripts/sync-expo-version.mjs` |
-| Store build # (`versionCode` / `buildNumber`) | EAS remote (`cli.appVersionSource: remote` + `autoIncrement` on **preview** / **production**) |
+| iOS build # (`CFBundleVersion` / `ios.buildNumber`) | **Manual** per local Archive — bump `expo.ios.buildNumber` in `app.json` before prebuild, or Current Project Version in Xcode; log each upload in [distribution/log.md](./distribution/log.md) |
+| Android build # (`versionCode`) | **Manual** per local AAB — bump `expo.android.versionCode` in `app.json` before prebuild, or Gradle `versionCode`; log each upload in [distribution/log.md](./distribution/log.md) |
 
 ```bash
 # Clean working tree required
 pnpm release:patch          # or release:minor / release:major / release
 # → bump, CHANGELOG.md, commit, tag vX.Y.Z, GitHub Release notes
 
-pnpm release:android:github              # EAS cloud preview APK → vX.Y.Z
-pnpm release:android:github -- --local   # build APK on this machine (Android SDK)
+# Sideload APK for GitHub (not Play). Prefer local / explicit APK over cloud EAS:
+pnpm release:android:github -- --local   # build APK on this machine
 pnpm release:android:github -- --apk path/to/app.apk
 pnpm release:android:github -- --dry-run
-pnpm release:android:github -- --skip-build   # reuse latest finished cloud APK
+# Avoid default cloud EAS unless intentionally using CI/fallback
 ```
 
 | EAS profile | Use |
 |-------------|-----|
-| `development` | Dev client (Metro) |
-| `preview` | Internal APK (`android.buildType: apk`); GitHub sideload / testers |
-| `production` | Store AAB/IPA → TestFlight / Play Internal |
+| `development` | Optional cloud/dev-client path (day-to-day is local `pnpm ios` / `pnpm android`) |
+| `preview` | Optional GitHub sideload APK helper only — prefer `--local` / `--apk` |
+| `production` | **Not** the default store path — iOS = Xcode, Android = local Gradle |
 | `e2e` | Fixture auth only — never for testers or stores |
 
-Do **not** set `EXPO_PUBLIC_E2E_*` on preview/production. Android sideload/GitHub builds need API **26+** (`expo-build-properties` in `app.json`).
+Do **not** set `EXPO_PUBLIC_E2E_*` on store / sideload release builds. Android sideload/GitHub builds need API **26+** (`expo-build-properties` in `app.json`).
 
 ## Green light — iOS (Submit for Review)
 
 1. Apple Developer Program active + ASC app for `com.coachwatts.app`
 2. App Privacy labels + privacy policy URL from [store-privacy-checklist.md](./store-privacy-checklist.md)
 3. Hosted IdP **Sign in with Apple** live on `coachwatts.com` (Guideline 4.8)
-4. Production EAS secrets (`EXPO_PUBLIC_SENTRY_DSN`); no `EXPO_PUBLIC_E2E_*`
-5. `eas build -p ios --profile production` → TestFlight smoke (incl. SIWA path)
+4. Production local `.env` (`EXPO_PUBLIC_SENTRY_DSN`); no `EXPO_PUBLIC_E2E_*`
+5. Local Xcode Archive → upload → TestFlight smoke (incl. SIWA path) — [006](./distribution/tasks/006-ios-production-build.md)
 6. **Marketing:** iPhone screenshots uploaded on ASC **0.1.1** ([004](./distribution/tasks/004-listing-metadata-assets.md)); description with **no medical claims**
 7. App Review notes + SIWA instructions ([008](./distribution/tasks/008-reviewer-demo-account.md)); empty first-run risk → [issues/056.md](./issues/056.md)
 8. Branded splash/icon on release build
@@ -142,8 +154,8 @@ Do **not** set `EXPO_PUBLIC_E2E_*` on preview/production. Android sideload/GitHu
 
 1. Play Console Organization verified for Watt Mind Kft. + app `com.coachwatts.app`
 2. Data safety + content rating + privacy policy URL from [store-privacy-checklist.md](./store-privacy-checklist.md)
-3. Same production EAS secrets; Android keystore via EAS; Play service account for submit
-4. `eas build -p android --profile production` → Internal testing smoke
+3. Production local `.env` (`EXPO_PUBLIC_SENTRY_DSN`, Maps keys); upload keystore in password manager; no `EXPO_PUBLIC_E2E_*`
+4. Local Gradle `bundleRelease` → Play Internal testing smoke — [015](./distribution/tasks/015-android-production-build.md)
 5. Listing (icon, feature graphic, screenshots, description) — no medical claims
 6. Promote to production; after first signing, update [deep-links.md](./deep-links.md) **assetlinks** SHA-256 fingerprints
 
@@ -164,7 +176,7 @@ Track detail in [distribution/tasks.md](./distribution/tasks.md).
 
 1. **Tasks** — When work starts or finishes, update the row in `tasks.md` **and** the matching `tasks/{id}-*.md` status together (including subscription tasks 018–022).
 2. **Log** — When a decision lands, an enrollment completes, a build ships to TestFlight / Play internal, or review feedback arrives, **prepend** a dated entry to [distribution/log.md](./distribution/log.md). Do not rewrite old entries; add a correction note if needed.
-3. **Secrets** — Never commit Apple/Google passwords, Play service-account JSON, review demo passwords, or real Sentry DSNs. Reference EAS secret names and “stored in password manager / Console” only.
+3. **Secrets** — Never commit Apple/Google passwords, Android upload keystores, Play service-account JSON, review demo passwords, or real Sentry DSNs. Reference local `.env` / secret *names* and “stored in password manager / Console” only.
 4. **Store checklists** — Keep chrome/privacy copy in `store-checklist.md` / `store-privacy-checklist.md`; link from tasks instead of duplicating long tables.
 
 ## Related open product questions

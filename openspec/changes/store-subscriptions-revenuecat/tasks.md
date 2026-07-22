@@ -1,6 +1,6 @@
 ## 1. Commerce decisions and account readiness
 
-- [ ] 1.1 Confirm RevenueCat project owner/team access, selected plan, production webhook availability, and restore-transfer policy; record non-secret identifiers in distribution docs
+- [~] 1.1 Record non-secret identifiers in distribution docs (done in [018](../../../docs/distribution/tasks/018-revenuecat-project.md)); still open: Watt Mind owner/team, selected plan, production webhook availability, restore-transfer policy
 - [ ] 1.2 Decide Apple/Google monthly and annual Supporter/Pro pricing, introductory-trial policy, and parity versus Stripe
 - [ ] 1.3 Accept the Apple Paid Apps Agreement and complete required Watt Mind Kft. tax/banking information
 - [ ] 1.4 Confirm/create the Google Play organization merchant payments profile and payout/tax readiness
@@ -19,8 +19,8 @@
 
 ## 3. RevenueCat and store catalog configuration
 
-- [ ] 3.1 Add Apple and Google app configurations to RevenueCat for `com.coachwatts.app` and store private credentials outside git
-- [ ] 3.2 Create RevenueCat `supporter` and `pro` entitlements, current offering, and monthly/annual package mappings
+- [x] 3.1 Add Apple app configuration to RevenueCat for `com.coachwatts.app` and store private credentials outside git (IAP key in RC; local V2 secret in gitignored `.env` / MCP). Google app still open.
+- [x] 3.2 Create RevenueCat `supporter` and `pro` entitlements, current offering, and monthly/annual package mappings (Apple products; Test Store retained on `$rc_*`)
 - [ ] 3.3 Create one App Store subscription group with Supporter/Pro monthly/annual products, service levels, localizations, prices, grace period, and review metadata
 - [ ] 3.4 Create Google Play Supporter/Pro subscriptions with monthly/annual auto-renewing base plans, regional prices, grace/account-hold settings, and required disclosures
 - [ ] 3.5 Connect Apple and Google platform server notifications to RevenueCat for sandbox and production
