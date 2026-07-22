@@ -77,7 +77,7 @@ export function RoomListSheet({
         </View>
 
         <Pressable
-          className="mx-5 mt-4 items-center rounded-xl bg-brand py-3.5 active:opacity-80"
+          className="mx-5 mt-4 mb-3 items-center rounded-xl bg-brand py-3.5 active:opacity-80"
           onPress={onCreate}
         >
           <Text className="text-base font-semibold text-ink">New chat</Text>
@@ -89,7 +89,7 @@ export function RoomListSheet({
           </View>
         ) : (
           <FlatList
-            className="mt-4 flex-1"
+            className="flex-1"
             contentContainerStyle={{ paddingBottom: 32 }}
             data={rooms}
             keyExtractor={(item) => item.roomId}

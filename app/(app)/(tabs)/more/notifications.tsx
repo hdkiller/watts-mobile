@@ -172,10 +172,16 @@ export default function NotificationsScreen() {
             />
           }
           ListEmptyComponent={
-            <View className="pt-8">
-              <Text className="text-base text-text-muted">
-                No notifications yet. When a recommendation or analysis is ready, it will show up
-                here.
+            <View className="items-center justify-center px-6 py-16">
+              <View className="mb-4 h-14 w-14 items-center justify-center rounded-full bg-border-strong">
+                <AppSymbol sf="bell.slash" size={24} tintColor={theme.textMuted} fallback="🔔" />
+              </View>
+              <Text className="text-center text-base font-semibold text-text-primary">
+                No notifications yet
+              </Text>
+              <Text className="mt-1.5 max-w-xs text-center text-sm leading-5 text-text-muted">
+                When a daily recommendation, workout analysis, or coach message is ready, it will
+                show up here.
               </Text>
             </View>
           }

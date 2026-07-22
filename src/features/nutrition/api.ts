@@ -69,3 +69,42 @@ export async function quickAddHydration(payload: HydrationQuickAddPayload): Prom
     return payload.volumeMl;
   }
 }
+
+export type PhotoNutritionEstimate = {
+  name: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  meal?: 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' | 'OTHER';
+  confidence?: 'HIGH' | 'MEDIUM' | 'LOW';
+};
+
+export async function estimatePhotoNutrition(
+  imageBase64: string,
+  mimeType = 'image/jpeg'
+): Promise<PhotoNutritionEstimate> {
+  const response = await apiFetch('/api/nutrition/estimate-photo', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ imageBase64, mimeType }),
+  });
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response, `Photo analysis failed (${response.status})`));
+  }
+  const json = (await response.json()) as {
+    success?: boolean;
+    estimate?: PhotoNutritionEstimate;
+    message?: string;
+    statusMessage?: string;
+  };
+  if (
+    !json.success ||
+    !json.estimate ||
+    typeof json.estimate.name !== 'string' ||
+    typeof json.estimate.calories !== 'number'
+  ) {
+    throw new Error(json.message || json.statusMessage || 'Photo analysis failed');
+  }
+  return json.estimate;
+}

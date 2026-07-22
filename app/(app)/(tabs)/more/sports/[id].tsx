@@ -162,6 +162,8 @@ export default function SportProfileEditorScreen() {
                 onChangeText={(text) => patch('thresholdPace', text)}
                 keyboardType="decimal-pad"
                 editable={!saveMutation.isPending}
+                placeholder="e.g. 5:15"
+                helperText="Format: mm:ss per km, mile, or 100m (e.g. 5:15 or 1:45)"
               />
             ) : null}
 
@@ -202,12 +204,17 @@ function Field({
   value,
   onChangeText,
   keyboardType,
-  editable }: {
+  editable,
+  placeholder,
+  helperText,
+}: {
   label: string;
   value: string;
   onChangeText: (text: string) => void;
   keyboardType: 'decimal-pad' | 'number-pad';
   editable: boolean;
+  placeholder?: string;
+  helperText?: string;
 }) {
   const theme = useThemeColors();
   return (
@@ -219,8 +226,12 @@ function Field({
         onChangeText={onChangeText}
         keyboardType={keyboardType}
         editable={editable}
+        placeholder={placeholder}
         placeholderTextColor={theme.textMuted}
       />
+      {helperText ? (
+        <Text className="mt-1 text-xs text-text-muted">{helperText}</Text>
+      ) : null}
     </View>
   );
 }

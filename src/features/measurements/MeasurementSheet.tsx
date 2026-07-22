@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Modal,
   Pressable,
@@ -61,6 +61,14 @@ export function MeasurementSheet({ visible, onClose }: MeasurementSheetProps) {
     emptyMeasurementForm(DEFAULT_METRIC_KEY)
   );
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (visible) {
+      setActiveCategory('all');
+      setForm(emptyMeasurementForm(DEFAULT_METRIC_KEY));
+      setError(null);
+    }
+  }, [visible]);
 
   const selectedOption = findMetricOption(form.metricKey);
   const canonicalUnit: CanonicalUnit =

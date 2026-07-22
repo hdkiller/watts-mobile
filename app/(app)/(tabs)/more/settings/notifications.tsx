@@ -1,5 +1,16 @@
 import { Stack, type Href, router } from 'expo-router';
-import { ActivityIndicator, Platform, Pressable, ScrollView, Switch, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  AppState,
+  Linking,
+  Platform,
+  Pressable,
+  ScrollView,
+  Switch,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { friendlyError } from '@/src/api/errors';
@@ -9,6 +20,10 @@ import {
   useNotificationPreferencesQuery,
   useUpdateNotificationPreferences,
 } from '@/src/features/notifications/useNotifications';
+import {
+  getPushPermissionState,
+  type PushPermissionState,
+} from '@/src/features/notifications/pushToken';
 import type { NotificationPreferences } from '@/src/features/notifications/types';
 import { hapticLight, hapticSuccess, hapticError } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
@@ -58,6 +73,30 @@ export default function NotificationSettingsScreen() {
 
   const { data: preferences, isLoading, isError, error, refetch } = useNotificationPreferencesQuery();
   const updateMutation = useUpdateNotificationPreferences();
+  const [osPermission, setOsPermission] = useState<PushPermissionState>('granted');
+
+  useEffect(() => {
+    let active = true;
+    const checkPermission = async () => {
+      try {
+        const state = await getPushPermissionState();
+        if (active) setOsPermission(state);
+      } catch {
+        // permission check fallback
+      }
+    };
+
+    void checkPermission();
+
+    const sub = AppState.addEventListener('change', (next) => {
+      if (next === 'active') void checkPermission();
+    });
+
+    return () => {
+      active = false;
+      sub.remove();
+    };
+  }, []);
 
   const handleToggle = (key: keyof NotificationPreferences, newValue: boolean) => {
     if (!preferences) return;
@@ -130,6 +169,24 @@ export default function NotificationSettingsScreen() {
               signed-in devices.
             </Text>
 
+            {osPermission === 'denied' ? (
+              <View className="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+                <View className="flex-row items-center gap-2">
+                  <AppSymbol sf="exclamationmark.triangle" size={18} tintColor="#f59e0b" fallback="⚠️" />
+                  <Text className="text-sm font-semibold text-amber-400">Notifications disabled in device settings</Text>
+                </View>
+                <Text className="mt-1.5 text-xs leading-4.5 text-text-muted">
+                  System notifications are currently turned off for Coach Watts. Enable notifications in your phone settings to receive coaching alerts.
+                </Text>
+                <Pressable
+                  className="mt-3 self-start active:opacity-75"
+                  onPress={() => void Linking.openSettings()}
+                >
+                  <Text className="text-xs font-semibold text-amber-400">Open Device Settings ›</Text>
+                </Pressable>
+              </View>
+            ) : null}
+
             <View className="mt-6 overflow-hidden rounded-xl border border-border bg-card">
               <PreferenceRow
                 title="Daily Recommendation"
@@ -165,3 +222,4 @@ export default function NotificationSettingsScreen() {
     </>
   );
 }
+

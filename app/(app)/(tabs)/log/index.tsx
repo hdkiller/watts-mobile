@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams, type Href } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -36,7 +36,7 @@ import { useThemeColors } from '@/src/theme/useThemeColors';
 
 export default function LogScreen() {
   const theme = useThemeColors();
-  const params = useLocalSearchParams<{ section?: string }>();
+  const params = useLocalSearchParams<{ section?: string; action?: string }>();
   const { containerRef, overlap } = useKeyboardOverlap();
   const tabBottomPad = useTabScrollPadding(overlap);
 
@@ -64,13 +64,33 @@ export default function LogScreen() {
 
   // Detail Sheet States
   const [nutritionDetailSheetOpen, setNutritionDetailSheetOpen] = useState(
-    params.section === 'nutrition'
+    params.section === 'nutrition' && !params.action
   );
   const [measurementsDetailSheetOpen, setMeasurementsDetailSheetOpen] = useState(
-    params.section === 'measurements'
+    params.section === 'measurements' && !params.action
   );
 
-  const isWellnessDone = todayWellness != null && formHasContent(formFromWellness(todayWellness));
+  useEffect(() => {
+    if (params.action === 'meal') {
+      setMealSheetOpen(true);
+    } else if (params.action === 'water') {
+      setHydrationSheetOpen(true);
+    } else if (params.action === 'wellness' || params.section === 'wellness') {
+      // Legacy entry points (Today glance, daily check-in) still use ?section=wellness
+      setWellnessSheetOpen(true);
+    } else if (params.action === 'measurement') {
+      setMeasurementSheetOpen(true);
+    }
+  }, [params.action, params.section]);
+
+  const wellnessInitialValues = useMemo(
+    () =>
+      todayWellness ? formFromWellness(todayWellness, athleteProfile?.weightUnits) : undefined,
+    [todayWellness, athleteProfile?.weightUnits]
+  );
+
+  const isWellnessDone =
+    todayWellness != null && formHasContent(formFromWellness(todayWellness));
   const todayDateStr = useMemo(
     () =>
       new Date().toLocaleDateString([], {
@@ -427,9 +447,7 @@ export default function LogScreen() {
         <WellnessCheckinSheet
           visible={wellnessSheetOpen}
           onClose={() => setWellnessSheetOpen(false)}
-          initialValues={
-            todayWellness ? formFromWellness(todayWellness, athleteProfile?.weightUnits) : undefined
-          }
+          initialValues={wellnessInitialValues}
           weightUnits={athleteProfile?.weightUnits}
           weightUnitLabel={weightUnitLabel}
         />

@@ -160,13 +160,17 @@ export function NutritionSection() {
   const router = useRouter();
   const { instanceUrl } = useAuth();
   const profileQuery = useAthleteProfileQuery();
+
+  const [selectedDate, setSelectedDate] = useState(localDateYmd());
+  const isToday = selectedDate === localDateYmd();
+
   const {
     data: today,
     isLoading,
     isError,
     error,
     refetch,
-  } = useTodayNutritionQuery();
+  } = useTodayNutritionQuery(selectedDate);
   const logMutation = useLogNutritionItem();
   const hydrationMutation = useQuickAddHydration();
 
@@ -204,7 +208,9 @@ export function NutritionSection() {
     }
     setFormError(null);
     try {
-      await logMutation.mutateAsync(toNutritionUploadPayload(form));
+      const payload = toNutritionUploadPayload(form);
+      payload.date = selectedDate;
+      await logMutation.mutateAsync(payload);
       hapticSuccess();
       setForm(emptyQuickLogForm(form.meal));
       setSaved(true);
@@ -218,7 +224,7 @@ export function NutritionSection() {
     setHydrationError(null);
     setHydrationSaved(null);
     try {
-      await hydrationMutation.mutateAsync({ date: localDateYmd(), volumeMl });
+      await hydrationMutation.mutateAsync({ date: selectedDate, volumeMl });
       hapticSuccess();
       setHydrationSaved(`Added ${volumeMl} ml`);
     } catch (err) {
@@ -236,8 +242,60 @@ export function NutritionSection() {
         Nutrition Tracker
       </Text>
       <Text className="text-sm text-text-muted">
-        Daily macronutrients, quick meal logging, and hydration target.
+        Macronutrients, quick meal logging, and hydration history.
       </Text>
+
+      {/* Multi-Day Date Pager Bar */}
+      <View className="mt-3 flex-row items-center justify-between rounded-xl border border-border bg-card p-2 px-3">
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Previous day"
+          className="p-1.5 active:opacity-70"
+          onPress={() => {
+            hapticLight();
+            const d = new Date(selectedDate + 'T00:00:00');
+            d.setDate(d.getDate() - 1);
+            setSelectedDate(localDateYmd(d));
+          }}
+        >
+          <AppSymbol sf="chevron.left" size={16} tintColor={theme.textPrimary} fallback="‹" />
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Reset to today"
+          className="items-center"
+          onPress={() => {
+            hapticLight();
+            setSelectedDate(localDateYmd());
+          }}
+        >
+          <Text className="text-xs font-bold text-text-primary">
+            {isToday
+              ? 'Today'
+              : selectedDate === localDateYmd(new Date(Date.now() - 86400000))
+              ? 'Yesterday'
+              : selectedDate}
+          </Text>
+          <Text className="text-[10px] text-text-muted">{selectedDate}</Text>
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Next day"
+          disabled={isToday}
+          className={`p-1.5 ${isToday ? 'opacity-30' : 'active:opacity-70'}`}
+          onPress={() => {
+            if (isToday) return;
+            hapticLight();
+            const d = new Date(selectedDate + 'T00:00:00');
+            d.setDate(d.getDate() + 1);
+            setSelectedDate(localDateYmd(d));
+          }}
+        >
+          <AppSymbol sf="chevron.right" size={16} tintColor={theme.textPrimary} fallback="›" />
+        </Pressable>
+      </View>
 
       {isLoading && !today ? (
         <ActivityIndicator className="mt-4" color={Colors.brand} />

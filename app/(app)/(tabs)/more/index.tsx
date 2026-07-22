@@ -8,7 +8,6 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { useAuth } from '@/src/auth/AuthContext';
-import { Button } from '@/src/components/Button';
 import { AppSymbol } from '@/src/components/AppSymbol';
 import {
   PRIVACY_POLICY_URL,
@@ -31,11 +30,20 @@ function appVersionLabel(): string {
   return build ? `v${version} (${build})` : `v${version}`;
 }
 
-function RowIcon({ sf, emoji }: { sf: SFSymbol; emoji: string }) {
+function RowIcon({ sf, emoji, isDestructive = false }: { sf: SFSymbol; emoji: string; isDestructive?: boolean }) {
   const theme = useThemeColors();
   return (
-    <View className="mr-3 h-9 w-9 items-center justify-center rounded-full bg-border-strong">
-      <AppSymbol sf={sf} size={18} tintColor={theme.textBody} fallback={emoji} />
+    <View
+      className={`mr-3 h-9 w-9 items-center justify-center rounded-full ${
+        isDestructive ? 'bg-red-500/10' : 'bg-border-strong'
+      }`}
+    >
+      <AppSymbol
+        sf={sf}
+        size={18}
+        tintColor={isDestructive ? '#ef4444' : theme.textBody}
+        fallback={emoji}
+      />
     </View>
   );
 }
@@ -44,6 +52,23 @@ function Chevron() {
   const theme = useThemeColors();
   return (
     <AppSymbol sf="chevron.right" size={14} tintColor={theme.textMuted} fallback="›" />
+  );
+}
+
+function AthleteAvatar({ name }: { name?: string | null }) {
+  const initials =
+    (name ?? 'A')
+      .split(' ')
+      .map((part) => part[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join('')
+      .toUpperCase() || 'A';
+
+  return (
+    <View className="h-12 w-12 items-center justify-center rounded-full bg-brand/20 border border-brand/40">
+      <Text className="text-base font-bold text-brand">{initials}</Text>
+    </View>
   );
 }
 
@@ -66,6 +91,7 @@ function MenuRow({
   onPress,
   showChevron = true,
   isLast = false,
+  isDestructive = false,
 }: {
   title: string;
   detail?: string;
@@ -74,6 +100,7 @@ function MenuRow({
   onPress?: () => void;
   showChevron?: boolean;
   isLast?: boolean;
+  isDestructive?: boolean;
 }) {
   const body = (
     <View
@@ -81,16 +108,22 @@ function MenuRow({
         isLast ? '' : 'border-b border-border/80'
       }`}
     >
-      <RowIcon sf={sf} emoji={emoji} />
+      <RowIcon sf={sf} emoji={emoji} isDestructive={isDestructive} />
       <View className="min-w-0 flex-1">
-        <Text className="text-base font-medium text-text-primary">{title}</Text>
+        <Text
+          className={`text-base font-medium ${
+            isDestructive ? 'text-red-500' : 'text-text-primary'
+          }`}
+        >
+          {title}
+        </Text>
         {detail ? (
           <Text className="mt-0.5 text-sm text-text-muted" numberOfLines={1}>
             {detail}
           </Text>
         ) : null}
       </View>
-      {showChevron ? (
+      {showChevron && !isDestructive ? (
         <View className="ml-2">
           <Chevron />
         </View>
@@ -135,6 +168,7 @@ export default function MoreScreen() {
   };
 
   const onSignOut = async () => {
+    if (busy) return;
     setBusy(true);
     try {
       await signOut();
@@ -186,54 +220,57 @@ export default function MoreScreen() {
       >
         <Text className="text-2xl font-semibold text-text-primary">More</Text>
 
-        <View className="mt-6 rounded-xl border border-border bg-card/80 p-4">
-          <Text className="text-xs uppercase tracking-wide text-text-muted">Signed in as</Text>
-          <Text className="mt-1 text-lg text-text-primary">{user?.name || user?.email || 'Athlete'}</Text>
-          {user?.email ? <Text className="mt-1 text-sm text-text-muted">{user.email}</Text> : null}
-          <Pressable className="mt-3 self-start" hitSlop={8} onPress={() => void refreshUser()}>
-            <Text className="text-sm font-medium text-brand">Refresh profile</Text>
+        {/* Interactive Profile Header Card */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Athlete profile"
+          className="mt-6 flex-row items-center rounded-xl border border-border bg-card p-4 active:opacity-80"
+          onPress={() => router.push('/(app)/(tabs)/more/athlete' as Href)}
+        >
+          <AthleteAvatar name={user?.name} />
+          <View className="ml-3.5 min-w-0 flex-1">
+            <Text className="text-lg font-semibold text-text-primary" numberOfLines={1}>
+              {user?.name || user?.email || 'Athlete'}
+            </Text>
+            {user?.email ? (
+              <Text className="mt-0.5 text-sm text-text-muted" numberOfLines={1}>
+                {user.email}
+              </Text>
+            ) : null}
+            <Text className="mt-1 text-xs font-medium text-brand">View profile & biometrics ›</Text>
+          </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Refresh profile"
+            className="ml-2 h-9 w-9 items-center justify-center rounded-full bg-border-strong active:opacity-60"
+            hitSlop={8}
+            onPress={(e) => {
+              e.stopPropagation();
+              void refreshUser();
+            }}
+          >
+            <AppSymbol sf="arrow.clockwise" size={16} tintColor={theme.textMuted} fallback="↻" />
           </Pressable>
-        </View>
+        </Pressable>
 
-        <Section title="Training">
+        <Section title="Account & Hub">
           <MenuRow
-            title="Recent activity"
-            sf="list.bullet"
-            emoji="📋"
-            onPress={() => router.push('/(app)/(tabs)/today/activity' as Href)}
-          />
-          <MenuRow
-            title="Upcoming"
-            sf="calendar"
-            emoji="📅"
-            onPress={() => router.push('/(app)/(tabs)/today/upcoming' as Href)}
-            isLast
-          />
-        </Section>
-
-        <Section title="Account">
-          <MenuRow
-            title="Athlete profile"
-            detail="AI summary & metrics"
-            sf="person.crop.circle"
-            emoji="👤"
-            onPress={() => router.push('/(app)/(tabs)/more/athlete' as Href)}
-          />
-          <MenuRow
-            title="Notifications"
-            detail={unreadCount > 0 ? `${unreadCount} unread` : 'Inbox'}
+            title="Notification inbox"
+            detail={unreadCount > 0 ? `${unreadCount} unread` : 'All caught up'}
             sf="bell"
             emoji="🔔"
             onPress={() => router.push('/(app)/(tabs)/more/notifications' as Href)}
           />
           <MenuRow
             title="Settings"
+            detail="Preferences, integrations & coach"
             sf="gearshape"
             emoji="⚙️"
             onPress={() => router.push('/(app)/(tabs)/more/settings' as Href)}
           />
           <MenuRow
             title="Open Coach Watts"
+            detail="Web control room & deep tools"
             sf="globe"
             emoji="🌐"
             onPress={() => void openWeb()}
@@ -241,13 +278,23 @@ export default function MoreScreen() {
           />
         </Section>
 
-        <Button
-          variant="danger"
-          className="mt-8"
-          label="Sign out"
-          onPress={() => void onSignOut()}
-          loading={busy}
-        />
+        <Section title="Training & Schedule">
+          <MenuRow
+            title="Recent activity"
+            detail="Completed workouts & analysis"
+            sf="list.bullet"
+            emoji="📋"
+            onPress={() => router.push('/(app)/(tabs)/today/activity' as Href)}
+          />
+          <MenuRow
+            title="Upcoming planned"
+            detail="Scheduled workouts & events"
+            sf="calendar"
+            emoji="📅"
+            onPress={() => router.push('/(app)/(tabs)/today/upcoming' as Href)}
+            isLast
+          />
+        </Section>
 
         {aboutRows.length > 0 ? (
           <Section title="About">
@@ -264,8 +311,21 @@ export default function MoreScreen() {
           </Section>
         ) : null}
 
+        <Section title="Account Session">
+          <MenuRow
+            title="Sign out"
+            detail={busy ? 'Signing out…' : 'Disconnect this device'}
+            sf="rectangle.portrait.and.arrow.right"
+            emoji="🚪"
+            onPress={() => void onSignOut()}
+            isDestructive
+            isLast
+          />
+        </Section>
+
         <Text className="mt-8 text-center text-sm text-text-muted">{appVersionLabel()}</Text>
       </ScrollView>
     </SafeAreaView>
   );
 }
+

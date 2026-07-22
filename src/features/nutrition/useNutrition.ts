@@ -12,11 +12,16 @@ import type { HydrationQuickAddPayload, NutritionUploadPayload } from './types';
 export const TODAY_NUTRITION_KEY = ['nutrition', 'today'] as const;
 export const NEXT_FUELING_WINDOW_KEY = ['nutrition', 'next-window'] as const;
 
-export function useTodayNutritionQuery(options?: { enabled?: boolean }) {
+export function useTodayNutritionQuery(
+  dateOrOptions?: string | { enabled?: boolean },
+  options?: { enabled?: boolean }
+) {
+  const date = typeof dateOrOptions === 'string' ? dateOrOptions : localDateYmd();
+  const opts = typeof dateOrOptions === 'object' ? dateOrOptions : options;
   return useQuery({
-    queryKey: TODAY_NUTRITION_KEY,
-    queryFn: () => fetchTodayNutrition(localDateYmd()),
-    enabled: options?.enabled ?? true,
+    queryKey: ['nutrition', 'day', date],
+    queryFn: () => fetchTodayNutrition(date),
+    enabled: opts?.enabled ?? true,
   });
 }
 
@@ -25,7 +30,7 @@ export function useLogNutritionItem() {
   return useMutation({
     mutationFn: (payload: NutritionUploadPayload) => logNutritionItem(payload),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: TODAY_NUTRITION_KEY });
+      await queryClient.invalidateQueries({ queryKey: ['nutrition'] });
     },
   });
 }
@@ -43,7 +48,7 @@ export function useQuickAddHydration() {
   return useMutation({
     mutationFn: (payload: HydrationQuickAddPayload) => quickAddHydration(payload),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: TODAY_NUTRITION_KEY });
+      await queryClient.invalidateQueries({ queryKey: ['nutrition'] });
     },
   });
 }

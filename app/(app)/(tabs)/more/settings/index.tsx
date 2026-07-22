@@ -215,20 +215,7 @@ export default function SettingsScreen() {
             Preferences for this device.
           </Text>
 
-          <Section title="General">
-            <MenuRow
-              title="Appearance"
-              detail={themePreferenceLabel(themePreference)}
-              sf="circle.lefthalf.filled"
-              emoji="🌓"
-              onPress={() => router.push('/(app)/(tabs)/more/settings/appearance' as Href)}
-            />
-            <MenuRow
-              title="Notifications"
-              sf="bell"
-              emoji="🔔"
-              onPress={() => router.push('/(app)/(tabs)/more/settings/notifications' as Href)}
-            />
+          <Section title="Integrations & Data">
             <MenuRow
               title="Health Sync"
               detail={healthStatus}
@@ -242,6 +229,24 @@ export default function SettingsScreen() {
               sf="link.circle"
               emoji="🔌"
               onPress={() => router.push(APP_HREFS.settingsConnectedApps as Href)}
+              isLast
+            />
+          </Section>
+
+          <Section title="App Preferences">
+            <MenuRow
+              title="Appearance"
+              detail={themePreferenceLabel(themePreference)}
+              sf="circle.lefthalf.filled"
+              emoji="🌓"
+              onPress={() => router.push('/(app)/(tabs)/more/settings/appearance' as Href)}
+            />
+            <MenuRow
+              title="Notification preferences"
+              detail="Push & email alerts"
+              sf="bell"
+              emoji="🔔"
+              onPress={() => router.push('/(app)/(tabs)/more/settings/notifications' as Href)}
             />
             <MenuRow
               title="Units & locale"
@@ -250,18 +255,40 @@ export default function SettingsScreen() {
               onPress={() => router.push('/(app)/(tabs)/more/settings/units' as Href)}
             />
             <MenuRow
-              title="Sports"
-              detail="Per-sport FTP, LTHR, Max HR"
-              sf="figure.run"
-              emoji="🏃"
-              onPress={() => router.push('/(app)/(tabs)/more/settings/sports' as Href)}
-            />
-            <MenuRow
               title="Log defaults"
               detail={logTabPreferenceLabel(logTabPreference, nutritionEnabled)}
               sf="list.bullet.rectangle"
               emoji="📋"
               onPress={() => router.push('/(app)/(tabs)/more/settings/log' as Href)}
+              isLast
+            />
+          </Section>
+
+          <Section title="Coaching & Sport">
+            <MenuRow
+              title="Coach identity"
+              detail="Persona, nickname, About me"
+              sf="bubble.left.and.bubble.right"
+              emoji="💬"
+              onPress={() => router.push('/(app)/(tabs)/more/settings/coach' as Href)}
+            />
+            <MenuRow
+              title="Sports"
+              detail="Per-sport FTP, LTHR, Max HR"
+              sf="figure.run"
+              emoji="🏃"
+              onPress={() => router.push('/(app)/(tabs)/more/settings/sports' as Href)}
+              isLast
+            />
+          </Section>
+
+          <Section title="Account & Billing">
+            <MenuRow
+              title="Subscription & Billing"
+              detail="Plan, billing provider, restore purchases"
+              sf="creditcard"
+              emoji="💳"
+              onPress={() => router.push(APP_HREFS.settingsSubscription as Href)}
             />
             <MenuRow
               title="Instance"
@@ -273,32 +300,7 @@ export default function SettingsScreen() {
             />
           </Section>
 
-          <Section title="Coach">
-            <MenuRow
-              title="Coach identity"
-              detail="Persona, nickname, About me"
-              sf="bubble.left.and.bubble.right"
-              emoji="💬"
-              onPress={() => router.push('/(app)/(tabs)/more/settings/coach' as Href)}
-              isLast
-            />
-          </Section>
-
-          <Section title="Account">
-            <MenuRow
-              title="Subscription & Billing"
-              detail="Plan, billing provider, restore purchases"
-              sf="creditcard"
-              emoji="💳"
-              onPress={() => router.push(APP_HREFS.settingsSubscription as Href)}
-            />
-            <MenuRow
-              title="Athlete metrics"
-              detail="Weight, FTP, HR"
-              sf="person.crop.circle"
-              emoji="👤"
-              onPress={() => router.push('/(app)/(tabs)/more/athlete' as Href)}
-            />
+          <Section title="Account Management">
             <MenuRow
               title="Export my data"
               sf="square.and.arrow.up"

@@ -95,7 +95,7 @@ function ProviderRow({
         onPress={onAction}
       >
         <Text className="text-sm font-semibold text-text-primary">
-          {actionLabel(row.state)}
+          {actionLabel(row.state)} ↗
         </Text>
       </Pressable>
     </View>
