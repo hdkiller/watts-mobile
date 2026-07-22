@@ -5,6 +5,7 @@ import { ActivationGate } from '@/src/features/activation/ActivationGate';
 import { PushNotificationsBootstrap } from '@/src/features/notifications/PushNotificationsBootstrap';
 import { HealthSyncRunner } from '@/src/features/health/HealthSyncRunner';
 import { OfflineWellnessFlush } from '@/src/features/log/OfflineWellnessFlush';
+import { ScanMealQuickActionBridge } from '@/src/linking/ScanMealQuickActionBridge';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
 export default function AppLayout() {
@@ -28,6 +29,7 @@ export default function AppLayout() {
       <PushNotificationsBootstrap />
       <OfflineWellnessFlush />
       <HealthSyncRunner />
+      <ScanMealQuickActionBridge />
       <Stack
         screenOptions={{
           headerShown: false,

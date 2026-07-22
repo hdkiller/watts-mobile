@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { APP_HREFS, migrateLegacyAppHref } from '../appHrefs';
+import { APP_HREFS, logCameraHref, migrateLegacyAppHref } from '../appHrefs';
 
 describe('migrateLegacyAppHref', () => {
   it('rewrites root-stack drill-downs into tab stacks', () => {
@@ -18,5 +18,11 @@ describe('migrateLegacyAppHref', () => {
   it('leaves current hrefs alone', () => {
     expect(migrateLegacyAppHref(APP_HREFS.today)).toBe(APP_HREFS.today);
     expect(migrateLegacyAppHref(APP_HREFS.activityDetail('x'))).toBe(APP_HREFS.activityDetail('x'));
+  });
+});
+
+describe('logCameraHref', () => {
+  it('builds a one-shot camera intent with a nonce', () => {
+    expect(logCameraHref('42')).toBe(`${APP_HREFS.log}?action=camera&t=42`);
   });
 });

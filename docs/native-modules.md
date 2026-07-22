@@ -6,7 +6,7 @@ This app uses **`expo-dev-client`**, not Expo Go as the daily runtime. Adding or
 
 Rebuild after any of:
 
-- `pnpm add` / `expo install` of a package with iOS/Android native code (e.g. `expo-haptics`, `expo-image-picker`, `expo-notifications`, `expo-widgets`, `expo-background-task`, `expo-task-manager`, `expo-file-system`, `@kingstinct/react-native-healthkit`, `react-native-health-connect`, `@sentry/react-native`, `react-native-svg`, `react-native-maps`)
+- `pnpm add` / `expo install` of a package with iOS/Android native code (e.g. `expo-haptics`, `expo-image-picker`, `expo-notifications`, `expo-quick-actions`, `expo-widgets`, `expo-background-task`, `expo-task-manager`, `expo-file-system`, `@kingstinct/react-native-healthkit`, `react-native-health-connect`, `@sentry/react-native`, `react-native-svg`, `react-native-maps`)
 - New or changed **config plugin** entries in `app.json` (permissions, associated domains, splash, etc.)
 - Changes under `ios/` / `android/` that aren’t pure JS
 

@@ -1,4 +1,4 @@
-import { APP_HREFS, migrateLegacyAppHref } from '@/src/linking/appHrefs';
+import { APP_HREFS, logCameraHref, migrateLegacyAppHref } from '@/src/linking/appHrefs';
 import {
   APP_SCHEME,
   OAUTH_CALLBACK_PATH,
@@ -138,6 +138,19 @@ export function resolveDeepLinkPath(pathname: string): ResolvedDeepLink {
 
   if (path === '/notifications') {
     return { kind: 'app', href: APP_HREFS.notifications, canonicalPath: path };
+  }
+
+  if (
+    path === '/scan-meal' ||
+    path === '/camera' ||
+    path === '/log/camera' ||
+    path === '/log/scan-meal'
+  ) {
+    return {
+      kind: 'app',
+      href: logCameraHref() as any,
+      canonicalPath: path,
+    };
   }
 
   if (path === '/log') {

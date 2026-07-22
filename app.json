@@ -10,6 +10,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.coachwatts.app",
+      "buildNumber": "3",
       "icon": "./assets/images/icon.png",
       "associatedDomains": [
         "applinks:coachwatts.com"
@@ -108,6 +109,22 @@
         {
           "photosPermission": "Coach Watts accesses your photo library so you can attach meal photos in Coach chat for nutrition logging.",
           "cameraPermission": "Coach Watts uses the camera so you can photograph meals and share them in Coach chat for nutrition logging."
+        }
+      ],
+      [
+        "expo-quick-actions",
+        {
+          "iosActions": [
+            {
+              "id": "scan-meal",
+              "title": "Scan Meal",
+              "subtitle": "Estimate macros from photo",
+              "icon": "capturePhoto",
+              "params": {
+                "href": "/(app)/(tabs)/log?action=camera"
+              }
+            }
+          ]
         }
       ],
       [

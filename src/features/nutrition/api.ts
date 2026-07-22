@@ -70,6 +70,21 @@ export async function quickAddHydration(payload: HydrationQuickAddPayload): Prom
   }
 }
 
+export type DetectedFoodItem = {
+  name: string;
+  portion?: string;
+  calories?: number;
+};
+
+export type PhotoEstimateContext = {
+  selectedDate?: string;
+  targetCalories?: number;
+  targetProtein?: number;
+  targetCarbs?: number;
+  targetFat?: number;
+  todayWorkoutSummary?: string;
+};
+
 export type PhotoNutritionEstimate = {
   name: string;
   calories: number;
@@ -78,16 +93,19 @@ export type PhotoNutritionEstimate = {
   fat: number;
   meal?: 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' | 'OTHER';
   confidence?: 'HIGH' | 'MEDIUM' | 'LOW';
+  coachInsight?: string;
+  items?: DetectedFoodItem[];
 };
 
 export async function estimatePhotoNutrition(
   imageBase64: string,
-  mimeType = 'image/jpeg'
+  mimeType = 'image/jpeg',
+  context?: PhotoEstimateContext
 ): Promise<PhotoNutritionEstimate> {
   const response = await apiFetch('/api/nutrition/estimate-photo', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ imageBase64, mimeType }),
+    body: JSON.stringify({ imageBase64, mimeType, context }),
   });
   if (!response.ok) {
     throw new Error(await readErrorMessage(response, `Photo analysis failed (${response.status})`));

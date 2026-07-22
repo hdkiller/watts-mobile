@@ -1,5 +1,5 @@
-import { router, useLocalSearchParams, type Href } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { router, useLocalSearchParams, usePathname, type Href } from 'expo-router';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -21,7 +21,7 @@ import { useBodyMeasurementsQuery } from '@/src/features/measurements/useMeasure
 import { HydrationQuickAddSheet } from '@/src/features/nutrition/HydrationQuickAddSheet';
 import { LogMealSheet } from '@/src/features/nutrition/LogMealSheet';
 import { NutritionDetailSheet } from '@/src/features/nutrition/NutritionDetailSheet';
-import { goalProgressPct } from '@/src/features/nutrition/mapNutrition';
+import { formatMacroGrams, goalProgressPct } from '@/src/features/nutrition/mapNutrition';
 import { useTodayNutritionQuery } from '@/src/features/nutrition/useNutrition';
 import { isNutritionTrackingEnabled, weightUnit } from '@/src/features/profile/mapProfile';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
@@ -36,7 +36,8 @@ import { useThemeColors } from '@/src/theme/useThemeColors';
 
 export default function LogScreen() {
   const theme = useThemeColors();
-  const params = useLocalSearchParams<{ section?: string; action?: string }>();
+  const params = useLocalSearchParams<{ section?: string; action?: string; t?: string }>();
+  const pathname = usePathname();
   const { containerRef, overlap } = useKeyboardOverlap();
   const tabBottomPad = useTabScrollPadding(overlap);
 
@@ -61,6 +62,8 @@ export default function LogScreen() {
   const [hydrationSheetOpen, setHydrationSheetOpen] = useState(false);
   const [wellnessSheetOpen, setWellnessSheetOpen] = useState(false);
   const [measurementSheetOpen, setMeasurementSheetOpen] = useState(false);
+  const launchedPhotoTokenRef = useRef<string | null>(null);
+  const untokenedCameraBusyRef = useRef(false);
 
   // Detail Sheet States
   const [nutritionDetailSheetOpen, setNutritionDetailSheetOpen] = useState(
@@ -71,17 +74,54 @@ export default function LogScreen() {
   );
 
   useEffect(() => {
-    if (params.action === 'meal') {
-      setMealSheetOpen(true);
-    } else if (params.action === 'water') {
-      setHydrationSheetOpen(true);
-    } else if (params.action === 'wellness' || params.section === 'wellness') {
-      // Legacy entry points (Today glance, daily check-in) still use ?section=wellness
-      setWellnessSheetOpen(true);
-    } else if (params.action === 'measurement') {
-      setMeasurementSheetOpen(true);
-    }
-  }, [params.action, params.section]);
+    const timeout = setTimeout(() => {
+      if (params.action === 'camera') {
+        const launchToken =
+          typeof params.t === 'string' && params.t.length > 0 ? params.t : null;
+
+        if (launchToken != null) {
+          if (launchedPhotoTokenRef.current === launchToken) return;
+          launchedPhotoTokenRef.current = launchToken;
+        } else if (untokenedCameraBusyRef.current) {
+          return;
+        } else {
+          untokenedCameraBusyRef.current = true;
+        }
+
+        router.setParams({ action: undefined, t: undefined });
+
+        // Match Today: do not open AI photo logging when nutrition tracking is off.
+        if (!nutritionEnabled) {
+          untokenedCameraBusyRef.current = false;
+          return;
+        }
+
+        // Avoid stacking multiple fullscreen photo-meal routes.
+        if (pathname.includes('photo-meal')) {
+          untokenedCameraBusyRef.current = false;
+          return;
+        }
+
+        router.push('/(app)/(tabs)/log/photo-meal' as Href);
+        untokenedCameraBusyRef.current = false;
+        return;
+      }
+
+      untokenedCameraBusyRef.current = false;
+
+      if (params.action === 'meal') {
+        setMealSheetOpen(true);
+      } else if (params.action === 'water') {
+        setHydrationSheetOpen(true);
+      } else if (params.action === 'wellness' || params.section === 'wellness') {
+        // Legacy entry points (Today glance, daily check-in) still use ?section=wellness
+        setWellnessSheetOpen(true);
+      } else if (params.action === 'measurement') {
+        setMeasurementSheetOpen(true);
+      }
+    }, 0);
+    return () => clearTimeout(timeout);
+  }, [params.action, params.section, params.t, nutritionEnabled, pathname]);
 
   const wellnessInitialValues = useMemo(
     () =>
@@ -391,8 +431,9 @@ export default function LogScreen() {
               </View>
 
               <Text className="mt-1 text-xs text-text-muted">
-                Carbs {todayNutrition.carbs}g · Protein {todayNutrition.protein}g · Fat{' '}
-                {todayNutrition.fat}g
+                Carbs {formatMacroGrams(todayNutrition.carbs)}g · Protein{' '}
+                {formatMacroGrams(todayNutrition.protein)}g · Fat{' '}
+                {formatMacroGrams(todayNutrition.fat)}g
               </Text>
             </Pressable>
           ) : null}
@@ -436,7 +477,14 @@ export default function LogScreen() {
         {/* Modal Action Sheets */}
         <LogMealSheet
           visible={mealSheetOpen}
-          onClose={() => setMealSheetOpen(false)}
+          onOpenPhotoFlow={() => {
+            setMealSheetOpen(false);
+            router.push('/(app)/(tabs)/log/photo-meal' as Href);
+          }}
+          onClose={() => {
+            setMealSheetOpen(false);
+            router.setParams({ action: undefined, t: undefined });
+          }}
         />
         <HydrationQuickAddSheet
           visible={hydrationSheetOpen}

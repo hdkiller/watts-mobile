@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-screens/experimental';
 
 import {
@@ -7,6 +7,8 @@ import {
   logTabPreferenceLabel,
 } from '@/src/features/log/logTabPreference';
 import { useLogTabPreference } from '@/src/features/log/useLogTabPreference';
+import { type PhotoSourceMode } from '@/src/features/nutrition/photoMealSettings';
+import { usePhotoMealSettings } from '@/src/features/nutrition/usePhotoMealSettings';
 import { isNutritionTrackingEnabled } from '@/src/features/profile/mapProfile';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { hapticLight } from '@/src/lib/haptics';
@@ -47,12 +49,35 @@ const OPTIONS: {
   },
 ];
 
+const PHOTO_MODE_OPTIONS: {
+  value: PhotoSourceMode;
+  title: string;
+  detail: string;
+}[] = [
+  {
+    value: 'ask',
+    title: 'Ask every time',
+    detail: 'Choose between Take Photo and Photo Library each time.',
+  },
+  {
+    value: 'camera',
+    title: 'Always open Camera',
+    detail: 'Directly launch camera photo mode when tapping photo shortcuts.',
+  },
+  {
+    value: 'library',
+    title: 'Always open Photo Library',
+    detail: 'Directly open device photo library when tapping photo shortcuts.',
+  },
+];
+
 export default function LogSettingsScreen() {
   const theme = useThemeColors();
 
   const { data: athleteProfile } = useAthleteProfileQuery();
   const nutritionEnabled = isNutritionTrackingEnabled(athleteProfile);
   const { preference, setPreference } = useLogTabPreference();
+  const { sourceMode, setSourceMode, saveToLibrary, setSaveToLibrary } = usePhotoMealSettings();
 
   return (
     <>
@@ -124,6 +149,66 @@ export default function LogSettingsScreen() {
           <Text className="mt-4 text-sm text-text-muted">
             Current default: {logTabPreferenceLabel(preference, nutritionEnabled)}
           </Text>
+
+          <Text className="mt-8 text-xl font-semibold text-text-primary">Meal Photo Camera Settings</Text>
+          <Text className="mt-1 text-sm text-text-muted">
+            Customize camera shortcut behavior and photo saving options.
+          </Text>
+
+          <View className="mt-4 overflow-hidden rounded-xl border border-border bg-card">
+            {PHOTO_MODE_OPTIONS.map((option, index) => {
+              const selected = sourceMode === option.value;
+              const isLast = index === PHOTO_MODE_OPTIONS.length - 1;
+              return (
+                <Pressable
+                  key={option.value}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
+                  className={`px-4 py-4 ${isLast ? '' : 'border-b border-border/80'} active:opacity-80`}
+                  onPress={() => {
+                    hapticLight();
+                    void setSourceMode(option.value);
+                  }}
+                >
+                  <View className="flex-row items-start justify-between gap-3">
+                    <View className="min-w-0 flex-1">
+                      <Text className="text-base font-semibold text-text-primary">{option.title}</Text>
+                      <Text className="mt-1 text-sm text-text-muted">{option.detail}</Text>
+                    </View>
+                    <View
+                      className="mt-1 h-5 w-5 items-center justify-center rounded-full border"
+                      style={{
+                        borderColor: selected ? Colors.brand : theme.textMuted,
+                        backgroundColor: selected ? Colors.brand : 'transparent',
+                      }}
+                    >
+                      {selected ? <View className="h-2 w-2 rounded-full bg-surface" /> : null}
+                    </View>
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <View className="mt-4 rounded-xl border border-border bg-card p-4">
+            <View className="flex-row items-center justify-between gap-4">
+              <View className="flex-1">
+                <Text className="text-base font-semibold text-text-primary">Save Photos to Library</Text>
+                <Text className="mt-1 text-xs text-text-muted">
+                  Save photos taken with the in-app camera directly to your device photo library.
+                </Text>
+              </View>
+              <Switch
+                value={saveToLibrary}
+                onValueChange={(val) => {
+                  hapticLight();
+                  void setSaveToLibrary(val);
+                }}
+                trackColor={{ false: theme.border, true: Colors.brand }}
+                thumbColor={theme.surface}
+              />
+            </View>
+          </View>
         </ScrollView>
       </SafeAreaView>
     </>

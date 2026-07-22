@@ -94,7 +94,7 @@ Inline text links (Retry, See all, Check in…): `text-sm font-semibold text-bra
 - **Loading:** skeleton (see above). Warm-cache Today target is < ~2s.
 - **Error:** red tinted card (`border-danger/40 bg-tint-error`, `text-red-400`) with an inline brand-colored Retry link. Prefer friendly copy over raw API messages.
 - **Empty:** honest one-liner in `text-text-muted` ("Waiting for sync…", "No upcoming planned workouts.") plus the relevant action. Never a blank screen.
-- **Success/confirm:** green (`text-green-400`) inline text or state change; keep it near the triggering control.
+- **Success/confirm:** green (`text-green-400`) inline text or state change; keep it near the triggering control. For meaningful habit actions that already occupy a dedicated flow (for example, logging a photo meal), the final screen may become a restrained completion state: one success haptic, a short checkmark transition, the real values added, and the updated daily context. No confetti, invented praise, badges, or detached celebratory toast.
 
 ## Haptic Feedback Map
 

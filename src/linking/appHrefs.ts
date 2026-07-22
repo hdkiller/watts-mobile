@@ -37,6 +37,11 @@ export const APP_HREFS = {
     `/(app)/recovery-event?id=${encodeURIComponent(id)}` as const,
 } as const;
 
+/** One-shot Log → photo-meal intent. Always include a unique `t` so relaunches are not deduped. */
+export function logCameraHref(nonce: string = String(Date.now())): string {
+  return `${APP_HREFS.log}?action=camera&t=${encodeURIComponent(nonce)}`;
+}
+
 /** Rewrite legacy root-stack hrefs still present in push payloads / pending returns. */
 export function migrateLegacyAppHref(href: string): string {
   if (!href.startsWith('/(app)')) return href;

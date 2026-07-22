@@ -102,9 +102,9 @@ function mapPlanWindows(raw: unknown): FuelingPlanWindow[] {
     const w = item as Record<string, unknown>;
     out.push({
       type: String(w.type ?? ''),
-      targetCarbs: Math.max(0, asNumber(w.targetCarbs)),
-      targetProtein: Math.max(0, asNumber(w.targetProtein)),
-      targetFat: Math.max(0, asNumber(w.targetFat)),
+      targetCarbs: Math.max(0, roundMacro(asNumber(w.targetCarbs))),
+      targetProtein: Math.max(0, roundMacro(asNumber(w.targetProtein))),
+      targetFat: Math.max(0, roundMacro(asNumber(w.targetFat))),
     });
   }
   return out;
@@ -180,16 +180,16 @@ export function pickTodayNutrition(payload: unknown, today = localDateYmd()): Nu
     if (date !== today) continue;
 
     const calories = Math.round(asNumber(r.calories));
-    const protein = asNumber(r.protein);
-    const carbs = asNumber(r.carbs);
-    const fat = asNumber(r.fat);
+    const protein = roundMacro(asNumber(r.protein));
+    const carbs = roundMacro(asNumber(r.carbs));
+    const fat = roundMacro(asNumber(r.fat));
     const waterMl = Math.round(asNumber(r.waterMl));
     const isEmpty = calories === 0 && protein === 0 && carbs === 0 && fat === 0 && waterMl === 0;
 
     const caloriesGoal = asGoal(r.caloriesGoal) != null ? Math.round(asGoal(r.caloriesGoal)!) : null;
-    const proteinGoal = asGoal(r.proteinGoal);
-    const carbsGoal = asGoal(r.carbsGoal);
-    const fatGoal = asGoal(r.fatGoal);
+    const proteinGoal = asGoal(r.proteinGoal) != null ? roundMacro(asGoal(r.proteinGoal)!) : null;
+    const carbsGoal = asGoal(r.carbsGoal) != null ? roundMacro(asGoal(r.carbsGoal)!) : null;
+    const fatGoal = asGoal(r.fatGoal) != null ? roundMacro(asGoal(r.fatGoal)!) : null;
     const fluidGoalMl =
       fluidGoalFromPlan(r.fuelingPlan) != null
         ? Math.round(fluidGoalFromPlan(r.fuelingPlan)!)
@@ -268,9 +268,9 @@ export function toNutritionUploadPayload(
   const fat = parseOptionalNumber(form.fat);
 
   if (calories != null) item.calories = Math.round(calories);
-  if (protein != null) item.protein = protein;
-  if (carbs != null) item.carbs = carbs;
-  if (fat != null) item.fat = fat;
+  if (protein != null) item.protein = roundMacro(protein);
+  if (carbs != null) item.carbs = roundMacro(carbs);
+  if (fat != null) item.fat = roundMacro(fat);
 
   return { date, items: [item] };
 }
@@ -279,9 +279,15 @@ export function nutritionWebPath(): string {
   return '/nutrition';
 }
 
+export function roundMacro(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.round(value * 10) / 10;
+}
+
 export function formatMacroGrams(value: number): string {
   if (!Number.isFinite(value)) return '0';
-  return Number.isInteger(value) ? String(value) : value.toFixed(1);
+  const rounded = roundMacro(value);
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
 }
 
 const WINDOW_TYPE_LABELS: Record<string, string> = {

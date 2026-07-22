@@ -12,6 +12,7 @@ import {
   pickNextFuelingWindow,
   pickTodayNutrition,
   quickLogHasContent,
+  roundMacro,
   toNutritionUploadPayload,
 } from '../mapNutrition';
 
@@ -324,6 +325,10 @@ describe('helpers', () => {
   it('formats macros and web path', () => {
     expect(formatMacroGrams(12)).toBe('12');
     expect(formatMacroGrams(12.5)).toBe('12.5');
+    expect(formatMacroGrams(28.000000000000004)).toBe('28');
+    expect(formatMacroGrams(28.600000000000002)).toBe('28.6');
+    expect(formatMacroGrams(28.6666)).toBe('28.7');
+    expect(roundMacro(28.600000000000002)).toBe(28.6);
     expect(nutritionWebPath()).toBe('/nutrition');
     expect(localDateYmd(new Date('2026-07-19T15:00:00'))).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });

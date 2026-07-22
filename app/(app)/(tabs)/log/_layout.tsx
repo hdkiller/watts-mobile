@@ -13,6 +13,14 @@ export default function LogStackLayout() {
       }}
     >
       <Stack.Screen name="index" />
+      <Stack.Screen
+        name="photo-meal"
+        options={{
+          presentation: 'fullScreenModal',
+          animation: 'slide_from_bottom',
+          gestureEnabled: true,
+        }}
+      />
     </Stack>
   );
 }
