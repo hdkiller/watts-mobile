@@ -51,8 +51,8 @@
 
 - [x] 8.1 Update `docs/store-privacy-checklist.md` for expanded reads (HR, steps, distance) and background collection
 - [x] 8.2 Update store copy again for GPS/route once §4.4 lands; complete App Privacy / Data safety background + location declarations
-- [ ] 8.3 Rebuild dev clients after native scope/entitlement changes; smoke Health Sync on iOS + Android
-- [ ] 8.4 Manual verify: workout with HR uploads a FIT that Coach Watts analyzes with zones/curve; steps appear on the instance; incremental pass does not re-push unchanged days
+- [x] 8.3 Rebuild dev clients after native scope/entitlement changes; smoke Health Sync on iOS + Android
+- [x] 8.4 Manual verify: workout with HR uploads a FIT that Coach Watts analyzes with zones/curve; steps appear on the instance; incremental pass does not re-push unchanged days
 
 ## 9. Audit remediation
 

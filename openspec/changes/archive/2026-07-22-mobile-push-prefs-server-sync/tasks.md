@@ -17,6 +17,6 @@
 
 ## 4. Verification
 
-- [ ] 4.1 Against a coach-wattz build with 364/365: toggle Rec off → no Expo on AUTOMATIC recommend; toggle on → push arrives
-- [ ] 4.2 Fresh install / cleared SecureStore: GET shows `SYNC_COMPLETED` false and no Sync toggle
+- [x] 4.1 Against a coach-wattz build with 364/365: toggle Rec off → no Expo on AUTOMATIC recommend; toggle on → push arrives
+- [x] 4.2 Fresh install / cleared SecureStore: GET shows `SYNC_COMPLETED` false and no Sync toggle
 - [x] 4.3 Mark pu-005 / inventory if any client-facing status notes need a date stamp

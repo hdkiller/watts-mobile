@@ -40,7 +40,7 @@
 - [x] 6.1 Update `docs/store-privacy-checklist.md` Health Sync section for opt-in upload (not prefill-only)
 - [x] 6.2 Update product baseline / implementation-plan checklist item for HealthKit / Health Connect ingest
 - [x] 6.3 Ensure Sentry/analytics never log metric values; only status/kind counts
-- [ ] 6.4 Manual verify Android: enable sync → wellness appears on instance → fail network → Retry from history succeeds
-- [ ] 6.5 Manual verify iOS parity for wellness + history
-- [ ] 6.6 Manual verify workout: on-device session → needs_sync → upload → synced; already-on-server session does not duplicate
-- [ ] 6.7 Rebuild dev clients after native module/plugin changes and smoke Health Sync settings
+- [x] 6.4 Manual verify Android: enable sync → wellness appears on instance → fail network → Retry from history succeeds
+- [x] 6.5 Manual verify iOS parity for wellness + history
+- [x] 6.6 Manual verify workout: on-device session → needs_sync → upload → synced; already-on-server session does not duplicate
+- [x] 6.7 Rebuild dev clients after native module/plugin changes and smoke Health Sync settings

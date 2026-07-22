@@ -9,18 +9,18 @@
 
 - [x] 2.1 Add Apple provider to `server/api/auth/[...].ts` (Auth.js), gated on secrets present
 - [x] 2.2 Confirm account create/link behavior for Apple `sub` + email (including Hide My Email / missing email on return visits) matches Google linking policy
-- [ ] 2.3 Smoke Auth.js Apple callback on staging/hosted before enabling UI in production
+- [x] 2.3 Smoke Auth.js Apple callback on staging/hosted before enabling UI in production
 
 ## 3. IdP login UI
 
 - [x] 3.1 Add Sign in with Apple control to `/oauth/login` with prominence comparable to Google (prefer Apple first)
 - [x] 3.2 Add Sign in with Apple to web `/login` and `/join` (or equivalent) where Google is offered
-- [ ] 3.3 Verify loading / error toasts match existing provider UX; Cancel still aborts OAuth
+- [x] 3.3 Verify loading / error toasts match existing provider UX; Cancel still aborts OAuth
 
 ## 4. Mobile companion verification
 
-- [ ] 4.1 Smoke TestFlight/dev-client: PKCE → Safari `/oauth/login` → Sign in with Apple → tokens → authenticated shell
-- [ ] 4.2 Regression: same path with Google still works
+- [x] 4.1 Smoke TestFlight/dev-client: PKCE → Safari `/oauth/login` → Sign in with Apple → tokens → authenticated shell
+- [x] 4.2 Regression: same path with Google still works
 - [x] 4.3 Confirm no watts-mobile PKCE client/scope/redirect changes are required; only fix if a real bug appears
 
 ## 5. App Review & distribution docs

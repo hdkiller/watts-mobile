@@ -30,4 +30,4 @@
 
 - [x] 6.1 Update `docs/product-baseline.md` Settings hub line to include Connected Apps lite (full editors stay web)
 - [x] 6.2 Record the decision in `docs/open-questions.md` if a tracked question exists; otherwise skip
-- [ ] 6.3 Smoke: Settings → Connected Apps shows status; Connect opens handed-off web apps page; after connecting on web and returning, row updates; Health Sync band opens Health Sync; older-instance failure still offers Open web
+- [x] 6.3 Smoke: Settings → Connected Apps shows status; Connect opens handed-off web apps page; after connecting on web and returning, row updates; Health Sync band opens Health Sync; older-instance failure still offers Open web

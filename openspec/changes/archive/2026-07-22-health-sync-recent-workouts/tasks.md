@@ -21,6 +21,6 @@
 
 ## 4. Verify
 
-- [ ] 4.1 Manual iOS: list shows HealthKit workouts; Sync one, Sync all, Resync, pull-to-refresh
-- [ ] 4.2 Manual Android: same against Health Connect
-- [ ] 4.3 Confirm Sync history still works for wellness + ledger retry; no regression to Sync now
+- [x] 4.1 Manual iOS: list shows HealthKit workouts; Sync one, Sync all, Resync, pull-to-refresh
+- [x] 4.2 Manual Android: same against Health Connect
+- [x] 4.3 Confirm Sync history still works for wellness + ledger retry; no regression to Sync now

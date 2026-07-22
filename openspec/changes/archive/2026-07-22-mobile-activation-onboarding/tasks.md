@@ -48,4 +48,4 @@
 - [x] 7.3 Emit activation funnel analytics events; verify no metric values logged
 - [x] 7.4 Unit tests for activation status helpers / goal+plan mappers where pure
 - [x] 7.5 Update `docs/oauth-setup.md`, issue 056 status notes, and implementation-plan Phase 5 checkboxes as slices land
-- [ ] 7.6 Manual verify: empty fixture user soft-activates on device without web; Skip connect enters tabs; Health Sync path improves data → full activation
+- [x] 7.6 Manual verify: empty fixture user soft-activates on device without web; Skip connect enters tabs; Health Sync path improves data → full activation

@@ -23,4 +23,4 @@
 ## 5. Verification
 
 - [x] 5.1 Run nutrition unit tests and fix regressions
-- [ ] 5.2 Manually verify on device/simulator: open calories and each macro from Log, dismiss sheet, confirm targets match summary tiles
+- [x] 5.2 Manually verify on device/simulator: open calories and each macro from Log, dismiss sheet, confirm targets match summary tiles
