@@ -2,7 +2,15 @@ import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/src/components/Button';
+import { fuelStateLabel } from '@/src/features/nutrition/mapNutrition';
+import { useTodayNutritionQuery } from '@/src/features/nutrition/useNutrition';
+import { isNutritionTrackingEnabled } from '@/src/features/profile/mapProfile';
+import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import type { RecoveryContextItem } from '@/src/features/recovery/types';
+import {
+  formatDriverRowText,
+  mapRecommendationDrivers,
+} from '@/src/features/today/mapRecommendationDrivers';
 import {
   heroToneForAction,
   type HeroTone,
@@ -80,6 +88,26 @@ export function RecommendationDetailSheet({
 }) {
   const tone = heroToneForAction(detail?.action);
   const recovery = recoveryItems ?? [];
+
+  const profileQuery = useAthleteProfileQuery();
+  const trackingEnabled = isNutritionTrackingEnabled(profileQuery.data);
+  const nutritionQuery = useTodayNutritionQuery({
+    enabled: visible && trackingEnabled,
+  });
+  const fuelLabel =
+    trackingEnabled && nutritionQuery.data?.fuelState != null
+      ? fuelStateLabel(nutritionQuery.data.fuelState)
+      : null;
+
+  const drivers = detail
+    ? mapRecommendationDrivers({
+        recoveryAnalysis: detail.recoveryAnalysis,
+        keyFactors: detail.keyFactors,
+        fuelStateLabel: fuelLabel,
+      })
+    : [];
+  // Show when there are rows, or when Why? exists so thin-data mornings stay honest.
+  const showDriversSection = Boolean(detail) && (drivers.length > 0 || Boolean(detail?.reasoning));
 
   return (
     <Modal
@@ -160,17 +188,30 @@ export function RecommendationDetailSheet({
                 </View>
               ) : null}
 
-              {detail.keyFactors.length > 0 ? (
+              {showDriversSection ? (
                 <View>
-                  <Text className="mb-2 text-base font-semibold text-text-primary">Key Factors</Text>
-                  <View className="gap-1.5">
-                    {detail.keyFactors.map((factor) => (
-                      <View key={factor} className="flex-row gap-2">
-                        <Text className="text-sm text-text-muted">›</Text>
-                        <Text className="flex-1 text-sm leading-5 text-text-body">{factor}</Text>
-                      </View>
-                    ))}
-                  </View>
+                  <Text className="mb-1 text-base font-semibold text-text-primary">
+                    What drove this
+                  </Text>
+                  <Text className="mb-2 text-xs leading-4 text-text-muted">
+                    Inputs Coach Watts used for this recommendation — not live device readings.
+                  </Text>
+                  {drivers.length > 0 ? (
+                    <View className="gap-1.5">
+                      {drivers.map((row) => (
+                        <View key={row.id} className="flex-row gap-2">
+                          <Text className="text-sm text-text-muted">›</Text>
+                          <Text className="flex-1 text-sm leading-5 text-text-body">
+                            {formatDriverRowText(row)}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  ) : (
+                    <Text className="text-sm leading-5 text-text-muted">
+                      Limited inputs for this recommendation.
+                    </Text>
+                  )}
                 </View>
               ) : null}
 

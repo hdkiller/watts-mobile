@@ -52,6 +52,13 @@ export type AnalysisPlannedWorkoutApi = {
   original_tss?: number;
 };
 
+export type RecommendationRecoveryAnalysis = {
+  hrv_status?: string | null;
+  sleep_quality?: string | null;
+  fatigue_level?: string | null;
+  readiness_score?: number | null;
+};
+
 export type ActivityRecommendationApi = {
   id: string;
   recommendation?: string | null;
@@ -64,12 +71,7 @@ export type ActivityRecommendationApi = {
     planned_workout?: AnalysisPlannedWorkoutApi | null;
     suggested_modifications?: SuggestedModificationsApi | null;
     recovery_context?: Record<string, unknown> | null;
-    recovery_analysis?: {
-      hrv_status?: string | null;
-      sleep_quality?: string | null;
-      fatigue_level?: string | null;
-      readiness_score?: number | null;
-    } | null;
+    recovery_analysis?: RecommendationRecoveryAnalysis | null;
   } | null;
   plannedWorkout?: {
     id: string;
@@ -83,6 +85,15 @@ export type ActivityRecommendationApi = {
   } | null;
 };
 
+/** Plain-language driver row for the recommendation detail sheet. */
+export type RecommendationDriverRow = {
+  id: string;
+  kind: 'recovery' | 'factor' | 'fuel';
+  /** Short coaching label when present (e.g. "Sleep quality"); null for free-text factors. */
+  label: string | null;
+  value: string;
+};
+
 /** Detail sheet view model mapped from today recommendation + analysisJson. */
 export type RecommendationDetailViewModel = {
   recommendationId: string;
@@ -93,7 +104,12 @@ export type RecommendationDetailViewModel = {
   confidencePercent: number | null;
   userAccepted: boolean;
   canAccept: boolean;
+  /** Raw key_factors for tests/back-compat; prefer `drivers` in UI. */
   keyFactors: string[];
+  /** recovery_analysis fields when present — recommendation inputs, not live biometrics. */
+  recoveryAnalysis: RecommendationRecoveryAnalysis | null;
+  /** Ordered driver rows (recovery + factors); fuel appended by the sheet when known. */
+  drivers: RecommendationDriverRow[];
   originalPlan: {
     title: string;
     durationMin: number | null;

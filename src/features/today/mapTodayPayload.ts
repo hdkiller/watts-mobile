@@ -1,3 +1,4 @@
+import { mapRecommendationDrivers } from './mapRecommendationDrivers';
 import type {
   ActivityRecommendationApi,
   RecoverySentiment,
@@ -334,6 +335,11 @@ export function mapRecommendationDetail(
   const keyFactors = Array.isArray(raw.analysisJson?.key_factors)
     ? raw.analysisJson!.key_factors!.filter((f): f is string => typeof f === 'string' && f.trim().length > 0)
     : [];
+  const recoveryAnalysis = raw.analysisJson?.recovery_analysis ?? null;
+  const drivers = mapRecommendationDrivers({
+    recoveryAnalysis,
+    keyFactors,
+  });
 
   let originalPlan: RecommendationDetailViewModel['originalPlan'] = null;
   if (analysisPlan && (analysisPlan.original_title || analysisPlan.original_duration_min != null)) {
@@ -372,6 +378,8 @@ export function mapRecommendationDetail(
     userAccepted: Boolean(raw.userAccepted),
     canAccept: Boolean(mods) && !raw.userAccepted,
     keyFactors,
+    recoveryAnalysis,
+    drivers,
     originalPlan,
     suggestedChanges,
   };

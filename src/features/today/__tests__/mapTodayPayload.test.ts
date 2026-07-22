@@ -177,6 +177,11 @@ describe('mapRecommendationDetail', () => {
     expect(detail?.confidencePercent).toBe(95);
     expect(detail?.reasoning).toBe('Critically low sleep confirms rest.');
     expect(detail?.keyFactors).toEqual(['Planned rest day', 'Critically low sleep']);
+    expect(detail?.recoveryAnalysis).toBeNull();
+    expect(detail?.drivers.map((d) => d.value)).toEqual([
+      'Planned rest day',
+      'Critically low sleep',
+    ]);
     expect(detail?.originalPlan).toEqual({
       title: 'Rest Day',
       durationMin: 0,
@@ -184,6 +189,31 @@ describe('mapRecommendationDetail', () => {
     });
     expect(detail?.suggestedChanges?.title).toBe('Easy spin');
     expect(detail?.canAccept).toBe(true);
+  });
+
+  it('maps recovery_analysis into detail drivers', () => {
+    const detail = mapRecommendationDetail({
+      id: 'rec-drivers',
+      recommendation: 'rest',
+      reasoning: 'Recovery calls for rest.',
+      analysisJson: {
+        recovery_analysis: {
+          sleep_quality: 'poor',
+          hrv_status: 'green',
+          fatigue_level: 'elevated',
+          readiness_score: 3,
+        },
+        key_factors: ['Planned rest day'],
+      },
+    });
+    expect(detail?.recoveryAnalysis?.sleep_quality).toBe('poor');
+    expect(detail?.drivers.map((d) => `${d.label ?? ''} ${d.value}`.trim())).toEqual([
+      'Sleep quality poor',
+      'HRV status green',
+      'Fatigue elevated',
+      'Readiness 3',
+      'Planned rest day',
+    ]);
   });
 
   it('falls back to linked planned workout for original plan', () => {
