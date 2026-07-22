@@ -22,7 +22,7 @@ import {
 } from '@/src/features/log/useDailyCheckin';
 import { useTodayQuery } from '@/src/features/today/useToday';
 import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
-import { hapticError, hapticSuccess } from '@/src/lib/haptics';
+import { hapticLight, hapticError, hapticSuccess } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
 
 const POLL_MS = 2500;
@@ -93,6 +93,7 @@ export default function DailyCheckinScreen() {
   }, [checkin]);
 
   const onAnswer = (qId: string, value: 'YES' | 'NO') => {
+    hapticLight();
     setAnswers((prev) => ({
       ...prev,
       [qId]: value,

@@ -7,6 +7,8 @@ import { hapticLight } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
+import { formatRecoveryDate } from '@/src/features/recovery/mapRecovery';
+
 interface RecoveryEventCardProps {
   item: RecoveryContextItem;
   onPress: (item: RecoveryContextItem) => void;
@@ -22,11 +24,12 @@ export function RecoveryEventCard({ item, onPress }: RecoveryEventCardProps) {
 
   const severity = item.severity ?? 5;
   const severityPct = (severity / 10) * 100;
+  const formattedDate = formatRecoveryDate(item.startAt);
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${item.label}, severity ${severity} of 10${
+      accessibilityLabel={`${item.label}, severity ${severity} of 10, ${formattedDate}${
         readOnly ? ', read-only' : ''
       }`}
       className="mb-3 rounded-xl border border-border bg-card p-4 active:opacity-80"
@@ -63,7 +66,7 @@ export function RecoveryEventCard({ item, onPress }: RecoveryEventCardProps) {
               ) : null}
             </View>
             <Text className="text-xs text-text-muted">
-              Severity {severity}/10 · Active today
+              Severity {severity}/10 · {formattedDate}
             </Text>
           </View>
         </View>

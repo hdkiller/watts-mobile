@@ -345,6 +345,27 @@ export function MeasurementsSection() {
         </View>
       ) : null}
 
+      {/* Latest Recorded Metrics First */}
+      <Text className="mb-2.5 mt-4 text-xs font-semibold uppercase tracking-widest text-text-muted">
+        Latest Recorded Metrics
+      </Text>
+      {data && data.latestByMetric.length === 0 ? (
+        <View className="rounded-xl border border-border bg-card p-3.5 mb-4">
+          <Text className="text-xs text-text-muted">No measurements logged yet. Add your first below.</Text>
+        </View>
+      ) : null}
+      {data?.latestByMetric.map((entry) => (
+        <LatestCard
+          key={entry.id}
+          entry={entry}
+          unitLabel={displayUnitLabel(entry.metricKey, entry.unit, unitOpts)}
+          displayValue={toDisplayValue(entry.value, entry.metricKey, entry.unit, unitOpts)}
+          deleting={deletingId === entry.id}
+          onDelete={() => confirmDelete(entry)}
+        />
+      ))}
+
+      {/* Metric Picker & Entry Form */}
       <MetricPicker
         value={form.metricKey}
         onChange={(next) => {
@@ -466,23 +487,6 @@ export function MeasurementsSection() {
           }}
         />
       </View>
-
-      <Text className="mb-2.5 mt-8 text-xs font-semibold uppercase tracking-widest text-text-muted">
-        Latest Recorded Metrics
-      </Text>
-      {data && data.latestByMetric.length === 0 ? (
-        <Text className="text-sm text-text-muted">No measurements logged yet.</Text>
-      ) : null}
-      {data?.latestByMetric.map((entry) => (
-        <LatestCard
-          key={entry.id}
-          entry={entry}
-          unitLabel={displayUnitLabel(entry.metricKey, entry.unit, unitOpts)}
-          displayValue={toDisplayValue(entry.value, entry.metricKey, entry.unit, unitOpts)}
-          deleting={deletingId === entry.id}
-          onDelete={() => confirmDelete(entry)}
-        />
-      ))}
     </View>
   );
 }

@@ -164,3 +164,22 @@ export function eventTypeBadgeLabel(eventType: string): string {
   if (eventType === 'WELLNESS_CHECK') return 'Wellness check';
   return 'Symptom';
 }
+
+export function formatRecoveryDate(startAt: string, today = localDateYmd()): string {
+  const d = new Date(startAt);
+  if (Number.isNaN(d.getTime())) return startAt;
+  const eventDate = localDateYmd(d);
+  const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  if (eventDate === today) {
+    return `Today at ${time}`;
+  }
+
+  const yesterdayDate = new Date();
+  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+  if (eventDate === localDateYmd(yesterdayDate)) {
+    return `Yesterday at ${time}`;
+  }
+
+  return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}

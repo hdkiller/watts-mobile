@@ -22,7 +22,8 @@ export function WellnessScoreCard({
   onChange,
 }: WellnessScoreCardProps) {
   const theme = useThemeColors();
-  const current = value ?? SUBJECTIVE_DEFAULT;
+  const isAnswered = value != null;
+  const current = value ?? 5;
 
   const handleSelect = (score: number) => {
     hapticLight();
@@ -34,8 +35,8 @@ export function WellnessScoreCard({
       <View className="flex-row items-baseline justify-between">
         <Text className="text-sm font-semibold text-text-primary">{label}</Text>
         <View className="flex-row items-baseline gap-1">
-          <Text className="text-lg font-bold" style={{ color: value != null ? tintColor : theme.textMuted }}>
-            {value != null ? current : '—'}
+          <Text className="text-lg font-bold" style={{ color: isAnswered ? tintColor : theme.textMuted }}>
+            {isAnswered ? current : '—'}
           </Text>
           <Text className="text-xs text-text-muted">/ 10</Text>
         </View>
@@ -46,7 +47,7 @@ export function WellnessScoreCard({
       <View className="mt-3 flex-row gap-1">
         {Array.from({ length: 10 }, (_, i) => i + 1).map((score) => {
           const active = value === score;
-          const isFilled = current >= score;
+          const isFilled = isAnswered && current >= score;
 
           return (
             <Pressable
