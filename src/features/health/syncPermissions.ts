@@ -102,8 +102,8 @@ export function hasRequiredHealthConnectPermissions(
 }
 
 /**
- * Request expanded read permissions for Health Sync upload.
- * Safe to call when enabling Sync to Coach Watts.
+ * Request the full Health Sync read set (wellness + workouts).
+ * Used by Connect and when enabling Sync to Coach Watts / Sync workouts.
  */
 export async function requestHealthSyncPermissions(): Promise<boolean> {
   try {

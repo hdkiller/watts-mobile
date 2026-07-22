@@ -14,6 +14,7 @@ import { AuthProvider, useAuth } from '@/src/auth/AuthContext';
 import { ErrorFallback } from '@/src/components/ErrorFallback';
 import { AuthAtmosphere } from '@/src/features/auth/AuthAtmosphere';
 import { useDeepLinkReturn } from '@/src/linking/useDeepLinkReturn';
+import { RevenueCatIdentityBridge } from '@/src/features/subscriptions/RevenueCatIdentityBridge';
 import { initSentry } from '@/src/sentry';
 import { Colors } from '@/src/theme/colors';
 import { ThemePreferenceBootstrap } from '@/src/theme/ThemePreferenceBootstrap';
@@ -58,6 +59,7 @@ function RootNavigator() {
 
   return (
     <>
+      <RevenueCatIdentityBridge />
       <StatusBar style="auto" />
       <Stack
         screenOptions={{

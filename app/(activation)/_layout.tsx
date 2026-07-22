@@ -3,6 +3,7 @@ import { ActivityIndicator, View } from 'react-native';
 
 import { useAuth } from '@/src/auth/AuthContext';
 import { ActivationUnavailable } from '@/src/features/activation/ActivationUnavailable';
+import { activationStepRank } from '@/src/features/activation/mapStatus';
 import {
   activationHrefForStatus,
   useActivationStatus,
@@ -55,7 +56,15 @@ export default function ActivationLayout() {
       : activationHrefForStatus(activation);
     const requiredStep = requiredHref?.split('/').pop();
     if (requiredHref && currentStep !== requiredStep) {
-      return <Redirect href={requiredHref as Href} />;
+      const currentRank = activationStepRank(currentStep);
+      const requiredRank = activationStepRank(requiredStep);
+      // Resume when behind (or on a non-step route like the activation index).
+      // Allow ahead so optimistic advances are not bounced while status lags.
+      const shouldRedirect =
+        currentRank < 0 || (requiredRank >= 0 && currentRank < requiredRank);
+      if (shouldRedirect) {
+        return <Redirect href={requiredHref as Href} />;
+      }
     }
   }
 

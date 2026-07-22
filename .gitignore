@@ -2,7 +2,7 @@
 
 # dependencies
 node_modules/
-
+scripts/xcode.sh
 # Expo
 .expo/
 dist/

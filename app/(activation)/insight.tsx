@@ -7,13 +7,13 @@ import { friendlyError } from '@/src/api/errors';
 import { Button } from '@/src/components/Button';
 import { trackActivationEvent } from '@/src/features/activation/analytics';
 import { markFirstInsightViewed } from '@/src/features/activation/api';
-import { useInvalidateActivationStatus } from '@/src/features/activation/useActivationStatus';
+import { useAdvanceActivationStatus } from '@/src/features/activation/useActivationStatus';
 import { fetchUpcomingPlanned } from '@/src/features/plans/api';
 import type { PlannedWorkoutPreview } from '@/src/features/plans/types';
 
 export default function ActivationInsightScreen() {
   const router = useRouter();
-  const invalidate = useInvalidateActivationStatus();
+  const advance = useAdvanceActivationStatus();
   const [items, setItems] = useState<PlannedWorkoutPreview[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -41,7 +41,7 @@ export default function ActivationInsightScreen() {
       await markFirstInsightViewed();
       trackActivationEvent('activation_insight_viewed');
       trackActivationEvent('activation_soft_activated');
-      await invalidate();
+      await advance({ mobileActivationStep: 'connect', softActivated: true });
       router.replace('/(activation)/connect');
     } catch (err) {
       setError(friendlyError(err, 'Could not continue'));

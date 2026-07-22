@@ -5,7 +5,7 @@ Phased delivery for this repository. Product detail: [product-baseline.md](./pro
 ## Current state
 
 - Phase 0–4 companion OpenSpecs shipped and archived under `openspec/changes/archive/2026-07-19-*` (auth, Today, Log, notifications/push, coach chat, recent/upcoming, deep links, store polish, athlete metrics, nutrition quick-log).
-- Active work: Health Sync / Connected Apps lite OpenSpecs; product baseline **repositioned 2026-07-21** to activation companion ([product-baseline.md](./product-baseline.md)).
+- Active work: Health Sync / Connected Apps lite OpenSpecs; product baseline **repositioned 2026-07-21** to activation companion ([product-baseline.md](./product-baseline.md)). RevenueCat account created and native store subscriptions proposed as `store-subscriptions-revenuecat` (2026-07-22).
 - Phase 5 (activation onboarding) proposed below — OpenSpec not created yet.
 - Follow-ups: AASA/assetlinks host association for https deep links; coach-wattz baseline PR [#239](https://github.com/hdkiller/coach/pull/239) still draft — merge when ready (now includes activation reposition).
 - OAuth client registered as **Official Mobile App** in local + production; wire `EXPO_PUBLIC_OAUTH_CLIENT_ID` from [oauth-setup.md](./oauth-setup.md).
@@ -151,6 +151,7 @@ Track separately (or as paired PRs) — mobile UI polish should not wait forever
 4. ~~`POST /api/mobile/devices` + push send path~~ **done in coach-wattz**
 5. Deep-link / universal link host association — AASA + assetlinks for `coachwatts.com/go/*` (contract in [deep-links.md](./deep-links.md); app stubs already in `app.json`)
 6. Bearer + structure docs for planned workout detail; `profile:write` / `nutrition:*` on Official Mobile App (Phase 4)
+7. Store subscriptions: provider-neutral Apple/Google/Stripe persistence, RevenueCat webhook/reconciliation, product mapping, and Official Mobile App subscription summary/reconcile contracts (Phase 6)
 
 ## Definition of done (v1 store candidate)
 
@@ -194,3 +195,39 @@ Checklist (high level):
 - [ ] Manual empty-account device verify (OpenSpec task 7.6)
 
 **Exit:** brand-new account can soft-activate entirely on device (goal → plan → insight), optionally connect Health Sync, and land on a usable Today without opening web. Full activation when data imports.
+
+## Phase 6 — Hosted store subscriptions
+
+OpenSpec: `openspec/changes/store-subscriptions-revenuecat` (proposal/design/specs/tasks ready).
+
+Goal: let a hosted athlete acquire Supporter or Pro with their Apple App Store or Google Play account while preserving Stripe access and keeping Coach Watts server entitlements authoritative.
+
+| Slice | Focus |
+|-------|-------|
+| Commerce readiness | RevenueCat plan/team; Apple Paid Apps Agreement + tax/banking; Google merchant payments profile; store pricing/trial decision |
+| Product catalogs | Apple subscription group + four products; Google Supporter/Pro + monthly/annual base plans; RevenueCat offerings/entitlements |
+| Backend authority | Provider-neutral subscription records, product mapping, verified/idempotent RevenueCat lifecycle, Stripe tracking/backfill, Bearer status/reconcile |
+| Native foundation | `react-native-purchases`, authenticated Coach Watts UUID identity, hosted-only configuration, dev-client rebuild |
+| Subscription UX | Settings current plan/provider; purchase; restore; server-confirming state; provider manage action; no duplicate acquisition |
+| Release validation | RevenueCat Test Store, Apple sandbox/TestFlight, Google Internal Testing, lifecycle/refund/account-switch coverage, IAP review |
+
+High-level checklist:
+
+- [x] RevenueCat account created
+- [x] OpenSpec proposal/design/specs/tasks created
+- [ ] Decide RevenueCat plan, restore policy, store prices, and trial eligibility
+- [ ] Complete paid-commerce agreements/payment profiles
+- [ ] Build provider-neutral `coach-wattz` entitlement/reconciliation path
+- [ ] Configure Apple/Google/Stripe products and RevenueCat mappings
+- [ ] Add native purchase/status/restore/manage experience and rebuild binaries
+- [ ] Pass Apple sandbox/TestFlight and Google Internal Testing lifecycle matrix
+- [ ] Submit subscription products with matching store builds and record review outcomes
+
+Constraints:
+
+- Acquisition is available only for the canonical hosted `https://coachwatts.com` instance.
+- Existing Stripe/Apple/Google access suppresses a new initial purchase; overlapping providers are surfaced and never silently canceled.
+- Client RevenueCat state is presentation/purchase input only; paid API behavior unlocks from canonical server confirmation.
+- Invoice history, payment methods, tax documents, refunds, and billing administration stay web/provider-managed.
+
+**Exit:** a free hosted athlete can buy or restore Supporter/Pro on both stores; existing Stripe subscribers retain access without duplicate billing; lifecycle changes reliably update server gates; self-hosted instances never attach Watt Mind store purchases.

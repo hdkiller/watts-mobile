@@ -10,7 +10,7 @@ import { trackActivationEvent } from '@/src/features/activation/analytics';
 import { activationIdentity, setConnectLater } from '@/src/features/activation/connectLater';
 import {
   useActivationStatus,
-  useInvalidateActivationStatus,
+  useAdvanceActivationStatus,
 } from '@/src/features/activation/useActivationStatus';
 import { APP_HREFS } from '@/src/linking/appHrefs';
 
@@ -18,7 +18,7 @@ export default function ActivationConnectScreen() {
   const router = useRouter();
   const { instanceUrl, user } = useAuth();
   const identity = activationIdentity(instanceUrl, user);
-  const invalidate = useInvalidateActivationStatus();
+  const advance = useAdvanceActivationStatus();
   const activationQuery = useActivationStatus();
   const refetchActivation = activationQuery.refetch;
   const [busy, setBusy] = useState(false);
@@ -38,7 +38,8 @@ export default function ActivationConnectScreen() {
       if (!identity) throw new Error('Activation identity is unavailable');
       await setConnectLater(identity, true);
       trackActivationEvent('activation_connect_skipped');
-      await invalidate();
+      // Soft activation is already done at connect; keep gate open while status refreshes.
+      await advance({ softActivated: true, mobileActivationStep: 'connect' });
       router.replace(APP_HREFS.today as Href);
     } catch (err) {
       setError(friendlyError(err, 'Could not continue'));

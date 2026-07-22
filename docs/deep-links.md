@@ -29,6 +29,10 @@ Source of truth in code: [`src/linking/pathMap.ts`](../src/linking/pathMap.ts), 
 
 ## Push payload alignment
 
+**Channel taxonomy (what to send, when, vs email/inbox):**  
+`~/Develop/watts-marketing/knowledge/push/inventory.md`  
+(Email twin: `~/Develop/watts-marketing/knowledge/email/inventory.md`.)
+
 Prefer `data.path` matching the table above. Optional `data.url` is accepted. If neither is set, `data.type` falls back to:
 
 | `data.type` | Default path |
@@ -37,6 +41,8 @@ Prefer `data.path` matching the table above. Optional `data.url` is accepted. If
 | `WORKOUT_ANALYSIS_READY` | `/activities` |
 | `SYNC_COMPLETED` | `/today` |
 | `COACH_MESSAGE` | `/coach` |
+
+Inbox `link` values must resolve through the same map (or dual-write a mobile-safe path). Web-only links such as `/` or `/workouts/:id` dead-end on mobile — see push inventory.
 
 Example Expo push data:
 

@@ -3,7 +3,6 @@ import { ActivityIndicator, View } from 'react-native';
 
 import { Colors } from '@/src/theme/colors';
 
-import { ActivationUnavailable } from './ActivationUnavailable';
 import { activationHrefForStatus, useActivationStatus } from './useActivationStatus';
 import { wizardRequired } from './mapStatus';
 
@@ -13,10 +12,11 @@ type Props = {
 
 /**
  * When the instance supports activation fields and the wizard is incomplete,
- * force the activation stack. Older instances degrade open (children).
+ * force the activation stack. Older / unsupported instances and status-fetch
+ * failures degrade open (children) so returning athletes are not locked out.
  */
 export function ActivationGate({ children }: Props) {
-  const { data, isLoading, isError, error, refetch, isFetching } = useActivationStatus(true);
+  const { data, isLoading, isError } = useActivationStatus(true);
 
   if (isLoading && !data) {
     return (
@@ -27,13 +27,7 @@ export function ActivationGate({ children }: Props) {
   }
 
   if (isError) {
-    return (
-      <ActivationUnavailable
-        error={error}
-        isFetching={isFetching}
-        onRetry={() => void refetch()}
-      />
-    );
+    return <>{children}</>;
   }
 
   if (data && wizardRequired(data)) {

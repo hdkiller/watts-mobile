@@ -1,5 +1,44 @@
 export type MealSlot = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' | 'OTHER';
 
+/** Metric keys for the web-aligned MacroExplain analysis sheet. */
+export type MacroExplainLabel = 'Calories' | 'Carbs' | 'Protein' | 'Fat';
+
+/**
+ * Typed subset of fuelingPlan used for target analysis sheets.
+ * Mirrors fields consumed by coach-wattz MacroExplainModal.
+ */
+export type FuelingPlanWorkoutCalories = {
+  title: string;
+  calories: number;
+  sourceType: 'actual' | 'estimated';
+};
+
+export type FuelingPlanWindow = {
+  type: string;
+  targetCarbs: number;
+  targetProtein: number;
+  targetFat: number;
+};
+
+export type FuelingPlanDailyTotals = {
+  calories: number | null;
+  carbs: number | null;
+  protein: number | null;
+  fat: number | null;
+  fluid: number | null;
+  baseCalories: number | null;
+  baseCaloriesMode: 'AUTO' | 'MANUAL_NON_EXERCISE' | null;
+  activityCalories: number | null;
+  adjustmentCalories: number | null;
+  fuelState: 1 | 2 | 3 | null;
+  workoutCalories: FuelingPlanWorkoutCalories[];
+};
+
+export type FuelingPlanAnalysis = {
+  dailyTotals: FuelingPlanDailyTotals;
+  windows: FuelingPlanWindow[];
+};
+
 export type NutritionDayTotals = {
   id: string | null;
   date: string;
@@ -18,6 +57,8 @@ export type NutritionDayTotals = {
   hasGoals: boolean;
   /** Fueling periodization state for the day: 1 = Eco, 2 = Steady, 3 = Performance. */
   fuelState: 1 | 2 | 3 | null;
+  /** Breakdown fields for analysis sheets; null when the row has no plan. */
+  fuelingPlan: FuelingPlanAnalysis | null;
 };
 
 export type NextFuelingWindow = {

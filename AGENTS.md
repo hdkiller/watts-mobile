@@ -2,7 +2,7 @@
 
 This repository is the **native iOS/Android activation companion** for [Coach Watts](https://coachwatts.com).
 
-Web stays the control room (deep plan adapt, analytics, teams, nutrition planning, billing).
+Web stays the control room (deep plan adapt, analytics, teams, nutrition planning, and billing administration). Native mobile may acquire/restore a hosted Supporter or Pro subscription through Apple/Google via RevenueCat; invoices, payment methods, tax documents, refunds, and provider administration stay web/store-managed.
 This app **activates new athletes on device** (consent → goal → plan lite → insight → connect data last), then runs the daily field loop: today, check-in, coach, push — not a full web port.
 
 ## Source of truth
@@ -58,7 +58,7 @@ Local coach-wattz (workspace default): `http://localhost:3099/api/`
 
 **Next — activation onboarding:** mobile-only sign-up + consent, goal lite, plan lite wizard, first insight, connect-last (Health Sync primary; OAuth apps optional/skip). Fully activated = data → goal → plan → insight.
 
-**Out:** Full plan architect/adapt, analytics/explorer, coaching teams, nutrition planning/grocery, library editing, billing/admin, full Profile Settings / zones.
+**Out:** Full plan architect/adapt, analytics/explorer, coaching teams, nutrition planning/grocery, library editing, full billing administration, admin, full Profile Settings / zones. Narrow hosted store subscription purchase/status/restore/manage is tracked by OpenSpec `store-subscriptions-revenuecat`.
 
 IA: bottom tabs **Today · Log · Coach · More** (+ activation wizard stacks). See [docs/product-baseline.md](docs/product-baseline.md).
 

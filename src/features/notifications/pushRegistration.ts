@@ -1,4 +1,4 @@
-import { registerMobileDevice, unregisterMobileDevice } from './api';
+import { fetchNotificationPreferences, registerMobileDevice, unregisterMobileDevice } from './api';
 import {
   acquireExpoPushToken,
   clearStoredPushToken,
@@ -27,10 +27,18 @@ export async function registerPushForAuthenticatedSession(): Promise<PushRegistr
 
   await storePushToken(token);
 
+  let preferences: Awaited<ReturnType<typeof fetchNotificationPreferences>> | undefined;
+  try {
+    preferences = await fetchNotificationPreferences();
+  } catch (error) {
+    console.warn('Push registration continuing without preferences payload', error);
+  }
+
   const result = await registerMobileDevice({
     token,
     platform,
     appVersion: getAppVersion(),
+    ...(preferences ? { preferences } : {}),
   });
 
   if (result.ok) {

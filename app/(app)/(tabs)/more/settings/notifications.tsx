@@ -126,7 +126,8 @@ export default function NotificationSettingsScreen() {
           >
             <Text className="text-2xl font-semibold text-text-primary">Push notifications</Text>
             <Text className="mt-1 text-sm text-text-muted">
-              Configure which updates you would like to receive as push notifications on this device.
+              Choose which coaching alerts Coach Watts may send as push notifications on your
+              signed-in devices.
             </Text>
 
             <View className="mt-6 overflow-hidden rounded-xl border border-border bg-card">
@@ -142,13 +143,6 @@ export default function NotificationSettingsScreen() {
                 description="Receive AI insights and summary reports on your completed workouts."
                 value={preferences?.WORKOUT_ANALYSIS_READY ?? true}
                 onValueChange={(val) => handleToggle('WORKOUT_ANALYSIS_READY', val)}
-                disabled={updateMutation.isPending}
-              />
-              <PreferenceRow
-                title="Sync Status"
-                description="Receive alerts when your health device metrics (Whoop, Strava, etc.) finish syncing."
-                value={preferences?.SYNC_COMPLETED ?? true}
-                onValueChange={(val) => handleToggle('SYNC_COMPLETED', val)}
                 disabled={updateMutation.isPending}
               />
               <PreferenceRow

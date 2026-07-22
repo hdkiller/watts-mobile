@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  canExplainMetric,
   emptyQuickLogForm,
   formatMacroGrams,
   formatWindowTime,
@@ -135,6 +136,61 @@ describe('pickTodayNutrition', () => {
       today
     );
     expect(result.fuelState).toBeNull();
+  });
+
+  it('retains fueling-plan analysis fields for explain sheets', () => {
+    const today = '2026-07-22';
+    const result = pickTodayNutrition(
+      {
+        nutrition: [
+          {
+            id: 'n6',
+            date: today,
+            calories: 0,
+            caloriesGoal: 3392,
+            fuelingPlan: {
+              dailyTotals: {
+                fluid: 3000,
+                fuelState: 2,
+                baseCalories: 2300,
+                baseCaloriesMode: 'MANUAL_NON_EXERCISE',
+                activityCalories: 696,
+                adjustmentCalories: -599,
+                workoutCalories: [
+                  { title: 'Full-Body Strength Session', calories: 412, sourceType: 'estimated' },
+                ],
+              },
+              windows: [
+                { type: 'PRE_WORKOUT', targetCarbs: 40, targetProtein: 10, targetFat: 0 },
+                { type: 'DAILY_BASE', targetCarbs: 200, targetProtein: 80, targetFat: 50 },
+              ],
+            },
+          },
+        ],
+      },
+      today
+    );
+
+    expect(result.fuelingPlan).not.toBeNull();
+    expect(result.fuelingPlan?.dailyTotals.baseCalories).toBe(2300);
+    expect(result.fuelingPlan?.dailyTotals.baseCaloriesMode).toBe('MANUAL_NON_EXERCISE');
+    expect(result.fuelingPlan?.dailyTotals.workoutCalories).toEqual([
+      { title: 'Full-Body Strength Session', calories: 412, sourceType: 'estimated' },
+    ]);
+    expect(result.fuelingPlan?.windows).toHaveLength(2);
+    expect(canExplainMetric(result, 'Calories')).toBe(true);
+    expect(canExplainMetric(result, 'Carbs')).toBe(true);
+  });
+
+  it('leaves fuelingPlan null and blocks explain when there is no plan or goal', () => {
+    const today = '2026-07-22';
+    const result = pickTodayNutrition(
+      { nutrition: [{ id: 'n7', date: today, calories: 100, fuelingPlan: null }] },
+      today
+    );
+    expect(result.fuelingPlan).toBeNull();
+    expect(canExplainMetric(result, 'Calories')).toBe(false);
+    expect(canExplainMetric(result, 'Fat')).toBe(false);
   });
 });
 

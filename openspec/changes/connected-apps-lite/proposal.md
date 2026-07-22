@@ -9,7 +9,7 @@ Athletes expect to connect Garmin, Oura, WHOOP, and similar services from the co
 - Surface **Health Sync** on the same screen as a distinct phone-local path (link to existing Health Sync settings), so athletes can tell “on this phone” from “Coach Watts Connected Apps.”
 - Add a Settings hub entry (General) with a short status detail (e.g. “3 connected” / “None connected”).
 - **coach-wattz:** allow `GET /api/integrations/status` (or equivalent) for companion Bearer auth with an existing scope (likely `profile:read`); today it is session-only.
-- Update product docs / settings-hub non-goal wording: lite status + handoff is in scope; full sync prefs, disconnect UI, source conflicts, and billing remain Open web.
+- Update product docs / settings-hub non-goal wording: lite status + handoff is in scope; full sync prefs, disconnect UI, and source conflicts remain Open web. Billing administration remains web/provider-managed; hosted store subscription acquisition is handled separately by `store-subscriptions-revenuecat`.
 - Optional thin empty-state CTA on Today pointing at Connected Apps lite (ties to day-one setup) — same handoff/actions, no separate onboarding system.
 
 ## Capabilities
@@ -18,7 +18,7 @@ Athletes expect to connect Garmin, Oura, WHOOP, and similar services from the co
 - `connected-apps-lite`: Native status list for Coach Watts integrations, handoff-based Connect/Fix/Manage, and clear separation from Health Sync.
 
 ### Modified Capabilities
-- `settings-hub`: Add Connected Apps entry; relax “MUST NOT implement Connected Apps” to allow this lite status surface while full control-room Connected Apps stay on web.
+- `settings-hub`: Add Connected Apps entry; relax “MUST NOT implement Connected Apps” to allow this lite status surface while full control-room Connected Apps stay on web. Preserve room for the separate native Subscription & Billing lite surface.
 - `app-web-session-handoff`: No requirement change expected (existing `returnTo` to `/settings/apps` is enough). Listed only if design discovers a gap — leave unmodified unless needed.
 
 ## Impact

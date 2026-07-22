@@ -11,7 +11,7 @@ defineHealthSyncBackgroundTask();
 
 /**
  * Foreground health sync when authenticated + Sync to Coach Watts enabled.
- * Prefill-only permission never triggers this.
+ * Connect already requests the full read set; this runner only uploads when sync is on.
  */
 export function HealthSyncRunner() {
   const { status } = useAuth();

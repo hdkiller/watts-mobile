@@ -6,7 +6,7 @@ Distilled from coach-wattz PR [#239](https://github.com/hdkiller/coach/pull/239)
 
 | Surface | Role |
 |---------|------|
-| **Web** | Control room: deep plan adapt/replan, analytics/explorer, teams, nutrition planning/grocery, library editing, billing, admin |
+| **Web** | Control room: deep plan adapt/replan, analytics/explorer, teams, nutrition planning/grocery, library editing, billing administration (invoices/payment methods/tax/refunds), admin |
 | **Mobile** | **Activation companion**: get a new athlete alive without requiring the web app, then run the daily field loop (today, check-in, coach, push) |
 
 Mobile is no longer “field-only, assume web setup.” Accounts may be created and fully activated on device. Web remains the home for depth and architecture tools that do not fit a thumb-first morning path.
@@ -108,16 +108,26 @@ Still **out** of native mobile (use Open web / handoff):
 - Coaching teams / multi-athlete
 - Nutrition planning / grocery
 - Workout library editing
-- Billing / admin / developer portal
+- Full billing administration (invoices, payment methods, tax documents, refunds) / admin / developer portal; narrow hosted store subscription acquisition/status/restore/manage is in scope
 - Full web Profile Settings / sport zone editors / detect-from-workouts
 
 **Narrowed vs prior baseline:** goal capture, plan *kickoff*, Health Sync, and Connected Apps **lite** are **in scope**. Deep OAuth edge cases and obscure providers may still Open web.
+
+## Next chapter — Store subscriptions
+
+OpenSpec: `openspec/changes/store-subscriptions-revenuecat`.
+
+- Hosted `https://coachwatts.com` athletes may purchase, restore, inspect, and manage **Supporter** or **Pro** subscriptions with Apple App Store / Google Play billing through RevenueCat.
+- Existing Stripe subscribers keep the same mobile entitlements and are not offered a duplicate store subscription.
+- Coach Watts server entitlement state remains authoritative; the mobile SDK never grants paid server behavior by itself.
+- Store acquisition is **hosted-only**. Self-hosted instances keep instance-owned entitlement behavior and do not attach Watt Mind store purchases.
+- Web/provider surfaces keep invoices, payment-method editing, tax documents, refunds, and billing administration.
 
 ## Information architecture
 
 **Tabs:** Today · Log · Coach · More
 
-**Stacks (additions bold):** **activation wizard**, **goal lite**, **plan lite**, recommendation detail, planned workout detail, activity summary, upcoming planned list, notification inbox, athlete metrics, nutrition log (Log stack), daily coach check-in, sign-in / **sign-up** / instance setup, settings, **connected apps lite**.
+**Stacks (additions bold):** **activation wizard**, **goal lite**, **plan lite**, recommendation detail, planned workout detail, activity summary, upcoming planned list, notification inbox, athlete metrics, nutrition log (Log stack), daily coach check-in, sign-in / **sign-up** / instance setup, settings, **connected apps lite**, **Subscription & Billing**.
 
 **Today (activated):** greeting → optional analysis-ready card → optional Daily Coach Check-In CTA → recommendation hero / Analyze Readiness empty / planned-only hero → planned summary when with a recommendation → Recent Wellness → Active Recovery Context → Accept / Discuss with Coach → This week → Upcoming Events → Coming up → Recently → optional Nutrition glance.
 
@@ -127,7 +137,7 @@ Recovery **writes** stay Log-first. Coming up stays planned-only; race/life even
 
 **More hosts:** recent activity, upcoming planned, notifications inbox, athlete (+ **goals lite**), Settings hub, account glue.
 
-**Settings hub:** push prefs · Health Sync · **Connected Apps lite** (status + Connect/Fix/Manage via web handoff; disconnect/sync/ingest editors stay web) · Units & locale · Instance · Coach identity lite · Sports thresholds lite · Export / Delete via Open web. Billing and full Profile/zone editors stay web.
+**Settings hub:** push prefs · Health Sync · **Connected Apps lite** (status + Connect/Fix/Manage via web handoff; disconnect/sync/ingest editors stay web) · Units & locale · Instance · Coach identity lite · Sports thresholds lite · **Subscription & Billing** (hosted current plan + Apple/Google purchase/restore/manage; Stripe manage via web) · Export / Delete via Open web. Billing administration and full Profile/zone editors stay web.
 
 First viewport (once activated) = one decision. No CTL grids or calendar heatmaps.
 
@@ -182,7 +192,8 @@ Exact Official Mobile App allowlist must match coach-wattz `REST_OAUTH_SCOPES` /
 | Health platform ingest | Wellness/workout upload from HealthKit / Health Connect (opt-in) |
 | Connected apps lite | Documented connect/status for primary providers (or Open web handoff where Bearer OAuth is not ready) |
 
-Push events (initial): `RECOMMENDATION_READY`, `WORKOUT_ANALYSIS_READY`, `SYNC_COMPLETED`, `COACH_MESSAGE`.
+Push events (initial): `RECOMMENDATION_READY`, `WORKOUT_ANALYSIS_READY`, `SYNC_COMPLETED`, `COACH_MESSAGE`.  
+Living channel taxonomy (push ↔ inbox ↔ email): `~/Develop/watts-marketing/knowledge/push/inventory.md`.
 
 ## Non-functionals (baseline)
 

@@ -1,6 +1,6 @@
 # App Store / Play distribution
 
-Hub for shipping Coach Watts to **App Store** and (later) **Play Console**. Product chrome and privacy copy live in the store checklists; this tree tracks **who owns what**, **outstanding work**, and a durable **progress log**.
+Hub for shipping Coach Watts to **App Store** and **Play Console**, including the free store candidate and the later hosted Supporter/Pro subscription rollout through RevenueCat. Product chrome and privacy copy live in the store checklists; this tree tracks **who owns what**, **outstanding work**, and a durable **progress log**.
 
 ## Identifiers
 
@@ -8,8 +8,8 @@ Hub for shipping Coach Watts to **App Store** and (later) **Play Console**. Prod
 |------|--------|
 | iOS bundle id | `com.coachwatts.app` |
 | Android package | `com.coachwatts.app` |
-| Widget extension | `com.coachwatts.app.widgets` |
-| App Group | `group.com.coachwatts.app` |
+| Widget extension | `com.coachwatts.app.todaywidget` (must be prefixed with parent `com.coachwatts.app`; `.widgets` unavailable on Watt Mind) |
+| App Group | `group.com.wattmind.coachwatts` (Watt Mind team; old `group.com.coachwatts.app` unavailable — likely held by personal/free team) |
 | Apple Team ID | `42K8S6866N` (Watt Mind Kft.) |
 | Expo slug / EAS project | `coach-watts-app` / `3fad7b8c-dc45-4616-8d77-d48f44d161b2` |
 | Expo owner | `hdkillers-team` |
@@ -20,6 +20,7 @@ Hub for shipping Coach Watts to **App Store** and (later) **Play Console**. Prod
 | Support | `mailto:support@coachwatts.com` |
 | Play Console developer ID | `7883910200930974301` |
 | Play app ID | `4976128188579826786` (Coach Watts) |
+| RevenueCat | Account created 2026-07-22; project/app identifiers and durable Watt Mind ownership pending [018](./distribution/tasks/018-revenuecat-project.md) |
 
 ## Doc map
 
@@ -36,6 +37,7 @@ Hub for shipping Coach Watts to **App Store** and (later) **Play Console**. Prod
 | [e2e.md](./e2e.md) | Never enable e2e auth on store / preview EAS profiles |
 | [native-modules.md](./native-modules.md) | Rebuild after native / plugin changes; Android `minSdk` 26 |
 | [deep-links.md](./deep-links.md) | AASA / associated domains for review |
+| [../openspec/changes/store-subscriptions-revenuecat/](../openspec/changes/store-subscriptions-revenuecat/) | Native store subscription proposal/design/specs/tasks |
 | [../.release-it.json](../.release-it.json) | release-it: bump, CHANGELOG, git tag, GitHub Release notes |
 
 ## Enrollment (Watt Mind Kft.)
@@ -75,10 +77,25 @@ Same legal entity for **both** stores. Account enrollments are independent and c
 |-------|----------|-----|
 | **iOS / App Store** | First store candidate | Membership paid for Org Account Holder; finish 001 then TestFlight path 002–009 |
 | **Android / Play** | Parallel account setup OK; ship after or alongside iOS | Tasks 010–017; internal testing can start before iOS is approved |
+| **Hosted subscriptions** | After or independent of free candidate | Tasks 018–022; requires both store catalogs, backend authority, native SDK, and lifecycle QA |
 
 Shared work (do once): production OAuth (+ hosted SIWA), privacy copy, Sentry EAS secrets, branded assets, delete-account path.  
 App Review sign-in: **Sign in with Apple** with a reviewer Apple ID — no dedicated Google demo ([008](./distribution/tasks/008-reviewer-demo-account.md)).  
 **Marketing (ASC):** upload iPhone screenshots on version **0.1.1** after TestFlight — see [004](./distribution/tasks/004-listing-metadata-assets.md).
+
+## Hosted subscriptions (RevenueCat)
+
+RevenueCat is the selected Apple/Google subscription integration. Coach Watts server entitlements remain authoritative, existing Stripe subscribers keep mobile access, and Watt Mind store acquisition is available only for the canonical hosted `https://coachwatts.com` instance.
+
+| Workstream | Task | Status |
+|------------|------|--------|
+| RevenueCat ownership, plan, restore policy, store connections | [018](./distribution/tasks/018-revenuecat-project.md) | in-progress (account created) |
+| Apple Paid Apps Agreement/tax/banking; Google merchant profile; prices/products | [019](./distribution/tasks/019-paid-agreements-and-products.md) | open |
+| `coach-wattz` provider-neutral persistence, lifecycle, Stripe backfill, Bearer reconcile | [020](./distribution/tasks/020-subscription-backend.md) | open |
+| Expo RevenueCat SDK + hosted purchase/restore/status/manage UI | [021](./distribution/tasks/021-native-subscription-experience.md) | open |
+| Sandbox/TestFlight/Internal lifecycle matrix + IAP review | [022](./distribution/tasks/022-subscription-store-test-review.md) | open |
+
+The original free-app submission may proceed while these are open. Do not expose a production paywall until all five workstreams are ready.
 
 ## Version releases (release-it)
 
@@ -130,11 +147,22 @@ Do **not** set `EXPO_PUBLIC_E2E_*` on preview/production. Android sideload/GitHu
 5. Listing (icon, feature graphic, screenshots, description) — no medical claims
 6. Promote to production; after first signing, update [deep-links.md](./deep-links.md) **assetlinks** SHA-256 fingerprints
 
+## Green light — hosted subscriptions
+
+1. RevenueCat project is Watt Mind-owned; plan and restore policy are recorded; Apple/Google/Stripe connections and sandbox/production separation are verified
+2. Apple Paid Apps Agreement + tax/banking and Google merchant payments profile are active
+3. Supporter/Pro monthly/annual products are localized, priced, mapped once to canonical tiers, and ready/approved in both stores
+4. `coach-wattz` verifies/idempotently ingests RevenueCat lifecycle, tracks existing Stripe subscriptions, and exposes canonical Bearer summary/reconciliation
+5. Native SDK identifies only authenticated hosted users by Coach Watts UUID; self-hosted purchase/restore is unavailable
+6. Purchase, restore, server-confirming, provider manage, duplicate suppression, and overlapping-provider UX pass tests
+7. Apple sandbox/TestFlight and Google Internal Testing lifecycle matrices pass; privacy/data-safety and review metadata are updated
+8. Production rollout is feature-flagged and rollback hides acquisition without revoking existing subscriber access
+
 Track detail in [distribution/tasks.md](./distribution/tasks.md).
 
 ## How to maintain
 
-1. **Tasks** — When work starts or finishes, update the row in `tasks.md` **and** the matching `tasks/{id}-*.md` status together.
+1. **Tasks** — When work starts or finishes, update the row in `tasks.md` **and** the matching `tasks/{id}-*.md` status together (including subscription tasks 018–022).
 2. **Log** — When a decision lands, an enrollment completes, a build ships to TestFlight / Play internal, or review feedback arrives, **prepend** a dated entry to [distribution/log.md](./distribution/log.md). Do not rewrite old entries; add a correction note if needed.
 3. **Secrets** — Never commit Apple/Google passwords, Play service-account JSON, review demo passwords, or real Sentry DSNs. Reference EAS secret names and “stored in password manager / Console” only.
 4. **Store checklists** — Keep chrome/privacy copy in `store-checklist.md` / `store-privacy-checklist.md`; link from tasks instead of duplicating long tables.
@@ -144,3 +172,4 @@ Track detail in [distribution/tasks.md](./distribution/tasks.md).
 - Hosted vs self-hosted distribution binary strategy — [open-questions.md](./open-questions.md) #4
 - First-run / reviewer empty-state risk — [issues/056.md](./issues/056.md)
 - Phone-only v1 (`supportsTablet: false`) — [issues/055.md](./issues/055.md) (done)
+- Store pricing/trials and RevenueCat restore transfer policy — [open-questions.md](./open-questions.md) #31–32

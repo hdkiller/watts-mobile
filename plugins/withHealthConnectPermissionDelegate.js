@@ -7,7 +7,9 @@
  * @returns {import('expo/config').ExpoConfig}
  */
 function withHealthConnectPermissionDelegate(config) {
-  const { withMainActivity } = require('@expo/config-plugins');
+  // Use expo/config-plugins (not @expo/config-plugins) so pnpm + Xcode
+  // EXConstants scripts can resolve the package via the expo dependency.
+  const { withMainActivity } = require('expo/config-plugins');
 
   return withMainActivity(config, (cfg) => {
     if (cfg.modResults.language !== 'kt') {

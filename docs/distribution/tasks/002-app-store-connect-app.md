@@ -13,7 +13,7 @@ Create the App Store Connect app so builds can upload and a listing can be fille
 1. [x] In App Store Connect → Apps → New App.
 2. [x] Platforms: iOS. Name: **Coach Watts**. Bundle ID: `com.coachwatts.app` (App ID registered on Watt Mind team).
 3. [x] SKU / primary language set in ASC (internal; stable).
-4. [x] Widget / App Group identifiers: `com.coachwatts.app.widgets`, `group.com.coachwatts.app`.
+4. [x] Widget / App Group: widget `com.coachwatts.app.todaywidget` (must stay under parent `com.coachwatts.app`; `.widgets` unavailable on Watt Mind); App Group `group.com.wattmind.coachwatts`.
 5. [x] ASC Apple ID `6793247809`; SKU `coach-watts-app` (logged).
 
 ## Done when

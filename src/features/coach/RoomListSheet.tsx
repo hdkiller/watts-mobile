@@ -2,6 +2,7 @@ import {
   ActivityIndicator,
   FlatList,
   Modal,
+  Platform,
   Pressable,
   Text,
   View,
@@ -11,6 +12,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '@/src/theme/colors';
 
 import type { ChatRoomSummary } from './types';
+
+/** pageSheet already clears the status bar; top inset double-pads on iOS. */
+const sheetEdges = Platform.OS === 'ios' ? (['bottom'] as const) : (['top', 'bottom'] as const);
 
 function previewForRoom(room: ChatRoomSummary): string {
   const content = room.lastMessage?.content?.trim();
@@ -59,7 +63,7 @@ export function RoomListSheet({
 }) {
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <SafeAreaView className="flex-1 bg-surface" edges={['top', 'bottom']}>
+      <SafeAreaView className="flex-1 bg-surface" edges={sheetEdges}>
         <View className="flex-row items-center justify-between border-b border-border px-5 py-4">
           <Text className="text-xl font-semibold text-text-primary">Chats</Text>
           <View className="flex-row items-center gap-3">
@@ -85,7 +89,8 @@ export function RoomListSheet({
           </View>
         ) : (
           <FlatList
-            className="mt-4 px-5"
+            className="mt-4 flex-1"
+            contentContainerStyle={{ paddingBottom: 32 }}
             data={rooms}
             keyExtractor={(item) => item.roomId}
             ListEmptyComponent={
@@ -95,16 +100,19 @@ export function RoomListSheet({
               const active = item.roomId === activeRoomId;
               return (
                 <Pressable
-                  className={`mb-3 rounded-2xl border px-4 py-3 active:opacity-80 ${
+                  className={`mx-5 mb-3 rounded-2xl border px-4 py-3 active:opacity-80 ${
                     active ? 'border-brand bg-brand/10' : 'border-border-strong bg-card'
                   }`}
                   onPress={() => onSelect(item.roomId)}
                 >
-                  <View className="flex-row items-center justify-between">
-                    <Text className="text-base font-semibold text-text-primary" numberOfLines={1}>
+                  <View className="flex-row items-center justify-between gap-3">
+                    <Text
+                      className="min-w-0 flex-1 text-base font-semibold text-text-primary"
+                      numberOfLines={1}
+                    >
                       {item.roomName || 'Chat'}
                     </Text>
-                    <Text className="ml-3 text-xs text-text-muted">{timeForRoom(item)}</Text>
+                    <Text className="shrink-0 text-xs text-text-muted">{timeForRoom(item)}</Text>
                   </View>
                   <Text className="mt-1 text-sm text-text-muted" numberOfLines={2}>
                     {previewForRoom(item)}

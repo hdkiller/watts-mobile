@@ -11,11 +11,11 @@ import {
 } from '@/src/features/account/paths';
 import { trackActivationEvent } from '@/src/features/activation/analytics';
 import { POLICY_VERSIONS, submitConsent } from '@/src/features/activation/api';
-import { useInvalidateActivationStatus } from '@/src/features/activation/useActivationStatus';
+import { useAdvanceActivationStatus } from '@/src/features/activation/useActivationStatus';
 
 export default function ActivationConsentScreen() {
   const router = useRouter();
-  const invalidate = useInvalidateActivationStatus();
+  const advance = useAdvanceActivationStatus();
   const [terms, setTerms] = useState(false);
   const [health, setHealth] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -30,7 +30,7 @@ export default function ActivationConsentScreen() {
         privacyPolicyVersion: POLICY_VERSIONS.privacy,
       });
       trackActivationEvent('activation_consent_completed');
-      await invalidate();
+      await advance({ mobileActivationStep: 'goal' });
       router.replace('/(activation)/goal');
     } catch (err) {
       setError(friendlyError(err, 'Could not save consent'));

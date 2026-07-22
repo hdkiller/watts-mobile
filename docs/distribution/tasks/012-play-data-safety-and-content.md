@@ -22,7 +22,7 @@ Saved in Play Console:
 | Government apps — no | done |
 | Financial features — none | done |
 | Advertising ID — no | done |
-| Sign in details — Yes (restricted); placeholder demo `reviewer+play@coachwatts.com` / `UPDATE_BEFORE_REVIEW` | done (replace before review → [008](./008-reviewer-demo-account.md)) |
+| Sign in details — Yes (restricted); Google demo `coachwatts.play.review@gmail.com` (password in password manager only) | done → [008](./008-reviewer-demo-account.md) |
 | Target audience — **18 and over** | done |
 | Health apps — Activity and fitness, Nutrition and weight management, Sleep management (not a medical device) | done |
 | Content rating (IARC) — All Other App Types; ESRB **Everyone** / PEGI 3 / etc. | done |
@@ -52,7 +52,7 @@ Delete account URL: `https://coachwatts.com/settings/danger`. Encryption in tran
 3. [x] **Content rating** questionnaire (IARC) — endurance coaching companion, not a medical device.
 4. [x] Target audience — 18 and over. Ads declaration already **No**.
 5. [x] **Health** declaration: fitness/wellness companion; not a regulated medical device.
-6. [x] **Sign in details**: restricted; placeholder credentials — replace when [008](./008-reviewer-demo-account.md) is ready.
+6. [x] **Sign in details**: restricted; Google demo `coachwatts.play.review@gmail.com` saved 2026-07-21 (seed athlete on hosted IdP still open → [008](./008-reviewer-demo-account.md)).
 7. [ ] Store listing text later ([013](./013-play-listing-assets.md)) must match Data safety (no diagnosis language).
 
 ## Done when

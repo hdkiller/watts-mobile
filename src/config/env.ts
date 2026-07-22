@@ -28,6 +28,11 @@ function envCsv(value: string | undefined): string[] {
     .filter(Boolean);
 }
 
+function envCsvPreserveCase(value: string | undefined): string[] {
+  if (!value?.trim()) return [];
+  return value.split(',').map((part) => part.trim()).filter(Boolean);
+}
+
 /**
  * Maestro / local smoke only. When set, bootstrap seeds SecureStore tokens and
  * skips system-browser PKCE. Never enable on store or production EAS profiles.
@@ -69,6 +74,18 @@ export const SENTRY_ENVIRONMENT =
 export const APP_SCHEME = 'coachwatts';
 
 export const APP_VERSION = Constants.expoConfig?.version ?? '0.1.0';
+
+export const NATIVE_SUBSCRIPTIONS_ENABLED = envFlag(
+  process.env.EXPO_PUBLIC_NATIVE_SUBSCRIPTIONS_ENABLED
+);
+export const REVENUECAT_IOS_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY?.trim() ?? '';
+export const REVENUECAT_ANDROID_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY?.trim() ?? '';
+export const SUBSCRIPTION_SUPPORTER_PRODUCT_IDS = envCsvPreserveCase(
+  process.env.EXPO_PUBLIC_SUBSCRIPTION_SUPPORTER_PRODUCT_IDS
+);
+export const SUBSCRIPTION_PRO_PRODUCT_IDS = envCsvPreserveCase(
+  process.env.EXPO_PUBLIC_SUBSCRIPTION_PRO_PRODUCT_IDS
+);
 
 /**
  * Android Google Maps key (baked into the native binary via app.config).

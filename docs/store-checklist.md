@@ -76,6 +76,22 @@ See [.env.example](../.env.example).
 - [x] Settings → Export my data opens web Danger Zone
 - [x] Settings → Delete account opens web Danger Zone (in-app path to account deletion)
 
+## Hosted subscriptions (planned)
+
+OpenSpec: [`store-subscriptions-revenuecat`](../openspec/changes/store-subscriptions-revenuecat/proposal.md) · distribution [tasks 018–022](./distribution/tasks.md).
+
+- [x] RevenueCat account created
+- [ ] RevenueCat project ownership/plan/restore behavior and Apple/Google/Stripe connections recorded (no secrets)
+- [ ] Apple Paid Apps Agreement + tax/banking active; Google merchant payments profile active
+- [ ] Supporter/Pro monthly/annual products localized, priced, and mapped through RevenueCat
+- [ ] `coach-wattz` provider-neutral entitlement lifecycle + Stripe backfill + Bearer reconciliation ready
+- [ ] Settings → Subscription & Billing shows canonical tier/provider and hosted-only purchase/restore/manage
+- [ ] Localized price/period, auto-renew terms, Terms, Privacy, Restore, and provider management visible in review build
+- [ ] Apple sandbox/TestFlight and Google Internal Testing lifecycle matrices complete
+- [ ] Store privacy/data-safety declarations updated for purchase history / RevenueCat processing
+
+The free store candidate is not blocked by this section. Keep production acquisition hidden until every subscription release gate passes.
+
 ## Deferred
 
 - Maestro CI wiring (local footing in [e2e.md](./e2e.md))

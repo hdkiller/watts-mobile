@@ -4,6 +4,7 @@ import { useAuth } from '@/src/auth/AuthContext';
 
 import { fetchActivationStatus } from './api';
 import { activationIdentity } from './connectLater';
+import { mergeActivationAdvance } from './mapStatus';
 import type { ActivationStatus } from './types';
 
 export const activationStatusQueryKey = ['activation', 'onboarding-status'] as const;
@@ -22,6 +23,32 @@ export function useActivationStatus(enabled = true) {
 export function useInvalidateActivationStatus() {
   const client = useQueryClient();
   return () => client.invalidateQueries({ queryKey: activationStatusQueryKey });
+}
+
+/**
+ * Optimistically patch activation status, then refetch.
+ * Re-applies the forward patch after refetch so a lagging server cannot bounce
+ * wizard layout / ActivationGate back to a completed step.
+ */
+export function useAdvanceActivationStatus() {
+  const client = useQueryClient();
+  const { instanceUrl, user } = useAuth();
+  const identity = activationIdentity(instanceUrl, user);
+
+  return async (patch: Partial<ActivationStatus>) => {
+    const key = identity ? ([...activationStatusQueryKey, identity] as const) : null;
+    if (key) {
+      client.setQueryData<ActivationStatus>(key, (prev) =>
+        prev ? mergeActivationAdvance(prev, patch) : prev
+      );
+    }
+    await client.invalidateQueries({ queryKey: activationStatusQueryKey });
+    if (key) {
+      client.setQueryData<ActivationStatus>(key, (prev) =>
+        prev ? mergeActivationAdvance(prev, patch) : prev
+      );
+    }
+  };
 }
 
 export function activationHrefForStatus(status: ActivationStatus | undefined): string | null {

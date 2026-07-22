@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { friendlyError } from '@/src/api/errors';
 import { Button } from '@/src/components/Button';
 import { trackActivationEvent } from '@/src/features/activation/analytics';
-import { useInvalidateActivationStatus } from '@/src/features/activation/useActivationStatus';
+import { useAdvanceActivationStatus } from '@/src/features/activation/useActivationStatus';
 import { createGoal } from '@/src/features/goals/api';
 import type { GoalType } from '@/src/features/goals/types';
 import { useThemeColors } from '@/src/theme/useThemeColors';
@@ -27,7 +27,7 @@ function defaultTargetDateIso(monthsAhead = 3): string {
 export default function ActivationGoalScreen() {
   const router = useRouter();
   const theme = useThemeColors();
-  const invalidate = useInvalidateActivationStatus();
+  const advance = useAdvanceActivationStatus();
   const [type, setType] = useState<GoalType>('EVENT');
   const [title, setTitle] = useState('');
   const [targetDate, setTargetDate] = useState(() => {
@@ -45,26 +45,25 @@ export default function ActivationGoalScreen() {
     setBusy(true);
     try {
       const dateIso = targetDate ? new Date(`${targetDate}T12:00:00.000Z`).toISOString() : defaultTargetDateIso();
-      if (type === 'EVENT') {
-        await createGoal({
-          type,
-          title: title.trim(),
-          targetDate: dateIso,
-          eventData: {
-            title: title.trim(),
-            date: dateIso,
-            type: 'RACE',
-          },
-        });
-      } else {
-        await createGoal({
-          type,
-          title: title.trim(),
-          targetDate: dateIso,
-        });
-      }
+      const goal =
+        type === 'EVENT'
+          ? await createGoal({
+              type,
+              title: title.trim(),
+              targetDate: dateIso,
+              eventData: {
+                title: title.trim(),
+                date: dateIso,
+                type: 'RACE',
+              },
+            })
+          : await createGoal({
+              type,
+              title: title.trim(),
+              targetDate: dateIso,
+            });
       trackActivationEvent('activation_goal_created', { type });
-      await invalidate();
+      await advance({ mobileActivationStep: 'plan', primaryGoalId: goal.id });
       router.replace('/(activation)/plan');
     } catch (err) {
       setError(friendlyError(err, 'Could not save goal'));

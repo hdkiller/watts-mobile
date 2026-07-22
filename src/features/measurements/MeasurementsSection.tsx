@@ -6,11 +6,13 @@ import {
   ScrollView,
   Text,
   TextInput,
-  View } from 'react-native';
+  View,
+} from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
+import { AppSymbol } from '@/src/components/AppSymbol';
 import { weightUnit } from '@/src/features/profile/mapProfile';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
@@ -21,7 +23,8 @@ import {
   CUSTOM_UNIT_OPTIONS,
   DEFAULT_METRIC_KEY,
   MEASUREMENT_METRICS,
-  findMetricOption } from './catalog';
+  findMetricOption,
+} from './catalog';
 import {
   displayUnitLabel,
   emptyMeasurementForm,
@@ -32,7 +35,8 @@ import {
   measurementsWebPath,
   prefersImperialMass,
   toCreatePayload,
-  toDisplayValue } from './mapMeasurements';
+  toDisplayValue,
+} from './mapMeasurements';
 import type { BodyMeasurementEntry, CanonicalUnit, MeasurementFormValues } from './types';
 import {
   useBodyMeasurementsQuery,
@@ -41,69 +45,106 @@ import {
 } from './useMeasurements';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 
+const METRIC_CATEGORIES = [
+  { id: 'all', label: 'All Metrics' },
+  { id: 'body', label: 'Body Composition', keys: ['weight', 'body_fat_pct', 'muscle_mass_kg'] },
+  { id: 'vitals', label: 'Vitals & Cardiac', keys: ['resting_hr', 'hrv_sdnn_ms', 'blood_pressure_sys', 'blood_glucose_mg_dl', 'spo2_pct'] },
+  { id: 'dimensions', label: 'Dimensions', keys: ['waist_cm', 'chest_cm', 'thigh_cm', 'arm_cm', 'hips_cm'] },
+];
+
 function MetricPicker({
   value,
-  onChange }: {
+  onChange,
+}: {
   value: string;
   onChange: (next: string) => void;
 }) {
   const theme = useThemeColors();
-  const [open, setOpen] = useState(false);
-  const selected = findMetricOption(value);
+  const [activeCategory, setActiveCategory] = useState('all');
+
+  const filteredMetrics = useMemo(() => {
+    if (activeCategory === 'all') return MEASUREMENT_METRICS;
+    const cat = METRIC_CATEGORIES.find((c) => c.id === activeCategory);
+    if (!cat?.keys) return MEASUREMENT_METRICS;
+    return MEASUREMENT_METRICS.filter((m) => cat.keys.includes(m.key) || m.key === 'custom');
+  }, [activeCategory]);
 
   return (
-    <View className="mt-4">
-      <Text className="mb-2 text-sm text-text-muted">Measurement</Text>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityState={{ expanded: open }}
-        className="rounded-xl border border-border-strong bg-card px-4 py-3 active:opacity-80"
-        onPress={() => {
-          hapticLight();
-          setOpen((prev) => !prev);
-        }}
-      >
-        <Text className="text-base font-semibold text-text-primary">
-          {selected?.label ?? 'Select metric'}
-        </Text>
-      </Pressable>
-      {open ? (
-        <View className="mt-2 rounded-xl border border-border bg-surface">
-          <ScrollView style={{ maxHeight: 220 }} nestedScrollEnabled>
-            <View className="flex-row flex-wrap gap-2 p-3">
-              {MEASUREMENT_METRICS.map((metric) => {
-                const active = value === metric.key;
-                return (
-                  <Pressable
-                    key={metric.key}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: active }}
-                    className="rounded-full border px-3 py-1.5"
-                    style={
-                      active
-                        ? {
-                            borderColor: Colors.brand,
-                            backgroundColor: 'rgba(0, 220, 130, 0.1)' }
-                        : { borderColor: theme.borderStrong }
-                    }
-                    onPress={() => {
-                      hapticLight();
-                      onChange(metric.key);
-                      setOpen(false);
-                    }}
-                  >
-                    <Text
-                      className={`text-xs font-semibold ${active ? 'text-brand' : 'text-text-primary'}`}
-                    >
-                      {metric.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </ScrollView>
+    <View className="mt-4 rounded-xl border border-border bg-card p-4">
+      <Text className="text-sm font-semibold text-text-primary">Select Metric</Text>
+
+      {/* Category Pills */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3 flex-row">
+        <View className="flex-row gap-2">
+          {METRIC_CATEGORIES.map((cat) => {
+            const active = activeCategory === cat.id;
+            return (
+              <Pressable
+                key={cat.id}
+                accessibilityRole="button"
+                accessibilityLabel={cat.label}
+                accessibilityState={{ selected: active }}
+                className="rounded-full px-3 py-1.5 active:opacity-80"
+                style={{
+                  backgroundColor: active ? theme.borderStrong : theme.border,
+                  borderWidth: active ? 1 : 0,
+                  borderColor: active ? theme.textPrimary : 'transparent',
+                }}
+                onPress={() => {
+                  hapticLight();
+                  setActiveCategory(cat.id);
+                }}
+              >
+                <Text
+                  className={`text-xs font-semibold ${
+                    active ? 'text-text-primary' : 'text-text-muted'
+                  }`}
+                >
+                  {cat.label}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
-      ) : null}
+      </ScrollView>
+
+      {/* Metric Option Grid */}
+      <View className="mt-3 flex-row flex-wrap gap-2">
+        {filteredMetrics.map((metric) => {
+          const active = value === metric.key;
+          return (
+            <Pressable
+              key={metric.key}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+              className="rounded-full border px-3 py-2 active:opacity-80"
+              style={
+                active
+                  ? {
+                      borderColor: Colors.brand,
+                      backgroundColor: 'rgba(0, 220, 130, 0.1)',
+                    }
+                  : {
+                      borderColor: theme.borderStrong,
+                      backgroundColor: theme.surface,
+                    }
+              }
+              onPress={() => {
+                hapticLight();
+                onChange(metric.key);
+              }}
+            >
+              <Text
+                className={`text-xs font-semibold ${
+                  active ? 'text-brand' : 'text-text-primary'
+                }`}
+              >
+                {metric.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
     </View>
   );
 }
@@ -113,31 +154,44 @@ function LatestCard({
   unitLabel,
   displayValue,
   onDelete,
-  deleting }: {
+  deleting,
+}: {
   entry: BodyMeasurementEntry;
   unitLabel: string;
   displayValue: number;
   onDelete: () => void;
   deleting: boolean;
 }) {
+  const theme = useThemeColors();
+
   return (
-    <View className="mb-2 rounded-xl border border-border bg-card px-4 py-3">
+    <View className="mb-2.5 rounded-xl border border-border bg-card px-4 py-3.5">
       <View className="flex-row items-start justify-between gap-3">
         <View className="min-w-0 flex-1">
-          <Text className="text-sm font-semibold text-text-primary">{formatMetricName(entry)}</Text>
-          <Text className="mt-1 text-lg font-semibold text-text-primary">
-            {displayValue}{' '}
-            <Text className="text-sm font-medium text-text-muted">{unitLabel}</Text>
-          </Text>
+          <View className="flex-row items-center gap-2">
+            <Text className="text-sm font-semibold text-text-primary">
+              {formatMetricName(entry)}
+            </Text>
+          </View>
+
+          <View className="mt-1 flex-row items-baseline gap-2">
+            <Text className="text-xl font-bold text-text-primary">
+              {displayValue}{' '}
+              <Text className="text-xs font-medium text-text-muted">{unitLabel}</Text>
+            </Text>
+          </View>
+
           <Text className="mt-1 text-xs text-text-muted">
             {formatRecordedAt(entry.recordedAt)} · {formatSource(entry.source)}
           </Text>
+
           {entry.notes ? (
             <Text className="mt-1 text-xs text-text-muted" numberOfLines={2}>
               {entry.notes}
             </Text>
           ) : null}
         </View>
+
         {entry.source === 'manual_measurement' ? (
           <Pressable
             accessibilityRole="button"
@@ -147,7 +201,7 @@ function LatestCard({
             hitSlop={8}
             onPress={onDelete}
           >
-            <Text className="text-sm font-semibold text-red-400">
+            <Text className="text-xs font-semibold text-red-400">
               {deleting ? '…' : 'Delete'}
             </Text>
           </Pressable>
@@ -173,7 +227,9 @@ export function MeasurementsSection() {
   const createMutation = useCreateBodyMeasurement();
   const deleteMutation = useSoftDeleteBodyMeasurement();
 
-  const [form, setForm] = useState<MeasurementFormValues>(emptyMeasurementForm(DEFAULT_METRIC_KEY));
+  const [form, setForm] = useState<MeasurementFormValues>(
+    emptyMeasurementForm(DEFAULT_METRIC_KEY)
+  );
   const [formError, setFormError] = useState<string | null>(null);
   const [justSaved, setJustSaved] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -242,7 +298,8 @@ export function MeasurementsSection() {
                 setDeletingId(null);
               }
             })();
-          } },
+          },
+        },
       ]
     );
   };
@@ -253,21 +310,25 @@ export function MeasurementsSection() {
 
   return (
     <View className="mt-4">
-      <Text className="mb-1 text-xs font-semibold uppercase tracking-widest text-text-muted">
-        Measurements
-      </Text>
-      <Text className="text-sm text-text-muted">
-        Log weight, body fat, and circumferences.
-      </Text>
+      <View className="flex-row items-center justify-between">
+        <View>
+          <Text className="text-xs font-semibold uppercase tracking-widest text-text-muted">
+            Body Measurements
+          </Text>
+          <Text className="text-sm text-text-muted">
+            Track weight, body composition, vitals, and dimensions.
+          </Text>
+        </View>
 
-      <Pressable
-        accessibilityRole="button"
-        className="mt-2 self-start py-1 active:opacity-70"
-        hitSlop={8}
-        onPress={() => void openWeb()}
-      >
-        <Text className="text-sm font-semibold text-brand">View history</Text>
-      </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          className="py-1 active:opacity-70"
+          hitSlop={8}
+          onPress={() => void openWeb()}
+        >
+          <Text className="text-xs font-semibold text-brand">Web History ›</Text>
+        </Pressable>
+      </View>
 
       {isLoading && !data ? (
         <ActivityIndicator className="mt-4" color={Colors.brand} />
@@ -290,117 +351,127 @@ export function MeasurementsSection() {
           touch();
           setForm((prev) => ({
             ...emptyMeasurementForm(next),
-            notes: prev.notes }));
+            notes: prev.notes,
+          }));
         }}
       />
 
-      {form.metricKey === 'custom' ? (
-        <>
-          <View className="mt-4">
-            <Text className="mb-2 text-sm text-text-muted">Custom name</Text>
-            <TextInput
-              className="rounded-xl border border-border-strong bg-card px-4 py-3 text-base text-text-primary"
-              placeholderTextColor={theme.textMuted}
-              placeholder="e.g. Left bicep flexed"
-              value={form.customName}
-              onChangeText={(text) => {
-                touch();
-                setForm((prev) => ({ ...prev, customName: text }));
-              }}
-            />
-          </View>
-          <Text className="mb-2 mt-4 text-sm text-text-muted">Type</Text>
-          <View className="flex-row flex-wrap gap-2">
-            {CUSTOM_UNIT_OPTIONS.map((option) => {
-              const active = form.customUnit === option.value;
-              return (
-                <Pressable
-                  key={option.value}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: active }}
-                  className="rounded-full border px-3 py-2"
-                  style={
-                    active
-                      ? {
-                          borderColor: Colors.brand,
-                          backgroundColor: 'rgba(0, 220, 130, 0.1)' }
-                      : { borderColor: theme.borderStrong }
-                  }
-                  onPress={() => {
-                    touch();
-                    setForm((prev) => ({ ...prev, customUnit: option.value }));
-                  }}
-                >
-                  <Text
-                    className={`text-xs font-semibold ${active ? 'text-brand' : 'text-text-primary'}`}
+      {/* Entry Form Card */}
+      <View className="mt-4 rounded-xl border border-border bg-card p-4">
+        {form.metricKey === 'custom' ? (
+          <>
+            <View>
+              <Text className="mb-1 text-xs font-medium text-text-muted">Custom Metric Name</Text>
+              <TextInput
+                className="rounded-xl border border-border-strong bg-surface px-4 py-3 text-base text-text-primary"
+                placeholderTextColor={theme.textMuted}
+                placeholder="e.g. Left bicep flexed"
+                value={form.customName}
+                onChangeText={(text) => {
+                  touch();
+                  setForm((prev) => ({ ...prev, customName: text }));
+                }}
+              />
+            </View>
+
+            <Text className="mb-2 mt-3 text-xs font-medium text-text-muted">Unit Type</Text>
+            <View className="flex-row flex-wrap gap-2">
+              {CUSTOM_UNIT_OPTIONS.map((option) => {
+                const active = form.customUnit === option.value;
+                return (
+                  <Pressable
+                    key={option.value}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: active }}
+                    className="rounded-full border px-3 py-1.5"
+                    style={
+                      active
+                        ? {
+                            borderColor: Colors.brand,
+                            backgroundColor: 'rgba(0, 220, 130, 0.1)',
+                          }
+                        : { borderColor: theme.borderStrong }
+                    }
+                    onPress={() => {
+                      touch();
+                      setForm((prev) => ({ ...prev, customUnit: option.value }));
+                    }}
                   >
-                    {option.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </>
-      ) : null}
-
-      <View className="mt-4">
-        <Text className="mb-2 text-sm text-text-muted">Value ({unitLabel})</Text>
-        <TextInput
-          className="rounded-xl border border-border-strong bg-card px-4 py-3 text-base text-text-primary"
-          placeholderTextColor={theme.textMuted}
-          placeholder={
-            form.metricKey === 'weight'
-              ? prefersImperialMass(weightUnits)
-                ? '165'
-                : '75'
-              : '0'
-          }
-          value={form.value}
-          onChangeText={(text) => {
-            touch();
-            setForm((prev) => ({ ...prev, value: text }));
-          }}
-          keyboardType="decimal-pad"
-        />
-        {form.metricKey === 'weight' ? (
-          <Text className="mt-1 text-xs text-text-muted">
-            Using profile unit ({weightUnit(profile)}). Also available on Wellness check-in.
-          </Text>
+                    <Text
+                      className={`text-xs font-semibold ${
+                        active ? 'text-brand' : 'text-text-primary'
+                      }`}
+                    >
+                      {option.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </>
         ) : null}
-      </View>
 
-      <View className="mt-4">
-        <Text className="mb-2 text-sm text-text-muted">Notes (optional)</Text>
-        <TextInput
-          className="rounded-xl border border-border-strong bg-card px-4 py-3 text-base text-text-primary"
-          placeholderTextColor={theme.textMuted}
-          placeholder="Morning, after ride…"
-          value={form.notes}
-          onChangeText={(text) => {
-            touch();
-            setForm((prev) => ({ ...prev, notes: text }));
+        <View className="mt-2">
+          <Text className="mb-1 text-xs font-medium text-text-muted">
+            Value ({unitLabel})
+          </Text>
+          <TextInput
+            className="rounded-xl border border-border-strong bg-surface px-4 py-3 text-base font-semibold text-text-primary"
+            placeholderTextColor={theme.textMuted}
+            placeholder={
+              form.metricKey === 'weight'
+                ? prefersImperialMass(weightUnits)
+                  ? '165'
+                  : '75'
+                : '0'
+            }
+            value={form.value}
+            onChangeText={(text) => {
+              touch();
+              setForm((prev) => ({ ...prev, value: text }));
+            }}
+            keyboardType="decimal-pad"
+          />
+          {form.metricKey === 'weight' ? (
+            <Text className="mt-1 text-xs text-text-muted">
+              Using profile unit ({weightUnit(profile)}).
+            </Text>
+          ) : null}
+        </View>
+
+        <View className="mt-3">
+          <Text className="mb-1 text-xs font-medium text-text-muted">Notes (optional)</Text>
+          <TextInput
+            className="rounded-xl border border-border-strong bg-surface px-4 py-3 text-base text-text-primary"
+            placeholderTextColor={theme.textMuted}
+            placeholder="Morning, after workout…"
+            value={form.notes}
+            onChangeText={(text) => {
+              touch();
+              setForm((prev) => ({ ...prev, notes: text }));
+            }}
+          />
+        </View>
+
+        {formError ? <Text className="mt-3 text-xs text-red-400">{formError}</Text> : null}
+
+        <Button
+          className="mt-4"
+          label={justSaved ? '✓ Measurement Saved' : 'Add measurement'}
+          loading={createMutation.isPending}
+          disabled={!measurementFormHasContent(form) || justSaved}
+          onPress={() => {
+            if (justSaved) return;
+            void onSave();
           }}
         />
       </View>
 
-      {formError ? <Text className="mt-4 text-sm text-red-400">{formError}</Text> : null}
-
-      <Button
-        className="mt-6"
-        label={justSaved ? '✓ Saved' : 'Add measurement'}
-        loading={createMutation.isPending}
-        disabled={!measurementFormHasContent(form) || justSaved}
-        onPress={() => {
-          if (justSaved) return;
-          void onSave();
-        }}
-      />
-
-      <Text className="mb-2 mt-8 text-xs font-semibold uppercase tracking-widest text-text-muted">
-        Latest
+      <Text className="mb-2.5 mt-8 text-xs font-semibold uppercase tracking-widest text-text-muted">
+        Latest Recorded Metrics
       </Text>
       {data && data.latestByMetric.length === 0 ? (
-        <Text className="text-sm text-text-muted">No measurements yet — add one above.</Text>
+        <Text className="text-sm text-text-muted">No measurements logged yet.</Text>
       ) : null}
       {data?.latestByMetric.map((entry) => (
         <LatestCard

@@ -2,7 +2,7 @@ import { apiFetch } from '@/src/api/client';
 import { ApiError } from '@/src/api/errors';
 
 import { getConnectLater } from './connectLater';
-import { mapOnboardingStatus } from './mapStatus';
+import { mapOnboardingStatus, unsupportedActivationStatus } from './mapStatus';
 import type { ActivationStatus, OnboardingStatusApi } from './types';
 
 async function readErrorBody(response: Response): Promise<unknown> {
@@ -19,24 +19,19 @@ export async function fetchActivationStatus(identity?: string | null): Promise<A
   const response = await apiFetch(`/api/user/onboarding-status${qs}`);
 
   if (!response.ok) {
+    // Older instances may lack the endpoint — open tabs instead of blocking the shell.
+    if (response.status === 404) {
+      return unsupportedActivationStatus();
+    }
     const body = await readErrorBody(response);
     throw new ApiError(
-      response.status === 404
-        ? 'This Coach Watts instance does not support mobile activation yet'
-        : `Failed to load onboarding status (${response.status})`,
+      `Failed to load onboarding status (${response.status})`,
       response.status,
       body
     );
   }
 
   const json = (await response.json()) as OnboardingStatusApi;
-  if (json.mobileActivationStep === undefined) {
-    throw new ApiError(
-      'This Coach Watts instance needs an update before mobile activation can continue',
-      426,
-      json
-    );
-  }
   return mapOnboardingStatus(json);
 }
 

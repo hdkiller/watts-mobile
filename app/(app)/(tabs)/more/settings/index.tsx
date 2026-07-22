@@ -286,6 +286,13 @@ export default function SettingsScreen() {
 
           <Section title="Account">
             <MenuRow
+              title="Subscription & Billing"
+              detail="Plan, billing provider, restore purchases"
+              sf="creditcard"
+              emoji="💳"
+              onPress={() => router.push(APP_HREFS.settingsSubscription as Href)}
+            />
+            <MenuRow
               title="Athlete metrics"
               detail="Weight, FTP, HR"
               sf="person.crop.circle"

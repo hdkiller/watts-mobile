@@ -1,4 +1,3 @@
-import { Slider } from '@expo/ui/community/slider';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -13,13 +12,9 @@ import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { friendlyError } from '@/src/api/errors';
 import { AppSymbol } from '@/src/components/AppSymbol';
-import {
-  emptyLogForm,
-  formFromWellness,
-  formHasContent,
-  toWellnessPayload,
-} from '@/src/features/log/mapLogForm';
+import { Button } from '@/src/components/Button';
 import { applyHealthPrefill } from '@/src/features/log/applyHealthPrefill';
+
 import { fetchHealthPrefill } from '@/src/features/log/healthPrefill';
 import {
   logTabOrder,
@@ -27,37 +22,47 @@ import {
   type LogSection,
 } from '@/src/features/log/logTabPreference';
 import {
-  clampSubjectiveScore,
+  emptyLogForm,
+  formFromWellness,
+  formHasContent,
+  toWellnessPayload,
+} from '@/src/features/log/mapLogForm';
+import { SleepDurationInput } from '@/src/features/log/SleepDurationInput';
+import type { LogFormValues } from '@/src/features/log/types';
+import { useSaveWellnessCheckin, useTodayWellnessQuery } from '@/src/features/log/useLog';
+import { useLogTabPreference } from '@/src/features/log/useLogTabPreference';
+import {
   getFatigueHelp,
   getMoodLabel,
   getSorenessHelp,
   getStressLabel,
 } from '@/src/features/log/wellnessLabels';
-import { Button } from '@/src/components/Button';
-import { useSaveWellnessCheckin, useTodayWellnessQuery } from '@/src/features/log/useLog';
-import { useLogTabPreference } from '@/src/features/log/useLogTabPreference';
-import type { LogFormValues } from '@/src/features/log/types';
+import { WellnessScoreCard } from '@/src/features/log/WellnessScoreCard';
 import { MeasurementsSection } from '@/src/features/measurements/MeasurementsSection';
 import { NutritionSection } from '@/src/features/nutrition/NutritionSection';
 import { isNutritionTrackingEnabled, weightUnit } from '@/src/features/profile/mapProfile';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { filterActiveToday } from '@/src/features/recovery/mapRecovery';
-import { useRecoveryContextQuery } from '@/src/features/recovery/useRecovery';
+import { RecoveryEventCard } from '@/src/features/recovery/RecoveryEventCard';
 import type { RecoveryContextItem } from '@/src/features/recovery/types';
+import { useRecoveryContextQuery } from '@/src/features/recovery/useRecovery';
+
 import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
 import { useTabScrollPadding } from '@/src/hooks/useTabScrollPadding';
-import { hapticError, hapticSuccess } from '@/src/lib/haptics';
+import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
-const TAB_LABELS: Record<LogSection, string> = {
-  nutrition: 'Nutrition',
-  recovery: 'Recovery',
-  wellness: 'Wellness',
-  measurements: 'Measurements',
+const TAB_CONFIG: Record<
+  LogSection,
+  { label: string; sf: string; emoji: string }
+> = {
+  wellness: { label: 'Wellness', sf: 'bolt.fill', emoji: '⚡' },
+  recovery: { label: 'Recovery', sf: 'cross.case.fill', emoji: '🩹' },
+  nutrition: { label: 'Nutrition', sf: 'fork.knife', emoji: '🍎' },
+  measurements: { label: 'Measurements', sf: 'ruler.fill', emoji: '📏' },
 };
 
-const SUBJECTIVE_DEFAULT = 5;
 const SAVED_FLASH_MS = 2000;
 
 type StringFormKey = 'sleepHours' | 'notes' | 'weight';
@@ -80,10 +85,10 @@ function Field({
 }) {
   const theme = useThemeColors();
   return (
-    <View className="mt-4">
-      <Text className="mb-2 text-sm text-text-muted">{label}</Text>
+    <View className="mt-4 rounded-xl border border-border bg-card p-4">
+      <Text className="mb-2 text-sm font-semibold text-text-primary">{label}</Text>
       <TextInput
-        className="rounded-xl border border-border-strong bg-card px-4 py-3 text-base text-text-primary"
+        className="rounded-xl border border-border-strong bg-surface px-4 py-3 text-base text-text-primary"
         placeholderTextColor={theme.textMuted}
         placeholder={placeholder}
         value={value}
@@ -96,125 +101,12 @@ function Field({
   );
 }
 
-function MetricSlider({
-  label,
-  help,
-  value,
-  tintColor,
-  onChange,
-}: {
-  label: string;
-  help: string;
-  value: number | null;
-  tintColor: string;
-  onChange: (next: number) => void;
-}) {
-  const theme = useThemeColors();
-  const display = value ?? SUBJECTIVE_DEFAULT;
-  return (
-    <View className="mt-5">
-      <View className="mb-1 flex-row items-baseline justify-between">
-        <Text className="text-sm text-text-muted">{label}</Text>
-        <Text className={`text-sm font-semibold ${value != null ? 'text-text-primary' : 'text-text-muted'}`}>
-          {value != null ? display : '—'}
-        </Text>
-      </View>
-      <Text className="mb-2 text-xs text-text-muted">{help}</Text>
-      <Slider
-        value={display}
-        minimumValue={1}
-        maximumValue={10}
-        step={1}
-        minimumTrackTintColor={tintColor}
-        maximumTrackTintColor={theme.borderStrong}
-        thumbTintColor={tintColor}
-        style={{ width: '100%', height: 36 }}
-        onValueChange={(next) => onChange(clampSubjectiveScore(next))}
-      />
-    </View>
-  );
-}
-
-function SleepHoursField({
-  value,
-  onChangeText,
-  onStep,
-}: {
-  value: string;
-  onChangeText: (v: string) => void;
-  onStep: (delta: number) => void;
-}) {
-  const theme = useThemeColors();
-  return (
-    <View className="mt-4">
-      <Text className="mb-2 text-sm text-text-muted">Sleep hours</Text>
-      <View className="flex-row items-center gap-2">
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Decrease sleep hours by 0.5"
-          className="h-12 w-12 items-center justify-center rounded-xl border border-border-strong bg-card active:opacity-80"
-          onPress={() => onStep(-0.5)}
-        >
-          <Text className="text-lg font-semibold text-text-primary">−</Text>
-        </Pressable>
-        <TextInput
-          className="min-h-12 flex-1 rounded-xl border border-border-strong bg-card px-4 py-3 text-center text-base text-text-primary"
-          placeholderTextColor={theme.textMuted}
-          placeholder="7.5"
-          value={value}
-          onChangeText={onChangeText}
-          keyboardType="decimal-pad"
-        />
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Increase sleep hours by 0.5"
-          className="h-12 w-12 items-center justify-center rounded-xl border border-border-strong bg-card active:opacity-80"
-          onPress={() => onStep(0.5)}
-        >
-          <Text className="text-lg font-semibold text-text-primary">+</Text>
-        </Pressable>
-      </View>
-    </View>
-  );
-}
-
 function openRecoveryEvent(item?: RecoveryContextItem) {
   if (item) {
     router.push(`/(app)/recovery-event?id=${encodeURIComponent(item.sourceRecordId)}` as Href);
     return;
   }
   router.push('/(app)/recovery-event' as Href);
-}
-
-function RecoveryChip({ item }: { item: RecoveryContextItem }) {
-  const theme = useThemeColors();
-  const readOnly = item.sourceType === 'imported' || !item.editable;
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={
-        readOnly
-          ? `${item.label}${item.severity != null ? `, severity ${item.severity} of 10` : ''}, read-only`
-          : undefined
-      }
-      className="mr-2 mt-2 flex-row items-center rounded-full border border-border-strong bg-card px-3 py-2 active:opacity-80"
-      onPress={() => openRecoveryEvent(item)}
-    >
-      <Text className="text-xs font-semibold text-text-primary">
-        {item.label}
-        {item.severity != null ? ` · ${item.severity}/10` : ''}
-      </Text>
-      {readOnly ? (
-        <AppSymbol
-          sf="eye"
-          size={11}
-          tintColor={theme.textMuted}
-          fallback="👁"
-          style={{ marginLeft: 5 }}
-        />
-      ) : null}
-    </Pressable>
-  );
 }
 
 function parseLogSection(value: string | string[] | undefined): LogSection | null {
@@ -272,6 +164,7 @@ export default function LogScreen() {
     recoveryItems && activeToday
       ? recoveryItems.filter((item) => !activeToday.some((a) => a.id === item.id))
       : undefined;
+
   const saveMutation = useSaveWellnessCheckin();
   const [values, setValues] = useState<LogFormValues>(emptyLogForm());
   const [error, setError] = useState<string | null>(null);
@@ -343,6 +236,7 @@ export default function LogScreen() {
   };
 
   const onPrefillFromHealth = async () => {
+    hapticLight();
     setHealthBusy(true);
     setHealthHint(null);
     setError(null);
@@ -358,8 +252,10 @@ export default function LogScreen() {
           weightUnit: weightUnitLabel === 'lbs' ? 'lb' : 'kg',
         })
       );
+      hapticSuccess();
       setHealthHint('Prefilled from Health — review and save when ready.');
     } catch (err) {
+      hapticError();
       setError(friendlyError(err, 'Could not read Health data'));
     } finally {
       setHealthBusy(false);
@@ -418,7 +314,7 @@ export default function LogScreen() {
 
   const tabs = logTabOrder(nutritionEnabled).map((key) => ({
     key,
-    label: TAB_LABELS[key],
+    ...TAB_CONFIG[key],
   }));
 
   return (
@@ -427,229 +323,289 @@ export default function LogScreen() {
       edges={{ top: true }}
       style={{ flex: 1, backgroundColor: theme.surface }}
     >
-    <View ref={containerRef} className="flex-1 bg-surface">
-      <ScrollView
-        ref={scrollRef}
-        className="flex-1"
-        contentContainerClassName="px-6 pt-4"
-        contentContainerStyle={{ paddingBottom: tabBottomPad }}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Text className="text-2xl font-semibold text-text-primary">Log</Text>
-        <Text className="mt-2 text-base text-text-muted">
-          {nutritionEnabled
-            ? 'Check in, recovery, nutrition, or body measurements for today.'
-            : 'Check in, recovery events, or body measurements for today.'}
-        </Text>
+      <View ref={containerRef} className="flex-1 bg-surface">
+        <ScrollView
+          ref={scrollRef}
+          className="flex-1"
+          contentContainerClassName="px-6 pt-4"
+          contentContainerStyle={{ paddingBottom: tabBottomPad }}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Header & Title */}
+          <Text className="text-2xl font-semibold text-text-primary">Log & Check-in</Text>
+          <Text className="mt-1 text-base text-text-muted">
+            Track daily wellness, recovery context, macros, and body metrics.
+          </Text>
 
-        <View className="mt-5 flex-row rounded-xl bg-card p-1 border border-border">
-          {tabs.map((tab) => {
-            const active = activeTab === tab.key;
-            return (
-              <Pressable
-                key={tab.key}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: active }}
-                className="flex-1 items-center justify-center py-2.5 rounded-lg"
-                style={
-                  active
-                    ? {
-                        backgroundColor: theme.border,
-                        borderWidth: 1,
-                        borderColor: theme.borderStrong,
-                        shadowColor: '#000',
-                        shadowOffset: { width: 0, height: 1 },
-                        shadowOpacity: 0.18,
-                        shadowRadius: 1.0,
-                        elevation: 1,
-                      }
-                    : undefined
-                }
-                onPress={() => {
-                  userPickedTab.current = true;
-                  setActiveTab(tab.key);
+          {/* Daily Status Snapshot Banner */}
+          <View className="mt-4 flex-row items-center justify-between rounded-xl border border-border bg-card p-3.5">
+            <View className="flex-row items-center gap-2.5">
+              <View
+                className="h-2.5 w-2.5 rounded-full"
+                style={{
+                  backgroundColor: wasPrefilled ? Colors.brand : Colors.modify,
                 }}
-              >
-                <Text
-                  className={`text-center text-xs font-semibold ${active ? 'text-brand' : 'text-text-muted'}`}
-                  numberOfLines={1}
-                >
-                  {tab.label}
+              />
+              <Text className="text-xs font-semibold text-text-primary">
+                Today's Status:{' '}
+                <Text className="font-normal text-text-muted">
+                  {wasPrefilled ? 'Check-in completed' : 'Check-in pending'}
                 </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+              </Text>
+            </View>
 
-        {activeTab === 'recovery' && (
-          <View className="mt-6">
-            <Text className="mb-1 text-xs font-semibold uppercase tracking-widest text-text-muted">
-              Recovery events
-            </Text>
-            <Text className="text-sm text-text-muted">
-              Illness, fatigue, sleep, stress — context Coach Watts uses for guidance.
-            </Text>
-
-            {recoveryLoading && !recoveryItems ? (
-              <ActivityIndicator className="mt-4" color={Colors.brand} />
-            ) : null}
-
-            {recoveryError ? (
-              <View className="mt-3 rounded-xl border border-danger/40 bg-tint-error p-3">
-                <Text className="text-sm text-red-300">
-                  {friendlyError(recoveryErr, 'Couldn’t load recovery events')}
+            {activeToday && activeToday.length > 0 ? (
+              <View className="rounded-full bg-border px-2.5 py-1">
+                <Text className="text-[10px] font-bold text-text-primary">
+                  {activeToday.length} Active Context
                 </Text>
-                <Pressable className="mt-2" hitSlop={8} onPress={() => void refetchRecovery()}>
-                  <Text className="font-semibold text-brand">Retry</Text>
-                </Pressable>
               </View>
             ) : null}
+          </View>
 
-            {!recoveryError && recoveryItems ? (
-              recoveryItems.length === 0 ? (
-                <Text className="mt-4 text-sm text-text-muted">
-                  No recovery events in the last 7 days. Log one when something affects training.
-                </Text>
-              ) : (
-                <>
-                  <Text className="mt-5 text-xs font-semibold uppercase tracking-widest text-text-muted">
-                    Active today
+          {/* Segmented Tab Bar Switcher */}
+          <View className="mt-5 flex-row rounded-xl border border-border bg-card p-1">
+            {tabs.map((tab) => {
+              const active = activeTab === tab.key;
+              return (
+                <Pressable
+                  key={tab.key}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: active }}
+                  className="flex-1 flex-row items-center justify-center gap-1.5 py-2.5 rounded-lg active:opacity-80"
+                  style={
+                    active
+                      ? {
+                          backgroundColor: theme.border,
+                          borderWidth: 1,
+                          borderColor: theme.borderStrong,
+                          shadowColor: '#000',
+                          shadowOffset: { width: 0, height: 1 },
+                          shadowOpacity: 0.18,
+                          shadowRadius: 1.0,
+                          elevation: 1,
+                        }
+                      : undefined
+                  }
+                  onPress={() => {
+                    hapticLight();
+                    userPickedTab.current = true;
+                    setActiveTab(tab.key);
+                  }}
+                >
+                  <AppSymbol
+                    sf={tab.sf as any}
+                    size={14}
+                    tintColor={active ? Colors.brand : theme.textMuted}
+                    fallback={tab.emoji}
+                  />
+                  <Text
+                    className={`text-center text-xs font-semibold ${
+                      active ? 'text-brand' : 'text-text-muted'
+                    }`}
+                    numberOfLines={1}
+                  >
+                    {tab.label}
                   </Text>
-                  {activeToday && activeToday.length > 0 ? (
-                    <View className="mt-1 flex-row flex-wrap">
-                      {activeToday.map((item) => (
-                        <RecoveryChip key={item.id} item={item} />
-                      ))}
-                    </View>
-                  ) : (
-                    <Text className="mt-2 text-sm text-text-muted">
-                      Nothing active today.
-                    </Text>
-                  )}
+                </Pressable>
+              );
+            })}
+          </View>
 
-                  {recentOnly && recentOnly.length > 0 ? (
-                    <>
-                      <Text className="mt-5 text-xs font-semibold uppercase tracking-widest text-text-muted">
-                        Recent
-                      </Text>
-                      <View className="mt-1 flex-row flex-wrap">
-                        {recentOnly.map((item) => (
-                          <RecoveryChip key={item.id} item={item} />
+          {/* Wellness Tab */}
+          {activeTab === 'wellness' && (
+            <View className="mt-6">
+              <View className="flex-row items-center justify-between">
+                <View>
+                  <Text className="text-xs font-semibold uppercase tracking-widest text-text-muted">
+                    Daily Wellness Check-in
+                  </Text>
+                  <Text className="text-sm text-text-muted">
+                    Mood, stress, fatigue, soreness, sleep, and weight.
+                  </Text>
+                </View>
+
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Prefill sleep and weight from Health"
+                  className="rounded-full border border-border bg-card px-3 py-1.5 active:opacity-70"
+                  hitSlop={8}
+                  disabled={healthBusy}
+                  onPress={() => void onPrefillFromHealth()}
+                >
+                  <Text className="text-xs font-semibold text-brand">
+                    {healthBusy ? 'Reading…' : 'Health Sync'}
+                  </Text>
+                </Pressable>
+              </View>
+
+              {healthHint ? (
+                <Text className="mt-2 text-xs text-text-muted">{healthHint}</Text>
+              ) : null}
+
+              {/* Subjective Score Cards */}
+              <WellnessScoreCard
+                label="Mood"
+                help={getMoodLabel(values.mood ?? 5)}
+                value={values.mood}
+                tintColor={Colors.brand}
+                onChange={updateSubjective('mood')}
+              />
+              <WellnessScoreCard
+                label="Stress"
+                help={getStressLabel(values.stress ?? 5)}
+                value={values.stress}
+                tintColor={Colors.modify}
+                onChange={updateSubjective('stress')}
+              />
+              <WellnessScoreCard
+                label="Fatigue"
+                help={getFatigueHelp(values.fatigue ?? 5)}
+                value={values.fatigue}
+                tintColor={theme.textMuted}
+                onChange={updateSubjective('fatigue')}
+              />
+              <WellnessScoreCard
+                label="Soreness"
+                help={getSorenessHelp(values.soreness ?? 5)}
+                value={values.soreness}
+                tintColor={Colors.danger}
+                onChange={updateSubjective('soreness')}
+              />
+
+              {/* Sleep & Weight */}
+              <SleepDurationInput
+                value={values.sleepHours}
+                onChangeText={update('sleepHours')}
+                onStep={onStepSleepHours}
+              />
+              <Field
+                label={`Body Weight (${weightUnitLabel}, optional)`}
+                value={values.weight}
+                onChangeText={update('weight')}
+                placeholder={weightUnitLabel}
+                keyboardType="decimal-pad"
+              />
+
+              {error ? <Text className="mt-4 text-sm text-red-400">{error}</Text> : null}
+              {savedOffline ? (
+                <Text className="mt-4 text-sm text-amber-200">
+                  Saved offline — will sync when you’re back online.
+                </Text>
+              ) : null}
+
+              <Button
+                className="mt-6"
+                label={saveLabel}
+                onPress={() => {
+                  if (justSaved) return;
+                  void onSave();
+                }}
+                loading={saveMutation.isPending}
+                disabled={!formHasContent(values)}
+              />
+            </View>
+          )}
+
+          {/* Recovery Tab */}
+          {activeTab === 'recovery' && (
+            <View className="mt-6">
+              <Text className="mb-1 text-xs font-semibold uppercase tracking-widest text-text-muted">
+                Recovery Events
+              </Text>
+              <Text className="text-sm text-text-muted">
+                Illness, fatigue, sleep, stress, or injury context Coach Watts uses for guidance.
+              </Text>
+
+              {recoveryLoading && !recoveryItems ? (
+                <ActivityIndicator className="mt-4" color={Colors.brand} />
+              ) : null}
+
+              {recoveryError ? (
+                <View className="mt-3 rounded-xl border border-danger/40 bg-tint-error p-3">
+                  <Text className="text-sm text-red-300">
+                    {friendlyError(recoveryErr, 'Couldn’t load recovery events')}
+                  </Text>
+                  <Pressable className="mt-2" hitSlop={8} onPress={() => void refetchRecovery()}>
+                    <Text className="font-semibold text-brand">Retry</Text>
+                  </Pressable>
+                </View>
+              ) : null}
+
+              {!recoveryError && recoveryItems ? (
+                recoveryItems.length === 0 ? (
+                  <View className="mt-4 rounded-xl border border-border bg-card p-4">
+                    <Text className="text-sm text-text-muted">
+                      No recovery events logged in the last 7 days. Log one when something affects training.
+                    </Text>
+                  </View>
+                ) : (
+                  <>
+                    <Text className="mt-5 mb-2.5 text-xs font-semibold uppercase tracking-widest text-text-muted">
+                      Active Context Today
+                    </Text>
+                    {activeToday && activeToday.length > 0 ? (
+                      <View className="gap-2">
+                        {activeToday.map((item) => (
+                          <RecoveryEventCard
+                            key={item.id}
+                            item={item}
+                            onPress={(i) => openRecoveryEvent(i)}
+                          />
                         ))}
                       </View>
-                    </>
-                  ) : null}
-                </>
-              )
-            ) : null}
+                    ) : (
+                      <View className="rounded-xl border border-border bg-card p-3.5">
+                        <Text className="text-xs text-text-muted">
+                          Nothing active today. Clean slate for training!
+                        </Text>
+                      </View>
+                    )}
 
-            <Button
-              variant="secondary"
-              className="mt-6"
-              label="Log recovery event"
-              onPress={() => openRecoveryEvent()}
-            />
-          </View>
-        )}
+                    {recentOnly && recentOnly.length > 0 ? (
+                      <>
+                        <Text className="mt-6 mb-2.5 text-xs font-semibold uppercase tracking-widest text-text-muted">
+                          Recent History
+                        </Text>
+                        <View className="gap-2">
+                          {recentOnly.map((item) => (
+                            <RecoveryEventCard
+                              key={item.id}
+                              item={item}
+                              onPress={(i) => openRecoveryEvent(i)}
+                            />
+                          ))}
+                        </View>
+                      </>
+                    ) : null}
+                  </>
+                )
+              ) : null}
 
-        {activeTab === 'wellness' && (
-          <View className="mt-6">
-            <Text className="mb-1 text-xs font-semibold uppercase tracking-widest text-text-muted">
-              Daily check-in
-            </Text>
-            <Text className="text-sm text-text-muted">
-              Mood, stress, fatigue, and soreness — plus sleep and weight for today.
-            </Text>
+              <Button
+                variant="secondary"
+                className="mt-6"
+                label="Log new recovery event"
+                onPress={() => openRecoveryEvent()}
+              />
+            </View>
+          )}
 
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Prefill sleep and weight from Health"
-              className="mt-3 self-start py-1 active:opacity-70"
-              hitSlop={8}
-              disabled={healthBusy}
-              onPress={() => void onPrefillFromHealth()}
-            >
-              <Text className="text-sm font-semibold text-brand">
-                {healthBusy ? 'Reading Health…' : 'Prefill from Health'}
-              </Text>
-            </Pressable>
-            {healthHint ? <Text className="mt-1 text-sm text-text-muted">{healthHint}</Text> : null}
+          {/* Measurements Tab */}
+          {activeTab === 'measurements' && (
+            <View className="mt-6">
+              <MeasurementsSection />
+            </View>
+          )}
 
-            <MetricSlider
-              label="Mood"
-              help={getMoodLabel(values.mood ?? SUBJECTIVE_DEFAULT)}
-              value={values.mood}
-              tintColor={Colors.modify}
-              onChange={updateSubjective('mood')}
-            />
-            <MetricSlider
-              label="Stress"
-              help={getStressLabel(values.stress ?? SUBJECTIVE_DEFAULT)}
-              value={values.stress}
-              tintColor={Colors.modify}
-              onChange={updateSubjective('stress')}
-            />
-            <MetricSlider
-              label="Fatigue"
-              help={getFatigueHelp(values.fatigue ?? SUBJECTIVE_DEFAULT)}
-              value={values.fatigue}
-              tintColor={theme.textMuted}
-              onChange={updateSubjective('fatigue')}
-            />
-            <MetricSlider
-              label="Soreness"
-              help={getSorenessHelp(values.soreness ?? SUBJECTIVE_DEFAULT)}
-              value={values.soreness}
-              tintColor={Colors.danger}
-              onChange={updateSubjective('soreness')}
-            />
-
-            <SleepHoursField
-              value={values.sleepHours}
-              onChangeText={update('sleepHours')}
-              onStep={onStepSleepHours}
-            />
-            <Field
-              label={`Weight (${weightUnitLabel}, optional)`}
-              value={values.weight}
-              onChangeText={update('weight')}
-              placeholder={weightUnitLabel}
-              keyboardType="decimal-pad"
-            />
-
-            {error ? <Text className="mt-4 text-sm text-red-400">{error}</Text> : null}
-            {savedOffline ? (
-              <Text className="mt-4 text-sm text-amber-200">
-                Saved offline — will sync when you’re back online.
-              </Text>
-            ) : null}
-
-            <Button
-              className="mt-6"
-              label={saveLabel}
-              onPress={() => {
-                if (justSaved) return;
-                void onSave();
-              }}
-              loading={saveMutation.isPending}
-              disabled={!formHasContent(values)}
-            />
-          </View>
-        )}
-
-        {activeTab === 'measurements' && (
-          <View className="mt-6">
-            <MeasurementsSection />
-          </View>
-        )}
-
-        {activeTab === 'nutrition' && nutritionEnabled && (
-          <View className="mt-6">
-            <NutritionSection />
-          </View>
-        )}
-      </ScrollView>
-    </View>
+          {/* Nutrition Tab */}
+          {activeTab === 'nutrition' && nutritionEnabled && (
+            <View className="mt-6">
+              <NutritionSection />
+            </View>
+          )}
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }

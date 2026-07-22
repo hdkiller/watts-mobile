@@ -25,7 +25,8 @@
         "com.apple.developer.healthkit": true,
         "com.apple.developer.healthkit.access": [],
         "com.apple.developer.healthkit.background-delivery": true
-      }
+      },
+      "appleTeamId": "42K8S6866N"
     },
     "android": {
       "adaptiveIcon": {
@@ -125,8 +126,8 @@
       [
         "expo-widgets",
         {
-          "bundleIdentifier": "com.coachwatts.app.widgets",
-          "groupIdentifier": "group.com.coachwatts.app",
+          "bundleIdentifier": "com.coachwatts.app.todaywidget",
+          "groupIdentifier": "group.com.wattmind.coachwatts",
           "widgets": [
             {
               "name": "TodaySessionWidget",

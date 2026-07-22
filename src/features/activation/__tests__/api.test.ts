@@ -1,7 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ApiError } from '@/src/api/errors';
-
 import { fetchActivationStatus } from '../api';
 
 const { apiFetch } = vi.hoisted(() => ({ apiFetch: vi.fn() }));
@@ -29,21 +27,21 @@ describe('fetchActivationStatus', () => {
     expect(apiFetch).toHaveBeenCalledWith('/api/user/onboarding-status');
   });
 
-  it('rejects unsupported instances instead of inventing completion', async () => {
+  it('degrades open when the endpoint is missing on older instances', async () => {
     apiFetch.mockResolvedValueOnce(new Response('{}', { status: 404 }));
 
-    await expect(fetchActivationStatus('instance|user')).rejects.toMatchObject({
-      status: 404,
-    } satisfies Partial<ApiError>);
+    await expect(fetchActivationStatus('instance|user')).resolves.toMatchObject({
+      supportsActivation: false,
+    });
   });
 
-  it('rejects payloads without activation fields', async () => {
+  it('degrades open for payloads without activation fields', async () => {
     apiFetch.mockResolvedValueOnce(
       new Response(JSON.stringify({ hasUsableData: true }), { status: 200 })
     );
 
-    await expect(fetchActivationStatus('instance|user')).rejects.toMatchObject({
-      status: 426,
-    } satisfies Partial<ApiError>);
+    await expect(fetchActivationStatus('instance|user')).resolves.toMatchObject({
+      supportsActivation: false,
+    });
   });
 });

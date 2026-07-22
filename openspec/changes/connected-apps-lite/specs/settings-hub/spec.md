@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Settings hub sections
-The Settings hub SHALL group preferences into General, Coach, and Account sections without porting full web Profile Settings or `/settings` control-room tabs (Billing, Developer, Danger Zone, full Connected Apps editors).
+The Settings hub SHALL group preferences into General, Coach, and Account sections without porting full web Profile Settings or `/settings` control-room tabs (billing administration, Developer, Danger Zone, full Connected Apps editors).
 
 #### Scenario: General section contents
 - **WHEN** the user opens Settings
@@ -13,7 +13,7 @@ The Settings hub SHALL group preferences into General, Coach, and Account sectio
 
 #### Scenario: Account section contents
 - **WHEN** the user opens Settings
-- **THEN** Account includes Athlete metrics (or a link to that screen), Export my data, Delete account, and Open web Profile Settings
+- **THEN** Account includes Subscription & Billing lite (when implemented by its separate OpenSpec), Athlete metrics (or a link to that screen), Export my data, Delete account, and Open web Profile Settings
 
 ### Requirement: Existing device preferences remain under Settings
 Settings SHALL continue to host push notification preferences, Health Sync connect/status, Connected Apps lite status, and Instance URL display/change-via-sign-out.
@@ -35,10 +35,10 @@ Settings SHALL continue to host push notification preferences, Health Sync conne
 - **THEN** the active instance URL is shown and changing instance requires sign-out
 
 ### Requirement: No full Profile Settings port
-Settings MUST NOT implement Sport zones, Availability, Measurements history, Public Presence, Billing, Developer/API keys, Danger Zone bulk-wipe actions, or full Connected Apps control-room editors (disconnect, sync-now, ingest toggles, source conflicts). Those remain Open web destinations. A Connected Apps lite status surface with handoff actions is allowed.
+Settings MUST NOT implement Sport zones, Availability, Measurements history, Public Presence, billing administration (invoice history, payment methods, tax documents, refunds), Developer/API keys, Danger Zone bulk-wipe actions, or full Connected Apps control-room editors (disconnect, sync-now, ingest toggles, source conflicts). Those remain Open web/provider destinations. A Connected Apps lite status surface with handoff actions and the separate hosted Subscription & Billing purchase/status/restore/manage surface are allowed.
 
 #### Scenario: Control-room settings stay on web
-- **WHEN** the user needs Sport zones, Availability, Billing, or Connected Apps sync/ingest/conflict controls
+- **WHEN** the user needs Sport zones, Availability, billing administration, or Connected Apps sync/ingest/conflict controls
 - **THEN** Settings offers Open web / handoff rather than native editors for those control-room surfaces
 
 #### Scenario: Connected Apps lite is in-app

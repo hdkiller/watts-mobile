@@ -13,10 +13,23 @@ function isStep(value: unknown): value is MobileActivationStepId {
   return typeof value === 'string' && (STEPS as string[]).includes(value);
 }
 
-/** Map a capability-checked API payload. Callers must reject missing activation fields. */
+/** Older / unsupported instances — open the tab shell; do not force the wizard. */
+export function unsupportedActivationStatus(): ActivationStatus {
+  return {
+    supportsActivation: false,
+    softActivated: false,
+    fullyActivated: false,
+    mobileActivationStep: 'done',
+    primaryGoalId: null,
+    activePlanId: null,
+    hasUsableData: false,
+  };
+}
+
+/** Map onboarding-status payload. Missing activation fields degrade open (no wizard). */
 export function mapOnboardingStatus(raw: OnboardingStatusApi | null | undefined): ActivationStatus {
   if (!raw || raw.mobileActivationStep === undefined) {
-    throw new Error('Activation fields are missing from onboarding status');
+    return unsupportedActivationStatus();
   }
 
   const step = isStep(raw.mobileActivationStep) ? raw.mobileActivationStep : 'done';
@@ -38,4 +51,32 @@ export function mapOnboardingStatus(raw: OnboardingStatusApi | null | undefined)
  */
 export function wizardRequired(status: ActivationStatus): boolean {
   return status.supportsActivation && !status.softActivated;
+}
+
+/** Wizard step order for comparing optimistic forward navigation vs server resume. */
+export function activationStepRank(step: string | undefined | null): number {
+  if (!step) return -1;
+  return STEPS.indexOf(step as MobileActivationStepId);
+}
+
+/** Merge an optimistic wizard advance without regressing past a newer server step. */
+export function mergeActivationAdvance(
+  prev: ActivationStatus,
+  patch: Partial<ActivationStatus>
+): ActivationStatus {
+  const patchedStep = patch.mobileActivationStep;
+  const step =
+    patchedStep && activationStepRank(patchedStep) > activationStepRank(prev.mobileActivationStep)
+      ? patchedStep
+      : prev.mobileActivationStep;
+
+  return {
+    ...prev,
+    ...patch,
+    mobileActivationStep: step,
+    softActivated: prev.softActivated || patch.softActivated === true,
+    fullyActivated: prev.fullyActivated || patch.fullyActivated === true,
+    primaryGoalId: patch.primaryGoalId !== undefined ? patch.primaryGoalId : prev.primaryGoalId,
+    activePlanId: patch.activePlanId !== undefined ? patch.activePlanId : prev.activePlanId,
+  };
 }

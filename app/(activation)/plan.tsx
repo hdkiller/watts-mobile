@@ -8,7 +8,7 @@ import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 import { trackActivationEvent } from '@/src/features/activation/analytics';
-import { useActivationStatus, useInvalidateActivationStatus } from '@/src/features/activation/useActivationStatus';
+import { useActivationStatus, useAdvanceActivationStatus } from '@/src/features/activation/useActivationStatus';
 import {
   activatePlan,
   generateFirstWeekPreview,
@@ -34,7 +34,7 @@ export default function ActivationPlanScreen() {
   const router = useRouter();
   const { instanceUrl } = useAuth();
   const { data: activation } = useActivationStatus();
-  const invalidate = useInvalidateActivationStatus();
+  const advance = useAdvanceActivationStatus();
 
   const [days, setDays] = useState<number[]>([1, 3, 5]);
   const [volume, setVolume] = useState<VolumePreference>('MID');
@@ -106,7 +106,7 @@ export default function ActivationPlanScreen() {
     try {
       await activatePlan(planId);
       trackActivationEvent('activation_plan_activated');
-      await invalidate();
+      await advance({ mobileActivationStep: 'insight', activePlanId: planId });
       router.replace('/(activation)/insight');
     } catch (err) {
       setError(friendlyError(err, 'Could not activate plan'));

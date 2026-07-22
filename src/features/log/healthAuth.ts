@@ -1,12 +1,18 @@
-import { Platform } from 'react-native';
+import { Linking, Platform } from 'react-native';
+
+import {
+  hasRequiredHealthConnectPermissions,
+  HEALTHKIT_SYNC_READ_TYPES,
+  requestHealthSyncPermissions,
+} from '@/src/features/health/syncPermissions';
 
 export type HealthAuthStatus =
   | 'loading'
   | 'not_available'
   | 'should_request'
   | 'unnecessary' // iOS: requested, but read permissions are managed in Apple Health
-  | 'connected' // Android: fully connected (all permissions granted)
-  | 'partially_connected' // Android: sleep or weight granted, but not both
+  | 'connected' // Android: required sync read permissions granted
+  | 'partially_connected' // Android: some reads granted, but not the full sync set
   | 'not_connected'; // Android: no permissions granted
 
 export interface HealthStatusResult {
@@ -14,8 +20,19 @@ export interface HealthStatusResult {
   details?: {
     sleepGranted?: boolean;
     weightGranted?: boolean;
+    workoutsGranted?: boolean;
+    heartGranted?: boolean;
+    caloriesGranted?: boolean;
+    stepsGranted?: boolean;
     sdkStatus?: number;
   };
+}
+
+function hasRead(
+  granted: readonly { recordType?: string; accessType?: string }[],
+  recordType: string
+): boolean {
+  return granted.some((p) => p.recordType === recordType && p.accessType === 'read');
 }
 
 async function getHealthKitAuthStatus(): Promise<HealthStatusResult> {
@@ -28,10 +45,9 @@ async function getHealthKitAuthStatus(): Promise<HealthStatusResult> {
 
     const { AuthorizationRequestStatus } = await import('@kingstinct/react-native-healthkit');
 
-    // Prefill-only scope — the expanded sync set is requested separately when
-    // the user enables Sync to Coach Watts (see health/syncPermissions.ts).
+    // Full Health Sync read set — same types requested on Connect.
     const requestStatus = await HK.getRequestStatusForAuthorization({
-      toRead: ['HKQuantityTypeIdentifierBodyMass', 'HKCategoryTypeIdentifierSleepAnalysis'],
+      toRead: [...HEALTHKIT_SYNC_READ_TYPES] as never,
     });
 
     if (requestStatus === AuthorizationRequestStatus.shouldRequest) {
@@ -58,26 +74,26 @@ async function getHealthConnectAuthStatus(): Promise<HealthStatusResult> {
     await HC.initialize();
     const granted = await HC.getGrantedPermissions();
 
-    const hasSleep = granted.some(
-      (p) => p.recordType === 'SleepSession' && p.accessType === 'read'
-    );
-    const hasWeight = granted.some(
-      (p) => p.recordType === 'Weight' && p.accessType === 'read'
-    );
+    const details = {
+      sleepGranted: hasRead(granted, 'SleepSession'),
+      weightGranted: hasRead(granted, 'Weight'),
+      workoutsGranted: hasRead(granted, 'ExerciseSession'),
+      heartGranted: hasRead(granted, 'HeartRate') || hasRead(granted, 'RestingHeartRate'),
+      caloriesGranted:
+        hasRead(granted, 'ActiveCaloriesBurned') || hasRead(granted, 'TotalCaloriesBurned'),
+      stepsGranted: hasRead(granted, 'Steps'),
+    };
 
-    if (hasSleep && hasWeight) {
-      return { status: 'connected', details: { sleepGranted: true, weightGranted: true } };
-    } else if (hasSleep || hasWeight) {
-      return {
-        status: 'partially_connected',
-        details: { sleepGranted: hasSleep, weightGranted: hasWeight },
-      };
-    } else {
-      return {
-        status: 'not_connected',
-        details: { sleepGranted: false, weightGranted: false },
-      };
+    if (hasRequiredHealthConnectPermissions(granted)) {
+      return { status: 'connected', details };
     }
+
+    const anyGranted = Object.values(details).some(Boolean);
+    if (anyGranted) {
+      return { status: 'partially_connected', details };
+    }
+
+    return { status: 'not_connected', details };
   } catch (err) {
     console.warn('[HealthConnect] Error checking auth status:', err);
     return { status: 'not_available' };
@@ -98,37 +114,10 @@ export async function getHealthAuthStatus(): Promise<HealthStatusResult> {
 }
 
 /**
- * Prompt the user for health store access.
+ * Prompt the user for the full Health Sync read set (wellness + workouts).
  */
 export async function requestHealthAuth(): Promise<boolean> {
-  try {
-    if (Platform.OS === 'ios') {
-      const HK = await import('@kingstinct/react-native-healthkit');
-      const available = await HK.isHealthDataAvailable();
-      if (!available) return false;
-
-      await HK.requestAuthorization({
-        toRead: ['HKQuantityTypeIdentifierBodyMass', 'HKCategoryTypeIdentifierSleepAnalysis'],
-      });
-      return true;
-    }
-
-    if (Platform.OS === 'android') {
-      const HC = await import('react-native-health-connect');
-      const status = await HC.getSdkStatus();
-      if (status !== 3) return false;
-
-      await HC.initialize();
-      const granted = await HC.requestPermission([
-        { accessType: 'read', recordType: 'SleepSession' },
-        { accessType: 'read', recordType: 'Weight' },
-      ]);
-      return granted != null && granted.length > 0;
-    }
-  } catch (err) {
-    console.warn('[HealthAuth] Error requesting authorization:', err);
-  }
-  return false;
+  return requestHealthSyncPermissions();
 }
 
 /**
@@ -147,16 +136,31 @@ export async function disconnectHealth(): Promise<boolean> {
 }
 
 /**
- * Opens Health Connect system settings on Android.
+ * Opens the platform health settings surface so the athlete can fix denials.
+ * Android → Health Connect settings; iOS → Apple Health (read grants are edited there).
  */
 export async function openHealthSettings(): Promise<boolean> {
-  if (Platform.OS !== 'android') return false;
-  try {
-    const HC = await import('react-native-health-connect');
-    await HC.openHealthConnectSettings();
-    return true;
-  } catch (err) {
-    console.warn('[HealthConnect] Error opening settings:', err);
-    return false;
+  if (Platform.OS === 'android') {
+    try {
+      const HC = await import('react-native-health-connect');
+      await HC.openHealthConnectSettings();
+      return true;
+    } catch (err) {
+      console.warn('[HealthConnect] Error opening settings:', err);
+      return false;
+    }
   }
+
+  if (Platform.OS === 'ios') {
+    try {
+      // Health app deep link; falls back to failing closed if the scheme is unavailable.
+      await Linking.openURL('x-apple-health://');
+      return true;
+    } catch (err) {
+      console.warn('[HealthKit] Error opening Apple Health:', err);
+      return false;
+    }
+  }
+
+  return false;
 }

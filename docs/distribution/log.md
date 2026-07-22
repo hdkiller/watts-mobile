@@ -14,6 +14,49 @@ Format:
 
 ---
 
+## 2026-07-22 — RevenueCat backend and native acquisition foundation implemented
+
+- Added provider-neutral subscription persistence, canonical projection/backfill, scoped summary/reconcile APIs, authenticated idempotent RevenueCat webhook ingestion, Stripe tracking, audit diagnostics, and the operations runbook in `coach-wattz` ([task 020](./tasks/020-subscription-backend.md)).
+- Added the default-off hosted-only RevenueCat identity/offering adapter and Settings → Subscription & Billing purchase, restore, status, collision, and provider-management experience ([task 021](./tasks/021-native-subscription-experience.md)). No private keys were added; real public SDK keys/product mappings remain external configuration.
+- Validation: mobile and backend typechecks passed; Prisma client generation passed; Android debug native build passed with `react-native-purchases`. iOS RevenueCat pods compiled, but the final existing widget/app link remains blocked by Xcode rejecting direct `SwiftUICore` linkage. Test files were added but not run pending explicit approval.
+
+## 2026-07-22 — RevenueCat account created; hosted store subscriptions proposed
+
+- RevenueCat selected to normalize Apple App Store / Google Play subscription commerce; account created. Durable Watt Mind project ownership, plan, restore behavior, non-secret IDs, and store connections remain [task 018](./tasks/018-revenuecat-project.md).
+- Native acquisition is **hosted `https://coachwatts.com` only**. Coach Watts server entitlements remain authoritative; existing Stripe subscribers retain mobile access and must not be prompted into duplicate store subscriptions.
+- Added distribution tasks [018–022](./tasks.md) for RevenueCat, paid agreements/products, backend reconciliation, native UX, and lifecycle review.
+- Created OpenSpec `store-subscriptions-revenuecat` with proposal, design, capability specs, and implementation tasks.
+
+## 2026-07-21 — Widget BID → `com.coachwatts.app.todaywidget`
+
+- `com.coachwatts.app.widgets` still “not available” on Watt Mind (held elsewhere); `com.wattmind.*` fails ValidateEmbeddedBinary (must prefix parent).
+- Widget → **`com.coachwatts.app.todaywidget`** (`app.json` + `project.pbxproj`). App Group stays **`group.com.wattmind.coachwatts`**.
+- In Xcode → ExpoWidgetsTarget → Signing: refresh / Try Again so Automatic Signing registers the new App ID.
+
+## 2026-07-21 — Widget BID reverted to parent prefix (ValidateEmbeddedBinary)
+
+- Xcode error: embedded binary BID must be prefixed by parent app — `com.wattmind.coachwatts.widgets` is invalid under `com.coachwatts.app`.
+- Correction: widget → **`com.coachwatts.app.widgets`** again (`app.json` + `project.pbxproj`). App Group stays **`group.com.wattmind.coachwatts`**.
+- Superseded: `.widgets` unavailable → see `todaywidget` entry above.
+
+## 2026-07-21 — Play Sign in details: Google demo Gmail
+
+- Updated Play Console Sign in details (“Reviewer demo athlete”) with Google OAuth demo email **`coachwatts.play.review@gmail.com`** + OAuth instructions. Password in password manager only (not git).
+- Console: “Change saved. Send for review in Publishing overview.”
+- Still needed: seed that Google identity as an athlete on `https://coachwatts.com` → [008](./tasks/008-reviewer-demo-account.md).
+
+## 2026-07-21 — Widget bundle ID changed for Watt Mind signing
+
+- Xcode: `ExpoWidgetsTarget` — `com.coachwatts.app.widgets` “not available” on Watt Mind (same class of issue as the old App Group).
+- Updated `app.json` `expo-widgets` `bundleIdentifier` → **`com.wattmind.coachwatts.widgets`** (keeps `group.com.wattmind.coachwatts`).
+- Next: `npx expo prebuild --platform ios --clean`, then Xcode should auto-register the new widget App ID with automatic signing.
+
+## 2026-07-21 — App Group ID changed for Watt Mind signing
+
+- Xcode signing failed: `group.com.coachwatts.app` “not available” on team `42K8S6866N` (likely held by a personal/free team).
+- Registered **`group.com.wattmind.coachwatts`** on Watt Mind; updated `app.json` `expo-widgets` `groupIdentifier` + docs.
+- After portal App ID App Groups assignment: `npx expo prebuild --platform ios --clean`, then Xcode Signing refresh / Archive.
+
 ## 2026-07-21 — Docs: marketing ASC screenshot handoff
 
 - Expanded [004](./tasks/004-listing-metadata-assets.md): eng listing text is done; **marketing** owns iPhone screenshots on ASC version **0.1.1** (0/10 today), after TestFlight build.
@@ -25,13 +68,14 @@ Format:
 - Finished step 4 usage/handling for all selected types; Preview → **Save**.
 - Console: “Change saved. Send for review in Publishing overview.”
 - Shared only Crash logs + Diagnostics (Sentry); rest collected, not shared. Delete URL `https://coachwatts.com/settings/danger`.
-- Task [012](./tasks/012-play-data-safety-and-content.md) → **done**. Still open for Play: listing assets [013](./tasks/013-play-listing-assets.md); real demo creds [008](./tasks/008-reviewer-demo-account.md).
+- Task [012](./tasks/012-play-data-safety-and-content.md) → **done**. Still open for Play: listing assets [013](./tasks/013-play-listing-assets.md); seed Play Google demo athlete → [008](./tasks/008-reviewer-demo-account.md).
 
 ## 2026-07-21 — App Review: SIWA only (no Google demo)
 
 - Decision: **no dedicated Google demo account**. Reviewers use **Sign in with Apple** with a reviewer Apple ID.
 - ASC 0.1.1: notes updated; Sign-In placeholders `Sign in with Apple` / `Use reviewer Apple ID (no password demo)` (not Coach Watts credentials).
 - Still needed: hosted SIWA live + TestFlight smoke. New SIWA accounts may hit empty first-run → [056](../issues/056.md) / [008](./tasks/008-reviewer-demo-account.md).
+- Correction (same day): ASC still SIWA-only; **Play** now has a dedicated Google demo Gmail (see entry above).
 
 ## 2026-07-21 — ASC App Review notes refreshed for SIWA
 

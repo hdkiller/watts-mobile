@@ -14,7 +14,7 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 8 | **Expo channel** | Managed Expo vs early dev client (needed for HealthKit in v1.5+) | **Decided:** `expo-dev-client` early; rebuild after native deps ([native-modules.md](./native-modules.md)) |
 | 9 | **Nutrition entry IA** | Log tab section vs More → Nutrition | **Decided:** Log (write surface) |
 | 10 | **Athlete metrics vs full settings** | Metrics-only editor vs port Profile Settings tabs | **Decided:** More → Athlete = default-profile metrics (weight, FTP, max HR, LTHR); Settings → Sports = lite per-sport FTP/LTHR/Max HR; zones / detect-from-workouts / full Sport Settings → Open web |
-| 20 | **Settings hub field-companion scope** | Thin device/daily prefs vs port web Profile/Settings | **Decided:** Settings hub = Notifications, Health Sync, **Connected Apps lite** (status + handoff Connect/Fix/Manage), Units & locale, Instance, Coach identity lite (nickname/persona/About me/tool approval), Export/Delete via Open web; push prefs stay separate from email Communication prefs; full Profile / Connected Apps editors / Billing / zones stay web — see `openspec/changes/settings-field-companion` + `connected-apps-lite` |
+| 20 | **Settings hub field-companion scope** | Thin device/daily prefs vs port web Profile/Settings | **Decided:** Settings hub = Notifications, Health Sync, **Connected Apps lite** (status + handoff Connect/Fix/Manage), Units & locale, Instance, Coach identity lite, **Subscription & Billing lite** (hosted purchase/status/restore/manage), Export/Delete via Open web; full Profile / Connected Apps editors / billing administration / zones stay web — see `connected-apps-lite` + `store-subscriptions-revenuecat` |
 | 11 | **Planned detail Bearer + structure** | Session-only `GET /api/planned-workouts/:id` vs `requireAuth` + structure fields for intervals | **Decided** |
 | 12 | **Upcoming vs Recent More entries** | Single “Workouts” hub vs separate Upcoming + Recent links | **Decided:** separate More rows (Recent activity + Upcoming) |
 | 13 | **Today when no recommendation** | Empty-only vs planned-hero fallback | **Decided** |
@@ -30,6 +30,12 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 24 | **Activation wizard order vs connect friction** | Data-first wizard vs connect-last | **Decided:** UX = goal → plan → insight → **connect last** (Health Sync preferred; Skip OK); criteria still require data for *full* activation |
 | 25 | **Plan creation on mobile** | Open web vs Coach chat tool vs native lite wizard | **Decided:** native lite wizard (not full PlanDashboard / adapt) |
 | 26 | **Baseline docs shape** | Side “v2 chapter” vs reposition baseline | **Decided:** reposition [product-baseline.md](./product-baseline.md) (and coach-wattz mobile companion doc) |
+| 27 | **Native subscription provider** | Direct StoreKit/Play Billing vs RevenueCat | **Decided:** RevenueCat account created; use RevenueCat for store lifecycle/customer identity while Coach Watts server entitlements remain authoritative |
+| 28 | **Store purchase instance scope** | Hosted only vs allow arbitrary self-hosted instances | **Decided:** hosted `https://coachwatts.com` only; self-hosted keeps instance-owned entitlement behavior |
+| 29 | **Existing Stripe subscribers** | Offer store purchase too vs honor Stripe and suppress duplicate acquisition | **Decided:** honor Stripe on mobile; show Stripe manage path; do not offer a duplicate Apple/Google subscription |
+| 30 | **Overlapping paid providers** | Auto-cancel one vs choose highest and flag | **Decided:** grant highest valid tier, expose both providers, flag for support; never silently cancel external billing |
+| 31 | **Store pricing + introductory trials** | Match web list price vs target equal net proceeds; share vs separate trial eligibility | Open — resolve before activating store products |
+| 32 | **RevenueCat restore transfer policy** | Transfer to current authenticated Coach Watts account vs keep original binding | Open — proposal starts with transfer-to-current, but requires explicit product/support sign-off |
 
 ## Decision log
 
@@ -86,6 +92,12 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 2026-07-21 | Plan creation = native lite wizard | Initialize + preview + activate in-app; PlanDashboard/adapt/replan stay web |
 | 2026-07-21 | Reposition product baseline | Rewrite [product-baseline.md](./product-baseline.md); mirror coach-wattz `mobile-companion-app.md` |
 | 2026-07-21 | Connected Apps lite in Settings | Status list + handoff to `/settings/apps`; no native provider OAuth; Health Sync stays a distinct phone-local path; `GET /api/integrations/status` via Bearer `profile:read` — `connected-apps-lite` |
+| 2026-07-22 | Subscription API authorization | `GET /api/subscriptions/me` reuses `profile:read`; `POST /api/subscriptions/reconcile` reuses `profile:write`; webhook authorization remains server-only — `store-subscriptions-revenuecat` |
 | 2026-07-21 | Sign in with Apple for App Store 4.8 | SIWA on coach-wattz IdP (`/oauth/login` + web login/join); mobile stays PKCE in system browser; App Review uses SIWA with a reviewer Apple ID (no dedicated Google demo) — OpenSpec `sign-in-with-apple` |
+| 2026-07-22 | RevenueCat selected for native subscriptions | Account created; RevenueCat normalizes Apple/Google commerce while Coach Watts remains entitlement authority — OpenSpec `store-subscriptions-revenuecat` |
+| 2026-07-22 | Store subscription acquisition is hosted-only | Watt Mind store products unlock `https://coachwatts.com`; arbitrary self-hosted instances retain instance-owned entitlement behavior |
+| 2026-07-22 | Existing provider suppresses duplicate purchase | Stripe/Apple/Google active access is honored across mobile; manage through the owning provider; collisions grant highest valid tier and require resolution |
+| 2026-07-22 | Push vs email channel matrix (pu-001) | Morning rec: Expo primary (not gated on `dailyCoach` schedule), email independent; analysis: Expo XOR email when push eligible; trial/billing/marketing/founder never push; `SYNC_COMPLETED` no OS push — `~/Develop/watts-marketing/knowledge/push/channel-matrix-pu-001.md` |
+| 2026-07-22 | Mobile push prefs server-backed (364/365) | coach-wattz `GET/PUT /api/mobile/devices/preferences` + send gates; mobile follow-up OpenSpec `mobile-push-prefs-server-sync` |
 
 When a row above is decided, move it here and update [product-baseline.md](./product-baseline.md) / [implementation-plan.md](./implementation-plan.md) if scope changes.

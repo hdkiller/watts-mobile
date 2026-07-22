@@ -47,6 +47,7 @@ const SF_TO_MD = {
   'arrow.triangle.2.circlepath': 'autorenew',
   'square.and.pencil': 'edit_note',
   leaf: 'eco',
+  'flame.fill': 'local_fire_department',
   'gauge.with.dots.needle.33percent': 'speed',
   'exclamationmark.triangle': 'warning',
   'heart.text.square.fill': 'health_and_safety',

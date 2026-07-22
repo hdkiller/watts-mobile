@@ -26,6 +26,7 @@ import { useTodayNutritionQuery } from '@/src/features/nutrition/useNutrition';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 import { FinishSetupCard } from '@/src/features/activation/FinishSetupCard';
 import { useActivationStatus } from '@/src/features/activation/useActivationStatus';
+import { useHealthSyncPreferences } from '@/src/features/health/useHealthSyncPreferences';
 import { useIntegrationStatus } from '@/src/features/integrations/useIntegrationStatus';
 import { isDailyCheckinCompleted } from '@/src/features/log/isDailyCheckinCompleted';
 import { useDailyCheckinQuery } from '@/src/features/log/useDailyCheckin';
@@ -213,12 +214,18 @@ export default function TodayScreen() {
     isSuccess: integrationsReady,
     connectedCount,
   } = useIntegrationStatus();
+  const { preferences: healthSyncPrefs } = useHealthSyncPreferences();
   const { data: activation } = useActivationStatus();
   const showFinishSetup = Boolean(
     activation?.supportsActivation && activation.softActivated && !activation.fullyActivated
   );
+  // Phone-only Health Sync counts as connected data — don't nudge OAuth apps.
   const showConnectDeviceCue =
-    !showFinishSetup && integrationsReady && connectedCount === 0;
+    !showFinishSetup &&
+    integrationsReady &&
+    connectedCount === 0 &&
+    !healthSyncPrefs.syncEnabled &&
+    !activation?.hasUsableData;
   const acceptMutation = useAcceptRecommendation();
   const plannedId = data?.plannedWorkout?.id;
   const completePlannedMutation = useCompletePlannedWorkout(plannedId);

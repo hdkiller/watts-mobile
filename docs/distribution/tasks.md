@@ -17,7 +17,7 @@ Hub: [../distribution.md](../distribution.md).
 | [005](./tasks/005-eas-credentials-and-secrets.md) | Link Apple team to EAS; set production secrets | build | high | open |
 | [006](./tasks/006-ios-production-build.md) | Production iOS build + upload | build | high | open |
 | [007](./tasks/007-testflight-smoke.md) | TestFlight smoke on release binary | qa | high | open |
-| [008](./tasks/008-reviewer-demo-account.md) | App Review via SIWA (no Google demo) + notes | review | high | in-progress |
+| [008](./tasks/008-reviewer-demo-account.md) | ASC SIWA notes + Play Google demo Gmail | review | high | in-progress |
 | [009](./tasks/009-submit-for-review.md) | Submit build for App Review | review | high | open |
 
 ## In-repo store readiness (cross-check)
@@ -48,6 +48,18 @@ Can start account verification **while Apple is reviewing**. Shipping priority r
 | [015](./tasks/015-android-production-build.md) | Production AAB → Internal testing | build | medium | open |
 | [016](./tasks/016-play-internal-test-smoke.md) | Internal test smoke on release AAB | qa | medium | open |
 | [017](./tasks/017-play-production-submit.md) | Promote to production / Play review | review | medium | open |
+
+## Store subscriptions / RevenueCat
+
+These tasks add hosted Supporter/Pro acquisition after (or independently from) the free store candidate. Do not mark the original free-app submission blocked solely because subscription work is open.
+
+| ID | Task | Area | Priority | Status |
+|----|------|------|----------|--------|
+| [018](./tasks/018-revenuecat-project.md) | RevenueCat project ownership, plan, stores, restore policy | account | high | in-progress |
+| [019](./tasks/019-paid-agreements-and-products.md) | Paid agreements, merchant profile, pricing, Apple/Google products | commerce | high | open |
+| [020](./tasks/020-subscription-backend.md) | Provider-neutral backend, RevenueCat lifecycle, Stripe reconciliation | backend | high | in-progress |
+| [021](./tasks/021-native-subscription-experience.md) | Expo RevenueCat SDK + hosted purchase/restore/manage UI | app | high | in-progress |
+| [022](./tasks/022-subscription-store-test-review.md) | Sandbox/TestFlight/Internal lifecycle QA + IAP review | review | high | open |
 
 ## Deferred
 

@@ -5,13 +5,16 @@ context: |
   Stack: Expo + TypeScript, Expo Router, NativeWind, TanStack Query,
   expo-secure-store, Expo Notifications, Sentry RN.
   Auth: OAuth 2.0 Authorization Code + PKCE against coach-wattz IdP.
-  Product: Today / Log / Coach / More — daily athlete loop only.
+  Product: Today / Log / Coach / More — activation + daily athlete loop.
+  Hosted subscription acquisition/status/restore/manage may be native via RevenueCat;
+  billing administration and self-hosted commerce stay out of the app.
   See AGENTS.md and docs/ for scope, phases, and open questions.
   Backend/API source of truth: ~/Develop/coach-wattz
 
 rules:
   proposal:
-    - Respect v1 non-goals (no plan architect, analytics explorer, teams, billing)
+    - Respect non-goals (no plan architect, analytics explorer, teams, or full billing administration)
+    - Store subscriptions are hosted-only and server entitlements remain authoritative
     - Call out coach-wattz backend dependencies explicitly
   tasks:
     - Prefer Phase 0 → 1 → 2 → 3 order from docs/implementation-plan.md

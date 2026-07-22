@@ -284,7 +284,7 @@ export default function HealthSyncSettingsScreen() {
               </View>
 
               {isIOS && (
-                <View className="mt-6 border-t border-border/80 pt-5">
+                <View className="mt-6 border-t border-border/80 pt-5 gap-3">
                   {authStatus.status === 'should_request' ? (
                     <Button
                       label="Connect Apple Health"
@@ -292,15 +292,29 @@ export default function HealthSyncSettingsScreen() {
                       loading={busy}
                     />
                   ) : (
-                    <View className="rounded-lg bg-surface/40 p-4 border border-border/50">
-                      <Text className="text-xs font-semibold uppercase text-brand tracking-wider mb-2">
-                        Permissions Info
-                      </Text>
-                      <Text className="text-xs text-text-muted leading-4.5">
-                        Permissions are managed by iOS. Open Health → Profile → Apps → Coach Watts to
-                        review read access for sleep, heart, body metrics, and workouts.
-                      </Text>
-                    </View>
+                    <>
+                      <View className="rounded-lg bg-surface/40 p-4 border border-border/50">
+                        <Text className="text-xs font-semibold uppercase text-brand tracking-wider mb-2">
+                          Permissions Info
+                        </Text>
+                        <Text className="text-xs text-text-muted leading-4.5">
+                          iOS usually shows the consent sheet only once. If you denied something,
+                          turn it back on in Health → Profile → Apps → Coach Watts. Request access
+                          again can still help when Coach Watts adds new data types.
+                        </Text>
+                      </View>
+                      <Button
+                        label="Request access again"
+                        variant="secondary"
+                        onPress={() => void handleConnect()}
+                        loading={busy}
+                      />
+                      <Button
+                        label="Open Apple Health"
+                        variant="secondary"
+                        onPress={() => void handleManageSettings()}
+                      />
+                    </>
                   )}
                 </View>
               )}
@@ -320,38 +334,64 @@ export default function HealthSyncSettingsScreen() {
                   ) : (
                     <View className="mt-2">
                       <PermissionRow
-                        title="Sleep session history"
+                        title="Sleep"
                         granted={!!authStatus.details?.sleepGranted}
                       />
                       <PermissionRow
-                        title="Body weight records"
+                        title="Weight"
                         granted={!!authStatus.details?.weightGranted}
                       />
+                      <PermissionRow
+                        title="Workouts"
+                        granted={!!authStatus.details?.workoutsGranted}
+                      />
+                      <PermissionRow
+                        title="Heart rate"
+                        granted={!!authStatus.details?.heartGranted}
+                      />
+                      <PermissionRow
+                        title="Calories"
+                        granted={!!authStatus.details?.caloriesGranted}
+                      />
+                      <PermissionRow
+                        title="Steps"
+                        granted={!!authStatus.details?.stepsGranted}
+                      />
+
+                      {authStatus.status === 'partially_connected' ? (
+                        <Text className="mt-3 text-xs text-amber-400 leading-4.5">
+                          Some required permissions are missing. Grant them again below, or manage
+                          access in Health Connect.
+                        </Text>
+                      ) : null}
 
                       <View className="mt-6 gap-3">
-                        {authStatus.status !== 'connected' && (
+                        {authStatus.status !== 'connected' ? (
                           <Button
-                            label="Connect Health Connect"
+                            label={
+                              authStatus.status === 'partially_connected'
+                                ? 'Grant missing permissions'
+                                : 'Connect Health Connect'
+                            }
                             onPress={() => void handleConnect()}
                             loading={busy}
                           />
-                        )}
+                        ) : null}
 
-                        {authStatus.status !== 'not_connected' && (
-                          <>
-                            <Button
-                              variant="secondary"
-                              label="Manage in Health Connect"
-                              onPress={() => void handleManageSettings()}
-                            />
-                            <Button
-                              variant="danger"
-                              label="Disconnect"
-                              onPress={() => void handleDisconnect()}
-                              loading={busy}
-                            />
-                          </>
-                        )}
+                        <Button
+                          variant="secondary"
+                          label="Manage in Health Connect"
+                          onPress={() => void handleManageSettings()}
+                        />
+
+                        {authStatus.status !== 'not_connected' ? (
+                          <Button
+                            variant="danger"
+                            label="Disconnect"
+                            onPress={() => void handleDisconnect()}
+                            loading={busy}
+                          />
+                        ) : null}
                       </View>
                     </View>
                   )}
@@ -408,21 +448,42 @@ export default function HealthSyncSettingsScreen() {
               </View>
             </View>
 
-            {preferences.syncEnabled && (
-              <View className="mt-4 gap-3">
-                <Button
-                  label="Sync now"
-                  onPress={() => void handleSyncNow()}
-                  loading={syncing}
-                  variant="secondary"
-                />
-                {noDataFound && (
-                  <Text className="text-xs text-amber-400 leading-4.5">
-                    {isIOS
-                      ? 'No Health data was found on this device. If you granted access recently, open Health → Profile → Apps → Coach Watts and check that read access is on.'
-                      : 'No Health Connect data was found on this device. Check that your fitness apps write to Health Connect and that Coach Watts has read access.'}
+            <View className="mt-4 gap-3">
+              {preferences.syncEnabled ? (
+                <>
+                  <Button
+                    label="Sync now"
+                    onPress={() => void handleSyncNow()}
+                    loading={syncing}
+                    variant="secondary"
+                  />
+                  {noDataFound && (
+                    <Text className="text-xs text-amber-400 leading-4.5">
+                      {isIOS
+                        ? 'No Health data was found on this device. If you granted access recently, open Health → Profile → Apps → Coach Watts and check that read access is on.'
+                        : 'No Health Connect data was found on this device. Check that your fitness apps write to Health Connect and that Coach Watts has read access.'}
+                    </Text>
+                  )}
+                </>
+              ) : null}
+
+              <Pressable
+                onPress={() => {
+                  hapticLight();
+                  router.push('/(app)/(tabs)/more/settings/health-workouts' as Href);
+                }}
+                className="rounded-xl border border-border bg-card/60 px-4 py-4 flex-row items-center justify-between"
+              >
+                <View>
+                  <Text className="text-base font-semibold text-text-primary">Recent workouts</Text>
+                  <Text className="mt-1 text-sm text-text-muted">
+                    On this phone vs synced to Coach Watts
                   </Text>
-                )}
+                </View>
+                <Text className="text-text-muted text-lg">›</Text>
+              </Pressable>
+
+              {preferences.syncEnabled ? (
                 <Pressable
                   onPress={() => {
                     hapticLight();
@@ -438,8 +499,8 @@ export default function HealthSyncSettingsScreen() {
                   </View>
                   <Text className="text-text-muted text-lg">›</Text>
                 </Pressable>
-              </View>
-            )}
+              ) : null}
+            </View>
 
             <View className="mt-6 rounded-xl border border-border bg-surface/20 p-5">
               <Text className="text-sm font-semibold text-text-primary">Privacy</Text>

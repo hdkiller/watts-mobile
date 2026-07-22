@@ -2,16 +2,13 @@ import { apiFetch } from '@/src/api/client';
 import { getItemAsync, setItemAsync } from '@/src/storage/secureStorage';
 
 import { mapNotificationsList } from './mapNotifications';
+import {
+  DEFAULT_NOTIFICATION_PREFERENCES,
+  normalizeNotificationPreferences,
+} from './preferences';
 import type { NotificationsInbox, NotificationPreferences, RegisterDeviceBody } from './types';
 
 const PREFS_STORAGE_KEY = 'watts.push.preferences';
-
-const DEFAULT_PREFERENCES: NotificationPreferences = {
-  RECOMMENDATION_READY: true,
-  WORKOUT_ANALYSIS_READY: true,
-  SYNC_COMPLETED: true,
-  COACH_MESSAGE: true,
-};
 
 async function readErrorMessage(response: Response, fallback: string): Promise<string> {
   try {
@@ -19,6 +16,20 @@ async function readErrorMessage(response: Response, fallback: string): Promise<s
     return body.message || body.statusMessage || fallback;
   } catch {
     return fallback;
+  }
+}
+
+async function cachePreferences(preferences: NotificationPreferences): Promise<void> {
+  await setItemAsync(PREFS_STORAGE_KEY, JSON.stringify(preferences));
+}
+
+async function readCachedPreferences(): Promise<NotificationPreferences | null> {
+  const stored = await getItemAsync(PREFS_STORAGE_KEY);
+  if (!stored) return null;
+  try {
+    return normalizeNotificationPreferences(JSON.parse(stored));
+  } catch {
+    return null;
   }
 }
 
@@ -109,56 +120,59 @@ export async function unregisterMobileDevice(token: string): Promise<void> {
   console.warn(await readErrorMessage(response, `Device unregister failed (${response.status})`));
 }
 
+/**
+ * Load push prefs. Server is authoritative when GET succeeds.
+ * SecureStore is a cache; on GET failure use cache then defaults.
+ * 404 (old self-hosted without prefs API) falls through to cache/defaults.
+ */
 export async function fetchNotificationPreferences(): Promise<NotificationPreferences> {
-  // 1. Attempt to fetch from backend
   try {
     const response = await apiFetch('/api/mobile/devices/preferences');
     if (response.ok) {
-      const data = await response.json();
-      if (data && typeof data === 'object') {
-        const parsed = data as NotificationPreferences;
-        await setItemAsync(PREFS_STORAGE_KEY, JSON.stringify(parsed));
-        return parsed;
-      }
+      const parsed = normalizeNotificationPreferences(await response.json());
+      await cachePreferences(parsed);
+      return parsed;
+    }
+    if (response.status !== 404) {
+      console.warn(`Failed to fetch preferences (${response.status}), using cache/defaults`);
     }
   } catch (error) {
-    console.warn('Failed to fetch preferences from backend, using local:', error);
+    console.warn('Failed to fetch preferences from backend, using cache/defaults:', error);
   }
 
-  // 2. Local fallback
-  const stored = await getItemAsync(PREFS_STORAGE_KEY);
-  if (stored) {
-    try {
-      return JSON.parse(stored) as NotificationPreferences;
-    } catch {
-      // ignore
-    }
-  }
-  return DEFAULT_PREFERENCES;
+  const cached = await readCachedPreferences();
+  if (cached) return cached;
+  return { ...DEFAULT_NOTIFICATION_PREFERENCES };
 }
 
+/**
+ * Persist prefs. When the prefs API is reachable, PUT must succeed or this throws.
+ * On 404 (prefs API missing), saves locally only for old instances.
+ */
 export async function updateNotificationPreferences(
   preferences: NotificationPreferences
 ): Promise<NotificationPreferences> {
-  // 1. Always update local storage first
-  await setItemAsync(PREFS_STORAGE_KEY, JSON.stringify(preferences));
+  const next = normalizeNotificationPreferences(preferences);
 
-  // 2. Sync with backend
-  try {
-    const response = await apiFetch('/api/mobile/devices/preferences', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ preferences }),
-    });
-    if (response.ok) {
-      const data = await response.json();
-      if (data && typeof data === 'object') {
-        return data as NotificationPreferences;
-      }
-    }
-  } catch (error) {
-    console.warn('Failed to sync preferences with backend:', error);
+  const response = await apiFetch('/api/mobile/devices/preferences', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ preferences: next }),
+  });
+
+  if (response.ok) {
+    const parsed = normalizeNotificationPreferences(await response.json());
+    await cachePreferences(parsed);
+    return parsed;
   }
 
-  return preferences;
+  if (response.status === 404) {
+    // Old instance without 364 — local-only; send path will not enforce.
+    await cachePreferences(next);
+    return next;
+  }
+
+  throw new Error(
+    await readErrorMessage(response, `Failed to save notification preferences (${response.status})`)
+  );
 }

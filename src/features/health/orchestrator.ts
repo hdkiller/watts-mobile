@@ -23,6 +23,11 @@ import {
 } from './mapToWellnessPayload';
 import { matchRemoteWorkout, workoutHistoryTitle } from './matchRemoteWorkout';
 import { readPlatformWellness, readPlatformWorkouts } from './readers';
+import { isUnsyncedRecentStatus } from './recentWorkoutRows';
+import {
+  findPlatformWorkoutSession,
+  listRecentPlatformWorkoutsWithStatus,
+} from './recentWorkouts';
 import { loadHealthSyncPreferences, markHealthSyncSuccess } from './syncPreferences';
 import type { DailyWellnessSample, HealthPlatform, PlatformWorkoutSession, SyncLedgerItem } from './types';
 import { LOOKBACK_DAYS } from './types';
@@ -327,6 +332,22 @@ async function throwLedgerFailure(id: string): Promise<never> {
   throw new Error(updated?.lastError ?? 'Sync failed');
 }
 
+async function assertWorkoutSyncAllowed(): Promise<void> {
+  const prefs = await loadHealthSyncPreferences();
+  if (!prefs.syncEnabled) {
+    throw new Error('Enable Sync to Coach Watts first');
+  }
+  if (!prefs.syncWorkouts) {
+    throw new Error('Enable Sync workouts first');
+  }
+  if (!(await ensureAuthenticated())) {
+    throw new Error('Sign in to sync');
+  }
+  if (!onlineManager.isOnline()) {
+    throw new Error('No internet connection');
+  }
+}
+
 export async function retryLedgerItem(id: string): Promise<void> {
   const prefs = await loadHealthSyncPreferences();
   if (!prefs.syncEnabled) {
@@ -364,4 +385,64 @@ export async function retryLedgerItem(id: string): Promise<void> {
   const remotes = await fetchRemoteWorkoutsForMatch(LOOKBACK_DAYS);
   const status = await syncWorkoutSession(session, remotes, true);
   if (status === 'failed') await throwLedgerFailure(id);
+}
+
+/**
+ * Sync (or force resync) a single on-device workout by platform session id.
+ */
+export async function syncWorkoutByPlatformSessionId(
+  platformSessionId: string,
+  options: { force?: boolean } = {}
+): Promise<void> {
+  await assertWorkoutSyncAllowed();
+
+  const session = await findPlatformWorkoutSession(platformSessionId);
+  if (!session) throw new Error('Workout no longer on device');
+
+  const remotes = await fetchRemoteWorkoutsForMatch(LOOKBACK_DAYS);
+  const force = options.force === true;
+  const status = await syncWorkoutSession(session, remotes, force);
+  if (status === 'failed') {
+    await throwLedgerFailure(workoutLedgerId(platformSessionId));
+  }
+}
+
+export type SyncUnsyncedWorkoutsResult = {
+  attempted: number;
+  synced: number;
+  failed: number;
+  pending: number;
+};
+
+/** Sync only inventory rows that are needs_sync / failed / pending. */
+export async function syncUnsyncedWorkouts(): Promise<SyncUnsyncedWorkoutsResult> {
+  await assertWorkoutSyncAllowed();
+
+  const [rows, sessions, remotes] = await Promise.all([
+    listRecentPlatformWorkoutsWithStatus(),
+    readPlatformWorkouts({ lookbackDays: LOOKBACK_DAYS }),
+    fetchRemoteWorkoutsForMatch(LOOKBACK_DAYS),
+  ]);
+  const sessionById = new Map(sessions.map((s) => [s.platformSessionId, s]));
+  const targets = rows.filter((row) => isUnsyncedRecentStatus(row.status));
+  const result: SyncUnsyncedWorkoutsResult = {
+    attempted: 0,
+    synced: 0,
+    failed: 0,
+    pending: 0,
+  };
+
+  for (const row of targets) {
+    const session = sessionById.get(row.platformSessionId);
+    result.attempted += 1;
+    if (!session) {
+      result.failed += 1;
+      continue;
+    }
+    const status = await syncWorkoutSession(session, remotes, true);
+    if (status === 'synced' || status === 'skipped') result.synced += 1;
+    else if (status === 'pending') result.pending += 1;
+    else result.failed += 1;
+  }
+  return result;
 }

@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { mapOnboardingStatus, wizardRequired } from '../mapStatus';
+import { activationStepRank, mapOnboardingStatus, wizardRequired } from '../mapStatus';
 
 describe('mapOnboardingStatus', () => {
-  it('does not invent activation completion for older API payloads', () => {
-    expect(() => mapOnboardingStatus({ hasUsableData: true })).toThrow(
-      'Activation fields are missing'
-    );
+  it('degrades open for older API payloads without activation fields', () => {
+    const status = mapOnboardingStatus({ hasUsableData: true });
+    expect(status.supportsActivation).toBe(false);
+    expect(wizardRequired(status)).toBe(false);
   });
 
   it('requires wizard when soft activation is incomplete', () => {
@@ -26,5 +26,13 @@ describe('mapOnboardingStatus', () => {
       fullyActivated: false,
     });
     expect(wizardRequired(status)).toBe(false);
+  });
+});
+
+describe('activationStepRank', () => {
+  it('orders wizard steps for resume vs optimistic ahead checks', () => {
+    expect(activationStepRank('consent')).toBeLessThan(activationStepRank('goal'));
+    expect(activationStepRank('insight')).toBeLessThan(activationStepRank('connect'));
+    expect(activationStepRank('index')).toBe(-1);
   });
 });

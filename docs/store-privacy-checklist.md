@@ -8,7 +8,7 @@ Brand voice: coach-wattz `BRANDING.md`.
 
 ## Purpose of the app (short)
 
-Coach Watts is an AI-powered endurance coaching companion. The mobile app helps you see today’s recommendation, log wellness and recovery context, chat lightly with your coach, and receive coaching notifications. Planning, analytics, billing, and integrations stay on the web.
+Coach Watts is an AI-powered endurance coaching companion. The mobile app helps you activate an account, see today’s recommendation, log wellness and recovery context, chat with your coach, receive coaching notifications, and—on the hosted service—purchase or restore Supporter/Pro through the App Store or Google Play. Deep planning, analytics, and billing administration stay on the web/provider surface.
 
 ## Data types (what to declare)
 
@@ -22,7 +22,9 @@ Coach Watts is an AI-powered endurance coaching companion. The mobile app helps 
 | Product interaction / diagnostics | Yes (limited) | Crash/performance via Sentry when configured; no health metrics in analytics |
 | Device identifiers | Yes (when push enabled) | Expo push token for coaching notifications |
 | Photos / camera | Yes (optional) | Coach chat attachments for meal / context photos (nutrition logging). User-initiated only. |
-| Financial / contacts | No | Not used by the companion |
+| Purchase history | Yes (hosted subscriptions) | Store product/transaction identifiers, tier, status, renewal/expiry, and owning provider are processed through Apple/Google, RevenueCat, and the hosted Coach Watts account to grant and restore access. Not used for advertising |
+| Payment information | No | Apple/Google process the payment method; Coach Watts/RevenueCat do not receive raw card or store-payment credentials from the app |
+| Contacts | No | Address-book contacts are not used by the companion |
 
 ## Questionnaire strings (paste-ready)
 
@@ -46,6 +48,10 @@ Coach Watts is an AI-powered endurance coaching companion. The mobile app helps 
 
 > With your permission, Coach Watts can use the camera or photo library so you can attach photos in Coach chat—especially meal photos for nutrition logging. Photos are uploaded to your Coach Watts instance and included in the chat turn. You can deny permission and continue using text chat and the Log nutrition form.
 
+### Hosted subscriptions / RevenueCat
+
+> On the hosted Coach Watts service, you can purchase or restore Supporter and Pro subscriptions through Apple App Store or Google Play billing. Apple or Google processes your payment method. Coach Watts uses RevenueCat to receive store product, transaction, subscription status, renewal/expiry, and purchase-history events linked to your Coach Watts account ID so access works across your devices and existing web subscriptions are not duplicated. Coach Watts does not receive your full card or store-payment credentials. Subscription management and refunds remain with the provider that charged you.
+
 ### Privacy policy pointer
 
 > Full privacy details for the hosted service are available at your instance’s privacy page (hosted: https://coachwatts.com/privacy). Self-hosted operators publish their own policy for their instance.
@@ -64,6 +70,7 @@ Tracked as distribution [task 003](./distribution/tasks/003-privacy-and-complian
 - [x] Health / fitness declarations match athlete-reported wellness + recovery, plus optional HealthKit / Health Connect reads (precise location for workout routes declared)
 - [x] Push / Device ID purpose covered via Device ID nutrition label (App Functionality)
 - [x] No medical claims in ASC store description (disclaimer included); re-check screenshot captions when assets land
+- [ ] Before subscription release, update App Store App Privacy / Play Data safety for purchase history and RevenueCat processing; confirm raw payment information remains “not collected” by the app/developer
 
 ## Related
 
