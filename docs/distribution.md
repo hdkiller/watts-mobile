@@ -20,7 +20,7 @@ Hub for shipping Coach Watts to **App Store** and **Play Console**, including th
 | Support | `mailto:support@coachwatts.com` |
 | Play Console developer ID | `7883910200930974301` |
 | Play app ID | `4976128188579826786` (Coach Watts) |
-| RevenueCat | Project `12d4d797`; App Store app `app17fce11c8d`; Apple catalog + `supporter`/`pro` mapped; local V2/MCP env set — durable Watt Mind ownership/plan/Google/Stripe still [018](./distribution/tasks/018-revenuecat-project.md) |
+| RevenueCat | Project `12d4d797`; App Store `app17fce11c8d` + Play `app95807dc9bd`; Apple/Google catalogs mapped to `supporter`/`pro`; local V2/MCP + Android SDK key in `.env` — Play service account, ownership/plan/Stripe still [018](./distribution/tasks/018-revenuecat-project.md) |
 
 ## Doc map
 
@@ -34,7 +34,7 @@ Hub for shipping Coach Watts to **App Store** and **Play Console**, including th
 | [store-checklist.md](./store-checklist.md) | Brand chrome, About links, Sentry env |
 | [store-privacy-checklist.md](./store-privacy-checklist.md) | App Privacy / Data safety paste-ready copy |
 | [oauth-setup.md](./oauth-setup.md) | Official Mobile App client + redirects |
-| [e2e.md](./e2e.md) | Never enable e2e auth on store / preview EAS profiles |
+| [e2e.md](./e2e.md) | Maestro suite + CI smoke gate; never enable e2e auth on store / preview EAS profiles |
 | [native-modules.md](./native-modules.md) | Rebuild after native / plugin changes; Android `minSdk` 26 |
 | [deep-links.md](./deep-links.md) | AASA / associated domains for review |
 | [../openspec/changes/store-subscriptions-revenuecat/](../openspec/changes/store-subscriptions-revenuecat/) | Native store subscription proposal/design/specs/tasks |
@@ -91,8 +91,8 @@ Same legal entity for **both** stores. Account enrollments are independent and c
 Do **not** treat `eas build` / `eas submit` as the default shipping path on either platform. EAS profiles remain optional (CI/fallback, GitHub sideload helper).
 
 Shared work (do once): production OAuth (+ hosted SIWA), privacy copy, Sentry DSN + Android Maps keys in local `.env`, upload keystore in password manager, branded assets, delete-account path.  
-App Review sign-in: **Sign in with Apple** with a reviewer Apple ID — no dedicated Google demo ([008](./distribution/tasks/008-reviewer-demo-account.md)).  
-**Marketing (ASC):** upload iPhone screenshots on version **0.1.1** after TestFlight — see [004](./distribution/tasks/004-listing-metadata-assets.md).
+App Review sign-in: prefer **Sign in with Apple**; TestFlight Beta / Play / testers use Google demo `coachwatts.play.review@gmail.com` (password in ASC + Play Console + password manager, not git) — [008](./distribution/tasks/008-reviewer-demo-account.md).  
+**Marketing:** Apple screenshots [004](./distribution/tasks/004-listing-metadata-assets.md) · Play listing pack [013](./distribution/tasks/013-play-listing-assets.md) · optional stellar polish [023](./distribution/tasks/023-store-page-stellar-polish.md).
 
 ## Hosted subscriptions (RevenueCat)
 
@@ -100,8 +100,8 @@ RevenueCat is the selected Apple/Google subscription integration. Coach Watts se
 
 | Workstream | Task | Status |
 |------------|------|--------|
-| RevenueCat ownership, plan, restore policy, store connections | [018](./distribution/tasks/018-revenuecat-project.md) | in-progress (Apple app + catalog + local MCP/API env; Google/Stripe/ownership open) |
-| Apple Paid Apps Agreement/tax/banking; Google merchant profile; prices/products | [019](./distribution/tasks/019-paid-agreements-and-products.md) | in-progress (ASC draft products; Paid Apps / tax blocked on entity verify) |
+| RevenueCat ownership, plan, restore policy, store connections | [018](./distribution/tasks/018-revenuecat-project.md) | in-progress (Apple + Play apps/catalog mapped; Play service account, Stripe, ownership/plan open) |
+| Apple Paid Apps Agreement/tax/banking; Google merchant profile; prices/products | [019](./distribution/tasks/019-paid-agreements-and-products.md) | in-progress (ASC Paid Apps Pending User Info on bank screening; Play bank verify + 15% enrolled; draft catalogs) |
 | `coach-wattz` provider-neutral persistence, lifecycle, Stripe backfill, Bearer reconcile | [020](./distribution/tasks/020-subscription-backend.md) | in-progress |
 | Expo RevenueCat SDK + hosted purchase/restore/status/manage UI | [021](./distribution/tasks/021-native-subscription-experience.md) | in-progress |
 | Sandbox/TestFlight/Internal lifecycle matrix + IAP review | [022](./distribution/tasks/022-subscription-store-test-review.md) | open |
@@ -174,7 +174,7 @@ Track detail in [distribution/tasks.md](./distribution/tasks.md).
 
 ## How to maintain
 
-1. **Tasks** — When work starts or finishes, update the row in `tasks.md` **and** the matching `tasks/{id}-*.md` status together (including subscription tasks 018–022).
+1. **Tasks** — When work starts or finishes, update the row in `tasks.md` **and** the matching `tasks/{id}-*.md` status together (including subscription tasks 018–022 and listing polish 023).
 2. **Log** — When a decision lands, an enrollment completes, a build ships to TestFlight / Play internal, or review feedback arrives, **prepend** a dated entry to [distribution/log.md](./distribution/log.md). Do not rewrite old entries; add a correction note if needed.
 3. **Secrets** — Never commit Apple/Google passwords, Android upload keystores, Play service-account JSON, review demo passwords, or real Sentry DSNs. Reference local `.env` / secret *names* and “stored in password manager / Console” only.
 4. **Store checklists** — Keep chrome/privacy copy in `store-checklist.md` / `store-privacy-checklist.md`; link from tasks instead of duplicating long tables.

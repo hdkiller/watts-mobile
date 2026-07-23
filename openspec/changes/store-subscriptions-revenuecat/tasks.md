@@ -19,10 +19,10 @@
 
 ## 3. RevenueCat and store catalog configuration
 
-- [x] 3.1 Add Apple app configuration to RevenueCat for `com.coachwatts.app` and store private credentials outside git (IAP key in RC; local V2 secret in gitignored `.env` / MCP). Google app still open.
-- [x] 3.2 Create RevenueCat `supporter` and `pro` entitlements, current offering, and monthly/annual package mappings (Apple products; Test Store retained on `$rc_*`)
+- [x] 3.1 Add Apple app configuration to RevenueCat for `com.coachwatts.app` and store private credentials outside git (IAP key in RC; local V2 secret in gitignored `.env` / MCP). Play app `app95807dc9bd` + product mapping done 2026-07-23; Play service-account JSON in RC still open.
+- [x] 3.2 Create RevenueCat `supporter` and `pro` entitlements, current offering, and monthly/annual package mappings (Apple + Play products; Test Store retained on `$rc_*`)
 - [ ] 3.3 Create one App Store subscription group with Supporter/Pro monthly/annual products, service levels, localizations, prices, grace period, and review metadata
-- [ ] 3.4 Create Google Play Supporter/Pro subscriptions with monthly/annual auto-renewing base plans, regional prices, grace/account-hold settings, and required disclosures
+- [x] 3.4 Create Google Play Supporter/Pro subscriptions with monthly/annual auto-renewing base plans, regional prices, grace/account-hold settings, and required disclosures (draft catalog 2026-07-23; Activate + benefits still open)
 - [ ] 3.5 Connect Apple and Google platform server notifications to RevenueCat for sandbox and production
 - [ ] 3.6 Connect existing Stripe Billing to RevenueCat and import/backfill active subscriptions under the matching Coach Watts user UUID
 - [ ] 3.7 Update the existing Stripe activation/webhook path to track new subscriptions in RevenueCat and verify reconciliation counts against Coach Watts

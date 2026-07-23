@@ -34,7 +34,7 @@ export function AnalyzeReadinessPanel({
   adhocDisabled = false,
 }: Props) {
   return (
-    <View className={`mt-6 ${shellByState[state]}`}>
+    <View testID="today-readiness-panel" className={`mt-6 ${shellByState[state]}`}>
       {state === 'generating' ? (
         <View className="items-center py-2">
           <ActivityIndicator color={Colors.brand} size="small" />

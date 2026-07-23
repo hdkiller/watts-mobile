@@ -1,6 +1,6 @@
 # 015 — Android production AAB + upload (local Gradle)
 
-**Area:** build · **Priority:** medium · **Status:** open
+**Area:** build · **Priority:** medium · **Status:** in-progress
 
 **Depends on:** [011](./011-play-console-app.md), [014](./014-eas-android-credentials.md)
 

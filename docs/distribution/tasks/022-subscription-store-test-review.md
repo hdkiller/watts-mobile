@@ -15,7 +15,7 @@ Prove the complete subscription lifecycle on store-signed builds and submit Appl
 3. [ ] Restore after reinstall/new device and restore while a different Coach Watts account is signed in.
 4. [ ] Existing Stripe subscriber retains access and cannot accidentally double-subscribe.
 5. [ ] Subscription screen shows localized price/period, auto-renew terms, Terms, Privacy, Restore, and Manage.
-6. [ ] Submit subscription products/review screenshots with the matching app build and reviewer notes.
+6. [ ] Submit subscription products/review screenshots with the matching app build and reviewer notes (Settings → Subscription & Billing, packages, restore, Terms/Privacy — no client-only unlock).
 
 ## Google Play matrix
 
@@ -32,7 +32,8 @@ Prove the complete subscription lifecycle on store-signed builds and submit Appl
 14. [ ] Store success plus delayed webhook shows “confirming” and foreground reconciliation completes without repurchase.
 15. [ ] Self-hosted instances cannot purchase or restore Watt Mind products.
 16. [ ] Store privacy/data-safety declarations include purchase history/RevenueCat processing and exclude raw payment credentials.
-17. [ ] Prepend TestFlight/Internal/submission/review milestones to [log.md](../log.md), including version/build and result (no credentials).
+17. [ ] Listing copy refresh only if the public page should mention in-app subscriptions; keep free-candidate framing until acquisition is flagged on. Align Play subscription benefits with in-app paywall language.
+18. [ ] Prepend TestFlight/Internal/submission/review milestones to [log.md](../log.md), including version/build and result (no credentials).
 
 ## Done when
 

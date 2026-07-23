@@ -31,26 +31,18 @@ On version **0.1.1 Prepare for Submission** / App Information:
 
 ### Required before submit (marketing owns)
 
-1. **iPhone screenshots** — currently **0 of 10**. Apple will not accept “Add for Review” without at least one set for the required display size.
+1. **Owner decision** — confirm who produces screenshots (marketing vs eng). Same owner decision as Play [013](./013-play-listing-assets.md). Until decided, treat screenshots as **blocked on build + marketing**.
+2. **iPhone screenshots** — currently **0 of 10**. Apple will not accept “Add for Review” without at least one set for the required display size.
    - Capture from a **TestFlight or production** build of Coach Watts (not Expo Go / mockups that diverge from the binary).
    - Phone-only: fill the **iPhone** tab. Skip **iPad** and **Apple Watch** (we do not ship those).
    - Prefer the current required large iPhone size Apple shows on the drop zone (e.g. 6.7″ / 6.5″ class — follow the pixel sizes listed under the upload control).
-   - Show the real product loop: Today, Log / check-in, Coach chat, More — no medical/diagnosis claims in overlays.
+   - Show the real product loop: Today → Log / check-in → Coach chat → More — no medical/diagnosis claims in overlays.
    - Optional marketing chrome (device frames, short captions) is fine if it still matches the shipped UI.
-2. **Owner decision** — confirm who produces assets (marketing vs eng). Until decided, treat screenshots as **blocked on build + marketing**.
+   - Prefer the same story arc and brand treatment as the Play phone set ([013](./013-play-listing-assets.md)).
 
 ### Optional / later (not blocking first submit)
 
-| ASC surface | What marketing might do | First ship? |
-|-------------|-------------------------|-------------|
-| **App Previews** (video, up to 3) | Short hero clips of the companion | Optional |
-| **Promotional Text** | Seasonal blurb above description (already has a baseline) | Optional refresh |
-| **Description / keywords** | Copy polish / localization | Optional; EN-US already live |
-| **Custom Product Pages** | Alternate store pages for campaigns | Defer |
-| **Product Page Optimization** | A/B screenshot/icon experiments | Defer (needs live app) |
-| **In-App Events** | Event cards on the product page | N/A for v1 |
-| **Nominations / featuring** | Pitch to Apple editorial | Optional after launch |
-| **App Accessibility** | Accessibility Nutrition Labels | Optional |
+See [023](./023-store-page-stellar-polish.md) for App Previews, ASO, Custom Product Pages, PPO, featuring, localization, and Play promo video.
 
 **Not marketing / not in ASC media:** App icon and splash come from the **uploaded IPA** (`assets/images/` → local Xcode Archive), not a separate ASC icon upload.
 

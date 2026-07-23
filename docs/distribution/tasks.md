@@ -13,7 +13,7 @@ Hub: [../distribution.md](../distribution.md).
 | [001](./tasks/001-apple-developer-account.md) | Apple ID + Developer Program enrollment (Watt Mind Kft. Org) | account | high | done |
 | [002](./tasks/002-app-store-connect-app.md) | Create ASC app record for `com.coachwatts.app` | listing | high | done |
 | [003](./tasks/003-privacy-and-compliance.md) | App Privacy labels, export compliance, age rating | listing | high | done |
-| [004](./tasks/004-listing-metadata-assets.md) | Listing text done; marketing iPhone screenshots | listing | high | in-progress |
+| [004](./tasks/004-listing-metadata-assets.md) | Listing text done; marketing iPhone screenshots (0/10) | listing | high | in-progress |
 | [005](./tasks/005-eas-credentials-and-secrets.md) | iOS signing + production env (local Mac; not EAS) | build | high | open |
 | [006](./tasks/006-ios-production-build.md) | Local Xcode Archive → TestFlight upload | build | high | open |
 | [007](./tasks/007-testflight-smoke.md) | TestFlight smoke on release binary | qa | high | open |
@@ -45,9 +45,9 @@ Can start account verification **while Apple is reviewing**. Shipping priority r
 | [010](./tasks/010-google-play-developer-account.md) | Play Console Organization (Watt Mind Kft.) | account | medium | done |
 | [011](./tasks/011-play-console-app.md) | Create Play app `com.coachwatts.app` | listing | medium | done |
 | [012](./tasks/012-play-data-safety-and-content.md) | Data safety, content rating, policies | listing | medium | done |
-| [013](./tasks/013-play-listing-assets.md) | Screenshots, feature graphic, description | listing | medium | open |
-| [014](./tasks/014-eas-android-credentials.md) | Android upload keystore + production env (local; not EAS) | build | medium | open |
-| [015](./tasks/015-android-production-build.md) | Local Gradle AAB → Play Internal testing | build | medium | open |
+| [013](./tasks/013-play-listing-assets.md) | Play listing pack: copy, icon, feature graphic, screenshots | listing | medium | open |
+| [014](./tasks/014-eas-android-credentials.md) | Android upload keystore + production env (local; not EAS) | build | medium | in-progress |
+| [015](./tasks/015-android-production-build.md) | Local Gradle AAB → Play Internal testing | build | medium | in-progress |
 | [016](./tasks/016-play-internal-test-smoke.md) | Internal test smoke on release AAB | qa | medium | open |
 | [017](./tasks/017-play-production-submit.md) | Promote to production / Play review | review | medium | open |
 
@@ -61,12 +61,22 @@ These tasks add hosted Supporter/Pro acquisition after (or independently from) t
 | [019](./tasks/019-paid-agreements-and-products.md) | Paid agreements, merchant profile, pricing, Apple/Google products | commerce | high | open |
 | [020](./tasks/020-subscription-backend.md) | Provider-neutral backend, RevenueCat lifecycle, Stripe reconciliation | backend | high | in-progress |
 | [021](./tasks/021-native-subscription-experience.md) | Expo RevenueCat SDK + hosted purchase/restore/manage UI | app | high | in-progress |
-| [022](./tasks/022-subscription-store-test-review.md) | Sandbox/TestFlight/Internal lifecycle QA + IAP review | review | high | open |
+| [022](./tasks/022-subscription-store-test-review.md) | Sandbox/TestFlight/Internal lifecycle QA + IAP review marketing | review | high | open |
+
+## Store page polish (optional)
+
+Not blocking free-candidate submit. Do after [004](./tasks/004-listing-metadata-assets.md) / [013](./tasks/013-play-listing-assets.md).
+
+| ID | Task | Area | Priority | Status |
+|----|------|------|----------|--------|
+| [023](./tasks/023-store-page-stellar-polish.md) | Stellar polish: App Previews, ASO, CPPs, Play video, locales | listing | medium | open |
+
+Suggested marketing order: decide screenshot owner → **004** + **013** from the same release binaries → **023** after first submit → subscription review media with **022** (not free-candidate).
 
 ## Deferred
 
 | Item | Notes |
 |------|--------|
-| Maestro CI for store smoke | Local footing in [e2e.md](../e2e.md) |
+| Maestro CI full companion suite | Gate wired: [e2e-smoke.yml](../../.github/workflows/e2e-smoke.yml) runs `validate-flows` on PR + manual `ios-smoke` (`smoke-unauth` / optional `smoke-shell`). Full suite stays local until stable — [e2e.md](../e2e.md). |
 | Separate branded binaries per self-hosted customer | [open-questions.md](../open-questions.md) #4 |
 | iPad adaptive layouts | Revisit if tablet demand; v1 is phone-only |

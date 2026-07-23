@@ -1,9 +1,13 @@
+/* Hallmark · genre: modern-minimal · macrostructure: Workbench · design-system: docs/DESIGN.md · designed-as-app */
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
+import { AnimatedPressable } from '@/src/components/AnimatedPressable';
 import { ScoreChip } from '@/src/components/ScoreChip';
+import { Skeleton } from '@/src/components/Skeleton';
+import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
 
 import { AthleteReportSheet } from './AthleteReportSheet';
@@ -59,16 +63,21 @@ export function AthleteProfileOverview({
   const onSync = async () => {
     setSyncError(null);
     setSyncing(true);
+    hapticLight();
     try {
       await generateAthleteProfile();
       const report = await pollAthleteProfileReport();
       queryClient.setQueryData(ATHLETE_PROFILE_REPORT_KEY, report);
       if (report?.status === 'FAILED') {
+        hapticError();
         setSyncError('Profile generation failed. Try again or open Coach Watts.');
       } else if (report?.status !== 'COMPLETED') {
         setSyncError('Still generating. Pull to refresh, or open Coach Watts in a minute.');
+      } else {
+        hapticSuccess();
       }
     } catch (err) {
+      hapticError();
       const status = (err as { status?: number } | null)?.status;
       if (status === 401 || status === 403) {
         setSyncError(
@@ -97,75 +106,99 @@ export function AthleteProfileOverview({
           ) : null}
         </View>
         {!reportForbidden ? (
-          <Pressable
+          <AnimatedPressable
             accessibilityRole="button"
             accessibilityLabel="Sync athlete profile"
             disabled={syncing}
+            hitSlop={8}
             onPress={() => void onSync()}
-            className="rounded-full border border-border-strong px-3 py-1.5 active:opacity-70"
+            className="min-h-11 min-w-11 items-center justify-center rounded-full border border-border-strong px-3"
           >
             {syncing ? (
               <ActivityIndicator color={Colors.brand} size="small" />
             ) : (
               <Text className="text-xs font-semibold text-brand">Sync</Text>
             )}
-          </Pressable>
+          </AnimatedPressable>
         ) : null}
       </View>
 
-      <View className="mt-4 flex-row gap-2.5">
-        <HrTile label="Max HR" value={profile.maxHr} />
-        <HrTile label="Resting HR" value={profile.restingHr} />
-        <HrTile label="LTHR" value={profile.lthr} />
-      </View>
+      <HrMetrics
+        maxHr={profile.maxHr}
+        restingHr={profile.restingHr}
+        lthr={profile.lthr}
+      />
 
-      <View className="mt-5 rounded-xl border border-border bg-card/80 px-4 py-4">
-        <Text className="text-xs uppercase tracking-wide text-text-muted">AI Athlete Profile</Text>
-
+      <View className="mt-5">
         {reportQuery.isLoading && !reportQuery.data ? (
-          <ActivityIndicator className="mt-4" color={Colors.brand} />
+          <View>
+            <Skeleton className="h-3 w-28" />
+            <Skeleton className="mt-3 h-4 w-full" />
+            <Skeleton className="mt-2 h-4 w-5/6" />
+            <Skeleton className="mt-2 h-4 w-2/3" />
+          </View>
         ) : reportForbidden ? (
-          <View className="mt-3">
+          <View className="rounded-xl border border-border-strong bg-card/60 px-4 py-3.5">
             <Text className="text-sm text-text-muted">
               New permissions are available for AI reports — a quick access update unlocks them.
             </Text>
-            <Pressable className="mt-3 active:opacity-70" onPress={onReauth}>
+            <AnimatedPressable
+              className="mt-3 self-start"
+              hitSlop={8}
+              onPress={() => {
+                hapticLight();
+                onReauth();
+              }}
+            >
               <Text className="text-sm font-semibold text-brand">Update access</Text>
-            </Pressable>
-            <Pressable className="mt-3 active:opacity-70" onPress={onOpenWebReport}>
-              <Text className="text-sm font-semibold text-text-body">
-                Open Athlete Profile
-              </Text>
-            </Pressable>
+            </AnimatedPressable>
+            <AnimatedPressable
+              className="mt-3 self-start"
+              hitSlop={8}
+              onPress={() => {
+                hapticLight();
+                onOpenWebReport();
+              }}
+            >
+              <Text className="text-sm font-semibold text-text-body">Open Athlete Profile</Text>
+            </AnimatedPressable>
           </View>
         ) : reportQuery.isError ? (
-          <View className="mt-3">
+          <View className="rounded-xl border border-danger/40 bg-tint-error px-4 py-3.5">
             <Text className="text-sm text-red-400">
               {friendlyError(reportQuery.error, 'Could not load AI profile')}
             </Text>
-            <Pressable
-              className="mt-3 active:opacity-70"
-              onPress={() => void reportQuery.refetch()}
+            <AnimatedPressable
+              className="mt-3 self-start"
+              hitSlop={8}
+              onPress={() => {
+                hapticLight();
+                void reportQuery.refetch();
+              }}
             >
               <Text className="text-sm font-semibold text-brand">Retry</Text>
-            </Pressable>
+            </AnimatedPressable>
           </View>
         ) : reportQuery.data?.status === 'PENDING' ||
           reportQuery.data?.status === 'PROCESSING' ? (
-          <Text className="mt-3 text-sm text-text-muted">Generating your athlete profile…</Text>
+          <Text className="text-sm text-text-muted">Generating your athlete profile…</Text>
         ) : completedReport?.executiveSummary ? (
-          <Pressable
+          <AnimatedPressable
             accessibilityRole="button"
             accessibilityLabel="View AI athlete profile report"
             disabled={!canOpenLiteSheet}
-            onPress={() => setSheetOpen(true)}
-            className="mt-3 active:opacity-90"
+            onPress={() => {
+              hapticLight();
+              setSheetOpen(true);
+            }}
           >
             {completedReport.fitnessStatusLabel ? (
               <Text className="mb-2 text-xs font-semibold text-brand">
                 {completedReport.fitnessStatusLabel}
               </Text>
-            ) : null}
+            ) : (
+              <Text className="mb-2 text-xs font-semibold text-text-muted">Latest sync</Text>
+            )}
             <Text className="text-sm leading-5 text-text-body">
               {completedReport.executiveSummary}
             </Text>
@@ -184,20 +217,29 @@ export function AthleteProfileOverview({
             {canOpenLiteSheet ? (
               <Text className="mt-3 text-sm font-semibold text-brand">View report</Text>
             ) : null}
-          </Pressable>
+          </AnimatedPressable>
         ) : (
-          <View className="mt-3">
-            <Text className="text-sm text-text-muted">
-              No AI athlete profile yet. Sync to generate one, or open the full report.
-            </Text>
-          </View>
+          <Text className="text-sm text-text-muted">
+            No AI athlete profile yet. Sync to generate one, or open the full report.
+          </Text>
         )}
 
-        {syncError ? <Text className="mt-3 text-sm text-red-400">{syncError}</Text> : null}
+        {syncError ? (
+          <View className="mt-3 rounded-xl border border-danger/40 bg-tint-error px-4 py-3.5">
+            <Text className="text-sm text-red-400">{syncError}</Text>
+          </View>
+        ) : null}
 
-        <Pressable className="mt-4 active:opacity-70" onPress={onOpenWebReport}>
+        <AnimatedPressable
+          className="mt-4 self-start"
+          hitSlop={8}
+          onPress={() => {
+            hapticLight();
+            onOpenWebReport();
+          }}
+        >
           <Text className="text-sm font-semibold text-brand">Open full report</Text>
-        </Pressable>
+        </AnimatedPressable>
       </View>
 
       <AthleteReportSheet
@@ -213,18 +255,42 @@ export function AthleteProfileOverview({
   );
 }
 
-function HrTile({ label, value }: { label: string; value: number | null }) {
+/** Lead Max HR + secondary resting/LTHR — breaks the equal three-tile grid. */
+function HrMetrics({
+  maxHr,
+  restingHr,
+  lthr,
+}: {
+  maxHr: number | null;
+  restingHr: number | null;
+  lthr: number | null;
+}) {
   return (
-    <View className="flex-1 rounded-xl border border-border bg-card px-3 py-3">
-      <Text className="text-[10px] font-bold uppercase tracking-wide text-text-muted">{label}</Text>
-      <View className="mt-2 flex-row items-baseline gap-1">
-        <Text className="text-lg font-black text-text-primary">
-          {value != null ? Math.round(value) : '—'}
-        </Text>
-        {value != null ? (
-          <Text className="text-[10px] font-semibold text-text-muted">bpm</Text>
-        ) : null}
+    <View className="mt-5 flex-row items-end gap-5 border-b border-border/80 pb-4">
+      <View className="min-w-0 flex-[1.35]">
+        <Text className="text-xs uppercase tracking-wide text-text-muted">Max HR</Text>
+        <View className="mt-1 flex-row items-baseline gap-1.5">
+          <Text className="text-3xl font-semibold text-text-primary">
+            {maxHr != null ? Math.round(maxHr) : '—'}
+          </Text>
+          {maxHr != null ? <Text className="text-sm text-text-muted">bpm</Text> : null}
+        </View>
       </View>
+      <View className="min-w-0 flex-1 gap-2.5">
+        <HrSecondary label="Resting" value={restingHr} />
+        <HrSecondary label="LTHR" value={lthr} />
+      </View>
+    </View>
+  );
+}
+
+function HrSecondary({ label, value }: { label: string; value: number | null }) {
+  return (
+    <View className="flex-row items-baseline justify-between gap-2">
+      <Text className="text-xs text-text-muted">{label}</Text>
+      <Text className="text-base font-semibold text-text-primary">
+        {value != null ? `${Math.round(value)} bpm` : '—'}
+      </Text>
     </View>
   );
 }

@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  InteractionManager,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -48,6 +49,7 @@ import {
   type EstimateConfidence,
   type LogMealSheetMode,
 } from '@/src/features/nutrition/logMealSheetMode';
+import { resolvePickerPhoto } from '@/src/features/nutrition/resolvePickerPhoto';
 import { MEAL_OPTIONS, type MealSlot, type NutritionQuickLogForm } from '@/src/features/nutrition/types';
 import { useLogNutritionItem, useTodayNutritionQuery } from '@/src/features/nutrition/useNutrition';
 import { usePhotoMealSettings } from '@/src/features/nutrition/usePhotoMealSettings';
@@ -55,6 +57,9 @@ import { NutritionTargetsCard } from '@/src/features/nutrition/NutritionTargetsC
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { useReduceMotion } from '@/src/hooks/useReduceMotion';
 import { useThemeColors } from '@/src/theme/useThemeColors';
+
+/** Delay past fullScreenModal + system picker presentation so the first open isn't cancelled. */
+const AUTO_OPEN_PICKER_DELAY_MS = 450;
 
 const MEAL_ICONS: Record<MealSlot, { label: string; icon: string }> = {
   BREAKFAST: { label: 'Breakfast', icon: '🥣' },
@@ -703,6 +708,41 @@ export function LogMealSheet({
     }
   };
 
+  const handlePickerDismissedWithoutPhoto = () => {
+    if (mode === 'review') return;
+    setMode('compose');
+  };
+
+  const beginAnalyzeFromPickerAsset = async (
+    asset: { uri?: string | null; base64?: string | null; mimeType?: string | null },
+    options?: { saveCapturedToLibrary?: boolean }
+  ) => {
+    const photo = await resolvePickerPhoto(asset);
+    if (!photo) {
+      hapticError();
+      setError('Could not read the selected photo. Try again or pick a different image.');
+      handlePickerDismissedWithoutPhoto();
+      return;
+    }
+
+    if (options?.saveCapturedToLibrary && photo.uri) {
+      try {
+        // @ts-ignore -- optional native dependency
+        const MediaLibrary = require('expo-media-library');
+        if (MediaLibrary?.requestPermissionsAsync && MediaLibrary?.saveToLibraryAsync) {
+          const perm = await MediaLibrary.requestPermissionsAsync();
+          if (perm.granted) {
+            await MediaLibrary.saveToLibraryAsync(photo.uri);
+          }
+        }
+      } catch {
+        // Silently ignore if MediaLibrary module is missing or permission fails
+      }
+    }
+
+    await analyzeCapturedPhoto(photo);
+  };
+
   const handleTakePhoto = async () => {
     hapticLight();
     setError(null);
@@ -720,33 +760,12 @@ export function LogMealSheet({
         quality: 0.8,
         base64: true,
       });
-      if (result.canceled || !result.assets?.[0]?.base64) {
-        if (mode === 'review') return;
-        setMode('compose');
+      if (result.canceled || !result.assets?.[0]) {
+        handlePickerDismissedWithoutPhoto();
         return;
       }
 
-      const asset = result.assets[0];
-      if (saveToLibrary && asset.uri) {
-        try {
-          // @ts-ignore -- optional native dependency
-          const MediaLibrary = require('expo-media-library');
-          if (MediaLibrary?.requestPermissionsAsync && MediaLibrary?.saveToLibraryAsync) {
-            const perm = await MediaLibrary.requestPermissionsAsync();
-            if (perm.granted) {
-              await MediaLibrary.saveToLibraryAsync(asset.uri);
-            }
-          }
-        } catch {
-          // Silently ignore if MediaLibrary module is missing or permission fails
-        }
-      }
-
-      await analyzeCapturedPhoto({
-        uri: asset.uri,
-        base64: asset.base64 ?? '',
-        mimeType: asset.mimeType ?? 'image/jpeg',
-      });
+      await beginAnalyzeFromPickerAsset(result.assets[0], { saveCapturedToLibrary: saveToLibrary });
     } catch (err) {
       hapticError();
       setError(friendlyError(err, 'Could not analyze meal photo'));
@@ -772,24 +791,25 @@ export function LogMealSheet({
         quality: 0.8,
         base64: true,
       });
-      if (result.canceled || !result.assets?.[0]?.base64) {
-        if (mode === 'review') return;
-        setMode('compose');
+      if (result.canceled || !result.assets?.[0]) {
+        handlePickerDismissedWithoutPhoto();
         return;
       }
 
-      const asset = result.assets[0];
-      await analyzeCapturedPhoto({
-        uri: asset.uri,
-        base64: asset.base64 ?? '',
-        mimeType: asset.mimeType ?? 'image/jpeg',
-      });
+      await beginAnalyzeFromPickerAsset(result.assets[0]);
     } catch (err) {
       hapticError();
       setError(friendlyError(err, 'Could not analyze meal photo'));
       setMode('compose');
       setCapturedPhoto(null);
     }
+  };
+
+  const launchPhotoSourceAfterAlert = (launch: () => void) => {
+    // Alert dismissal + system picker back-to-back often no-ops on the first try.
+    InteractionManager.runAfterInteractions(() => {
+      setTimeout(launch, 100);
+    });
   };
 
   const handleChoosePhotoSource = () => {
@@ -800,8 +820,14 @@ export function LogMealSheet({
       void handlePickPhoto();
     } else {
       Alert.alert('Photo Estimate with AI', 'Choose photo source to analyze your meal:', [
-        { text: 'Take Photo', onPress: () => void handleTakePhoto() },
-        { text: 'Choose from Library', onPress: () => void handlePickPhoto() },
+        {
+          text: 'Take Photo',
+          onPress: () => launchPhotoSourceAfterAlert(() => void handleTakePhoto()),
+        },
+        {
+          text: 'Choose from Library',
+          onPress: () => launchPhotoSourceAfterAlert(() => void handlePickPhoto()),
+        },
         { text: 'Cancel', style: 'cancel' },
       ]);
     }
@@ -809,12 +835,27 @@ export function LogMealSheet({
 
   useEffect(() => {
     if (!visible) return;
-    const timeout = setTimeout(() => {
-      resetSheetState();
-      void loadHistory();
-      if (autoOpenPicker) handleChoosePhotoSource();
-    }, 0);
-    return () => clearTimeout(timeout);
+
+    let cancelled = false;
+    let openTimeout: ReturnType<typeof setTimeout> | undefined;
+
+    const interaction = InteractionManager.runAfterInteractions(() => {
+      openTimeout = setTimeout(
+        () => {
+          if (cancelled) return;
+          resetSheetState();
+          void loadHistory();
+          if (autoOpenPicker) handleChoosePhotoSource();
+        },
+        autoOpenPicker ? AUTO_OPEN_PICKER_DELAY_MS : 0
+      );
+    });
+
+    return () => {
+      cancelled = true;
+      interaction.cancel?.();
+      if (openTimeout) clearTimeout(openTimeout);
+    };
     // Reset and optionally start capture only on visibility/route-entry edges.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, autoOpenPicker]);
@@ -887,7 +928,11 @@ export function LogMealSheet({
       <ScrollView
         key={mode}
         style={presentation === 'screen' ? { flex: 1 } : { flexShrink: 1 }}
-        contentContainerStyle={{ paddingBottom: presentation === 'screen' ? 32 : 8 }}
+        contentContainerStyle={{
+          paddingBottom: presentation === 'screen' ? 32 : 8,
+          // Keep compose/analyzing content laid out after camera/library modals dismiss.
+          ...(presentation === 'screen' ? { flexGrow: 1 } : null),
+        }}
         keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"
         nestedScrollEnabled
@@ -1164,7 +1209,7 @@ export function LogMealSheet({
             ) : null}
       </ScrollView>
 
-      {mode === 'compose' ? (
+      {mode === 'compose' && presentation === 'sheet' ? (
         <View className="pt-3 border-t border-border bg-surface">
           <Button
             label={`Save Meal for ${saveMealDateLabel(selectedDateYmd)}`}

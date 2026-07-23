@@ -14,7 +14,7 @@ export function ScoreChip({
   return (
     <View className="rounded-full border border-border-strong bg-surface/60 px-2.5 py-1">
       <View className="flex-row items-baseline gap-0.5">
-        <Text className={`text-[11px] font-semibold ${low ? 'text-amber-300' : 'text-text-body'}`}>
+        <Text className={`text-[11px] font-semibold ${low ? 'text-modify' : 'text-text-body'}`}>
           {label} {score}
         </Text>
         <Text className="text-[10px] text-text-muted">/10</Text>

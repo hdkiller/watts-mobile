@@ -14,6 +14,50 @@ Format:
 
 ---
 
+## 2026-07-23 — Maestro companion e2e suite + CI smoke gate
+
+- Expanded [e2e.md](../e2e.md) for coach-wattz e2e stack (`:3199` + `POST /api/__e2e/token`), selector convention, companion flows, mutation/`e2e:reset` notes, and manual/sandbox matrix.
+- Added Maestro flows under `maestro/flow-*.yaml` (Today/Log/Coach/More open paths, wellness save, recommendation accept when CTA present, scheme deep links).
+- Wired [`.github/workflows/e2e-smoke.yml`](../../.github/workflows/e2e-smoke.yml): PR validates flow files; `workflow_dispatch` runs iOS `smoke-unauth` (+ optional `smoke-shell` with secrets).
+
+## 2026-07-23 — Play / tester Google demo Gmail created
+
+- Created Google demo account **`coachwatts.play.review@gmail.com`** for Play review and Google OAuth sign-in by testers (TestFlight ALPHA / Play internal).
+- Password locations (not git): Watt Mind password manager, Play Console Sign in details, and ASC TestFlight → Test Information → Beta App Review Sign-In — see [008](./tasks/008-reviewer-demo-account.md).
+- ASC Test Information Sign-In + Review Notes saved 2026-07-23 (username `coachwatts.play.review@gmail.com`).
+- Still needed: one hosted Google OAuth login to seed the athlete on `https://coachwatts.com`.
+
+## 2026-07-23 — Store marketing captured as distribution tasks
+
+- Confirmed listing/marketing work belongs under distribution (not `docs/issues/`): expanded [004](./tasks/004-listing-metadata-assets.md) + [013](./tasks/013-play-listing-assets.md); added optional [023](./tasks/023-store-page-stellar-polish.md); subscription review marketing stays on [022](./tasks/022-subscription-store-test-review.md).
+
+## 2026-07-23 — Play commerce loose ends + Apple Paid Apps status check
+
+- **Play payout:** Erste HUF bank added on payments profile (HU…4237) — Verification pending (micro-deposit).
+- **Play 15% fee:** Account group “Watt Mind Korlátolt Felelősségű Társaság” created (no other ADAs); enrolled for 15% service fee.
+- **Play benefits:** Added EN benefits on `coachwatts_supporter` and `coachwatts_pro` (still Draft base plans).
+- **Apple check:** Paid Apps Agreement is no longer blocked on entity verify — status **Pending User Info**. Tax forms Active. Banks on file (Revolut EUR + Erste HUF) both Pending User Info. **Add user info** / bank-holder compliance screening still fails with ASC server error after PDF upload — iOS IAP commerce remains blocked until that clears. See [019](./tasks/019-paid-agreements-and-products.md).
+
+## 2026-07-23 — Play RTDN connected + credentials valid
+
+- Upgraded SA IAM to `roles/pubsub.admin` (+ existing `monitoring.viewer`); Pub/Sub API enabled on GCP project `coach-watts`.
+- RevenueCat Google developer notifications **Connected** to `projects/coach-watts/topics/Play-Store-Notifications`. Play Monetization setup RTDN enabled (subscriptions/voided/one-time); granted `google-play-developer-notifications@system.gserviceaccount.com` Pub/Sub Publisher on topic; test notification received in RC (**Valid credentials** + Last received timestamp). Still open: Activate Play base plans for license testing. See [018](./tasks/018-revenuecat-project.md).
+
+## 2026-07-23 — RevenueCat Play credentials + Console permissions
+
+- Service-account JSON uploaded in RevenueCat for Play app `app95807dc9bd`. Play Console user `revenuecat-service-account@coach-watts.iam.gserviceaccount.com`: Coach Watts app access + account permissions **View app information (bulk reports)** + **View financial data, orders, and cancellation survey responses** + **Manage orders and subscriptions**.
+
+## 2026-07-23 — RevenueCat Play app + product mapping
+
+- Added RevenueCat Play Store app **Coach Watts (Play Store)** (`app95807dc9bd`) for package `com.coachwatts.app`.
+- Created RC products `coachwatts_supporter:monthly|annual` and `coachwatts_pro:monthly|annual`; attached to entitlements `supporter`/`pro` and `default` packages (`$rc_monthly`, `$rc_annual`, `pro_monthly`, `pro_annual`).
+- Local `.env`: `EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY` + Play identifiers appended to product ID lists (gitignored).
+
+## 2026-07-23 — Play Internal AAB + Google subscription catalog (draft)
+
+- Uploaded release-signed AAB `0.1.1` / `versionCode` 1 to Internal testing; release **1 (0.1.1)** published (“Available to internal testers”). Track inactive until testers are added. Upload keystore wired via gitignored `credentials/android/` + plugin `withAndroidReleaseSigning` (task 014).
+- Create subscription unlocked. Draft Google catalog: **`coachwatts_supporter`** (`monthly` $8.99 / `annual` $89.99) and **`coachwatts_pro`** (`monthly` $14.99 / `annual` $119.99 — Play rounded from $119.00). Left inactive until 020/021. Still open: benefits copy, Activate for license testers, RevenueCat Google app mapping, payout bank / 15% fee. See [015](./tasks/015-android-production-build.md), [019](./tasks/019-paid-agreements-and-products.md).
+
 ## 2026-07-23 — Play payments profile linked; subscriptions blocked on APK
 
 - Linked existing Watt Mind Kft. Google payments profile (`3878-8777-9292`, Organization profile for Play) to developer `7883910200930974301`; filled public merchant details (coachwatts.com / support@coachwatts.com / CoachWatts).

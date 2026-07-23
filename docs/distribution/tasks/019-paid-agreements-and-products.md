@@ -35,19 +35,38 @@ Subscription group **Coach Watts** · Group ID `22257011` · App Apple ID `67932
 
 ## Steps
 
-1. [ ] Apple Account Holder accepts the current Paid Apps Agreement (blocked on legal-entity verification as of 2026-07-22; Free Apps = Verifying; Paid Apps not yet listed).
-2. [ ] Complete/verify Apple tax and banking information for Watt Mind Kft.; record status only, not financial details.
-   - **Blocked:** Tax/Banking UI is not available until Paid Apps opens after entity verification.
-   - **Banking intent (when unlocked):** Revolut Business EUR payout IBAN for Watt Mind Kft. (documented in private org notes; do not commit full IBAN here).
-   - **Tax:** W-8BEN-E needs Watt Mind adószám / EU VAT ID — not yet recorded in-repo; confirm with accountant/Billingo before filing.
+1. [~] Apple Paid Apps Agreement accepted (effective Jul 23, 2026 – Jul 21, 2027) but status remains **Pending User Info** (2026-07-23). Free Apps Agreement = Active.
+2. [~] Apple tax + banking for Watt Mind Kft. (status only; no financial details in git):
+   - **Tax:** W-8BEN-E (nickname “W-8BEN-E Hungary”) + U.S. Certificate of Foreign Status — both **Active** (submitted Jul 23, 2026).
+   - **Bank accounts on file:** Revolut Business EUR (…1013, Lithuania) and Erste HUF (…4237, Hungary) — both **Pending User Info**.
+   - **Blocked:** “Bank Account Holder Compliance Screening” / **Add user info** (upload business registration). ASC returns a server error on submit; Paid Apps stays Pending User Info until Apple accepts the screening docs. Retry later or via Apple Contact Us if it persists.
 3. [ ] Evaluate/enroll in the App Store Small Business Program if eligible.
-4. [~] Google Play payments profile linked (2026-07-23): Watt Mind Kft. org profile `3878-8777-9292` (Play); public merchant website `https://coachwatts.com`, support `support@coachwatts.com`, statement name `CoachWatts`, category Internet/Network/Digital Media. Still open: add payout bank account; optional 15% service-fee account-group enrollment.
+4. [~] Google Play payments profile linked (2026-07-23): Watt Mind Kft. org profile `3878-8777-9292` (Play); public merchant website `https://coachwatts.com`, support `support@coachwatts.com`, statement name `CoachWatts`, category Internet/Network/Digital Media.
+   - **Payout bank (2026-07-23):** Erste HUF IBAN added (HU…4237) — **Verification pending** (Google micro-deposit under HUF 35 within ~3 business days; confirm exact amount in Payments profile).
+   - **15% service fee (2026-07-23):** Account group **Watt Mind Korlátolt Felelősségű Társaság** created (no other ADAs); enrolled for the 15% service fee.
 5. [x] Decide monthly/annual store pricing, regional availability, annual discount, and whether prices match web or target comparable net proceeds. (Parity with web list: Pro $14.99 / $119.00, Supporter $8.99 / $89.99; all countries.)
 6. [ ] Decide introductory trial/offer policy and cross-provider trial eligibility with the existing Coach Watts trial/Stripe history.
 7. [~] Create the Apple subscription group, four products, localizations, price schedule, and availability. Remaining: service levels (Pro=1, Supporter=2), grace period, review screenshot/notes.
-8. [ ] Create Google Supporter/Pro subscriptions with monthly/annual base plans, regional prices, grace/account-hold/resubscribe configuration, benefits, and tax/compliance metadata.
-   - **Blocked (2026-07-23):** Play Console requires uploading an APK/AAB before the Create subscription UI unlocks (draft app `4976128188579826786` has no artifact yet).
-9. [x] Map Apple products in RevenueCat task 018 and document one product → tier/period mapping (2026-07-22). Google base plans still open.
+8. [~] Create Google Supporter/Pro subscriptions with monthly/annual base plans, regional prices, grace/account-hold/resubscribe configuration, benefits, and tax/compliance metadata.
+   - **Unblocked (2026-07-23):** Internal testing AAB `0.1.1` / versionCode `1` uploaded; Create subscription available.
+   - **Benefits (2026-07-23):** Supporter — Daily coaching guidance / Core training tools / Mobile companion access. Pro — Adaptive coaching insights / Full Pro access / Everything in Supporter. Tax category Digital app sales + Service compliance left as set.
+   - Remaining: Activate when ready for license testers.
+9. [x] Map Apple products in RevenueCat task 018 (2026-07-22) and Google base plans `productId:basePlanId` (2026-07-23). Play service-account credentials in RC done (2026-07-23).
+
+## Google catalog (draft) — created 2026-07-23
+
+App package `com.coachwatts.app` · Play app ID `4976128188579826786`
+
+| Product (name) | Product ID | Base plan ID | Period | US price (USD) | Grace | Status |
+|----------------|------------|--------------|--------|----------------|-------|--------|
+| Supporter | `coachwatts_supporter` | `monthly` | Monthly auto-renewing | $8.99 | 7 days | Draft |
+| Supporter | `coachwatts_supporter` | `annual` | Yearly auto-renewing | $89.99 | 14 days | Draft |
+| Pro | `coachwatts_pro` | `monthly` | Monthly auto-renewing | $14.99 | 7 days | Draft |
+| Pro | `coachwatts_pro` | `annual` | Yearly auto-renewing | $119.99 | 14 days | Draft |
+
+- Base plan IDs are lowercase + hyphens only (`monthly`, `annual`).
+- Regional prices set from USD base (Play FX); Resubscribe = Allow; account hold = Play automatic.
+- **Price note:** Play Pro annual US landed at **$119.99** (nearest Play price point); Apple Pro annual remains **$119.00**. Keep both as-is unless product decides to realign.
 10. [ ] Keep products inactive/draft until task 020 backend authority and task 021 app experience are ready for end-to-end testing.
 
 ## Done when

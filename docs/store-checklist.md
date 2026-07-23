@@ -1,6 +1,6 @@
 # Store candidate checklist
 
-Track chrome and metadata for TestFlight / Play internal tracks. Shipping workflow, **release-it versioning**, outstanding tasks, and progress history live under [distribution.md](./distribution.md) (**iOS = local Xcode Archive**, **Android = local Gradle AAB**, not EAS). Local Maestro footing lives in [e2e.md](./e2e.md); CI wiring is still open.
+Track chrome and metadata for TestFlight / Play internal tracks. Shipping workflow, **release-it versioning**, outstanding tasks, and progress history live under [distribution.md](./distribution.md) (**iOS = local Xcode Archive**, **Android = local Gradle AAB**, not EAS). Maestro footing + CI gate: [e2e.md](./e2e.md), [`.github/workflows/e2e-smoke.yml`](../.github/workflows/e2e-smoke.yml).
 
 ## Brand chrome
 
@@ -94,6 +94,6 @@ The free store candidate is not blocked by this section. Keep production acquisi
 
 ## Deferred
 
-- Maestro CI wiring (local footing in [e2e.md](./e2e.md))
-- Store listing screenshots owner (marketing vs eng — open question in design)
+- Maestro full companion suite in CI (smoke gate wired in [e2e.md](./e2e.md) / `e2e-smoke.yml`; expand when local suite is boring)
+- Store listing screenshots owner (marketing vs eng) — tracked under [distribution/tasks/004](./distribution/tasks/004-listing-metadata-assets.md) + [013](./distribution/tasks/013-play-listing-assets.md); optional polish [023](./distribution/tasks/023-store-page-stellar-polish.md)
 - Separate branded binaries per self-hosted customer

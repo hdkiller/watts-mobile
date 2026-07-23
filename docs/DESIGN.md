@@ -122,6 +122,7 @@ To avoid keyboards layout overlap or blocking inputs:
 - Primary CTAs go through `Button` (roles/labels/state included).
 - Custom icon-only Pressables need `accessibilityRole="button"` + `accessibilityLabel`.
 - Don't disable font scaling; layouts must tolerate larger text.
+- **Maestro / e2e:** screen and sheet roots (and primary CTAs the suite must tap) also get stable `testID`s — naming, inventory, and when to update flows live in [e2e.md](./e2e.md) § Maintaining e2e. Labels may change with copy; `testID`s should not.
 
 ## Don'ts
 
