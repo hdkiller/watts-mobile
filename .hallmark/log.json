@@ -1,0 +1,26 @@
+[
+  {
+    "date": "2026-07-23",
+    "scope": "app",
+    "macrostructure": "Workbench",
+    "theme": "Coach Watts semantic light/dark",
+    "enrichment": "none",
+    "brief": "Goals/Events hubs + Athlete teaser — type-code vs date-tile fingerprints, Event↔Goal browse loop"
+  },
+  {
+    "date": "2026-07-23",
+    "scope": "app",
+    "macrostructure": "Workbench",
+    "theme": "Coach Watts semantic light/dark",
+    "enrichment": "none",
+    "brief": "Athlete profile — field companion overview with collapsed metrics edit"
+  },
+  {
+    "date": "2026-07-22",
+    "scope": "app",
+    "macrostructure": "Narrative Workflow",
+    "theme": "Coach Watts semantic light/dark",
+    "enrichment": "user meal photo",
+    "brief": "Full-screen photo meal review with quiet, consequence-based completion"
+  }
+]

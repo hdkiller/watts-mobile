@@ -20,8 +20,13 @@ export const APP_HREFS = {
     `/(app)/planned/${encodeURIComponent(id)}` as const,
   upcoming: '/(app)/upcoming',
   eventsList: '/(app)/events',
+  eventsNew: '/(app)/events/new',
   eventDetail: (id: string) =>
     `/(app)/events/${encodeURIComponent(id)}` as const,
+  goalsList: '/(app)/goals',
+  goalsNew: '/(app)/goals/new',
+  goalDetail: (id: string) =>
+    `/(app)/goals/${encodeURIComponent(id)}` as const,
   athlete: '/(app)/athlete',
   notifications: '/(app)/(tabs)/more/notifications',
   settings: '/(app)/(tabs)/more/settings',
@@ -70,6 +75,11 @@ export function migrateLegacyAppHref(href: string): string {
       (m) => APP_HREFS.eventDetail(decodeURIComponent(m[1]!)),
     ],
     [/^\/\(app\)\/\(tabs\)\/today\/events\/?$/, APP_HREFS.eventsList],
+    [
+      /^\/\(app\)\/\(tabs\)\/more\/goals\/([^/?#]+)/,
+      (m) => APP_HREFS.goalDetail(decodeURIComponent(m[1]!)),
+    ],
+    [/^\/\(app\)\/\(tabs\)\/more\/goals\/?$/, APP_HREFS.goalsList],
     [/^\/\(app\)\/\(tabs\)\/more\/athlete\/?$/, APP_HREFS.athlete],
     [/^\/\(app\)\/\(tabs\)\/more\/settings\/health\/?$/, APP_HREFS.settingsHealth],
     [

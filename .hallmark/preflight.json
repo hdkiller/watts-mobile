@@ -1,0 +1,20 @@
+{
+  "scanned_at": "2026-07-23",
+  "design_system": "docs/DESIGN.md",
+  "framework": "Expo ~57 / Expo Router / React Native 0.86 / NativeWind 4 / Tailwind 3.4",
+  "font_stack": "platform system UI (no custom expo-font / Google Fonts loaders detected)",
+  "palette": {
+    "source": ["src/theme/colors.ts", "global.css", "tailwind.config.js"],
+    "brand": "#00DC82",
+    "brand_action": "#00C16A",
+    "modes": "semantic light/dark via CSS vars + Themes.dark|light; OS automatic + Settings Appearance"
+  },
+  "motion": {
+    "library": "react-native-reanimated 4.5",
+    "patterns": ["AnimatedPressable spring-scale", "useReduceMotion → AccessibilityInfo", "haptics.ts light/success/error"]
+  },
+  "spacing": "NativeWind/Tailwind default scale; docs prescribe px-6, mt-6/mt-8, rounded-xl/2xl",
+  "shared_components": ["Button", "AppSymbol", "SportIcon", "Skeleton", "AnimatedPressable"],
+  "preserve": ["docs/DESIGN.md tokens", "semantic theme classes", "Button/AnimatedPressable/haptics patterns", "dual light/dark"],
+  "introduce_when_designing": ["macrostructure within field-companion IA", "microinteraction discipline", "slop-test gates"]
+}

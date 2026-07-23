@@ -1,3 +1,18 @@
+export type EventPriority = 'A' | 'B' | 'C';
+
+export type CreateEventInput = {
+  title: string;
+  date: string;
+  type?: string;
+  subType?: string;
+  priority?: EventPriority | null;
+  location?: string;
+  city?: string;
+  country?: string;
+  description?: string;
+  startTime?: string;
+};
+
 export type EventGoalApi = {
   id: string;
   title?: string | null;

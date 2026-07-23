@@ -1,8 +1,13 @@
-import { Stack, useLocalSearchParams } from 'expo-router';
-import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
+/* Hallmark · genre: modern-minimal · macrostructure: Workbench · design-system: docs/DESIGN.md · designed-as-app
+ * Event detail — linked goals navigate into Goals hub.
+ */
+import { router, Stack, useLocalSearchParams, type Href } from 'expo-router';
+import { Linking, ScrollView, Text, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
+import { AnimatedPressable } from '@/src/components/AnimatedPressable';
+import { AppSymbol } from '@/src/components/AppSymbol';
 import { Button } from '@/src/components/Button';
 import { HeroStatTiles, type HeroStat } from '@/src/components/HeroStatTiles';
 import { OfflineBanner } from '@/src/components/OfflineBanner';
@@ -11,7 +16,11 @@ import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 import { eventWebPath } from '@/src/features/events/mapEvents';
 import type { EventDetail } from '@/src/features/events/types';
 import { useEventDetailQuery } from '@/src/features/events/useEvents';
+import { goalStatusLabel } from '@/src/features/goals/mapGoals';
 import { useOfflineCached } from '@/src/hooks/useOfflineCached';
+import { hapticLight } from '@/src/lib/haptics';
+import { APP_HREFS } from '@/src/linking/appHrefs';
+import { useThemeColors } from '@/src/theme/useThemeColors';
 
 function detailStats(data: EventDetail): HeroStat[] {
   const stats: HeroStat[] = [];
@@ -29,6 +38,7 @@ function detailStats(data: EventDetail): HeroStat[] {
 
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const theme = useThemeColors();
   const { instanceUrl } = useAuth();
   const { data, isLoading, isError, error, refetch, dataUpdatedAt } = useEventDetailQuery(id);
   const { showCachedOffline, lastUpdatedLabel } = useOfflineCached({
@@ -55,9 +65,9 @@ export default function EventDetailScreen() {
       ) : isError && !data ? (
         <View className="flex-1 bg-surface px-6 pt-6">
           <Text className="text-red-400">{friendlyError(error, 'Failed to load event')}</Text>
-          <Pressable className="mt-4" hitSlop={8} onPress={() => void refetch()}>
-            <Text className="text-sm font-medium text-brand">Try again</Text>
-          </Pressable>
+          <AnimatedPressable className="mt-4" hitSlop={8} onPress={() => void refetch()}>
+            <Text className="text-sm font-semibold text-brand">Try again</Text>
+          </AnimatedPressable>
         </View>
       ) : data ? (
         <ScrollView className="flex-1 bg-surface" contentContainerClassName="px-6 pb-10 pt-4">
@@ -109,25 +119,39 @@ export default function EventDetailScreen() {
 
           {data.goals.length > 0 ? (
             <View className="mt-6">
-              <Text className="text-xs font-semibold uppercase tracking-widest text-text-muted">
+              <Text className="mb-2 text-xs font-semibold uppercase tracking-widest text-text-muted">
                 Linked goals
               </Text>
-              <View className="mt-2">
-                {data.goals.map((goal) => {
-                  const meta = [goal.status, goal.targetDateLabel].filter(Boolean).join(' · ');
-                  return (
-                    <View
-                      key={goal.id}
-                      className="border-b border-border/80 py-3"
-                    >
+              {data.goals.map((goal) => {
+                const meta = [goalStatusLabel(goal.status), goal.targetDateLabel]
+                  .filter(Boolean)
+                  .join(' · ');
+                return (
+                  <AnimatedPressable
+                    key={goal.id}
+                    accessibilityRole="button"
+                    accessibilityLabel={goal.title}
+                    className="flex-row items-center gap-3 border-b border-border/80 py-3"
+                    onPress={() => {
+                      hapticLight();
+                      router.push(APP_HREFS.goalDetail(goal.id) as Href);
+                    }}
+                  >
+                    <View className="min-w-0 flex-1">
                       <Text className="text-base font-medium text-text-primary">{goal.title}</Text>
                       {meta ? (
                         <Text className="mt-1 text-sm text-text-muted">{meta}</Text>
                       ) : null}
                     </View>
-                  );
-                })}
-              </View>
+                    <AppSymbol
+                      sf="chevron.right"
+                      size={14}
+                      tintColor={theme.textMuted}
+                      fallback="›"
+                    />
+                  </AnimatedPressable>
+                );
+              })}
             </View>
           ) : null}
 
@@ -135,7 +159,7 @@ export default function EventDetailScreen() {
             {data.websiteUrl ? (
               <Button label="Open website" variant="secondary" onPress={() => void openWebsite()} />
             ) : null}
-            <Button label="Open web" variant="secondary" onPress={() => void openWeb()} />
+            <Button label="Manage on web" variant="secondary" onPress={() => void openWeb()} />
           </View>
         </ScrollView>
       ) : null}

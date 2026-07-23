@@ -18,8 +18,12 @@ describe('migrateLegacyAppHref', () => {
     );
   });
 
-  it('rewrites More-nested athlete / health / sports into the root stack', () => {
+  it('rewrites More-nested athlete / health / sports / goals into the root stack', () => {
     expect(migrateLegacyAppHref('/(app)/(tabs)/more/athlete')).toBe(APP_HREFS.athlete);
+    expect(migrateLegacyAppHref('/(app)/(tabs)/more/goals')).toBe(APP_HREFS.goalsList);
+    expect(migrateLegacyAppHref('/(app)/(tabs)/more/goals/g-1')).toBe(
+      APP_HREFS.goalDetail('g-1')
+    );
     expect(migrateLegacyAppHref('/(app)/(tabs)/more/settings/health')).toBe(
       APP_HREFS.settingsHealth
     );
@@ -45,6 +49,13 @@ describe('migrateLegacyAppHref', () => {
     expect(migrateLegacyAppHref(APP_HREFS.athlete)).toBe(APP_HREFS.athlete);
     expect(migrateLegacyAppHref(APP_HREFS.activityDetail('x'))).toBe(APP_HREFS.activityDetail('x'));
     expect(migrateLegacyAppHref(APP_HREFS.settingsHealth)).toBe(APP_HREFS.settingsHealth);
+  });
+});
+
+describe('goals/events create hrefs', () => {
+  it('exposes new create routes on the root stack', () => {
+    expect(APP_HREFS.goalsNew).toBe('/(app)/goals/new');
+    expect(APP_HREFS.eventsNew).toBe('/(app)/events/new');
   });
 });
 

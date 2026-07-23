@@ -85,7 +85,7 @@ Priority work that repositions the product. OpenSpec change: `openspec/changes/m
 
 1. **Mobile-only account path** — sign up (not only returning sign-in); native consent gate parity with web `/onboarding`
 2. **Server-driven wizard** — resume from `GET /api/user/onboarding-status` (extend for goal + plan steps; keep `connectLater`)
-3. **Goal lite** — create/edit primary goal; optional AI suggest/accept; list under More or Athlete; `goal:read` / `goal:write`
+3. **Goal lite** — create primary goal in activation; ongoing More → Goals (list + detail + **lite create**); edit/delete + AI suggest/review on web; `goal:read` / `goal:write`
 4. **Plan lite wizard** — availability + volume → `plans/initialize` (or documented Bearer equivalent) → first-week preview → activate; not PlanDashboard / adapt / replan
 5. **First insight** — week reveal + optional Analyze Readiness; honest copy when biometrics are thin
 6. **Connect-last** — Health Sync primary; Connected Apps lite (Strava/Intervals/…) secondary; Skip → soft-activated companion + Finish-setup card
@@ -127,15 +127,15 @@ OpenSpec: `openspec/changes/store-subscriptions-revenuecat`.
 
 **Tabs:** Today · Log · Coach · More
 
-**Stacks (additions bold):** **activation wizard**, **goal lite**, **plan lite**, recommendation detail, planned workout detail, activity summary, upcoming planned list, notification inbox, athlete metrics, nutrition log (Log stack), daily coach check-in, sign-in / **sign-up** / instance setup, settings, **nutrition settings**, **connected apps lite**, **Subscription & Billing**.
+**Stacks (additions bold):** **activation wizard**, **goal lite**, **plan lite**, recommendation detail, planned workout detail, activity summary, upcoming planned list, **Goals hub** (list/detail/**create**), **Events hub** (Upcoming Events list/detail/**create**), notification inbox, athlete metrics, nutrition log (Log stack), daily coach check-in, sign-in / **sign-up** / instance setup, settings, **nutrition settings**, **connected apps lite**, **Subscription & Billing**.
 
 **Today (activated):** greeting → optional analysis-ready card → optional Daily Coach Check-In CTA → recommendation hero / Analyze Readiness empty / planned-only hero → planned summary when with a recommendation → Recent Wellness → Active Recovery Context → Accept / Discuss with Coach → This week → Upcoming Events → Coming up → Recently → optional Nutrition glance.
 
 **Today (incomplete activation):** single **Finish setup** / resume-wizard surface instead of a column of empty section cards. Soft-activated may show provisional plan week + quiet connect CTA.
 
-Recovery **writes** stay Log-first. Coming up stays planned-only; race/life events via Upcoming Events (create/edit may move to goal/event lite later; until then Open web for event CRUD is OK). Offline: last cached Today + planned detail with “last updated.” Instance **Open web** uses session handoff when available.
+Recovery **writes** stay Log-first. Coming up stays planned-only; race/life events via Upcoming Events (list/detail + **lite create** in-app; **edit/delete on web** — OpenSpec `events-lite-create`, needs Bearer `POST /api/events`). Goals after activation: More → Goals list/detail + **lite create** in-app (`goals-lite-create`); **edit/delete + AI suggest/review on web** (activation create remains native). Offline: last cached Today + planned detail with “last updated.” Instance **Open web** uses session handoff when available.
 
-**More hosts:** recent activity, upcoming planned, notifications inbox, athlete (+ **goals lite**), Settings hub, account glue.
+**More hosts:** recent activity, upcoming planned, **Goals**, **Events**, notifications inbox, athlete (biometrics / AI report + primary-goal teaser → Goals hub), Settings hub, account glue.
 
 **Settings hub:** push prefs · Health Sync · **Connected Apps lite** (status + Connect/Fix/Manage via web handoff; disconnect/sync/ingest editors stay web) · Units & locale · Log defaults · **Nutrition settings** (tracking, metabolic, meal pattern, dietary constraints, fuel calibration, adaptive engine, hydration — web Profile → Nutrition parity) · Instance · Coach identity lite · Sports thresholds lite · **Subscription & Billing** (hosted current plan + Apple/Google purchase/restore/manage; Stripe manage via web) · Export / Delete via Open web. Billing administration, zone editors, and nutrition planning/grocery stay web.
 
@@ -163,7 +163,7 @@ First viewport (once activated) = one decision. No CTL grids or calendar heatmap
 | `health:read` / `health:write` | Recovery, check-in, Daily Coach Check-In |
 | `recommendation:read` / `recommendation:write` | Today + accept/dismiss / Analyze Readiness *(REST names; not MCP `recommendations:*`)* |
 | `plan:read` / `plan:write` | Planned workouts + **plan lite initialize/activate** *(REST names)* |
-| `goal:read` / `goal:write` | Events countdown + **goal lite capture** |
+| `goal:read` / `goal:write` | Events list/detail + **event lite create** + **goal lite** (activation + Goals hub create) + Goals hub reads |
 | `nutrition:read` / `nutrition:write` | Nutrition quick-log + Profile nutrition settings |
 | `chat:read` / `chat:write` | Coach tab |
 | `offline_access` | Refresh tokens |
@@ -176,7 +176,8 @@ Exact Official Mobile App allowlist must match coach-wattz `REST_OAUTH_SCOPES` /
 |------------|----------|
 | Bootstrap / home | Prefer `GET /api/mobile/today` (new) or documented composition |
 | Onboarding status | `GET /api/user/onboarding-status` (+ extend for goal/plan); consent write Bearer path |
-| Goal lite | `GET/POST/PATCH /api/goals` (+ optional suggest/review jobs) |
+| Goal lite / Goals hub | `GET/POST/PATCH /api/goals` (list/detail + lite create; activation create; edit/delete/AI Open web) |
+| Upcoming Events | `GET /api/events`, `GET /api/events/:id`, Bearer `POST /api/events` (lite create; edit/delete Open web) |
 | Plan lite | initialize / preview / activate (existing `plans/*` Bearer-ready) |
 | Recommendation actions | Existing accept / dismiss / today generate |
 | Wellness check-in | Existing wellness write |
@@ -210,3 +211,5 @@ iOS + Android via Expo · warm-cache Today &lt; ~2s with skeleton · reuse Tolge
 | 2026-07-21 | Plan creation = **native lite wizard** (not full architect; not chat-only) |
 | 2026-07-21 | Docs = **reposition this baseline** (not a side “v2 chapter” while old non-goals remain) |
 | 2026-07-23 | **Nutrition settings** on mobile (Profile → Nutrition parity); planning/grocery stay web |
+| 2026-07-23 | **Goals & Events hubs** on More (list + detail in-app); create/edit/delete stay web — `goals-events-more-hubs` |
+| 2026-07-23 | **Goals & Events lite create** in-app; edit/delete (+ goal AI) stay web — `goals-lite-create`, `events-lite-create` |

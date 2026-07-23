@@ -11,6 +11,24 @@ export function localDateYmd(date = new Date()): string {
   return `${y}-${m}-${d}`;
 }
 
+/** True only for real calendar days (rejects JS-normalized values like 2026-02-31). */
+export function isValidCalendarYmd(ymd: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(ymd)) return false;
+  const [year, month, day] = ymd.split('-').map((part) => Number(part));
+  if (!year || !month || !day) return false;
+  const local = new Date(year, month - 1, day);
+  return (
+    local.getFullYear() === year && local.getMonth() === month - 1 && local.getDate() === day
+  );
+}
+
+/** Local YYYY-MM-DD after adding calendar months (avoids UTC off-by-one from toISOString). */
+export function addLocalMonthsYmd(monthsAhead: number, from = new Date()): string {
+  const d = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+  d.setMonth(d.getMonth() + monthsAhead);
+  return localDateYmd(d);
+}
+
 function parseOptionalNumber(value: string): number | undefined {
   const trimmed = value.trim();
   if (!trimmed) return undefined;

@@ -62,7 +62,17 @@ export default function AppLayout() {
         <Stack.Screen name="planned/[id]" options={{ headerShown: true, title: 'Workout' }} />
         <Stack.Screen name="upcoming/index" options={{ headerShown: true, title: 'Upcoming' }} />
         <Stack.Screen name="events/index" options={{ headerShown: true, title: 'Upcoming Events' }} />
+        <Stack.Screen
+          name="events/new"
+          options={{ headerShown: true, title: 'New event', presentation: 'modal' }}
+        />
         <Stack.Screen name="events/[id]" options={{ headerShown: true, title: 'Event' }} />
+        <Stack.Screen name="goals/index" options={{ headerShown: true, title: 'Goals' }} />
+        <Stack.Screen
+          name="goals/new"
+          options={{ headerShown: true, title: 'New goal', presentation: 'modal' }}
+        />
+        <Stack.Screen name="goals/[id]" options={{ headerShown: true, title: 'Goal' }} />
         <Stack.Screen name="health-sync" options={{ headerShown: true, title: 'Health Sync' }} />
         <Stack.Screen name="health-history" options={{ headerShown: true, title: 'Sync history' }} />
         <Stack.Screen name="health-workouts" options={{ headerShown: true, title: 'Recent workouts' }} />

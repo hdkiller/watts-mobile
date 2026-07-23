@@ -166,6 +166,67 @@ Track separately (or as paired PRs) — mobile UI polish should not wait forever
 - Athlete metrics editable on device
 - Nutrition quick-log on Log (planning/grocery still web-only)
 
+## Goals & Events More hubs
+
+OpenSpec: `openspec/changes/goals-events-more-hubs` (proposal/design/specs/tasks ready).
+
+Goal: discoverable **More → Goals** and **More → Events** browse hubs (list + detail). Web remains the management control room for create/edit/delete and AI suggest/review. Athlete stops inline goal rename in favor of a teaser into the Goals hub.
+
+| Slice | Focus |
+|-------|--------|
+| More IA | Goals + Events rows |
+| Goals hub | List all goals + read-only detail; Open web `/profile/goals` |
+| Events hub | Link existing Upcoming Events list/detail from More; Open web `/events` |
+| Athlete | Primary-goal summary → Goals hub (no title PATCH UI) |
+
+Checklist:
+
+- [x] Implement More rows + Goals list/detail routes
+- [x] Rewrite Athlete GoalsLiteSection
+- [x] Unit tests for goal mappers / hrefs (device smoke optional)
+
+**Exit:** athlete can open Goals/Events from More, inspect details in-app, and manage fully on web.
+
+## Goals lite create
+
+OpenSpec: `openspec/changes/goals-lite-create` (proposal/design/specs/tasks ready).
+
+Goal: native **Create goal** from More → Goals (all four types, minimum fields). Reuses Bearer `POST /api/goals`. Edit/delete/AI stay Open web.
+
+| Slice | Focus |
+|-------|--------|
+| Docs | Baseline: create in-app; edit/delete/AI web |
+| UI | `/(app)/goals/new` + list/empty Add CTAs |
+| API | Existing `createGoal` + query invalidation → detail |
+
+Checklist:
+
+- [x] Implement create form + route
+- [x] Wire mutation + list affordances
+- [x] Unit / manual smoke per OpenSpec tasks
+
+**Exit:** athlete can add a goal without opening web; Manage on web still covers edit/delete/AI.
+
+## Events lite create
+
+OpenSpec: `openspec/changes/events-lite-create` (proposal/design/specs/tasks ready).
+
+Goal: native **Create event** from More → Events (lite fields). Requires coach-wattz Bearer on `POST /api/events` (session-only today). Edit/delete stay Open web.
+
+| Slice | Focus |
+|-------|--------|
+| API | coach-wattz `requireAuth` on event POST (`goal:write` preferred) |
+| Docs | Baseline + gap note |
+| UI | `/(app)/events/new` + list/empty Add CTAs |
+
+Checklist:
+
+- [x] Bearer POST + tests in coach-wattz
+- [x] Mobile create form + client helper
+- [ ] Manual smoke: create → list/Today glance
+
+**Exit:** athlete can add a race/life event in-app; Manage on web still covers edit/delete.
+
 ## Nutrition settings parity
 
 OpenSpec: `openspec/changes/nutrition-settings-parity`.
