@@ -169,8 +169,14 @@ export function WellnessCheckinSheet({
       transparent
       onRequestClose={onClose}
     >
-      <Pressable className="flex-1 bg-black/60 justify-end" onPress={onClose}>
-        <Pressable className="rounded-t-3xl bg-surface px-6 pt-4 pb-10" style={{ maxHeight: '90%' }}>
+      <Pressable accessible={false} className="flex-1 bg-black/60 justify-end" onPress={onClose}>
+        <Pressable
+          testID="wellness-checkin-sheet"
+          accessible={false}
+          className="rounded-t-3xl bg-surface px-6 pt-4 pb-10"
+          style={{ maxHeight: '90%' }}
+          onPress={(e) => e.stopPropagation()}
+        >
           <View className="mb-4 h-1 w-10 self-center rounded-full bg-border-strong" />
 
           <View className="flex-row items-center justify-between mb-2">
@@ -184,7 +190,7 @@ export function WellnessCheckinSheet({
             </Pressable>
           </View>
 
-          <ScrollView keyboardShouldPersistTaps="handled">
+          <ScrollView keyboardShouldPersistTaps="handled" className="flex-shrink">
             {/* Health Sync Trigger */}
             <Pressable
               accessibilityRole="button"
@@ -243,16 +249,22 @@ export function WellnessCheckinSheet({
             />
 
             {error ? <Text className="mt-3 text-xs text-red-400">{error}</Text> : null}
-            {saveNotice ? <Text className="mt-3 text-xs text-brand">{saveNotice}</Text> : null}
-
-            <Button
-              className="mt-6"
-              label="Save Check-in"
-              onPress={() => void onSave()}
-              loading={saveMutation.isPending}
-              disabled={!formHasContent(values) || saveNotice != null}
-            />
+            {saveNotice ? (
+              <Text testID="wellness-checkin-saved" className="mt-3 text-xs text-brand">
+                {saveNotice}
+              </Text>
+            ) : null}
           </ScrollView>
+
+          {/* Sticky CTA — stays in the a11y tree / viewport for Maestro (Modal ScrollView is opaque to scrollUntilVisible). */}
+          <Button
+            testID="wellness-checkin-save"
+            className="mt-4"
+            label="Save Check-in"
+            onPress={() => void onSave()}
+            loading={saveMutation.isPending}
+            disabled={!formHasContent(values) || saveNotice != null}
+          />
         </Pressable>
       </Pressable>
     </Modal>

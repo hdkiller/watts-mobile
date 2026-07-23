@@ -1,0 +1,38 @@
+# Expo Dev Menu / tools sheet can cover Log CTAs mid-flow.
+# Close via accessibility id xmark; swipe DOWN as fallback (Expo drawer).
+appId: com.coachwatts.app
+---
+- runFlow:
+    when:
+      visible: "Toggle performance monitor"
+    commands:
+      - tapOn:
+          id: xmark
+      - waitForAnimationToEnd:
+          timeout: 3000
+- runFlow:
+    when:
+      visible: "Toggle performance monitor"
+    commands:
+      - swipe:
+          direction: DOWN
+      - waitForAnimationToEnd:
+          timeout: 3000
+- runFlow:
+    when:
+      visible: "Open DevTools"
+    commands:
+      - tapOn: Close
+      - waitForAnimationToEnd:
+          timeout: 3000
+- runFlow:
+    when:
+      visible: Continue
+    commands:
+      - tapOn: Continue
+      - waitForAnimationToEnd:
+          timeout: 3000
+- extendedWaitUntil:
+    notVisible: "Toggle performance monitor"
+    timeout: 5000
+    optional: true

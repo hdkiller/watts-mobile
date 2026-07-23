@@ -1,0 +1,7 @@
+# Standalone debug — not in default suite (tag: standalone). Prefer suite-shared.yaml.
+appId: com.coachwatts.app
+tags:
+  - standalone
+---
+- runFlow: ../subflows/boot-and-login.yaml
+- runFlow: ../scenarios/deeplink-log.yaml

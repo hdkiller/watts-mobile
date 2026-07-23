@@ -590,6 +590,7 @@ export function CoachChat({
           <ChatGlyph sf="plus" emoji="＋" size={20} />
         </Pressable>
         <TextInput
+          testID="coach-composer"
           className="max-h-28 min-h-11 flex-1 rounded-2xl border border-border-strong bg-card px-4 py-2.5 text-base leading-5 text-text-primary"
           placeholder={chat.isReadOnly ? 'Read-only chat' : 'Message Coach Watts'}
           placeholderTextColor={theme.textMuted}
@@ -639,6 +640,7 @@ export function CoachChat({
           )}
         </Pressable>
         <Pressable
+          testID="coach-send"
           className={`h-11 w-11 shrink-0 items-center justify-center rounded-full ${
             canSend ? 'bg-brand' : 'bg-border-strong'
           }`}

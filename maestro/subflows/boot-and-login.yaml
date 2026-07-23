@@ -1,0 +1,13 @@
+# Cold wipe + Metro attach + deep-link e2e login → Today.
+# Use once per isolated entry flow, or once at the start of suite-shared.
+appId: com.coachwatts.app
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- runFlow: connect-dev-client.yaml
+- runFlow: e2e-login.yaml
+- extendedWaitUntil:
+    visible:
+      id: today-screen
+    timeout: 90000

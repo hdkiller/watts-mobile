@@ -14,7 +14,7 @@ This app **activates new athletes on device** (consent → goal → plan lite �
 | [docs/open-questions.md](docs/open-questions.md) | Decisions to resolve before/during Phase 0–1 |
 | [docs/issues.md](docs/issues.md) | Known issues / bugs tracked in-repo (maintain here) |
 | [docs/oauth-setup.md](docs/oauth-setup.md) | Public OAuth client + redirect URI registration |
-| [docs/e2e.md](docs/e2e.md) | Maestro smoke + e2e auth seed (fixture token) |
+| [docs/e2e.md](docs/e2e.md) | Maestro runbook **and** day-to-day e2e conventions (testIDs, when to update flows, PR checklist) |
 | [docs/deep-links.md](docs/deep-links.md) | Scheme / universal link path map + host association |
 | [docs/native-modules.md](docs/native-modules.md) | When adding Expo native deps: rebuild the dev client |
 | [docs/distribution.md](docs/distribution.md) | App Store / Play hub, release-it versioning, GitHub Android APK → `docs/distribution/` tasks + log |
@@ -74,3 +74,4 @@ IA: bottom tabs **Today · Log · Coach · More** (+ activation wizard stacks). 
 8. After adding/upgrading a **native** Expo module or changing its `app.json` plugin, **rebuild the binary** (`pnpm ios` / `pnpm android` or EAS). Metro alone will not link it — see [docs/native-modules.md](docs/native-modules.md). Symptom: `Cannot find native module '…'`.
 9. Store / distribution progress: update [docs/distribution/tasks.md](docs/distribution/tasks.md) (and the matching task file) when status changes; **prepend** a dated entry to [docs/distribution/log.md](docs/distribution/log.md) for enrollments, TestFlight builds, submissions, and review outcomes. Never commit Apple passwords, review demo passwords, or real Sentry DSNs — see [docs/distribution.md](docs/distribution.md).
 10. **Store / TestFlight / Play binaries are local** — iOS: `expo prebuild` → Xcode Archive → Organizer/Transporter; Android: `expo prebuild` → Gradle `bundleRelease` → Play Console. Do not default to `eas build` / `eas submit`. Details: [docs/distribution.md](docs/distribution.md), tasks [005](docs/distribution/tasks/005-eas-credentials-and-secrets.md)–[006](docs/distribution/tasks/006-ios-production-build.md), [014](docs/distribution/tasks/014-eas-android-credentials.md)–[015](docs/distribution/tasks/015-android-production-build.md).
+11. **Maestro with the feature** — if you change a companion surface the suite already covers (or add a daily-loop entry point), update `testID`s / `maestro/` flows in the same change. Conventions and PR checklist: [docs/e2e.md](docs/e2e.md) § Maintaining e2e. Vitest for mappers; never enable `EXPO_PUBLIC_E2E_*` on store builds.

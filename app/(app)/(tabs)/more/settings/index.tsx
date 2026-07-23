@@ -57,7 +57,9 @@ function MenuRow({
   emoji,
   onPress,
   showChevron = true,
-  isLast = false }: {
+  isLast = false,
+  testID,
+}: {
   title: string;
   detail?: string;
   sf: SFSymbol;
@@ -65,6 +67,7 @@ function MenuRow({
   onPress?: () => void;
   showChevron?: boolean;
   isLast?: boolean;
+  testID?: string;
 }) {
   const body = (
     <View
@@ -95,6 +98,7 @@ function MenuRow({
 
   return (
     <Pressable
+      testID={testID}
       accessibilityRole="button"
       accessibilityLabel={title}
       className="active:opacity-80"
@@ -204,6 +208,7 @@ export default function SettingsScreen() {
           headerShown: true }}
       />
       <SafeAreaView
+        testID="settings-screen"
         edges={{ bottom: true }}
         style={{ flex: 1, backgroundColor: theme.surface }}
       >
@@ -217,6 +222,7 @@ export default function SettingsScreen() {
 
           <Section title="Integrations & Data">
             <MenuRow
+              testID="more-health-sync"
               title="Health Sync"
               detail={healthStatus}
               sf="heart"

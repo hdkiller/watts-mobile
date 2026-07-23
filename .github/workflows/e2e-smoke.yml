@@ -1,0 +1,143 @@
+# Maestro e2e smoke gate — see docs/e2e.md
+#
+# validate-flows: cheap PR check (no simulator).
+# ios-smoke: manual workflow_dispatch — builds a sim app and runs smoke-unauth;
+#            smoke-shell when run_shell is true and E2E_ACCESS_TOKEN secret is set.
+name: E2E smoke
+
+on:
+  pull_request:
+    paths:
+      - 'maestro/**'
+      - 'docs/e2e.md'
+      - 'scripts/validate-maestro-flows.mjs'
+      - '.github/workflows/e2e-smoke.yml'
+      - 'src/auth/e2eAuth.ts'
+  workflow_dispatch:
+    inputs:
+      run_shell:
+        description: 'Also run authenticated smoke-shell (needs E2E_ACCESS_TOKEN secret + reachable e2e API)'
+        type: boolean
+        default: false
+
+concurrency:
+  group: e2e-smoke-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-flows:
+    name: Validate Maestro flows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate required flows
+        run: node scripts/validate-maestro-flows.mjs
+
+  ios-smoke:
+    name: iOS simulator smoke
+    needs: validate-flows
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: macos-14
+    timeout-minutes: 90
+    env:
+      SENTRY_DISABLE_AUTO_UPLOAD: 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install JS deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Maestro CLI
+        run: |
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Boot iOS Simulator
+        run: |
+          DEVICE="iPhone 16"
+          xcrun simctl boot "$DEVICE" || true
+          xcrun simctl bootstatus "$DEVICE" -b
+          echo "SIM_DEVICE=$DEVICE" >> "$GITHUB_ENV"
+
+      - name: Build & install unauth dev client
+        env:
+          EXPO_PUBLIC_E2E_AUTH: '0'
+        run: |
+          # Unauthenticated smoke — e2e auth must stay off for this binary/session.
+          pnpm exec expo run:ios --device "$SIM_DEVICE" --no-bundler
+
+      - name: Start Metro (e2e auth off)
+        env:
+          EXPO_PUBLIC_E2E_AUTH: '0'
+        run: |
+          pnpm exec expo start --non-interactive &
+          echo "METRO_PID=$!" >> "$GITHUB_ENV"
+          # Wait until packager answers
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8081/status >/dev/null; then
+              echo "Metro ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Metro did not become ready"
+          exit 1
+
+      - name: Run smoke-unauth
+        env:
+          EXPO_PUBLIC_E2E_AUTH: '0'
+        run: pnpm test:e2e:unauth
+
+      - name: Resolve e2e instance URL
+        if: ${{ inputs.run_shell }}
+        run: |
+          URL="${{ vars.E2E_INSTANCE_URL }}"
+          if [ -z "$URL" ]; then
+            URL="http://localhost:3199"
+          fi
+          echo "EXPO_PUBLIC_E2E_INSTANCE_URL=$URL" >> "$GITHUB_ENV"
+
+      - name: Authenticated shell smoke
+        if: ${{ inputs.run_shell }}
+        env:
+          EXPO_PUBLIC_E2E_AUTH: '1'
+          EXPO_PUBLIC_E2E_ACCESS_TOKEN: ${{ secrets.E2E_ACCESS_TOKEN }}
+          EXPO_PUBLIC_OAUTH_CLIENT_ID: e2e00000-0000-4000-8000-000000000001
+        run: |
+          if [ -z "$EXPO_PUBLIC_E2E_ACCESS_TOKEN" ]; then
+            echo "E2E_ACCESS_TOKEN secret is required when run_shell=true"
+            exit 1
+          fi
+          # Restart Metro so EXPO_PUBLIC_E2E_* is picked up
+          if [ -n "${METRO_PID:-}" ]; then kill "$METRO_PID" || true; fi
+          pnpm exec expo start --non-interactive &
+          echo "METRO_PID=$!" >> "$GITHUB_ENV"
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8081/status >/dev/null; then
+              break
+            fi
+            sleep 2
+          done
+          xcrun simctl terminate booted com.coachwatts.app || true
+          sleep 2
+          pnpm test:e2e:shell
+
+      - name: Stop Metro
+        if: always()
+        run: |
+          if [ -n "${METRO_PID:-}" ]; then kill "$METRO_PID" || true; fi

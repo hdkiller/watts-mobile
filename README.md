@@ -109,6 +109,8 @@ Push, universal links, Health prefill, and the home-screen widget are unavailabl
 | `pnpm test:e2e` | All Maestro flows under `maestro/` |
 | `pnpm test:e2e:unauth` | Unauthenticated cold-start smoke |
 | `pnpm test:e2e:shell` | Authenticated tab-shell smoke |
+| `pnpm test:e2e:smoke` | CI gate: unauth + shell |
+| `pnpm test:e2e:validate` | Assert required Maestro flow files parse |
 | `pnpm release` / `release:patch\|minor\|major` | release-it: bump version, CHANGELOG, tag, GitHub notes |
 | `pnpm release:android:github` | EAS preview APK → GitHub Release `vX.Y.Z` |
 
@@ -131,7 +133,7 @@ pnpm lint            # ESLint + theme tokens
 
 ### E2E smoke (Maestro)
 
-Maestro covers cold launch and tab navigation. Prerequisites: a built dev client on a simulator and the Maestro CLI. Full details: [docs/e2e.md](./docs/e2e.md).
+Maestro covers cold launch, tab navigation, and companion critical paths against the **coach-wattz e2e stack** (`:3199`). Prerequisites: a built dev client on a simulator, the Maestro CLI, and (for auth flows) a fixture Bearer from `POST /api/__e2e/token`. Full details: [docs/e2e.md](./docs/e2e.md).
 
 **Unauthenticated** (normal `.env`, e2e auth off):
 
@@ -139,27 +141,23 @@ Maestro covers cold launch and tab navigation. Prerequisites: a built dev client
 pnpm test:e2e:unauth
 ```
 
-**Authenticated shell** — seed Secure Store instead of browser PKCE:
+**Authenticated** — seed Secure Store instead of browser PKCE:
 
 ```bash
-# In .env (never commit tokens; never enable on store builds)
+# Mint token in coach-wattz e2e stack, then in .env (never commit; never enable on store builds)
 EXPO_PUBLIC_E2E_AUTH=1
-EXPO_PUBLIC_E2E_INSTANCE_URL=http://localhost:3099
-EXPO_PUBLIC_E2E_ACCESS_TOKEN=<athlete access token>
+EXPO_PUBLIC_E2E_INSTANCE_URL=http://localhost:3199
+EXPO_PUBLIC_E2E_ACCESS_TOKEN=<access_token>
+EXPO_PUBLIC_OAUTH_CLIENT_ID=e2e00000-0000-4000-8000-000000000001
 ```
 
 Restart Metro, reload the app, then:
 
 ```bash
 pnpm test:e2e:shell
-# or all flows:
-pnpm test:e2e
+pnpm test:e2e:smoke   # unauth + shell (local CI gate)
+pnpm test:e2e         # all flows
 ```
-
-| Flow | What it checks |
-|------|----------------|
-| `maestro/smoke-unauth.yaml` | Cold start → login screen |
-| `maestro/smoke-shell.yaml` | Seeded auth → Today → Log → Coach → More |
 
 ## Project layout
 

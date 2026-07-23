@@ -1,0 +1,23 @@
+# Coach composer + send affordance — assumes authenticated session.
+appId: com.coachwatts.app
+---
+- openLink: coachwatts://coach
+- extendedWaitUntil:
+    visible: Open
+    timeout: 5000
+    optional: true
+- runFlow:
+    when:
+      visible: Open
+    commands:
+      - tapOn: Open
+- extendedWaitUntil:
+    visible:
+      id: coach-screen
+    timeout: 15000
+- extendedWaitUntil:
+    visible:
+      id: coach-composer
+    timeout: 20000
+- assertVisible:
+    id: coach-send

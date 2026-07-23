@@ -1,0 +1,19 @@
+# More hubs: athlete profile, Settings, Health Sync — assumes authenticated session.
+appId: com.coachwatts.app
+---
+- runFlow: ../subflows/tap-tab-more.yaml
+- tapOn:
+    id: more-athlete-profile
+- extendedWaitUntil:
+    visible:
+      id: athlete-screen
+    timeout: 20000
+- runFlow: ../subflows/tap-tab-more.yaml
+- tapOn:
+    id: more-settings
+- extendedWaitUntil:
+    visible:
+      id: settings-screen
+    timeout: 15000
+- assertVisible:
+    id: more-health-sync

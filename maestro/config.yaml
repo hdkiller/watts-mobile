@@ -1,0 +1,14 @@
+# Maestro workspace — see docs/e2e.md § Suite layout.
+# Default `maestro test maestro` runs suite entry points only (not standalone debug flows).
+appId: com.coachwatts.app
+flows:
+  - "*"
+excludeTags:
+  - standalone
+executionOrder:
+  continueOnFailure: true
+  flowsOrder:
+    - smoke-unauth
+    - suite-shared
+    - flow-wellness-save
+    - flow-recommendation-accept

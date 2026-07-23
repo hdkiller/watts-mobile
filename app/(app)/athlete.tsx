@@ -139,7 +139,7 @@ export default function AthleteMetricsScreen() {
           />
         </View>
       ) : (
-        <View ref={containerRef} className="flex-1 bg-surface">
+        <View ref={containerRef} testID="athlete-screen" className="flex-1 bg-surface">
           <ScrollView
             className="flex-1"
             contentContainerClassName="px-6 pt-4"

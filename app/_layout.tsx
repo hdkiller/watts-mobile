@@ -12,6 +12,7 @@ import type { ErrorBoundaryProps } from 'expo-router';
 
 import { AuthProvider, useAuth } from '@/src/auth/AuthContext';
 import { ErrorFallback } from '@/src/components/ErrorFallback';
+import { hideDevMenuFab } from '@/src/dev/hideDevMenuFab';
 import { AuthAtmosphere } from '@/src/features/auth/AuthAtmosphere';
 import { useDeepLinkReturn } from '@/src/linking/useDeepLinkReturn';
 import { RevenueCatIdentityBridge } from '@/src/features/subscriptions/RevenueCatIdentityBridge';
@@ -26,6 +27,8 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 
 SplashScreen.preventAutoHideAsync();
 initSentry();
+hideDevMenuFab();
+
 
 function RootNavigator() {
   const { status } = useAuth();

@@ -1,19 +1,23 @@
 import { QueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import * as Linking from 'expo-linking';
 import {
   createContext,
   useCallback,
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
 
 import { fetchUserInfo, setAuthFailureHandler, type UserInfo } from '@/src/api/client';
 import { friendlyError } from '@/src/api/errors';
-import { applyE2eAuthSeed } from '@/src/auth/e2eAuth';
+import { applyE2eAuthSeed, applyPendingE2eLogin } from '@/src/auth/e2eAuth';
+import { parseE2eLoginDeepLink } from '@/src/auth/e2eLoginDeepLink';
 import { loginWithPkce } from '@/src/auth/oauth';
+import { loadPendingE2eLogin, setPendingE2eLogin } from '@/src/auth/pendingE2eLogin';
 import { clearTokens, loadTokens } from '@/src/auth/tokenStorage';
 import {
   getDefaultInstanceUrl,
@@ -80,17 +84,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const bootstrap = useCallback(async () => {
     setStatus('loading');
     try {
-      const e2eSeed = await applyE2eAuthSeed();
+      // Deep-link fixture login (Maestro) first; env seed remains a CI fallback.
+      let e2eSeed: Awaited<ReturnType<typeof applyPendingE2eLogin>> = null;
+      try {
+        e2eSeed = (await applyPendingE2eLogin()) ?? (await applyE2eAuthSeed());
+      } catch (err) {
+        setUser(null);
+        setError(err instanceof Error ? `E2E login: ${err.message}` : 'E2E login failed');
+        setStatus('needs_login');
+        return;
+      }
+
       if (e2eSeed) {
         setInstanceUrlState(e2eSeed.instanceUrl);
         try {
           const info = await fetchUserInfo();
           setUser(info);
+          setError(null);
           setStatus('authenticated');
         } catch (err) {
           await clearHealthSyncForIdentityTransition();
           setUser(null);
-          setError(friendlyError(err, 'E2E auth seed failed — check token and instance URL'));
+          setError(
+            err instanceof Error
+              ? `E2E userinfo: ${err.message}`
+              : 'E2E auth seed failed — check token and instance URL'
+          );
           setStatus('needs_login');
         }
         return;
@@ -129,6 +148,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const initialBootstrap = setTimeout(() => void bootstrap(), 0);
     return () => clearTimeout(initialBootstrap);
   }, [bootstrap]);
+
+  // Maestro openLink often lands after the first bootstrap finished on the login screen.
+  // +native-intent stores pending e2e login; re-bootstrap when it appears.
+  const e2eWakeBusy = useRef(false);
+  useEffect(() => {
+    if (status === 'authenticated' || status === 'loading') return;
+
+    async function wakeIfPendingE2eLogin() {
+      if (e2eWakeBusy.current) return;
+      const pending = await loadPendingE2eLogin();
+      if (!pending) return;
+      e2eWakeBusy.current = true;
+      try {
+        await bootstrap();
+      } finally {
+        e2eWakeBusy.current = false;
+      }
+    }
+
+    async function onUrl(url: string) {
+      const parsed = parseE2eLoginDeepLink(url);
+      if (parsed) {
+        await setPendingE2eLogin(parsed);
+      }
+      await wakeIfPendingE2eLogin();
+    }
+
+    const sub = Linking.addEventListener('url', ({ url }) => {
+      void onUrl(url);
+    });
+    const poll = setInterval(() => {
+      void wakeIfPendingE2eLogin();
+    }, 400);
+    const stopPoll = setTimeout(() => clearInterval(poll), 15_000);
+    void wakeIfPendingE2eLogin();
+
+    return () => {
+      sub.remove();
+      clearInterval(poll);
+      clearTimeout(stopPoll);
+    };
+  }, [bootstrap, status]);
 
   useEffect(() => {
     setAuthFailureHandler(() => {

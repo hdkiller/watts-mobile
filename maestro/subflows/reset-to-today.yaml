@@ -1,0 +1,59 @@
+# Soft UI reset between shared-session scenarios — keeps SecureStore / session.
+# Closes common sheets, then deep-links to Today.
+appId: com.coachwatts.app
+---
+- runFlow:
+    when:
+      visible:
+        id: log-meal-sheet
+    commands:
+      - tapOn:
+          text: "Cancel meal logging"
+      - waitForAnimationToEnd:
+          timeout: 2000
+- runFlow:
+    when:
+      visible:
+        id: wellness-checkin-sheet
+    commands:
+      - tapOn: Cancel
+      - waitForAnimationToEnd:
+          timeout: 2000
+- runFlow:
+    when:
+      visible: "Cancel meal logging"
+    commands:
+      - tapOn:
+          text: "Cancel meal logging"
+      - waitForAnimationToEnd:
+          timeout: 2000
+- runFlow:
+    when:
+      visible: Cancel
+    commands:
+      - tapOn: Cancel
+      - waitForAnimationToEnd:
+          timeout: 2000
+- runFlow:
+    when:
+      visible: "Toggle performance monitor"
+    commands:
+      - tapOn:
+          id: xmark
+      - waitForAnimationToEnd:
+          timeout: 2000
+- openLink: coachwatts://today
+- extendedWaitUntil:
+    visible: Open
+    timeout: 5000
+    optional: true
+- runFlow:
+    when:
+      visible: Open
+    commands:
+      - tapOn: Open
+- extendedWaitUntil:
+    visible:
+      id: today-screen
+    timeout: 30000
+- runFlow: dismiss-dev-menu.yaml

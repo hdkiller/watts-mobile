@@ -18,6 +18,6 @@ Implementation docs for the native companion app. Product narrative originally d
 | [distribution/tasks.md](./distribution/tasks.md) | Outstanding distribution tasks |
 | [distribution/log.md](./distribution/log.md) | Distribution progress history (append-only) |
 | [distribution/play-console-signup.md](./distribution/play-console-signup.md) | Google Play Organization signup walkthrough |
-| [e2e.md](./e2e.md) | Maestro smoke + e2e auth seed (never on store/preview) |
+| [e2e.md](./e2e.md) | Maestro runbook, maintaining e2e, **harness troubleshooting** (wrong Metro, loopback tunnel, Open sheet); never enable auth seed on store/preview |
 
 After the coach-wattz PR merges, link agents to that file as the living product baseline and keep these docs as the **build plan**.

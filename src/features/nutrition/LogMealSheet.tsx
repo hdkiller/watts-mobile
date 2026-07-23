@@ -1199,6 +1199,7 @@ export function LogMealSheet({
           onPress={handleClose}
         />
         <View
+          testID="log-meal-sheet"
           className="rounded-t-3xl bg-surface px-6 pt-4 pb-10"
           style={{ maxHeight: '88%', minHeight: 0 }}
         >

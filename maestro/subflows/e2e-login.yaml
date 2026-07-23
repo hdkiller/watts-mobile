@@ -1,0 +1,35 @@
+# Runtime fixture login — mint Bearer via coach-wattz POST /api/__e2e/token.
+# E2E_LOGIN_URL is injected by `pnpm test:e2e:shell` / scripts/run-maestro-e2e.mjs
+# (LAN forward when e2e is loopback-only).
+#
+# No EXPO_PUBLIC_E2E_AUTH required. Skip openLink when already on Today.
+# iOS may show "Open in Coach Watts?" — confirm when present.
+appId: com.coachwatts.app
+---
+- extendedWaitUntil:
+    visible:
+      id: login-screen
+    timeout: 90000
+    optional: true
+- runFlow:
+    when:
+      visible:
+        id: login-screen
+    commands:
+      - openLink: ${E2E_LOGIN_URL}
+      - extendedWaitUntil:
+          visible: Open
+          timeout: 8000
+          optional: true
+      - runFlow:
+          when:
+            visible: Open
+          commands:
+            - tapOn: Open
+      - waitForAnimationToEnd:
+          timeout: 5000
+- extendedWaitUntil:
+    visible:
+      id: today-screen
+    timeout: 90000
+    optional: true

@@ -245,6 +245,9 @@ export default function LogScreen() {
               </Text>
             </View>
             <Pressable
+              testID="wellness-checkin"
+              accessibilityRole="button"
+              accessibilityLabel={isWellnessDone ? 'Update wellness check-in' : 'Wellness check-in'}
               hitSlop={8}
               onPress={() => {
                 hapticLight();
@@ -264,6 +267,7 @@ export default function LogScreen() {
           <View className="flex-row flex-wrap gap-2.5">
             {nutritionEnabled ? (
               <Pressable
+                testID="log-meal"
                 accessibilityRole="button"
                 accessibilityLabel="Log meal"
                 className="flex-1 min-w-[45%] flex-row items-center gap-3 rounded-xl border border-border bg-card p-3.5 active:opacity-80"

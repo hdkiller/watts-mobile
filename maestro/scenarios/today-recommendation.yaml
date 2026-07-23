@@ -1,0 +1,21 @@
+# Today recommendation or readiness panel — assumes authenticated session.
+appId: com.coachwatts.app
+---
+- extendedWaitUntil:
+    visible:
+      id: today-screen
+    timeout: 20000
+- runFlow:
+    when:
+      visible:
+        id: today-recommendation
+    commands:
+      - assertVisible:
+          id: today-recommendation
+- runFlow:
+    when:
+      notVisible:
+        id: today-recommendation
+    commands:
+      - assertVisible:
+          id: today-readiness-panel

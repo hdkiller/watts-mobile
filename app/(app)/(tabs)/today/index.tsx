@@ -705,6 +705,7 @@ export default function TodayScreen() {
               ) : null}
             </View>
             <View
+              testID="today-recommendation"
               className={`mt-3 rounded-2xl border border-border border-l-4 ${heroToneClasses.accent} ${heroToneClasses.tint} p-5`}
             >
               <Text className={`text-2xl font-semibold ${heroToneClasses.kicker}`}>
@@ -765,6 +766,7 @@ export default function TodayScreen() {
               )
             ) : data?.canAccept ? (
               <Button
+                testID="today-recommendation-accept"
                 label={data.action === 'rest' ? 'Accept rest day' : 'Accept recommendation'}
                 onPress={() => void onAccept()}
                 loading={acceptMutation.isPending}
@@ -782,6 +784,7 @@ export default function TodayScreen() {
               </View>
               <View className="flex-1">
                 <Button
+                  testID="today-recommendation-more"
                   variant="secondary"
                   label="More"
                   onPress={() => setMoreOpen(true)}

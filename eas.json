@@ -17,7 +17,8 @@
       "env": {
         "EXPO_PUBLIC_SENTRY_ENVIRONMENT": "e2e",
         "EXPO_PUBLIC_E2E_AUTH": "1",
-        "EXPO_PUBLIC_E2E_INSTANCE_URL": "http://localhost:3099"
+        "EXPO_PUBLIC_E2E_INSTANCE_URL": "http://localhost:3199",
+        "EXPO_PUBLIC_OAUTH_CLIENT_ID": "e2e00000-0000-4000-8000-000000000001"
       }
     },
     "preview": {

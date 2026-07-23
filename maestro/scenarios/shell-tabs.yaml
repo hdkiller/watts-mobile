@@ -1,0 +1,19 @@
+# Authenticated tab shell — assumes already on Today (shared session or after boot-and-login).
+appId: com.coachwatts.app
+---
+- extendedWaitUntil:
+    visible:
+      id: today-screen
+    timeout: 20000
+- tapOn: Log
+- extendedWaitUntil:
+    visible:
+      id: log-screen
+    timeout: 15000
+- tapOn: Coach
+- extendedWaitUntil:
+    visible:
+      id: coach-screen
+    timeout: 15000
+- runFlow: ../subflows/tap-tab-more.yaml
+- assertVisible: "More"

@@ -1,26 +1,9 @@
-# Authenticated shell smoke — requires e2e auth seed (see docs/e2e.md).
-# iOS Simulator + local coach-wattz: EXPO_PUBLIC_E2E_INSTANCE_URL=http://localhost:3099
+# Authenticated shell smoke — isolated wipe + login (CI / `pnpm test:e2e:shell`).
+# Full suite uses suite-shared.yaml instead (shell is the first shared scenario).
 appId: com.coachwatts.app
+tags:
+  - smoke
+  - standalone
 ---
-- launchApp:
-    clearState: true
-- extendedWaitUntil:
-    visible:
-      id: today-screen
-    timeout: 45000
-- tapOn: Log
-- extendedWaitUntil:
-    visible:
-      id: log-screen
-    timeout: 15000
-- tapOn: Coach
-- extendedWaitUntil:
-    visible:
-      id: coach-screen
-    timeout: 15000
-- tapOn: More
-- extendedWaitUntil:
-    visible:
-      id: more-screen
-    timeout: 15000
-- assertVisible: "More"
+- runFlow: subflows/boot-and-login.yaml
+- runFlow: scenarios/shell-tabs.yaml

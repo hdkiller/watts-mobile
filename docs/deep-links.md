@@ -24,8 +24,9 @@ Paths are path-only. Scheme form: `coachwatts://today`. HTTPS form: `https://coa
 | `/log` | `/(app)/(tabs)/log` | Optional convenience |
 | `/more` | `/(app)/(tabs)/more` | More tab root |
 | `/oauth/callback` | — | Handled by expo-auth-session; **not** rewritten |
+| `/e2e/login` | — | **Maestro / local only.** Queues fixture login (`+native-intent` → mint `POST /api/__e2e/token`); not a product route. Scheme: `coachwatts://e2e/login?email=&instance=` (defaults in [`e2eLoginDeepLink.ts`](../src/auth/e2eLoginDeepLink.ts)). Host allowlist applies. Do not host as a universal link. Harness pitfalls (wrong Metro, loopback tunnel, Open sheet): [e2e.md — What to look for](./e2e.md#what-to-look-for-maestro--dev-client-harness). |
 
-Source of truth in code: [`src/linking/pathMap.ts`](../src/linking/pathMap.ts), resolver [`src/linking/resolveDeepLink.ts`](../src/linking/resolveDeepLink.ts).
+Source of truth in code: [`src/linking/pathMap.ts`](../src/linking/pathMap.ts), resolver [`src/linking/resolveDeepLink.ts`](../src/linking/resolveDeepLink.ts). E2E login parser: [`src/auth/e2eLoginDeepLink.ts`](../src/auth/e2eLoginDeepLink.ts).
 
 ## Push payload alignment
 

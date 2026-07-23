@@ -52,6 +52,7 @@ export function WellnessScoreCard({
           return (
             <Pressable
               key={score}
+              testID={`${label.toLowerCase()}-score-${score}`}
               accessibilityRole="button"
               accessibilityLabel={`${label} ${score}`}
               accessibilityState={{ selected: active }}

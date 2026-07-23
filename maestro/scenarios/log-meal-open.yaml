@@ -1,0 +1,34 @@
+# Log → meal sheet (open only) — assumes authenticated session + nutrition on fixture.
+appId: com.coachwatts.app
+---
+- openLink: coachwatts://log
+- extendedWaitUntil:
+    visible: Open
+    timeout: 5000
+    optional: true
+- runFlow:
+    when:
+      visible: Open
+    commands:
+      - tapOn: Open
+- extendedWaitUntil:
+    visible:
+      id: log-screen
+    timeout: 15000
+- extendedWaitUntil:
+    visible:
+      id: log-meal
+    timeout: 15000
+- tapOn:
+    id: log-meal
+- extendedWaitUntil:
+    visible:
+      id: log-meal-sheet
+    timeout: 10000
+- assertVisible:
+    id: log-meal-sheet
+# Header control uses a11y "Cancel meal logging" (plain "Cancel" is flaky when nested).
+- tapOn:
+    text: "Cancel meal logging"
+- waitForAnimationToEnd:
+    timeout: 2000

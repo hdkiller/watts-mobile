@@ -1,0 +1,43 @@
+# Log → wellness check-in sheet (open only) — assumes authenticated session.
+appId: com.coachwatts.app
+---
+- openLink: coachwatts://log
+- extendedWaitUntil:
+    visible: Open
+    timeout: 5000
+    optional: true
+- runFlow:
+    when:
+      visible: Open
+    commands:
+      - tapOn: Open
+- extendedWaitUntil:
+    visible:
+      id: log-screen
+    timeout: 15000
+- runFlow: ../subflows/dismiss-dev-menu.yaml
+- assertVisible:
+    id: wellness-checkin
+- tapOn:
+    id: wellness-checkin
+- runFlow:
+    when:
+      visible: "Toggle performance monitor"
+    commands:
+      - tapOn:
+          id: xmark
+      - waitForAnimationToEnd:
+          timeout: 3000
+      - tapOn:
+          id: wellness-checkin
+- extendedWaitUntil:
+    visible:
+      id: wellness-checkin-sheet
+    timeout: 20000
+- assertVisible:
+    id: wellness-checkin-save
+- assertVisible:
+    text: "Mood 7"
+- tapOn: Cancel
+- waitForAnimationToEnd:
+    timeout: 2000

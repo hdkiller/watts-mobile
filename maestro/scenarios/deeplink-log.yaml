@@ -1,0 +1,17 @@
+# Deep link coachwatts://log — assumes authenticated session.
+appId: com.coachwatts.app
+---
+- openLink: coachwatts://log
+- extendedWaitUntil:
+    visible: Open
+    timeout: 5000
+    optional: true
+- runFlow:
+    when:
+      visible: Open
+    commands:
+      - tapOn: Open
+- extendedWaitUntil:
+    visible:
+      id: log-screen
+    timeout: 20000

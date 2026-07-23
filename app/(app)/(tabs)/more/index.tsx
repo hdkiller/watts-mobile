@@ -94,6 +94,7 @@ function MenuRow({
   showChevron = true,
   isLast = false,
   isDestructive = false,
+  testID,
 }: {
   title: string;
   detail?: string;
@@ -103,6 +104,7 @@ function MenuRow({
   showChevron?: boolean;
   isLast?: boolean;
   isDestructive?: boolean;
+  testID?: string;
 }) {
   const body = (
     <View
@@ -139,6 +141,7 @@ function MenuRow({
 
   return (
     <Pressable
+      testID={testID}
       accessibilityRole="button"
       accessibilityLabel={title}
       className="active:opacity-80"
@@ -224,6 +227,7 @@ export default function MoreScreen() {
 
         {/* Interactive Profile Header Card */}
         <Pressable
+          testID="more-athlete-profile"
           accessibilityRole="button"
           accessibilityLabel="Athlete profile"
           className="mt-6 flex-row items-center rounded-xl border border-border bg-card p-4 active:opacity-80"
@@ -271,6 +275,7 @@ export default function MoreScreen() {
             onPress={() => void openInstanceWeb(instanceUrl, helpCenterWebPath())}
           />
           <MenuRow
+            testID="more-settings"
             title="Settings"
             detail="Preferences, integrations & coach"
             sf="gearshape"

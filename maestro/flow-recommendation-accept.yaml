@@ -1,0 +1,31 @@
+# Accept recommendation when CTA present — ISOLATED wipe + login (docs/e2e.md).
+# Mutation: run `pnpm e2e:reset` in coach-wattz when state drifts.
+appId: com.coachwatts.app
+tags:
+  - isolated
+  - mutation
+---
+- runFlow: subflows/boot-and-login.yaml
+- runFlow:
+    when:
+      visible:
+        id: today-recommendation-accept
+    commands:
+      - tapOn:
+          id: today-recommendation-accept
+      - runFlow:
+          when:
+            visible:
+              id: today-recommendation-accept
+          commands:
+            - extendedWaitUntil:
+                notVisible:
+                  id: today-recommendation-accept
+                timeout: 20000
+- runFlow:
+    when:
+      notVisible:
+        id: today-recommendation-accept
+    commands:
+      - assertVisible:
+          id: today-screen

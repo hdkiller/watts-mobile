@@ -30,6 +30,12 @@ vi.mock('@/src/auth/tokenStorage', () => ({
   saveTokens,
 }));
 
+vi.mock('@/src/auth/pendingE2eLogin', () => ({
+  consumePendingE2eLogin: vi.fn(async () => null),
+  loadPendingE2eLogin: vi.fn(async () => null),
+  setPendingE2eLogin: vi.fn(async () => undefined),
+}));
+
 vi.mock('@/src/config/instance', () => ({
   normalizeInstanceUrl,
   setInstanceUrl,
@@ -94,10 +100,10 @@ describe('applyE2eAuthSeed', () => {
     const { applyE2eAuthSeed } = await import('../e2eAuth');
 
     await expect(applyE2eAuthSeed()).resolves.toEqual({
-      instanceUrl: 'http://localhost:3099',
+      instanceUrl: 'http://127.0.0.1:3099',
       accessToken: 'fixture-access',
     });
-    expect(setInstanceUrl).toHaveBeenCalledWith('http://localhost:3099');
+    expect(setInstanceUrl).toHaveBeenCalledWith('http://127.0.0.1:3099');
     expect(saveTokens).toHaveBeenCalledWith({
       accessToken: 'fixture-access',
       refreshToken: 'fixture-refresh',
@@ -112,3 +118,52 @@ describe('applyE2eAuthSeed', () => {
     await expect(applyE2eAuthSeed()).rejects.toThrow(/E2E_ACCESS_TOKEN/);
   });
 });
+
+describe('mintE2eToken', () => {
+  afterEach(() => {
+    vi.resetModules();
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+    saveTokens.mockClear();
+    setInstanceUrl.mockClear();
+  });
+
+  it('refuses non-allowlisted hosts', async () => {
+    vi.stubEnv('EXPO_PUBLIC_E2E_ALLOW_ANY_HOST', '');
+    vi.stubEnv('EXPO_PUBLIC_E2E_ALLOWED_HOSTS', '');
+    const { mintE2eToken } = await import('../e2eAuth');
+    await expect(
+      mintE2eToken('https://coachwatts.com', 'e2e-athlete@coachwatts.test')
+    ).rejects.toThrow(/refused instance host/);
+  });
+
+  it('POSTs __e2e/token and returns access_token', async () => {
+    vi.stubEnv('EXPO_PUBLIC_E2E_ALLOW_ANY_HOST', '');
+    vi.stubEnv('EXPO_PUBLIC_E2E_ALLOWED_HOSTS', '');
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        access_token: 'minted-access',
+        refresh_token: 'minted-refresh',
+      }),
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { mintE2eToken } = await import('../e2eAuth');
+    await expect(
+      mintE2eToken('http://localhost:3199', 'e2e-athlete@coachwatts.test')
+    ).resolves.toEqual({
+      accessToken: 'minted-access',
+      refreshToken: 'minted-refresh',
+    });
+    // localhost is rewritten to 127.0.0.1 for Simulator IPv6 hangs
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://127.0.0.1:3199/api/__e2e/token',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ email: 'e2e-athlete@coachwatts.test' }),
+      })
+    );
+  });
+});
+

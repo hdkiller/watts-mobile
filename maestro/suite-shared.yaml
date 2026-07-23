@@ -1,0 +1,25 @@
+# Shared authenticated session — ONE wipe + login, then read-only / open scenarios.
+# Mutations stay in isolated flows (flow-wellness-save, flow-recommendation-accept).
+# Soft-resets between scenarios via subflows/reset-to-today.yaml (keeps SecureStore).
+appId: com.coachwatts.app
+tags:
+  - suite
+---
+- runFlow: subflows/boot-and-login.yaml
+- runFlow: scenarios/shell-tabs.yaml
+- runFlow: subflows/reset-to-today.yaml
+- runFlow: scenarios/today-recommendation.yaml
+- runFlow: subflows/reset-to-today.yaml
+- runFlow: scenarios/log-checkin-open.yaml
+- runFlow: subflows/reset-to-today.yaml
+- runFlow: scenarios/log-meal-open.yaml
+- runFlow: subflows/reset-to-today.yaml
+- runFlow: scenarios/coach-compose.yaml
+- runFlow: subflows/reset-to-today.yaml
+- runFlow: scenarios/more-hubs.yaml
+- runFlow: subflows/reset-to-today.yaml
+- runFlow: scenarios/deeplink-today.yaml
+- runFlow: subflows/reset-to-today.yaml
+- runFlow: scenarios/deeplink-log.yaml
+- runFlow: subflows/reset-to-today.yaml
+- runFlow: scenarios/deeplink-coach.yaml
