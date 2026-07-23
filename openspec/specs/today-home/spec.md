@@ -76,7 +76,7 @@ The Today tab SHALL show a named **Active Recovery Context** band with a clear h
 - **THEN** Accept (and later Modify / Rest) remain the primary decision actions above Coming up / Recently glances; Active Recovery Context actions stay secondary
 
 ### Requirement: Coming up planned teaser on Today
-The Today tab SHALL show a thin Coming up strip of upcoming **planned workouts** only (not race/life calendar events), reusing the existing upcoming-planned query contract, capped to roughly the next 2–3 sessions (or next ~3–7 days). “See all” SHALL navigate to `/(app)/(tabs)/today/upcoming`. The strip MUST NOT be a full calendar.
+The Today tab SHALL show a thin Coming up strip of upcoming **planned workouts** only (not race/life calendar events), reusing the existing upcoming-planned query contract, capped to roughly the next 2–3 sessions (or next ~3–7 days). “See all” SHALL navigate to `/(app)/upcoming`. The strip MUST NOT be a full calendar.
 
 #### Scenario: Upcoming sessions present
 - **WHEN** upcoming planned workouts are available
@@ -91,7 +91,7 @@ The Today tab SHALL show a thin Coming up strip of upcoming **planned workouts**
 - **THEN** rows are planned workouts from the planned-workouts API and MUST NOT include separate calendar/life events
 
 ### Requirement: Recently activity teaser on Today
-The Today tab SHALL show a thin Recently teaser of 1–2 recent activities reusing the existing recent-activity query, with “See all” navigating to `/(app)/(tabs)/today/activity`.
+The Today tab SHALL show a thin Recently teaser of 1–2 recent activities reusing the existing recent-activity query, with “See all” navigating to `/(app)/activity`.
 
 #### Scenario: Recent activities present
 - **WHEN** recent activities are available

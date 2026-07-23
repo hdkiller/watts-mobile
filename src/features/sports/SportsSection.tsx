@@ -5,6 +5,7 @@ import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { AppSymbol } from '@/src/components/AppSymbol';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
+import { APP_HREFS } from '@/src/linking/appHrefs';
 import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
@@ -82,7 +83,7 @@ export function SportsSection() {
                 accessibilityLabel={displaySportName(profile)}
                 className="rounded-xl border border-border bg-card/80 px-4 py-3 active:opacity-80"
                 onPress={() =>
-                  router.push(`/(app)/(tabs)/more/sports/${encodeURIComponent(profile.id)}` as Href)
+                  router.push(APP_HREFS.sportProfile(profile.id) as Href)
                 }
               >
                 <View className="flex-row items-center gap-2">

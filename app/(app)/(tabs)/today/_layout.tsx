@@ -16,30 +16,6 @@ export default function TodayStackLayout() {
       }}
     >
       <Stack.Screen name="index" />
-      <Stack.Screen
-        name="planned/[id]"
-        options={{ headerShown: true, title: 'Workout' }}
-      />
-      <Stack.Screen
-        name="activity/index"
-        options={{ headerShown: true, title: 'Recent activity' }}
-      />
-      <Stack.Screen
-        name="activity/[id]"
-        options={{ headerShown: true, title: 'Activity' }}
-      />
-      <Stack.Screen
-        name="upcoming/index"
-        options={{ headerShown: true, title: 'Upcoming' }}
-      />
-      <Stack.Screen
-        name="events/index"
-        options={{ headerShown: true, title: 'Upcoming Events' }}
-      />
-      <Stack.Screen
-        name="events/[id]"
-        options={{ headerShown: true, title: 'Event' }}
-      />
     </Stack>
   );
 }

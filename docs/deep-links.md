@@ -11,12 +11,12 @@ Paths are path-only. Scheme form: `coachwatts://today`. HTTPS form: `https://coa
 | `/today` | `/(app)/(tabs)/today` | Today tab |
 | `/today/recommendation` | `/(app)/(tabs)/today` | Recommendation context on Today |
 | `/recommendations/:id` | `/(app)/(tabs)/today` | Alias until a dedicated detail route exists |
-| `/planned/:id` | `/(app)/(tabs)/today/planned/:id` | Planned workout detail (Today stack) |
-| `/activities` | `/(app)/(tabs)/today/activity` | Recent activity list (Today stack) |
-| `/activities/:id` | `/(app)/(tabs)/today/activity/:id` | Activity summary (Today stack) |
-| `/upcoming` | `/(app)/(tabs)/today/upcoming` | Upcoming planned list (Today stack) |
-| `/events` | `/(app)/(tabs)/today/events` | Upcoming race/life events list (Today stack) |
-| `/events/:id` | `/(app)/(tabs)/today/events/:id` | Lite read-only event detail (Today stack) |
+| `/planned/:id` | `/(app)/planned/:id` | Planned workout detail (root stack — Back to opener) |
+| `/activities` | `/(app)/activity` | Recent activity list (root stack) |
+| `/activities/:id` | `/(app)/activity/:id` | Activity summary (root stack) |
+| `/upcoming` | `/(app)/upcoming` | Upcoming planned list (root stack) |
+| `/events` | `/(app)/events` | Upcoming race/life events list (root stack) |
+| `/events/:id` | `/(app)/events/:id` | Lite read-only event detail (root stack) |
 | `/coach` | `/(app)/(tabs)/coach` | Coach tab (session policy picks/creates room) |
 | `/chat` | `/(app)/(tabs)/coach` | Alias for Coach tab |
 | `/chat/:roomId` | `/(app)/(tabs)/coach?roomId=` | Opens that chat room when it exists |

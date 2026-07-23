@@ -22,16 +22,13 @@ export default function SettingsStackLayout() {
     >
       <Stack.Screen name="index" options={{ title: 'Settings' }} />
       <Stack.Screen name="notifications" options={{ title: 'Notification settings' }} />
-      <Stack.Screen name="health" options={{ title: 'Health Sync' }} />
-      <Stack.Screen name="health-history" options={{ title: 'Sync history' }} />
-      <Stack.Screen name="health-workouts" options={{ title: 'Recent workouts' }} />
-      <Stack.Screen name="connected-apps" options={{ title: 'Connected Apps' }} />
       <Stack.Screen name="subscription" options={{ title: 'Subscription & Billing' }} />
       <Stack.Screen name="units" options={{ title: 'Units & locale' }} />
       <Stack.Screen name="appearance" options={{ title: 'Appearance' }} />
       <Stack.Screen name="log" options={{ title: 'Log defaults' }} />
-      <Stack.Screen name="sports" options={{ title: 'Sports' }} />
       <Stack.Screen name="coach" options={{ title: 'Coach identity' }} />
+      {/* nutrition stays file-routed when present */}
+      <Stack.Screen name="nutrition" options={{ title: 'Nutrition' }} />
     </Stack>
   );
 }

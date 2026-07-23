@@ -35,6 +35,7 @@ import { markAnalysisSeen } from '@/src/features/today/analysisReadyStore';
 import { useOfflineCached } from '@/src/hooks/useOfflineCached';
 import { hapticError, hapticSuccess } from '@/src/lib/haptics';
 import { humanizeWorkoutType } from '@/src/lib/humanizeWorkoutType';
+import { APP_HREFS } from '@/src/linking/appHrefs';
 
 function activityHeroStats(data: ActivitySummary): HeroStat[] {
   const stats: HeroStat[] = [];
@@ -243,7 +244,7 @@ function PlanAdherenceBlock({ adherence }: { adherence: PlanAdherenceGlance }) {
           accessibilityLabel="View plan"
           className="mt-3 self-start active:opacity-80"
           hitSlop={8}
-          onPress={() => router.push(`/(app)/(tabs)/today/planned/${planId}` as Href)}
+          onPress={() => router.push(APP_HREFS.plannedDetail(planId) as Href)}
         >
           <Text className="text-sm font-semibold text-brand">View plan →</Text>
         </Pressable>

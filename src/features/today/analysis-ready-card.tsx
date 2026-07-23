@@ -8,6 +8,7 @@ import {
   loadSeenAnalysisIds,
   markAnalysisSeen,
 } from '@/src/features/today/analysisReadyStore';
+import { APP_HREFS } from '@/src/linking/appHrefs';
 
 type AnalysisReadyCardProps = {
   recent: ActivityListItem[] | undefined;
@@ -56,7 +57,7 @@ export function AnalysisReadyCard({ recent }: AnalysisReadyCardProps) {
           onPress={() => {
             void markAnalysisSeen(ready.id);
             setReady(null);
-            router.push(`/(app)/(tabs)/today/activity/${ready.id}` as Href);
+            router.push(APP_HREFS.activityDetail(ready.id) as Href);
           }}
         >
           <Text className="text-xs uppercase tracking-wide text-text-muted">Analysis ready</Text>

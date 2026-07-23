@@ -25,6 +25,7 @@ import {
 import { runHealthSyncPass } from '@/src/features/health/orchestrator';
 import { useHealthSyncPreferences } from '@/src/features/health/useHealthSyncPreferences';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
+import { APP_HREFS } from '@/src/linking/appHrefs';
 import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
@@ -470,7 +471,7 @@ export default function HealthSyncSettingsScreen() {
               <Pressable
                 onPress={() => {
                   hapticLight();
-                  router.push('/(app)/(tabs)/more/settings/health-workouts' as Href);
+                  router.push(APP_HREFS.healthWorkouts as Href);
                 }}
                 className="rounded-xl border border-border bg-card/60 px-4 py-4 flex-row items-center justify-between"
               >
@@ -487,7 +488,7 @@ export default function HealthSyncSettingsScreen() {
                 <Pressable
                   onPress={() => {
                     hapticLight();
-                    router.push('/(app)/(tabs)/more/settings/health-history' as Href);
+                    router.push(APP_HREFS.healthHistory as Href);
                   }}
                   className="rounded-xl border border-border bg-card/60 px-4 py-4 flex-row items-center justify-between"
                 >

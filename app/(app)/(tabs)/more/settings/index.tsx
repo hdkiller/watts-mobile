@@ -284,7 +284,7 @@ export default function SettingsScreen() {
               detail="Per-sport FTP, LTHR, Max HR"
               sf="figure.run"
               emoji="🏃"
-              onPress={() => router.push('/(app)/(tabs)/more/settings/sports' as Href)}
+              onPress={() => router.push(APP_HREFS.settingsSports as Href)}
               isLast
             />
           </Section>

@@ -29,6 +29,7 @@ import { isNutritionTrackingEnabled } from '@/src/features/profile/mapProfile';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { useOfflineCached } from '@/src/hooks/useOfflineCached';
 import { humanizeWorkoutType } from '@/src/lib/humanizeWorkoutType';
+import { APP_HREFS } from '@/src/linking/appHrefs';
 import { zoneColor, Colors } from '@/src/theme/colors';
 
 function plannedHeroStats(data: {
@@ -166,7 +167,7 @@ export default function PlannedWorkoutDetailScreen() {
               accessibilityLabel="View completed activity"
               className="mt-4 rounded-xl border border-border bg-card/60 px-4 py-3 active:opacity-80"
               onPress={() =>
-                router.push(`/(app)/(tabs)/today/activity/${data.linkedCompleted!.id}` as Href)
+                router.push(APP_HREFS.activityDetail(data.linkedCompleted!.id) as Href)
               }
             >
               <Text className="text-xs uppercase tracking-wide text-text-muted">Completed activity</Text>

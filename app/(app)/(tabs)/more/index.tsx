@@ -293,14 +293,14 @@ export default function MoreScreen() {
             detail="Completed workouts & analysis"
             sf="list.bullet"
             emoji="📋"
-            onPress={() => router.push('/(app)/(tabs)/today/activity' as Href)}
+            onPress={() => router.push(APP_HREFS.activityList as Href)}
           />
           <MenuRow
             title="Upcoming planned"
             detail="Scheduled workouts & events"
             sf="calendar"
             emoji="📅"
-            onPress={() => router.push('/(app)/(tabs)/today/upcoming' as Href)}
+            onPress={() => router.push(APP_HREFS.upcoming as Href)}
             isLast
           />
         </Section>

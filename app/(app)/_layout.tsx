@@ -56,13 +56,19 @@ export default function AppLayout() {
             presentation: 'modal',
           }}
         />
-        <Stack.Screen
-          name="athlete"
-          options={{
-            headerShown: true,
-            title: 'Athlete',
-          }}
-        />
+        <Stack.Screen name="athlete" options={{ headerShown: true, title: 'Athlete' }} />
+        <Stack.Screen name="activity/index" options={{ headerShown: true, title: 'Recent activity' }} />
+        <Stack.Screen name="activity/[id]" options={{ headerShown: true, title: 'Activity' }} />
+        <Stack.Screen name="planned/[id]" options={{ headerShown: true, title: 'Workout' }} />
+        <Stack.Screen name="upcoming/index" options={{ headerShown: true, title: 'Upcoming' }} />
+        <Stack.Screen name="events/index" options={{ headerShown: true, title: 'Upcoming Events' }} />
+        <Stack.Screen name="events/[id]" options={{ headerShown: true, title: 'Event' }} />
+        <Stack.Screen name="health-sync" options={{ headerShown: true, title: 'Health Sync' }} />
+        <Stack.Screen name="health-history" options={{ headerShown: true, title: 'Sync history' }} />
+        <Stack.Screen name="health-workouts" options={{ headerShown: true, title: 'Recent workouts' }} />
+        <Stack.Screen name="connected-apps" options={{ headerShown: true, title: 'Connected Apps' }} />
+        <Stack.Screen name="sports/index" options={{ headerShown: true, title: 'Sports' }} />
+        <Stack.Screen name="sports/[id]" options={{ headerShown: true, title: 'Sport profile' }} />
       </Stack>
     </ActivationGate>
   );

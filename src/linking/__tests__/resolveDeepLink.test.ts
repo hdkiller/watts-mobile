@@ -36,7 +36,7 @@ describe('resolveDeepLinkPath', () => {
     });
   });
 
-  it('maps planned, activity, upcoming, coach, notifications into tab stacks', () => {
+  it('maps planned, activity, upcoming, coach, notifications (multi-entry on root stack)', () => {
     expect(resolveDeepLinkPath('/planned/pw-1')).toMatchObject({
       kind: 'app',
       href: APP_HREFS.plannedDetail('pw-1'),
@@ -160,11 +160,12 @@ describe('resolvePushNavigation', () => {
     });
   });
 
-  it('accepts current Expo Router hrefs from server push payloads', () => {
+  it('migrates Today-tab Expo Router hrefs from server push payloads', () => {
     expect(
       resolvePushNavigation({ path: '/(app)/(tabs)/today/activity/123' })
     ).toMatchObject({
-      href: '/(app)/(tabs)/today/activity/123',
+      href: APP_HREFS.activityDetail('123'),
     });
   });
 });
+

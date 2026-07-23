@@ -124,10 +124,10 @@ Fixed without a prior issue card (2026-07-23): Today greeting → Athlete — ro
 
 | ID | Issue | Area | Priority | Effort | Status |
 |----|-------|------|----------|--------|--------|
-| [065](./issues/065.md) | More → Recent activity / Upcoming: Back lands on Today | navigation | high | S–M | open |
-| [066](./issues/066.md) | Today / activation → Health Sync & Connected Apps: Back leaves setup | navigation/activation | high | M | open |
-| [067](./issues/067.md) | Athlete → Sports settings: Back abandons Athlete | navigation/profile | medium | S | open |
-| [068](./issues/068.md) | Inbox / push opens nested stacks without a return path | navigation/notifications | medium | M | open |
+| [065](./issues/065.md) | More → Recent activity / Upcoming: Back lands on Today | navigation | high | S–M | done |
+| [066](./issues/066.md) | Today / activation → Health Sync & Connected Apps: Back leaves setup | navigation/activation | high | M | done |
+| [067](./issues/067.md) | Athlete → Sports settings: Back abandons Athlete | navigation/profile | medium | S | done |
+| [068](./issues/068.md) | Inbox / push opens nested stacks without a return path | navigation/notifications | medium | M | done |
 
 Not filed (low / likely intentional tab jumps): Today/session “Discuss with Coach” and Log “AI photo estimate” → Coach tab — no header Back to source; revisit only if product wants modal Coach.
 

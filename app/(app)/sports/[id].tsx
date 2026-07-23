@@ -25,6 +25,7 @@ import { hapticError, hapticSuccess } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
+import { APP_HREFS } from '@/src/linking/appHrefs';
 
 export default function SportProfileEditorScreen() {
   const theme = useThemeColors();
@@ -116,7 +117,7 @@ export default function SportProfileEditorScreen() {
           <Pressable
             className="mt-4"
             hitSlop={8}
-            onPress={() => router.replace('/(app)/(tabs)/more/settings/sports' as Href)}
+            onPress={() => router.replace(APP_HREFS.settingsSports as Href)}
           >
             <Text className="font-semibold text-brand">Back to Sports</Text>
           </Pressable>

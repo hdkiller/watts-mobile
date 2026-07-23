@@ -18,6 +18,7 @@ import {
   useRecentActivityQuery,
   useUpcomingPlannedQuery,
 } from '@/src/features/activity/useActivity';
+import { APP_HREFS } from '@/src/linking/appHrefs';
 
 const TEASER_LIMIT = 2;
 
@@ -43,7 +44,7 @@ export function RecentlyTeaser() {
         <Pressable
           className="py-1 active:opacity-70"
           hitSlop={8}
-          onPress={() => router.push('/(app)/(tabs)/today/activity' as Href)}
+          onPress={() => router.push(APP_HREFS.activityList as Href)}
         >
           <Text className="text-sm font-semibold text-brand">See all</Text>
         </Pressable>
@@ -84,7 +85,7 @@ function RecentRow({
   return (
     <Pressable
       className="flex-row items-center gap-3 border-b border-border/80 py-3 active:opacity-80"
-      onPress={() => router.push(`/(app)/(tabs)/today/activity/${item.id}` as Href)}
+      onPress={() => router.push(APP_HREFS.activityDetail(item.id) as Href)}
     >
       <SportIcon type={item.type} size={13} />
       <View className="min-w-0 flex-1">

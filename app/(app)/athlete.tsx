@@ -28,6 +28,7 @@ import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 import { GoalsLiteSection } from '@/src/features/goals/GoalsLiteSection';
+import { APP_HREFS } from '@/src/linking/appHrefs';
 
 export default function AthleteMetricsScreen() {
   const theme = useThemeColors();
@@ -154,7 +155,7 @@ export default function AthleteMetricsScreen() {
               Default sport profile — per-sport thresholds live in{' '}
               <Text
                 className="font-semibold text-brand"
-                onPress={() => router.push('/(app)/(tabs)/more/settings/sports' as Href)}
+                onPress={() => router.push(APP_HREFS.settingsSports as Href)}
               >
                 Sports
               </Text>

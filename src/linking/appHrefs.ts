@@ -1,7 +1,11 @@
 /**
- * In-app Expo Router hrefs after per-tab stacks (issue 049).
+ * In-app Expo Router hrefs.
  * External deep-link paths (`/activities`, `/planned/:id`) stay stable; only
  * the resolved Expo Router targets live here.
+ *
+ * Multi-entry destinations (opened from more than one tab / inbox / push) live
+ * on the root `(app)` stack so Back returns to the screen that opened them
+ * (issues 065–068). Tab-local Settings chrome stays under More.
  */
 
 export const APP_HREFS = {
@@ -9,30 +13,31 @@ export const APP_HREFS = {
   log: '/(app)/(tabs)/log',
   coach: '/(app)/(tabs)/coach',
   more: '/(app)/(tabs)/more',
-  activityList: '/(app)/(tabs)/today/activity',
+  activityList: '/(app)/activity',
   activityDetail: (id: string) =>
-    `/(app)/(tabs)/today/activity/${encodeURIComponent(id)}` as const,
+    `/(app)/activity/${encodeURIComponent(id)}` as const,
   plannedDetail: (id: string) =>
-    `/(app)/(tabs)/today/planned/${encodeURIComponent(id)}` as const,
-  upcoming: '/(app)/(tabs)/today/upcoming',
-  eventsList: '/(app)/(tabs)/today/events',
+    `/(app)/planned/${encodeURIComponent(id)}` as const,
+  upcoming: '/(app)/upcoming',
+  eventsList: '/(app)/events',
   eventDetail: (id: string) =>
-    `/(app)/(tabs)/today/events/${encodeURIComponent(id)}` as const,
-  /** Root stack — Back returns to the tab that opened it (Today or More). */
+    `/(app)/events/${encodeURIComponent(id)}` as const,
   athlete: '/(app)/athlete',
   notifications: '/(app)/(tabs)/more/notifications',
   settings: '/(app)/(tabs)/more/settings',
   settingsNotifications: '/(app)/(tabs)/more/settings/notifications',
-  settingsHealth: '/(app)/(tabs)/more/settings/health',
-  settingsConnectedApps: '/(app)/(tabs)/more/settings/connected-apps',
+  settingsHealth: '/(app)/health-sync',
+  settingsConnectedApps: '/(app)/connected-apps',
   settingsSubscription: '/(app)/(tabs)/more/settings/subscription',
   settingsUnits: '/(app)/(tabs)/more/settings/units',
   settingsLog: '/(app)/(tabs)/more/settings/log',
   settingsNutrition: '/(app)/(tabs)/more/settings/nutrition',
-  settingsSports: '/(app)/(tabs)/more/settings/sports',
+  settingsSports: '/(app)/sports',
   settingsCoach: '/(app)/(tabs)/more/settings/coach',
   sportProfile: (id: string) =>
-    `/(app)/(tabs)/more/sports/${encodeURIComponent(id)}` as const,
+    `/(app)/sports/${encodeURIComponent(id)}` as const,
+  healthHistory: '/(app)/health-history',
+  healthWorkouts: '/(app)/health-workouts',
   dailyCheckin: '/(app)/daily-checkin',
   recoveryEvent: '/(app)/recovery-event',
   recoveryEventEdit: (id: string) =>
@@ -44,19 +49,47 @@ export function logCameraHref(nonce: string = String(Date.now())): string {
   return `${APP_HREFS.log}?action=camera&t=${encodeURIComponent(nonce)}`;
 }
 
-/** Rewrite legacy root-stack hrefs still present in push payloads / pending returns. */
+/** Rewrite legacy tab-nested hrefs still present in push payloads / pending returns. */
 export function migrateLegacyAppHref(href: string): string {
   if (!href.startsWith('/(app)')) return href;
 
   const rules: Array<[RegExp, string | ((m: RegExpMatchArray) => string)]> = [
-    [/^\/\(app\)\/activity\/([^/?#]+)/, (m) => APP_HREFS.activityDetail(decodeURIComponent(m[1]!))],
-    [/^\/\(app\)\/activity\/?$/, APP_HREFS.activityList],
-    [/^\/\(app\)\/planned\/([^/?#]+)/, (m) => APP_HREFS.plannedDetail(decodeURIComponent(m[1]!))],
-    [/^\/\(app\)\/upcoming\/?$/, APP_HREFS.upcoming],
-    [/^\/\(app\)\/events\/([^/?#]+)/, (m) => APP_HREFS.eventDetail(decodeURIComponent(m[1]!))],
-    [/^\/\(app\)\/events\/?$/, APP_HREFS.eventsList],
-    [/^\/\(app\)\/notifications\/?$/, APP_HREFS.notifications],
+    // Today-tab nesting (049) → root multi-entry stack (065–068)
+    [
+      /^\/\(app\)\/\(tabs\)\/today\/activity\/([^/?#]+)/,
+      (m) => APP_HREFS.activityDetail(decodeURIComponent(m[1]!)),
+    ],
+    [/^\/\(app\)\/\(tabs\)\/today\/activity\/?$/, APP_HREFS.activityList],
+    [
+      /^\/\(app\)\/\(tabs\)\/today\/planned\/([^/?#]+)/,
+      (m) => APP_HREFS.plannedDetail(decodeURIComponent(m[1]!)),
+    ],
+    [/^\/\(app\)\/\(tabs\)\/today\/upcoming\/?$/, APP_HREFS.upcoming],
+    [
+      /^\/\(app\)\/\(tabs\)\/today\/events\/([^/?#]+)/,
+      (m) => APP_HREFS.eventDetail(decodeURIComponent(m[1]!)),
+    ],
+    [/^\/\(app\)\/\(tabs\)\/today\/events\/?$/, APP_HREFS.eventsList],
     [/^\/\(app\)\/\(tabs\)\/more\/athlete\/?$/, APP_HREFS.athlete],
+    [/^\/\(app\)\/\(tabs\)\/more\/settings\/health\/?$/, APP_HREFS.settingsHealth],
+    [
+      /^\/\(app\)\/\(tabs\)\/more\/settings\/health-history\/?$/,
+      APP_HREFS.healthHistory,
+    ],
+    [
+      /^\/\(app\)\/\(tabs\)\/more\/settings\/health-workouts\/?$/,
+      APP_HREFS.healthWorkouts,
+    ],
+    [
+      /^\/\(app\)\/\(tabs\)\/more\/settings\/connected-apps\/?$/,
+      APP_HREFS.settingsConnectedApps,
+    ],
+    [/^\/\(app\)\/\(tabs\)\/more\/settings\/sports\/?$/, APP_HREFS.settingsSports],
+    [
+      /^\/\(app\)\/\(tabs\)\/more\/sports\/([^/?#]+)/,
+      (m) => APP_HREFS.sportProfile(decodeURIComponent(m[1]!)),
+    ],
+    // Older flat settings aliases
     [/^\/\(app\)\/settings\/notifications\/?$/, APP_HREFS.settingsNotifications],
     [/^\/\(app\)\/settings\/health\/?$/, APP_HREFS.settingsHealth],
     [/^\/\(app\)\/settings\/connected-apps\/?$/, APP_HREFS.settingsConnectedApps],
@@ -67,7 +100,7 @@ export function migrateLegacyAppHref(href: string): string {
     [/^\/\(app\)\/settings\/sports\/?$/, APP_HREFS.settingsSports],
     [/^\/\(app\)\/settings\/coach\/?$/, APP_HREFS.settingsCoach],
     [/^\/\(app\)\/settings\/?$/, APP_HREFS.settings],
-    [/^\/\(app\)\/sports\/([^/?#]+)/, (m) => APP_HREFS.sportProfile(decodeURIComponent(m[1]!))],
+    [/^\/\(app\)\/notifications\/?$/, APP_HREFS.notifications],
   ];
 
   for (const [re, dest] of rules) {

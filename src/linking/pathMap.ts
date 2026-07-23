@@ -8,12 +8,12 @@
  * | `/today`                   | `/(app)/(tabs)/today`                    |
  * | `/today/recommendation`    | `/(app)/(tabs)/today`                    |
  * | `/recommendations/:id`     | `/(app)/(tabs)/today`                    |
- * | `/planned/:id`             | `/(app)/(tabs)/today/planned/:id`        |
- * | `/activities`              | `/(app)/(tabs)/today/activity`           |
- * | `/activities/:id`          | `/(app)/(tabs)/today/activity/:id`       |
- * | `/upcoming`                | `/(app)/(tabs)/today/upcoming`           |
- * | `/events`                  | `/(app)/(tabs)/today/events`             |
- * | `/events/:id`              | `/(app)/(tabs)/today/events/:id`         |
+ * | `/planned/:id`             | `/(app)/planned/:id`                     |
+ * | `/activities`              | `/(app)/activity`                        |
+ * | `/activities/:id`          | `/(app)/activity/:id`                    |
+ * | `/upcoming`                | `/(app)/upcoming`                        |
+ * | `/events`                  | `/(app)/events`                          |
+ * | `/events/:id`              | `/(app)/events/:id`                      |
  * | `/coach`                   | `/(app)/(tabs)/coach`                    |
  * | `/chat` / `/chat/:roomId`  | `/(app)/(tabs)/coach`                    |
  * | `/notifications`           | `/(app)/(tabs)/more/notifications`       |

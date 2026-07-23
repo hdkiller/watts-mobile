@@ -26,10 +26,6 @@ export default function MoreStackLayout() {
         options={{ headerShown: true, title: 'Notifications' }}
       />
       <Stack.Screen name="settings" options={{ headerShown: false }} />
-      <Stack.Screen
-        name="sports/[id]"
-        options={{ headerShown: true, title: 'Sport profile' }}
-      />
     </Stack>
   );
 }

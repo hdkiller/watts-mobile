@@ -11,6 +11,7 @@ import { humanizeWorkoutType } from '@/src/lib/humanizeWorkoutType';
 import type { PlannedListItem } from '@/src/features/activity/types';
 import { useUpcomingPlannedQuery } from '@/src/features/activity/useActivity';
 import { localDateKey } from '@/src/features/today/weekGlance';
+import { APP_HREFS } from '@/src/linking/appHrefs';
 
 const TEASER_LIMIT = 3;
 
@@ -49,7 +50,7 @@ export function ComingUpStrip({ excludePlannedId }: ComingUpStripProps) {
         <Pressable
           className="py-1 active:opacity-70"
           hitSlop={8}
-          onPress={() => router.push('/(app)/(tabs)/today/upcoming' as Href)}
+          onPress={() => router.push(APP_HREFS.upcoming as Href)}
         >
           <Text className="text-sm font-semibold text-brand">See all</Text>
         </Pressable>
@@ -80,7 +81,7 @@ function ComingUpRow({ item }: { item: PlannedListItem }) {
   return (
     <Pressable
       className="flex-row items-center gap-3 border-b border-border/80 py-3 active:opacity-80"
-      onPress={() => router.push(`/(app)/(tabs)/today/planned/${item.id}` as Href)}
+      onPress={() => router.push(APP_HREFS.plannedDetail(item.id) as Href)}
     >
       <SportIcon type={item.type} size={13} />
       <View className="min-w-0 flex-1">

@@ -25,6 +25,7 @@ import { listRecentPlatformWorkoutsWithStatus } from '@/src/features/health/rece
 import type { SyncLedgerStatus } from '@/src/features/health/types';
 import { useHealthSyncPreferences } from '@/src/features/health/useHealthSyncPreferences';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
+import { APP_HREFS } from '@/src/linking/appHrefs';
 import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
@@ -165,7 +166,7 @@ export default function HealthRecentWorkoutsScreen() {
             <Pressable
               onPress={() => {
                 hapticLight();
-                router.push('/(app)/(tabs)/more/settings/health' as Href);
+                router.push(APP_HREFS.settingsHealth as Href);
               }}
               className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-3"
             >
