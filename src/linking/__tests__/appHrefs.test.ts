@@ -16,8 +16,13 @@ describe('migrateLegacyAppHref', () => {
     expect(migrateLegacyAppHref('/(app)/settings/sports')).toBe(APP_HREFS.settingsSports);
   });
 
+  it('rewrites More-tab athlete into the root stack', () => {
+    expect(migrateLegacyAppHref('/(app)/(tabs)/more/athlete')).toBe(APP_HREFS.athlete);
+  });
+
   it('leaves current hrefs alone', () => {
     expect(migrateLegacyAppHref(APP_HREFS.today)).toBe(APP_HREFS.today);
+    expect(migrateLegacyAppHref(APP_HREFS.athlete)).toBe(APP_HREFS.athlete);
     expect(migrateLegacyAppHref(APP_HREFS.activityDetail('x'))).toBe(APP_HREFS.activityDetail('x'));
   });
 });

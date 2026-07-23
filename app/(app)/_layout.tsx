@@ -56,6 +56,13 @@ export default function AppLayout() {
             presentation: 'modal',
           }}
         />
+        <Stack.Screen
+          name="athlete"
+          options={{
+            headerShown: true,
+            title: 'Athlete',
+          }}
+        />
       </Stack>
     </ActivationGate>
   );

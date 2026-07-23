@@ -17,6 +17,7 @@ import {
 } from '@/src/features/account/paths';
 import { useUnreadNotificationsCount } from '@/src/features/notifications/useNotifications';
 import { useTabScrollPadding } from '@/src/hooks/useTabScrollPadding';
+import { APP_HREFS } from '@/src/linking/appHrefs';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 
@@ -226,7 +227,7 @@ export default function MoreScreen() {
           accessibilityRole="button"
           accessibilityLabel="Athlete profile"
           className="mt-6 flex-row items-center rounded-xl border border-border bg-card p-4 active:opacity-80"
-          onPress={() => router.push('/(app)/(tabs)/more/athlete' as Href)}
+          onPress={() => router.push(APP_HREFS.athlete as Href)}
         >
           <AthleteAvatar name={user?.name} />
           <View className="ml-3.5 min-w-0 flex-1">

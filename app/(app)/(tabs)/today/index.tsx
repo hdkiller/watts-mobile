@@ -136,23 +136,19 @@ function ConfidenceDots({
   );
 }
 
-function greetingForNow(): string {
+function greetingPhraseForNow(): string {
   const hour = new Date().getHours();
   if (hour < 12) return 'Good morning';
   if (hour < 18) return 'Good afternoon';
   return 'Good evening';
 }
 
-/** Short trailing label for Today → athlete profile. Prefer first name. */
-function profileShortcutLabel(name?: string | null, email?: string | null): string {
-  const trimmed = name?.trim();
-  if (trimmed) {
-    const first = trimmed.split(/\s+/)[0];
-    if (first) return first;
-  }
-  const local = email?.split('@')[0]?.trim();
-  if (local) return local;
-  return 'Profile';
+/** First name for greeting personalization; null when we have nothing friendly. */
+function greetingFirstName(name?: string | null, email?: string | null): string | null {
+  const fromName = name?.trim().split(/\s+/)[0];
+  if (fromName) return fromName;
+  const fromEmail = email?.split('@')[0]?.trim();
+  return fromEmail || null;
 }
 
 function PlannedSummaryCard({
@@ -208,7 +204,8 @@ export default function TodayScreen() {
   const theme = useThemeColors();
 
   const { instanceUrl, user } = useAuth();
-  const profileLabel = profileShortcutLabel(user?.name, user?.email);
+  const greetingName = greetingFirstName(user?.name, user?.email);
+  const greetingPhrase = greetingPhraseForNow();
   const queryClient = useQueryClient();
   const tabBottomPad = useTabScrollPadding();
   const { data, isLoading, isError, error, refetch, isRefetching, dataUpdatedAt } = useTodayQuery();
@@ -556,42 +553,46 @@ export default function TodayScreen() {
         <View className="flex-row items-center justify-between gap-3">
           <View className="min-w-0 flex-1">
             <Text className="text-sm text-text-muted">{dateLabel}</Text>
-            <Text className="mt-1 text-2xl font-semibold text-text-primary">{greetingForNow()}</Text>
-          </View>
-          <View className="max-w-[42%] shrink-0 flex-row items-center gap-2">
             <AnimatedPressable
               accessibilityRole="button"
-              accessibilityLabel={`Athlete profile, ${profileLabel}`}
+              accessibilityLabel={
+                greetingName
+                  ? `${greetingPhrase}, ${greetingName}. Open athlete profile`
+                  : `${greetingPhrase}. Open athlete profile`
+              }
               hitSlop={8}
-              className="min-w-0 py-1 active:opacity-70"
+              className="mt-1 self-start active:opacity-70"
               onPress={() => {
                 hapticLight();
                 router.push(APP_HREFS.athlete as Href);
               }}
             >
-              <Text
-                className="text-right text-sm font-semibold text-brand"
-                numberOfLines={1}
-              >
-                {profileLabel}
+              <Text className="text-2xl font-semibold text-text-primary">
+                {greetingPhrase}
+                {greetingName ? (
+                  <>
+                    {', '}
+                    <Text className="text-brand">{greetingName}</Text>
+                  </>
+                ) : null}
               </Text>
             </AnimatedPressable>
-            {nutritionEnabled ? (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Scan meal photo"
-                className="h-10 w-10 items-center justify-center rounded-full border border-border bg-card active:opacity-70"
-                onPress={() =>
-                  router.push({
-                    pathname: APP_HREFS.log,
-                    params: { action: 'camera', t: String(Date.now()) },
-                  } as Href)
-                }
-              >
-                <AppSymbol sf="camera.fill" size={18} tintColor={theme.brand} fallback="📷" />
-              </Pressable>
-            ) : null}
           </View>
+          {nutritionEnabled ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Scan meal photo"
+              className="h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card active:opacity-70"
+              onPress={() =>
+                router.push({
+                  pathname: APP_HREFS.log,
+                  params: { action: 'camera', t: String(Date.now()) },
+                } as Href)
+              }
+            >
+              <AppSymbol sf="camera.fill" size={18} tintColor={theme.brand} fallback="📷" />
+            </Pressable>
+          ) : null}
         </View>
       </EnterSection>
 

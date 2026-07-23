@@ -116,6 +116,23 @@ Verified working from the earlier batches: sleep plausibility gate (implausible 
 
 Suggested order: the trust pair **038 + 039** first (both make the daily loop feel broken), **041** with them (same "trust the numbers" theme), then **040** (one shared inset fix), the detail-page trio **042 → 047 → 048** (042's `units` fix unlocks 047), **049** as its own routing change (touches deep links — don't batch it), and the polish batch **043 / 044 / 045 / 046 / 050 / 051 / 052** together.
 
+## Navigation — cross-tab Back (post-049)
+
+Per-tab stacks ([049](./issues/049.md)) keep the tab bar for in-tab drill-downs, but **opening a screen owned by another tab’s stack** makes Back land on that tab’s root instead of the source. Template fix: multi-entry destinations on the root `(app)` stack (as with `athlete`, `daily-checkin`, `recovery-event`).
+
+Fixed without a prior issue card (2026-07-23): Today greeting → Athlete — route moved to `/(app)/athlete`.
+
+| ID | Issue | Area | Priority | Effort | Status |
+|----|-------|------|----------|--------|--------|
+| [065](./issues/065.md) | More → Recent activity / Upcoming: Back lands on Today | navigation | high | S–M | open |
+| [066](./issues/066.md) | Today / activation → Health Sync & Connected Apps: Back leaves setup | navigation/activation | high | M | open |
+| [067](./issues/067.md) | Athlete → Sports settings: Back abandons Athlete | navigation/profile | medium | S | open |
+| [068](./issues/068.md) | Inbox / push opens nested stacks without a return path | navigation/notifications | medium | M | open |
+
+Not filed (low / likely intentional tab jumps): Today/session “Discuss with Coach” and Log “AI photo estimate” → Coach tab — no header Back to source; revisit only if product wants modal Coach.
+
+Suggested order: **065** (More menu, high traffic) → **066** (activation connect path) → **067** (small, preserves athlete root-stack win) → **068** (touches push + deep links — don’t batch with 065).
+
 ## Suggested first batch
 
 Store-readiness and highest daily-loop impact: **018** (login), **001** (error copy), **006** (check-in), **003** (hero), then the visual pair **009 → 008** (zone colors feed the silhouette).

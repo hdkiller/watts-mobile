@@ -18,7 +18,8 @@ export const APP_HREFS = {
   eventsList: '/(app)/(tabs)/today/events',
   eventDetail: (id: string) =>
     `/(app)/(tabs)/today/events/${encodeURIComponent(id)}` as const,
-  athlete: '/(app)/(tabs)/more/athlete',
+  /** Root stack — Back returns to the tab that opened it (Today or More). */
+  athlete: '/(app)/athlete',
   notifications: '/(app)/(tabs)/more/notifications',
   settings: '/(app)/(tabs)/more/settings',
   settingsNotifications: '/(app)/(tabs)/more/settings/notifications',
@@ -55,7 +56,7 @@ export function migrateLegacyAppHref(href: string): string {
     [/^\/\(app\)\/events\/([^/?#]+)/, (m) => APP_HREFS.eventDetail(decodeURIComponent(m[1]!))],
     [/^\/\(app\)\/events\/?$/, APP_HREFS.eventsList],
     [/^\/\(app\)\/notifications\/?$/, APP_HREFS.notifications],
-    [/^\/\(app\)\/athlete\/?$/, APP_HREFS.athlete],
+    [/^\/\(app\)\/\(tabs\)\/more\/athlete\/?$/, APP_HREFS.athlete],
     [/^\/\(app\)\/settings\/notifications\/?$/, APP_HREFS.settingsNotifications],
     [/^\/\(app\)\/settings\/health\/?$/, APP_HREFS.settingsHealth],
     [/^\/\(app\)\/settings\/connected-apps\/?$/, APP_HREFS.settingsConnectedApps],
