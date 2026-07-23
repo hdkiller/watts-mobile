@@ -44,6 +44,7 @@ import type {
   ToolOutcomeSummary,
 } from './types';
 import { useCoachChat } from './useCoachChat';
+import { useCoachDictation } from './useCoachDictation';
 
 function ChatGlyph({
   sf,
@@ -303,6 +304,11 @@ export function CoachChat({
   const [attachSheetOpen, setAttachSheetOpen] = useState(false);
   const { containerRef, overlap } = useKeyboardOverlap();
   const chat = useCoachChat({ targetRoomId });
+  const dictation = useCoachDictation({
+    canStart: !chat.isReadOnly && !chat.sending,
+    input: chat.input,
+    setInput: chat.setInput,
+  });
 
   useEffect(() => {
     if (chat.displayMessages.length === 0) return;
@@ -352,7 +358,9 @@ export function CoachChat({
   }, [discussToday, discussSession, chat.loading, chat.isReadOnly, chat.sending]);
 
   const openAttachMenu = () => {
-    if (chat.isReadOnly || chat.sending) return;
+    if (chat.isReadOnly || chat.sending || dictation.isRecording || dictation.isTranscribing) {
+      return;
+    }
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
         {
@@ -385,18 +393,28 @@ export function CoachChat({
   }
 
   const empty = chat.displayMessages.length === 0;
+  const composerBusy = chat.sending || dictation.isRecording || dictation.isTranscribing;
   const canSend =
     !chat.isReadOnly &&
-    !chat.sending &&
+    !composerBusy &&
     (Boolean(chat.input.trim()) || chat.pendingAttachments.length > 0);
+  // Stop must stay tappable while recording even if a send/stream flips `sending`.
+  const canDictate =
+    !chat.isReadOnly &&
+    !dictation.isTranscribing &&
+    (dictation.isRecording || !chat.sending);
+  const composerEmpty =
+    !chat.input.trim() && chat.pendingAttachments.length === 0 && !dictation.isRecording;
 
-  const statusLine = chat.streaming
-    ? chat.isRealtimeConnected
-      ? 'Streaming reply…'
-      : chat.usingPollFallback
-        ? 'Waiting for reply (polling)…'
-        : 'Waiting for reply…'
-    : null;
+  const statusLine =
+    dictation.statusLine ??
+    (chat.streaming
+      ? chat.isRealtimeConnected
+        ? 'Streaming reply…'
+        : chat.usingPollFallback
+          ? 'Waiting for reply (polling)…'
+          : 'Waiting for reply…'
+      : null);
 
   return (
     <View
@@ -509,6 +527,10 @@ export function CoachChat({
         <Text className="px-5 pb-2 text-sm text-red-400">{chat.sendError}</Text>
       ) : null}
 
+      {dictation.error ? (
+        <Text className="px-5 pb-2 text-sm text-red-400">{dictation.error}</Text>
+      ) : null}
+
       {chat.recoverableTurnId ? (
         <View className="flex-row gap-3 px-5 pb-2">
           {chat.recoverableStatus === 'INTERRUPTED' ? (
@@ -558,9 +580,9 @@ export function CoachChat({
       <View className="flex-row items-center gap-2 border-t border-border px-4 py-3">
         <Pressable
           className={`h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border-strong ${
-            chat.isReadOnly || chat.sending ? 'opacity-40' : 'active:opacity-80'
+            chat.isReadOnly || composerBusy ? 'opacity-40' : 'active:opacity-80'
           }`}
-          disabled={chat.isReadOnly || chat.sending}
+          disabled={chat.isReadOnly || composerBusy}
           accessibilityRole="button"
           accessibilityLabel="Attach photo"
           onPress={openAttachMenu}
@@ -572,9 +594,12 @@ export function CoachChat({
           placeholder={chat.isReadOnly ? 'Read-only chat' : 'Message Coach Watts'}
           placeholderTextColor={theme.textMuted}
           value={chat.input}
-          onChangeText={chat.setInput}
+          onChangeText={(value) => {
+            dictation.clearError();
+            chat.setInput(value);
+          }}
           multiline
-          editable={!chat.sending && !chat.isReadOnly}
+          editable={!composerBusy && !chat.isReadOnly}
           // Android adds extra font padding that makes the field taller than the
           // circular action buttons unless we opt out and center the text.
           style={
@@ -583,6 +608,36 @@ export function CoachChat({
               : undefined
           }
         />
+        <Pressable
+          className={`h-11 w-11 shrink-0 items-center justify-center rounded-full ${
+            dictation.isRecording
+              ? 'bg-red-500'
+              : composerEmpty
+                ? 'bg-brand'
+                : 'border border-border-strong bg-card'
+          } ${canDictate ? 'active:opacity-80' : 'opacity-40'}`}
+          disabled={!canDictate}
+          accessibilityRole="button"
+          accessibilityLabel={dictation.isRecording ? 'Stop dictation' : 'Dictate message'}
+          onPress={() => void dictation.toggleRecording()}
+        >
+          {dictation.isTranscribing ? (
+            <ActivityIndicator color={composerEmpty ? theme.ink : Colors.brand} />
+          ) : (
+            <ChatGlyph
+              sf={dictation.isRecording ? 'stop.fill' : 'mic.fill'}
+              emoji={dictation.isRecording ? '■' : '🎙'}
+              size={18}
+              tint={
+                dictation.isRecording
+                  ? '#ffffff'
+                  : composerEmpty
+                    ? theme.ink
+                    : theme.textPrimary
+              }
+            />
+          )}
+        </Pressable>
         <Pressable
           className={`h-11 w-11 shrink-0 items-center justify-center rounded-full ${
             canSend ? 'bg-brand' : 'bg-border-strong'

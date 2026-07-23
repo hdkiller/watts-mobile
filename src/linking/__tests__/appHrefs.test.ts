@@ -12,6 +12,7 @@ describe('migrateLegacyAppHref', () => {
     expect(migrateLegacyAppHref('/(app)/events/ev-1')).toBe(APP_HREFS.eventDetail('ev-1'));
     expect(migrateLegacyAppHref('/(app)/notifications')).toBe(APP_HREFS.notifications);
     expect(migrateLegacyAppHref('/(app)/settings')).toBe(APP_HREFS.settings);
+    expect(migrateLegacyAppHref('/(app)/settings/nutrition')).toBe(APP_HREFS.settingsNutrition);
     expect(migrateLegacyAppHref('/(app)/settings/sports')).toBe(APP_HREFS.settingsSports);
   });
 

@@ -57,6 +57,12 @@ export function friendlyError(err: unknown, fallback: string): string {
     if (status === 404) {
       return 'Not found on your Coach Watts instance';
     }
+    if (status === 429) {
+      if (err instanceof Error && err.message.trim()) {
+        return err.message;
+      }
+      return 'Limit reached — try again later';
+    }
     if (status >= 500) {
       return `Server error (${status}) — try again shortly`;
     }

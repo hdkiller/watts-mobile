@@ -1,6 +1,6 @@
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import type { SFSymbol } from 'expo-symbols';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -131,28 +131,38 @@ export default function RecoveryEventScreen() {
   );
 
   const { containerRef, overlap } = useKeyboardOverlap();
-  const [values, setValues] = useState<RecoveryEventFormValues>(emptyRecoveryEventForm());
+  // Seed from cache when present so edit does not flash empty defaults.
+  const [values, setValues] = useState<RecoveryEventFormValues>(() =>
+    existing ? formFromRecoveryItem(existing) : emptyRecoveryEventForm()
+  );
   const [error, setError] = useState<string | null>(null);
-  const [hydrated, setHydrated] = useState(!isEdit);
+  const [hydrated, setHydrated] = useState(() => !isEdit || Boolean(existing));
   /** Full option list with subtitles — create starts open; edit starts settled. */
   const [browsingOptions, setBrowsingOptions] = useState(!isEdit);
   /** After first pick (or edit hydrate), severity / when / notes unlock. */
   const [detailsUnlocked, setDetailsUnlocked] = useState(isEdit);
+  const lastHydratedKeyRef = useRef<string | null>(
+    isEdit && existing ? existing.id : isEdit ? null : 'create'
+  );
 
   useEffect(() => {
     if (!isEdit) {
+      if (lastHydratedKeyRef.current === 'create') return;
+      lastHydratedKeyRef.current = 'create';
       setValues(emptyRecoveryEventForm());
       setBrowsingOptions(true);
       setDetailsUnlocked(false);
       setHydrated(true);
       return;
     }
-    if (existing) {
-      setValues(formFromRecoveryItem(existing));
-      setBrowsingOptions(false);
-      setDetailsUnlocked(true);
-      setHydrated(true);
-    }
+
+    if (!existing) return;
+    if (lastHydratedKeyRef.current === existing.id) return;
+    lastHydratedKeyRef.current = existing.id;
+    setValues(formFromRecoveryItem(existing));
+    setBrowsingOptions(false);
+    setDetailsUnlocked(true);
+    setHydrated(true);
   }, [isEdit, existing]);
 
   const selectedOption = optionById(values.optionId);

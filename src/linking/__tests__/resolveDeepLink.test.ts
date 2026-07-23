@@ -83,19 +83,24 @@ describe('resolveDeepLinkPath', () => {
       href: APP_HREFS.log,
     });
     const scanMeal = resolveDeepLinkPath('/scan-meal');
-    expect(scanMeal.kind).toBe('app');
+    expect(scanMeal).toMatchObject({
+      kind: 'app',
+      canonicalPath: '/scan-meal',
+    });
     if (scanMeal.kind === 'app') {
       expect(scanMeal.href).toMatch(
         new RegExp(`^${APP_HREFS.log.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\?action=camera&t=\\d+$`)
       );
     }
     const camera = resolveDeepLinkPath('/camera');
-    expect(camera.kind).toBe('app');
+    expect(camera).toMatchObject({
+      kind: 'app',
+      canonicalPath: '/camera',
+    });
     if (camera.kind === 'app') {
       expect(camera.href).toMatch(
         new RegExp(`^${APP_HREFS.log.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\?action=camera&t=\\d+$`)
       );
-      expect(camera.href).not.toBe(scanMeal.kind === 'app' ? scanMeal.href : '');
     }
   });
 

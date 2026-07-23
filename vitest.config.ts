@@ -11,6 +11,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      'react-native': 'react-native-web',
+      'expo-constants': path.resolve(__dirname, 'src/test/mocks/expo-constants.ts'),
       '@': path.resolve(__dirname, '.'),
     },
   },

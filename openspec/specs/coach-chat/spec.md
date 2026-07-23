@@ -52,6 +52,17 @@ The Coach composer SHALL expose an attach control that adds photos per `coach-ch
 - **WHEN** the active room is writable
 - **THEN** the composer shows an attach affordance in addition to send
 
+### Requirement: Composer supports dictation
+The Coach composer SHALL expose a microphone control that starts and stops voice dictation (record → `POST /api/chat/transcribe` → append transcript into the composer). Audio MUST NOT be sent as a chat attachment; the athlete MUST explicitly send after reviewing the transcript.
+
+#### Scenario: Mic control visible
+- **WHEN** the active room is writable and the athlete is not mid-send
+- **THEN** the composer shows a dictate affordance in addition to attach and send
+
+#### Scenario: Successful dictation
+- **WHEN** the athlete records a voice note and stops
+- **THEN** the transcript is appended into the composer for review before send
+
 ### Requirement: Seed from session detail handoff
 In addition to Today/recovery seed for empty rooms, the Coach surface SHALL accept session handoff context from planned or activity detail (`session-coach-handoff`) and include a short non-prescriptive session seed when starting or sending the first discuss turn from that handoff. The system MUST NOT invent prescriptions beyond server-provided session fields.
 

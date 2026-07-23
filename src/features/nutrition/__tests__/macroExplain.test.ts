@@ -91,6 +91,26 @@ describe('buildMacroExplainModel — calories', () => {
 
     expect(model.rows.find((r) => r.label === 'Morning Ride')?.badgeLabel).toBe('ACTUAL');
   });
+
+  it('uses the same PAL fallback as Nutrition settings', () => {
+    const day = dayWithPlan({
+      caloriesGoal: 2480,
+      fuelingPlan: null,
+    });
+    const model = buildMacroExplainModel({
+      label: 'Calories',
+      day,
+      settings: {
+        bmr: 1600,
+        activityLevel: 'MODERATELY_ACTIVE',
+        baseCaloriesMode: 'AUTO',
+      },
+    });
+
+    expect(model.rows.find((r) => r.label === 'Base Calories (Auto)')?.value).toBe(
+      '2480 kcal'
+    );
+  });
 });
 
 describe('buildMacroExplainModel — macros', () => {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ActivityIndicator, PanResponder, Pressable, Text, View } from 'react-native';
 
 import { AppSymbol } from '@/src/components/AppSymbol';
@@ -128,31 +128,28 @@ export function NutritionTargetsCard({
     setExplainLabel(label);
   };
 
-  const callbacksRef = useRef({ onPrevDate, onNextDate, canGoNext });
-  useEffect(() => {
-    callbacksRef.current = { onPrevDate, onNextDate, canGoNext };
-  }, [onPrevDate, onNextDate, canGoNext]);
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => false,
-      onMoveShouldSetPanResponder: (_, gestureState) => {
-        return (
-          Math.abs(gestureState.dx) > 15 &&
-          Math.abs(gestureState.dx) > Math.abs(gestureState.dy)
-        );
-      },
-      onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dx > 35) {
-          hapticLight();
-          callbacksRef.current.onPrevDate?.();
-        } else if (gestureState.dx < -35 && callbacksRef.current.canGoNext) {
-          hapticLight();
-          callbacksRef.current.onNextDate?.();
-        }
-      },
-    })
-  ).current;
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => false,
+        onMoveShouldSetPanResponder: (_, gestureState) => {
+          return (
+            Math.abs(gestureState.dx) > 15 &&
+            Math.abs(gestureState.dx) > Math.abs(gestureState.dy)
+          );
+        },
+        onPanResponderRelease: (_, gestureState) => {
+          if (gestureState.dx > 35) {
+            hapticLight();
+            onPrevDate?.();
+          } else if (gestureState.dx < -35 && canGoNext) {
+            hapticLight();
+            onNextDate?.();
+          }
+        },
+      }),
+    [canGoNext, onNextDate, onPrevDate]
+  );
 
   const isSwipeable = Boolean(onPrevDate || onNextDate);
   const dateLabel = formatDateLabel(selectedDate);

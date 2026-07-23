@@ -27,6 +27,7 @@ export const APP_HREFS = {
   settingsSubscription: '/(app)/(tabs)/more/settings/subscription',
   settingsUnits: '/(app)/(tabs)/more/settings/units',
   settingsLog: '/(app)/(tabs)/more/settings/log',
+  settingsNutrition: '/(app)/(tabs)/more/settings/nutrition',
   settingsSports: '/(app)/(tabs)/more/settings/sports',
   settingsCoach: '/(app)/(tabs)/more/settings/coach',
   sportProfile: (id: string) =>
@@ -61,6 +62,7 @@ export function migrateLegacyAppHref(href: string): string {
     [/^\/\(app\)\/settings\/subscription\/?$/, APP_HREFS.settingsSubscription],
     [/^\/\(app\)\/settings\/units\/?$/, APP_HREFS.settingsUnits],
     [/^\/\(app\)\/settings\/log\/?$/, APP_HREFS.settingsLog],
+    [/^\/\(app\)\/settings\/nutrition\/?$/, APP_HREFS.settingsNutrition],
     [/^\/\(app\)\/settings\/sports\/?$/, APP_HREFS.settingsSports],
     [/^\/\(app\)\/settings\/coach\/?$/, APP_HREFS.settingsCoach],
     [/^\/\(app\)\/settings\/?$/, APP_HREFS.settings],

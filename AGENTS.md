@@ -58,7 +58,7 @@ Local coach-wattz (workspace default): `http://localhost:3099/api/`
 
 **Next — activation onboarding:** mobile-only sign-up + consent, goal lite, plan lite wizard, first insight, connect-last (Health Sync primary; OAuth apps optional/skip). Fully activated = data → goal → plan → insight.
 
-**Out:** Full plan architect/adapt, analytics/explorer, coaching teams, nutrition planning/grocery, library editing, full billing administration, admin, full Profile Settings / zones. Narrow hosted store subscription purchase/status/restore/manage is tracked by OpenSpec `store-subscriptions-revenuecat`.
+**Out:** Full plan architect/adapt, analytics/explorer, coaching teams, nutrition planning/grocery, library editing, full billing administration, admin, full Profile Settings / zones (Nutrition settings and Sports thresholds lite are in scope). Narrow hosted store subscription purchase/status/restore/manage is tracked by OpenSpec `store-subscriptions-revenuecat`.
 
 IA: bottom tabs **Today · Log · Coach · More** (+ activation wizard stacks). See [docs/product-baseline.md](docs/product-baseline.md).
 

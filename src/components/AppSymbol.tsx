@@ -39,6 +39,8 @@ const SF_TO_MD = {
   'checkmark.circle': 'check_circle',
   'checkmark.circle.fill': 'check_circle',
   'arrow.up': 'arrow_upward',
+  'mic.fill': 'mic',
+  'stop.fill': 'stop',
   eye: 'visibility',
   thermometer: 'device_thermostat',
   'cross.case.fill': 'medical_services',

@@ -22,6 +22,7 @@ Coach Watts is an AI-powered endurance coaching companion. The mobile app helps 
 | Product interaction / diagnostics | Yes (limited) | Crash/performance via Sentry when configured; no health metrics in analytics |
 | Device identifiers | Yes (when push enabled) | Expo push token for coaching notifications |
 | Photos / camera | Yes (optional) | Coach chat attachments for meal / context photos (nutrition logging). User-initiated only. |
+| Audio | Yes (optional) | Coach chat dictation — microphone recording transcribed on the athlete’s Coach Watts instance; audio is not kept as a chat attachment. User-initiated only. |
 | Purchase history | Yes (hosted subscriptions) | Store product/transaction identifiers, tier, status, renewal/expiry, and owning provider are processed through Apple/Google, RevenueCat, and the hosted Coach Watts account to grant and restore access. Not used for advertising |
 | Payment information | No | Apple/Google process the payment method; Coach Watts/RevenueCat do not receive raw card or store-payment credentials from the app |
 | Contacts | No | Address-book contacts are not used by the companion |
@@ -47,6 +48,10 @@ Coach Watts is an AI-powered endurance coaching companion. The mobile app helps 
 ### Camera & photos (Coach chat)
 
 > With your permission, Coach Watts can use the camera or photo library so you can attach photos in Coach chat—especially meal photos for nutrition logging. Photos are uploaded to your Coach Watts instance and included in the chat turn. You can deny permission and continue using text chat and the Log nutrition form.
+
+### Microphone (Coach chat dictation)
+
+> With your permission, Coach Watts can use the microphone so you can dictate a message in Coach chat. The recording is uploaded to your Coach Watts instance to produce a text transcript for the composer; the audio is not stored as a chat attachment. You can deny permission and continue typing messages.
 
 ### Hosted subscriptions / RevenueCat
 

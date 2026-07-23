@@ -9,6 +9,7 @@ import { useThemeColors } from '@/src/theme/useThemeColors';
 import { buildMacroExplainModel } from './macroExplain';
 import { goalProgressPct } from './mapNutrition';
 import type { MacroExplainLabel, NutritionDayTotals } from './types';
+import { useNutritionSettingsQuery } from './useNutritionSettings';
 
 const ACCENT: Record<
   MacroExplainLabel,
@@ -34,10 +35,28 @@ export function NutritionMacroExplainSheet({
   onClose: () => void;
 }) {
   const theme = useThemeColors();
+  const { data: settings } = useNutritionSettingsQuery({ enabled: visible && !!label && !!day });
 
   if (!label || !day) return null;
 
-  const model = buildMacroExplainModel({ label, day, weightKg });
+  const model = buildMacroExplainModel({
+    label,
+    day,
+    weightKg: weightKg ?? settings?.weightKg ?? null,
+    settings: settings
+      ? {
+          bmr: settings.bmr,
+          activityLevel: settings.activityLevel,
+          baseCaloriesMode: settings.baseCaloriesMode,
+          nonExerciseBaseCalories: settings.nonExerciseBaseCalories ?? undefined,
+          targetAdjustmentPercent: settings.targetAdjustmentPercent,
+          goalProfile: settings.goalProfile,
+          fuelingSensitivity: settings.fuelingSensitivity,
+          baseProteinPerKg: settings.baseProteinPerKg,
+          baseFatPerKg: settings.baseFatPerKg,
+        }
+      : null,
+  });
   const accent = ACCENT[label];
   const progress = goalProgressPct(model.actual, model.target > 0 ? model.target : null);
 

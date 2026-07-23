@@ -5,7 +5,7 @@ Phased delivery for this repository. Product detail: [product-baseline.md](./pro
 ## Current state
 
 - Phase 0–4 companion OpenSpecs shipped and archived under `openspec/changes/archive/2026-07-19-*` (auth, Today, Log, notifications/push, coach chat, recent/upcoming, deep links, store polish, athlete metrics, nutrition quick-log).
-- Active work: Health Sync / Connected Apps lite OpenSpecs; product baseline **repositioned 2026-07-21** to activation companion ([product-baseline.md](./product-baseline.md)). RevenueCat Apple catalog mapped + local V2/MCP env; native store subscriptions OpenSpec `store-subscriptions-revenuecat` (2026-07-22/23).
+- Active work: Health Sync / Connected Apps lite OpenSpecs; product baseline **repositioned 2026-07-21** to activation companion ([product-baseline.md](./product-baseline.md)). RevenueCat Apple catalog mapped + local V2/MCP env; native store subscriptions OpenSpec `store-subscriptions-revenuecat` (2026-07-22/23). Nutrition settings parity OpenSpec `nutrition-settings-parity` (2026-07-23).
 - Phase 5 (activation onboarding) proposed below — OpenSpec not created yet.
 - Follow-ups: AASA/assetlinks host association for https deep links; coach-wattz baseline PR [#239](https://github.com/hdkiller/coach/pull/239) still draft — merge when ready (now includes activation reposition).
 - OAuth client registered as **Official Mobile App** in local + production; wire `EXPO_PUBLIC_OAUTH_CLIENT_ID` from [oauth-setup.md](./oauth-setup.md).
@@ -165,6 +165,30 @@ Track separately (or as paired PRs) — mobile UI polish should not wait forever
 - Upcoming + recent workouts glance with usable detail stacks
 - Athlete metrics editable on device
 - Nutrition quick-log on Log (planning/grocery still web-only)
+
+## Nutrition settings parity
+
+OpenSpec: `openspec/changes/nutrition-settings-parity`.
+
+Goal: Settings → Nutrition with web Profile → Nutrition field parity so athletes can calibrate tracking, metabolic targets, dietary constraints, fueling, and hydration without opening web. Meal plans / grocery stay web.
+
+| Slice | Focus |
+|-------|--------|
+| Docs + scopes | Baseline / open-questions; Bearer on `GET/POST /api/profile/nutrition` (`nutrition:read` / `nutrition:write`) |
+| Settings hub | Row → native Nutrition editor |
+| Form parity | Tracking, metabolic, meal schedule, constraints, fuel calibration, adaptive engine, hydration (3 quick-add volumes) |
+| Downstream | Hydration sheet uses settings volumes; macro explain fetches settings |
+
+Checklist:
+
+- [x] coach-wattz: Bearer on profile nutrition GET/POST
+- [x] OpenSpec proposal/design/specs/tasks
+- [x] Mobile API + hooks + Settings → Nutrition screen
+- [x] Hydration presets + macroExplain wiring
+- [x] Unit tests for mappers/presets
+- [ ] Manual QA: save settings → Log/Today goals refresh; tracking off hides Log nutrition
+
+**Exit:** athlete can edit nutrition settings on device; Log/Today targets refresh after save; planning/grocery still Open web.
 
 ## Phase 5 — Activation companion
 

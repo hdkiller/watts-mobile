@@ -2,9 +2,8 @@
  * Display-side breakdown for nutrition analysis sheets.
  * Mirrors coach-wattz MacroExplainModal.vue (plan-first; settings optional).
  *
- * GET /api/profile/nutrition is session-cookie oriented today and is not wired
- * here — calorie rows use fuelingPlan.dailyTotals; macro g/kg baselines that
- * need settings are omitted when settings are absent so we never invent values.
+ * Prefer settings from GET /api/profile/nutrition (Bearer) when available;
+ * calorie rows still use fuelingPlan.dailyTotals as the primary source.
  */
 
 import type {
@@ -13,6 +12,7 @@ import type {
   MacroExplainLabel,
   NutritionDayTotals,
 } from './types';
+import { PAL_MULTIPLIERS } from './nutritionSettingsOptions';
 
 export type MacroExplainRow = {
   label: string;
@@ -107,18 +107,10 @@ function buildCaloriesRows(
     fp?.baseCaloriesMode ||
     (s.baseCaloriesMode === 'MANUAL_NON_EXERCISE' ? 'MANUAL_NON_EXERCISE' : 'AUTO');
 
-  const activityMultipliers: Record<string, number> = {
-    SEDENTARY: 1.2,
-    LIGHTLY_ACTIVE: 1.375,
-    ACTIVE: 1.55,
-    MODERATELY_ACTIVE: 1.725,
-    VERY_ACTIVE: 1.9,
-    EXTRA_ACTIVE: 2.1,
-  };
   const fallbackBaseCalories =
     baseCaloriesMode === 'MANUAL_NON_EXERCISE'
       ? Number(s.nonExerciseBaseCalories || 0)
-      : bmrBase * (activityMultipliers[s.activityLevel || 'ACTIVE'] || 1.55);
+      : bmrBase * (PAL_MULTIPLIERS[s.activityLevel || 'ACTIVE'] || 1.2);
   const baseCalories = Math.round(fp?.baseCalories ?? fallbackBaseCalories);
 
   if (baseCalories > 0 || fp?.baseCalories != null || settings) {

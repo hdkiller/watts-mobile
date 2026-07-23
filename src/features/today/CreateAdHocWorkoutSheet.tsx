@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -81,13 +81,15 @@ export function CreateAdHocWorkoutSheet({
   const [durationText, setDurationText] = useState('60');
   const [formError, setFormError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const [prevVisible, setPrevVisible] = useState(visible);
+  if (visible !== prevVisible) {
+    setPrevVisible(visible);
     if (visible) {
       setForm(DEFAULT_FORM);
       setDurationText('60');
       setFormError(null);
     }
-  }, [visible]);
+  }
 
   const submit = () => {
     const result = validateAdHocForm({

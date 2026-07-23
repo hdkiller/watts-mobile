@@ -68,23 +68,23 @@ export function StructureProfile({ steps, height = PROFILE_HEIGHT }: Props) {
   const usable = Math.max(width - gapsTotal, blocks.length * MIN_BLOCK_WIDTH);
   const flex = Math.max(0, usable - blocks.length * MIN_BLOCK_WIDTH);
 
-  let x = 0;
-  const rects = blocks.map((block) => {
+  let currentX = 0;
+  const rects = [];
+  for (const block of blocks) {
     const blockWidth =
       MIN_BLOCK_WIDTH + (block.durationSec / totalDuration) * flex;
     const blockHeight = Math.max(block.fraction * height, height * 0.12);
     const y = height - blockHeight;
-    const rect = {
+    rects.push({
       key: block.key,
-      x,
+      x: currentX,
       y,
       width: blockWidth,
       height: blockHeight,
       fill: block.color,
-    };
-    x += blockWidth + GAP;
-    return rect;
-  });
+    });
+    currentX += blockWidth + GAP;
+  }
 
   return (
     <View

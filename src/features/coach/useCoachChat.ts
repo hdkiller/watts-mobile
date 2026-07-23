@@ -339,8 +339,6 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
     [stopTurnPolling]
   );
 
-  restartTurnPollingRef.current = restartTurnPolling;
-
   const cleanupWebSocket = useCallback(() => {
     if (wsReconnectTimer.current) {
       clearTimeout(wsReconnectTimer.current);
@@ -356,6 +354,8 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
     }
     setIsRealtimeConnected(false);
   }, []);
+
+  const connectWebSocketRef = useRef<() => Promise<void>>(async () => {});
 
   const connectWebSocket = useCallback(async () => {
     if (!activeRef.current || wsRef.current) return;
@@ -482,7 +482,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
         wsReconnectTimer.current = setTimeout(() => {
           wsReconnectTimer.current = null;
           if (activeRef.current) {
-            void connectWebSocket();
+            void connectWebSocketRef.current();
           }
         }, WS_RECONNECT_MS);
       }
@@ -492,6 +492,11 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
       socket.close();
     };
   }, []);
+
+  useEffect(() => {
+    restartTurnPollingRef.current = restartTurnPolling;
+    connectWebSocketRef.current = connectWebSocket;
+  }, [restartTurnPolling, connectWebSocket]);
 
   const applyActiveRoom = useCallback(
     async (room: ChatRoomSummary, options?: { clearMessages?: boolean }) => {

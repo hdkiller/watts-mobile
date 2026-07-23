@@ -18,6 +18,16 @@ describe('friendlyError', () => {
     );
   });
 
+  it('maps 429 to quota / rate-limit copy', () => {
+    expect(
+      friendlyError(
+        new ApiError('Chat quota exceeded. Voice transcription is unavailable.', 429),
+        'fallback'
+      )
+    ).toBe('Chat quota exceeded. Voice transcription is unavailable.');
+    expect(friendlyError(new ApiError('', 429), 'fallback')).toBe('Limit reached — try again later');
+  });
+
   it('maps 5xx with status hint', () => {
     expect(friendlyError(new ApiError('Boom', 502), 'fallback')).toBe(
       'Server error (502) — try again shortly'
@@ -56,7 +66,7 @@ describe('friendlyError', () => {
     expect(friendlyError(null, 'Could not load today')).toBe('Could not load today');
   });
 
-  it('does not treat 4xx other than 401/403/404 as session/server', () => {
+  it('does not treat unmapped 4xx as session/server', () => {
     expect(friendlyError(new ApiError('Conflict', 409), 'Could not save')).toBe('Could not save');
   });
 });

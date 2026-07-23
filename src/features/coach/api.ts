@@ -81,6 +81,55 @@ export async function submitChatToolApproval(params: {
   }
 }
 
+/** Transcribe a voice note for the coach composer (web parity). */
+export async function transcribeChatAudio(file: {
+  uri: string;
+  mediaType: string;
+  filename: string;
+}): Promise<string> {
+  const mediaType =
+    file.mediaType && file.mediaType !== 'application/octet-stream'
+      ? file.mediaType
+      : 'audio/mp4';
+
+  const form = new FormData();
+  form.append(
+    'audio',
+    {
+      uri: file.uri,
+      type: mediaType,
+      name: file.filename,
+    } as unknown as Blob
+  );
+
+  // Do not set Content-Type — fetch must add the multipart boundary.
+  const response = await apiFetch('/api/chat/transcribe', {
+    method: 'POST',
+    body: form,
+    // Dictation is an optional capability. Older self-hosted instances reject
+    // Bearer auth here, which must not invalidate an otherwise valid session.
+    softUnauthorized: true,
+  });
+  if (!response.ok) {
+    let message = `Transcription failed (${response.status})`;
+    let body: unknown;
+    try {
+      body = await response.json();
+      const parsed = body as { message?: string; statusMessage?: string };
+      message = parsed.message || parsed.statusMessage || message;
+    } catch {
+      // ignore
+    }
+    throw new ApiError(message, response.status, body);
+  }
+  const body = (await response.json()) as { transcript?: string };
+  const transcript = body?.transcript?.trim();
+  if (!transcript) {
+    throw new Error('Transcription response missing transcript');
+  }
+  return transcript;
+}
+
 export async function uploadChatImage(file: {
   uri: string;
   mediaType: string;

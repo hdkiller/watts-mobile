@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Modal, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -19,9 +19,11 @@ export function RefineRecommendationSheet({
   const theme = useThemeColors();
   const [feedback, setFeedback] = useState('');
 
-  useEffect(() => {
+  const [prevVisible, setPrevVisible] = useState(visible);
+  if (visible !== prevVisible) {
+    setPrevVisible(visible);
     if (visible) setFeedback('');
-  }, [visible]);
+  }
 
   const trimmed = feedback.trim();
   const submitLabel = trimmed ? 'Refine Plan' : 'Refresh Data';

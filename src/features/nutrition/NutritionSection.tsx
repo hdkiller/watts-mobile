@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -162,7 +162,14 @@ export function NutritionSection() {
   const profileQuery = useAthleteProfileQuery();
 
   const [selectedDate, setSelectedDate] = useState(localDateYmd());
-  const isToday = selectedDate === localDateYmd();
+  const todayYmd = localDateYmd();
+  const isToday = selectedDate === todayYmd;
+  // Recompute when the local calendar day rolls so "Yesterday" stays correct overnight.
+  const yesterdayYmd = useMemo(() => {
+    const d = new Date(`${todayYmd}T12:00:00`);
+    d.setDate(d.getDate() - 1);
+    return localDateYmd(d);
+  }, [todayYmd]);
 
   const {
     data: today,
@@ -246,11 +253,11 @@ export function NutritionSection() {
       </Text>
 
       {/* Multi-Day Date Pager Bar */}
-      <View className="mt-3 flex-row items-center justify-between rounded-xl border border-border bg-card p-2 px-3">
+      <View className="mt-3 flex-row items-center justify-between">
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Previous day"
-          className="p-1.5 active:opacity-70"
+          className="p-1 text-text-secondary"
           onPress={() => {
             hapticLight();
             const d = new Date(selectedDate + 'T00:00:00');
@@ -258,7 +265,7 @@ export function NutritionSection() {
             setSelectedDate(localDateYmd(d));
           }}
         >
-          <AppSymbol sf="chevron.left" size={16} tintColor={theme.textPrimary} fallback="‹" />
+          <Text className="text-sm font-semibold text-text-secondary">‹ Prev</Text>
         </Pressable>
 
         <Pressable
@@ -273,7 +280,7 @@ export function NutritionSection() {
           <Text className="text-xs font-bold text-text-primary">
             {isToday
               ? 'Today'
-              : selectedDate === localDateYmd(new Date(Date.now() - 86400000))
+              : selectedDate === yesterdayYmd
               ? 'Yesterday'
               : selectedDate}
           </Text>

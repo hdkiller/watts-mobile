@@ -76,7 +76,7 @@ Already delivered as the daily athlete loop (former v1 / v1.5):
 4. **Recent + Upcoming** — More lists (not a calendar heatmap)
 5. **Coach chat** — seeded Q&A, markdown-lite, tool feedback lite, sessions + media
 6. **Notifications** — push + in-app inbox
-7. **Account glue** — instance URL, sign-in, Settings hub (push prefs, Health Sync, units/locale, coach identity lite, sports thresholds lite, export/delete via Open web), **Open web with Bearer→cookie session handoff**
+7. **Account glue** — instance URL, sign-in, Settings hub (push prefs, Health Sync, units/locale, **Nutrition settings**, coach identity lite, sports thresholds lite, export/delete via Open web), **Open web with Bearer→cookie session handoff**
 8. **Athlete** — More → Athlete metrics + AI report overview (full report Open web)
 
 ## Next chapter — Activation onboarding
@@ -106,12 +106,12 @@ Still **out** of native mobile (use Open web / handoff):
 - Full **plan architect** (PlanDashboard, block/week editor, adaptation wizard, drag-reschedule)
 - Analytics builder / performance explorer / workout comparison / calendar heatmaps
 - Coaching teams / multi-athlete
-- Nutrition planning / grocery
+- Nutrition planning / grocery (meal-plan generate, grocery lists, day regenerate)
 - Workout library editing
 - Full billing administration (invoices, payment methods, tax documents, refunds) / admin / developer portal; narrow hosted store subscription acquisition/status/restore/manage is in scope
-- Full web Profile Settings / sport zone editors / detect-from-workouts
+- Full web Profile Settings / sport zone editors / detect-from-workouts — **except** Nutrition settings (Profile → Nutrition parity) and Sports thresholds lite
 
-**Narrowed vs prior baseline:** goal capture, plan *kickoff*, Health Sync, and Connected Apps **lite** are **in scope**. Deep OAuth edge cases and obscure providers may still Open web.
+**Narrowed vs prior baseline:** goal capture, plan *kickoff*, Health Sync, Connected Apps **lite**, and **Nutrition settings** are **in scope**. Deep OAuth edge cases and obscure providers may still Open web.
 
 ## Next chapter — Store subscriptions
 
@@ -127,7 +127,7 @@ OpenSpec: `openspec/changes/store-subscriptions-revenuecat`.
 
 **Tabs:** Today · Log · Coach · More
 
-**Stacks (additions bold):** **activation wizard**, **goal lite**, **plan lite**, recommendation detail, planned workout detail, activity summary, upcoming planned list, notification inbox, athlete metrics, nutrition log (Log stack), daily coach check-in, sign-in / **sign-up** / instance setup, settings, **connected apps lite**, **Subscription & Billing**.
+**Stacks (additions bold):** **activation wizard**, **goal lite**, **plan lite**, recommendation detail, planned workout detail, activity summary, upcoming planned list, notification inbox, athlete metrics, nutrition log (Log stack), daily coach check-in, sign-in / **sign-up** / instance setup, settings, **nutrition settings**, **connected apps lite**, **Subscription & Billing**.
 
 **Today (activated):** greeting → optional analysis-ready card → optional Daily Coach Check-In CTA → recommendation hero / Analyze Readiness empty / planned-only hero → planned summary when with a recommendation → Recent Wellness → Active Recovery Context → Accept / Discuss with Coach → This week → Upcoming Events → Coming up → Recently → optional Nutrition glance.
 
@@ -137,7 +137,7 @@ Recovery **writes** stay Log-first. Coming up stays planned-only; race/life even
 
 **More hosts:** recent activity, upcoming planned, notifications inbox, athlete (+ **goals lite**), Settings hub, account glue.
 
-**Settings hub:** push prefs · Health Sync · **Connected Apps lite** (status + Connect/Fix/Manage via web handoff; disconnect/sync/ingest editors stay web) · Units & locale · Instance · Coach identity lite · Sports thresholds lite · **Subscription & Billing** (hosted current plan + Apple/Google purchase/restore/manage; Stripe manage via web) · Export / Delete via Open web. Billing administration and full Profile/zone editors stay web.
+**Settings hub:** push prefs · Health Sync · **Connected Apps lite** (status + Connect/Fix/Manage via web handoff; disconnect/sync/ingest editors stay web) · Units & locale · Log defaults · **Nutrition settings** (tracking, metabolic, meal pattern, dietary constraints, fuel calibration, adaptive engine, hydration — web Profile → Nutrition parity) · Instance · Coach identity lite · Sports thresholds lite · **Subscription & Billing** (hosted current plan + Apple/Google purchase/restore/manage; Stripe manage via web) · Export / Delete via Open web. Billing administration, zone editors, and nutrition planning/grocery stay web.
 
 First viewport (once activated) = one decision. No CTL grids or calendar heatmaps.
 
@@ -164,7 +164,7 @@ First viewport (once activated) = one decision. No CTL grids or calendar heatmap
 | `recommendation:read` / `recommendation:write` | Today + accept/dismiss / Analyze Readiness *(REST names; not MCP `recommendations:*`)* |
 | `plan:read` / `plan:write` | Planned workouts + **plan lite initialize/activate** *(REST names)* |
 | `goal:read` / `goal:write` | Events countdown + **goal lite capture** |
-| `nutrition:read` / `nutrition:write` | Nutrition quick-log |
+| `nutrition:read` / `nutrition:write` | Nutrition quick-log + Profile nutrition settings |
 | `chat:read` / `chat:write` | Coach tab |
 | `offline_access` | Refresh tokens |
 
@@ -186,6 +186,7 @@ Exact Official Mobile App allowlist must match coach-wattz `REST_OAUTH_SCOPES` /
 | Planned / activity detail | Planned + workout by id; structure; AI + streams + power-curve |
 | Athlete metrics | `GET/PATCH /api/profile` |
 | Nutrition quick-log | `GET/POST /api/nutrition` (+ hydration) |
+| Nutrition settings | `GET/POST /api/profile/nutrition` (Bearer `nutrition:read` / `nutrition:write`) |
 | Chat | Rooms/messages + Bearer WebSocket |
 | Notifications | `/api/notifications` |
 | Push register | `POST /api/mobile/devices` |
@@ -208,3 +209,4 @@ iOS + Android via Expo · warm-cache Today &lt; ~2s with skeleton · reuse Tolge
 | 2026-07-21 | Wizard UX = goal → plan → insight → **connect last** (Health Sync preferred; Skip OK) |
 | 2026-07-21 | Plan creation = **native lite wizard** (not full architect; not chat-only) |
 | 2026-07-21 | Docs = **reposition this baseline** (not a side “v2 chapter” while old non-goals remain) |
+| 2026-07-23 | **Nutrition settings** on mobile (Profile → Nutrition parity); planning/grocery stay web |

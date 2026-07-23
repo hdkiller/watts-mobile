@@ -72,7 +72,7 @@ import {
   useTodayQuery,
 } from '@/src/features/today/useToday';
 import { WeekGlanceStrip } from '@/src/features/today/week-glance-strip';
-import { hapticError, hapticSuccess } from '@/src/lib/haptics';
+import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { humanizeWorkoutType } from '@/src/lib/humanizeWorkoutType';
 import { APP_HREFS } from '@/src/linking/appHrefs';
 import { Colors } from '@/src/theme/colors';
@@ -143,6 +143,18 @@ function greetingForNow(): string {
   return 'Good evening';
 }
 
+/** Short trailing label for Today → athlete profile. Prefer first name. */
+function profileShortcutLabel(name?: string | null, email?: string | null): string {
+  const trimmed = name?.trim();
+  if (trimmed) {
+    const first = trimmed.split(/\s+/)[0];
+    if (first) return first;
+  }
+  const local = email?.split('@')[0]?.trim();
+  if (local) return local;
+  return 'Profile';
+}
+
 function PlannedSummaryCard({
   planned,
   hero = false,
@@ -195,7 +207,8 @@ function EnterSection({ order, children }: { order: number; children: ReactNode 
 export default function TodayScreen() {
   const theme = useThemeColors();
 
-  const { instanceUrl } = useAuth();
+  const { instanceUrl, user } = useAuth();
+  const profileLabel = profileShortcutLabel(user?.name, user?.email);
   const queryClient = useQueryClient();
   const tabBottomPad = useTabScrollPadding();
   const { data, isLoading, isError, error, refetch, isRefetching, dataUpdatedAt } = useTodayQuery();
@@ -540,26 +553,45 @@ export default function TodayScreen() {
       }
     >
       <EnterSection order={0}>
-        <View className="flex-row items-center justify-between">
-          <View>
+        <View className="flex-row items-center justify-between gap-3">
+          <View className="min-w-0 flex-1">
             <Text className="text-sm text-text-muted">{dateLabel}</Text>
             <Text className="mt-1 text-2xl font-semibold text-text-primary">{greetingForNow()}</Text>
           </View>
-          {nutritionEnabled ? (
-            <Pressable
+          <View className="max-w-[42%] shrink-0 flex-row items-center gap-2">
+            <AnimatedPressable
               accessibilityRole="button"
-              accessibilityLabel="Scan meal photo"
-              className="h-10 w-10 items-center justify-center rounded-full border border-border bg-card active:opacity-70"
-              onPress={() =>
-                router.push({
-                  pathname: APP_HREFS.log,
-                  params: { action: 'camera', t: String(Date.now()) },
-                } as Href)
-              }
+              accessibilityLabel={`Athlete profile, ${profileLabel}`}
+              hitSlop={8}
+              className="min-w-0 py-1 active:opacity-70"
+              onPress={() => {
+                hapticLight();
+                router.push(APP_HREFS.athlete as Href);
+              }}
             >
-              <AppSymbol sf="camera.fill" size={18} tintColor={theme.brand} fallback="📷" />
-            </Pressable>
-          ) : null}
+              <Text
+                className="text-right text-sm font-semibold text-brand"
+                numberOfLines={1}
+              >
+                {profileLabel}
+              </Text>
+            </AnimatedPressable>
+            {nutritionEnabled ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Scan meal photo"
+                className="h-10 w-10 items-center justify-center rounded-full border border-border bg-card active:opacity-70"
+                onPress={() =>
+                  router.push({
+                    pathname: APP_HREFS.log,
+                    params: { action: 'camera', t: String(Date.now()) },
+                  } as Href)
+                }
+              >
+                <AppSymbol sf="camera.fill" size={18} tintColor={theme.brand} fallback="📷" />
+              </Pressable>
+            ) : null}
+          </View>
         </View>
       </EnterSection>
 

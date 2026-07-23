@@ -11,11 +11,11 @@ The app SHALL ship Coach Watts branded icon and splash assets configured for iOS
 - **THEN** the splash uses Coach Watts branding (not a generic Expo placeholder)
 
 ### Requirement: Privacy and health data strings
-The repository SHALL contain store-ready privacy/health usage strings (or a checklist of exact copy) covering OAuth identity, wellness check-in, **optional Health Sync upload of Apple Health / Health Connect metrics and workouts to the athlete’s Coach Watts instance when enabled**, notification data use, and **camera/photo library access for Coach chat attachments (including nutrition logging)**, without medical claims.
+The repository SHALL contain store-ready privacy/health usage strings (or a checklist of exact copy) covering OAuth identity, wellness check-in, **optional Health Sync upload of Apple Health / Health Connect metrics and workouts to the athlete’s Coach Watts instance when enabled**, notification data use, **camera/photo library access for Coach chat attachments (including nutrition logging)**, and **optional microphone access for Coach chat dictation**, without medical claims.
 
 #### Scenario: Store questionnaire copy available
 - **WHEN** preparing App Store / Play Console questionnaires
-- **THEN** engineers can find the approved privacy/health strings in-repo, including Health Sync upload purpose text (distinct from Log-only prefill) and photo/camera purpose text for Coach
+- **THEN** engineers can find the approved privacy/health strings in-repo, including Health Sync upload purpose text (distinct from Log-only prefill), photo/camera purpose text for Coach, and microphone/audio purpose text for Coach dictation
 
 ### Requirement: Release observability hooks
 Release builds SHALL be able to initialize Sentry with configuration supplied via env/EAS secrets, without committing private secrets to git.
@@ -30,6 +30,13 @@ iOS/Android permission prompts for camera and photo library SHALL use Coach Watt
 #### Scenario: Permission dialog copy
 - **WHEN** the OS shows a camera or photo-library permission prompt from Coach attach
 - **THEN** the purpose string identifies Coach Watts chat / meal logging use
+
+### Requirement: Microphone permission purpose strings in app config
+iOS/Android permission prompts for the microphone SHALL use Coach Watts purpose copy that states Coach chat dictation (not generic “access microphone”).
+
+#### Scenario: Mic permission dialog copy
+- **WHEN** the OS shows a microphone permission prompt from Coach dictation
+- **THEN** the purpose string identifies Coach Watts chat dictation use
 
 ### Requirement: Account deletion path reachable in-app
 The app SHALL provide a clear in-app path to account deletion via Settings → Delete account that opens the web Danger Zone (or equivalent) using Open web / session handoff when available, without requiring the athlete to discover deletion only outside the app.

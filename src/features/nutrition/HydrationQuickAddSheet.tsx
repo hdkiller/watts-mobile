@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Modal,
@@ -10,17 +10,18 @@ import {
 import { friendlyError } from '@/src/api/errors';
 import { AppSymbol } from '@/src/components/AppSymbol';
 import { localDateYmd } from '@/src/features/nutrition/mapNutrition';
+import { hydrationPresetVolumes } from '@/src/features/nutrition/mapNutritionSettings';
+import { DEFAULT_QUICK_ADD_VOLUMES } from '@/src/features/nutrition/nutritionSettingsTypes';
 import { useQuickAddHydration } from '@/src/features/nutrition/useNutrition';
+import { useNutritionSettingsQuery } from '@/src/features/nutrition/useNutritionSettings';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
-const PRESETS = [
-  { ml: 250, label: '250 ml', sub: 'Glass of water' },
-  { ml: 500, label: '500 ml', sub: 'Standard bottle' },
-  { ml: 750, label: '750 ml', sub: 'Large shaker' },
-  { ml: 1000, label: '1,000 ml', sub: '1 Liter jug' },
-];
+function formatVolumeLabel(ml: number): string {
+  if (ml >= 1000 && ml % 1000 === 0) return `${ml / 1000} L`;
+  return `${ml} ml`;
+}
 
 interface HydrationQuickAddSheetProps {
   visible: boolean;
@@ -37,6 +38,19 @@ export function HydrationQuickAddSheet({
 }: HydrationQuickAddSheetProps) {
   const theme = useThemeColors();
   const hydrationMutation = useQuickAddHydration();
+  const { data: settings } = useNutritionSettingsQuery({ enabled: visible });
+
+  const presets = useMemo(() => {
+    const volumes = hydrationPresetVolumes(
+      settings?.quickAddVolumes,
+      DEFAULT_QUICK_ADD_VOLUMES
+    );
+    return volumes.map((ml) => ({
+      ml,
+      label: formatVolumeLabel(ml),
+      sub: `Add ${formatVolumeLabel(ml)}`,
+    }));
+  }, [settings?.quickAddVolumes]);
 
   const [lastAddedMl, setLastAddedMl] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -84,12 +98,11 @@ export function HydrationQuickAddSheet({
               Current: {(currentWaterMl / 1000).toFixed(1)} L / {(targetWaterMl / 1000).toFixed(1)} L goal
             </Text>
           ) : (
-            <Text className="mb-4 text-xs text-text-muted">Select volume to add to today's hydration total</Text>
+            <Text className="mb-4 text-xs text-text-muted">{"Select volume to add to today's hydration total"}</Text>
           )}
 
-          {/* Presets Grid */}
           <View className="gap-2.5">
-            {PRESETS.map((p) => (
+            {presets.map((p) => (
               <Pressable
                 key={p.ml}
                 accessibilityRole="button"
@@ -116,7 +129,7 @@ export function HydrationQuickAddSheet({
           {lastAddedMl ? (
             <View className="mt-4 rounded-xl border border-success/40 bg-tint-success p-3">
               <Text className="text-center text-xs font-bold text-green-400">
-                ✓ Added {lastAddedMl} ml to today's total
+                {`✓ Added ${lastAddedMl} ml to today's total`}
               </Text>
             </View>
           ) : null}

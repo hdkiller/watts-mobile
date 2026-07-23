@@ -259,7 +259,14 @@ export default function SettingsScreen() {
               detail={logTabPreferenceLabel(logTabPreference, nutritionEnabled)}
               sf="list.bullet.rectangle"
               emoji="📋"
-              onPress={() => router.push('/(app)/(tabs)/more/settings/log' as Href)}
+              onPress={() => router.push(APP_HREFS.settingsLog as Href)}
+            />
+            <MenuRow
+              title="Nutrition"
+              detail={nutritionEnabled ? 'Tracking on' : 'Tracking off'}
+              sf="leaf"
+              emoji="🥗"
+              onPress={() => router.push(APP_HREFS.settingsNutrition as Href)}
               isLast
             />
           </Section>
