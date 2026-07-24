@@ -53,6 +53,10 @@ describe('resolveDeepLinkPath', () => {
       kind: 'app',
       href: APP_HREFS.upcoming,
     });
+    expect(resolveDeepLinkPath('/plan')).toMatchObject({
+      kind: 'app',
+      href: APP_HREFS.plan,
+    });
     expect(resolveDeepLinkPath('/events')).toMatchObject({
       kind: 'app',
       href: APP_HREFS.eventsList,

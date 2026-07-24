@@ -31,6 +31,86 @@ export async function fetchTodayNutrition(date = localDateYmd()): Promise<Nutrit
   return pickTodayNutrition(json, date);
 }
 
+/** Days per chunk — nutrition list has no offset; chunk the window so limit can't truncate. */
+const NUTRITION_GLANCE_CHUNK_DAYS = 28;
+/** Per-chunk row cap (API has no offset). One day-row is typical; leave headroom. */
+const NUTRITION_GLANCE_CHUNK_LIMIT = 60;
+
+function addDaysYmd(ymd: string, days: number): string {
+  const [y, m, d] = ymd.split('-').map(Number);
+  const dt = new Date(y, m - 1, d + days);
+  const yy = dt.getFullYear();
+  const mm = String(dt.getMonth() + 1).padStart(2, '0');
+  const dd = String(dt.getDate()).padStart(2, '0');
+  return `${yy}-${mm}-${dd}`;
+}
+
+function nutritionGlanceChunks(startYmd: string, endYmd: string): Array<{ start: string; end: string }> {
+  const chunks: Array<{ start: string; end: string }> = [];
+  let cursor = startYmd;
+  while (cursor <= endYmd) {
+    const chunkEnd = addDaysYmd(cursor, NUTRITION_GLANCE_CHUNK_DAYS - 1);
+    chunks.push({ start: cursor, end: chunkEnd < endYmd ? chunkEnd : endYmd });
+    cursor = addDaysYmd(chunkEnd, 1);
+  }
+  return chunks;
+}
+
+function loggedKeysFromNutritionPayload(
+  json: unknown,
+  startYmd: string,
+  endYmd: string
+): string[] {
+  if (!json || typeof json !== 'object') return [];
+  const rows = Array.isArray((json as { nutrition?: unknown }).nutrition)
+    ? (json as { nutrition: unknown[] }).nutrition
+    : Array.isArray(json)
+      ? json
+      : [];
+  const keys: string[] = [];
+  for (const row of rows) {
+    if (!row || typeof row !== 'object') continue;
+    const r = row as Record<string, unknown>;
+    const date = r.date != null ? String(r.date).slice(0, 10) : '';
+    if (!date || date < startYmd || date > endYmd) continue;
+    const calories = typeof r.calories === 'number' ? r.calories : Number(r.calories) || 0;
+    const protein = typeof r.protein === 'number' ? r.protein : Number(r.protein) || 0;
+    const carbs = typeof r.carbs === 'number' ? r.carbs : Number(r.carbs) || 0;
+    const fat = typeof r.fat === 'number' ? r.fat : Number(r.fat) || 0;
+    const waterMl = typeof r.waterMl === 'number' ? r.waterMl : Number(r.waterMl) || 0;
+    if (calories === 0 && protein === 0 && carbs === 0 && fat === 0 && waterMl === 0) continue;
+    keys.push(date);
+  }
+  return keys;
+}
+
+/** Local date keys (YYYY-MM-DD) with any logged intake/hydration in range — Athlete glance. */
+export async function fetchLoggedNutritionDateKeys(
+  startYmd: string,
+  endYmd: string
+): Promise<string[]> {
+  if (!startYmd || !endYmd || startYmd > endYmd) return [];
+  const keys = new Set<string>();
+  for (const chunk of nutritionGlanceChunks(startYmd, endYmd)) {
+    const params = new URLSearchParams({
+      startDate: chunk.start,
+      endDate: chunk.end,
+      limit: String(NUTRITION_GLANCE_CHUNK_LIMIT),
+    });
+    const response = await apiFetch(`/api/nutrition?${params.toString()}`);
+    if (!response.ok) {
+      throw new Error(
+        await readErrorMessage(response, `Failed to load nutrition (${response.status})`)
+      );
+    }
+    const json = await response.json();
+    for (const date of loggedKeysFromNutritionPayload(json, chunk.start, chunk.end)) {
+      keys.add(date);
+    }
+  }
+  return [...keys];
+}
+
 export async function fetchNextFuelingWindow(): Promise<NextFuelingWindow | null> {
   const response = await apiFetch('/api/nutrition/upcoming-plan');
   if (!response.ok) {
@@ -125,4 +205,88 @@ export async function estimatePhotoNutrition(
     throw new Error(json.message || json.statusMessage || 'Photo analysis failed');
   }
   return json.estimate;
+}
+
+export async function fetchNutritionPlan(start: string, end: string): Promise<unknown> {
+  const params = new URLSearchParams({ start, end });
+  const response = await apiFetch(`/api/nutrition/plan?${params.toString()}`);
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response, `Failed to load nutrition plan (${response.status})`));
+  }
+  return response.json();
+}
+
+export async function generateNutritionPlanDraft(
+  startDate: string,
+  endDate: string
+): Promise<unknown> {
+  const response = await apiFetch('/api/nutrition/plan/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ startDate, endDate }),
+  });
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, `Failed to generate meal plan (${response.status})`)
+    );
+  }
+  return response.json();
+}
+
+export async function regenerateDayFuelingPlan(date: string): Promise<unknown> {
+  const response = await apiFetch('/api/nutrition/generate-plan', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ date }),
+  });
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, `Failed to regenerate day plan (${response.status})`)
+    );
+  }
+  return response.json();
+}
+
+export type NutritionMealAction = 'complete' | 'skip' | 'unlock' | 'replace';
+
+export async function patchNutritionPlanMeal(
+  mealId: string,
+  action: NutritionMealAction,
+  meal?: unknown
+): Promise<unknown> {
+  const response = await apiFetch(`/api/nutrition/plan/meals/${encodeURIComponent(mealId)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, ...(meal !== undefined ? { meal } : {}) }),
+  });
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response, `Failed to update meal (${response.status})`));
+  }
+  return response.json();
+}
+
+export async function lockNutritionPlanMeal(input: {
+  date: string;
+  windowType: string;
+  meal: unknown;
+  slotName?: string;
+}): Promise<unknown> {
+  const response = await apiFetch('/api/nutrition/plan/meal', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response, `Failed to lock meal (${response.status})`));
+  }
+  return response.json();
+}
+
+export async function fetchNutritionGrocery(start: string, end: string): Promise<unknown> {
+  const params = new URLSearchParams({ start, end });
+  const response = await apiFetch(`/api/nutrition/grocery?${params.toString()}`);
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response, `Failed to load grocery list (${response.status})`));
+  }
+  return response.json();
 }

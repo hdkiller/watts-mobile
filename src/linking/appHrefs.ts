@@ -10,6 +10,10 @@
 
 export const APP_HREFS = {
   today: '/(app)/(tabs)/today',
+  plan: '/(app)/(tabs)/plan',
+  planCreate: '/(app)/plan/create',
+  planBlocks: '/(app)/plan/blocks',
+  planGrocery: '/(app)/plan/grocery',
   log: '/(app)/(tabs)/log',
   coach: '/(app)/(tabs)/coach',
   more: '/(app)/(tabs)/more',

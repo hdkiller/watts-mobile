@@ -14,8 +14,9 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 8 | **Expo channel** | Managed Expo vs early dev client (needed for HealthKit in v1.5+) | **Decided:** `expo-dev-client` early; rebuild after native deps ([native-modules.md](./native-modules.md)) |
 | 9 | **Nutrition entry IA** | Log tab section vs More → Nutrition | **Decided:** Log (write surface) |
 | 10 | **Athlete metrics vs full settings** | Metrics-only editor vs port Profile Settings tabs | **Decided:** More → Athlete = default-profile metrics (weight, FTP, max HR, LTHR); Settings → Sports = lite per-sport FTP/LTHR/Max HR; zones / detect-from-workouts / full Sport Settings → Open web |
-| 20 | **Settings hub field-companion scope** | Thin device/daily prefs vs port web Profile/Settings | **Decided:** Settings hub = Notifications, Health Sync, **Connected Apps lite**, Units & locale, Log defaults, **Nutrition settings** (Profile → Nutrition parity), Instance, Coach identity lite, Sports thresholds lite, **Subscription & Billing lite**, Export/Delete via Open web; Connected Apps editors / billing administration / zones / nutrition planning stay web — see `connected-apps-lite` + `store-subscriptions-revenuecat` + `nutrition-settings-parity` |
-| 33 | **Nutrition settings on mobile** | Open web only vs native Profile → Nutrition editor | **Decided:** native Settings → Nutrition with web field parity (`GET/POST /api/profile/nutrition`); planning/grocery stay web — `nutrition-settings-parity` |
+| 20 | **Settings hub field-companion scope** | Thin device/daily prefs vs port web Profile/Settings | **Decided:** Settings hub = Notifications, Health Sync, **Connected Apps lite**, Units & locale, Log defaults, **Nutrition settings** (Profile → Nutrition parity), Instance, Coach identity lite, Sports thresholds lite, **Subscription & Billing lite**, Export/Delete via Open web; Connected Apps editors / billing administration / zones stay web — see `connected-apps-lite` + `store-subscriptions-revenuecat` + `nutrition-settings-parity`. **Nutrition planning/grocery** move to Plan tab (`nutrition-plan-on-plan-tab`), not Settings. |
+| 33 | **Nutrition settings on mobile** | Open web only vs native Profile → Nutrition editor | **Decided:** native Settings → Nutrition with web field parity (`GET/POST /api/profile/nutrition`) — `nutrition-settings-parity`. Planning/grocery superseded by Plan tab (2026-07-24). |
+| 35 | **Plan companion scope** | Lite kickoff only vs standing Plan tab with full generator + nutrition plan | **Decided:** 5th tab Plan (Training \| Nutrition); full training generator + adapt/replan + structure edit; nutrition weekly plan/generate/meals/grocery; Upcoming stays separate; templates/share/Intervals publish stay web — OpenSpec train `plan-tab-shell`…`nutrition-plan-on-plan-tab` |
 | 34 | **Goals & Events on mobile** | Athlete inline rename vs More hubs vs native full CRUD | **Decided:** More → Goals + Events (list + detail); Athlete teaser → Goals hub (no inline rename). **Lite create** in-app — `goals-lite-create` + `events-lite-create` (events need Bearer `POST /api/events`). Edit/delete + goal AI stay Open web. |
 | 11 | **Planned detail Bearer + structure** | Session-only `GET /api/planned-workouts/:id` vs `requireAuth` + structure fields for intervals | **Decided** |
 | 12 | **Upcoming vs Recent More entries** | Single “Workouts” hub vs separate Upcoming + Recent links | **Decided:** separate More rows (Recent activity + Upcoming) |
@@ -30,7 +31,7 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 22 | **Mobile-only accounts (never touch web)** | Require web setup first vs full on-device activation | **Decided:** yes — sign-up, consent, goal, plan lite, insight on mobile |
 | 23 | **Day-one activation north star** | Data-only vs goal+plan vs both | **Decided:** fully activated = data → goal → plan → insight; soft = goal+plan+insight |
 | 24 | **Activation wizard order vs connect friction** | Data-first wizard vs connect-last | **Decided:** UX = goal → plan → insight → **connect last** (Health Sync preferred; Skip OK); criteria still require data for *full* activation |
-| 25 | **Plan creation on mobile** | Open web vs Coach chat tool vs native lite wizard | **Decided:** native lite wizard (not full PlanDashboard / adapt) |
+| 25 | **Plan creation on mobile** | Open web vs Coach chat tool vs native lite wizard | **Decided (2026-07-21):** native lite wizard. **Superseded 2026-07-24:** Plan tab owns full generator + replan (activation reuses same module); templates/share/Intervals publish stay web — see #35 |
 | 26 | **Baseline docs shape** | Side “v2 chapter” vs reposition baseline | **Decided:** reposition [product-baseline.md](./product-baseline.md) (and coach-wattz mobile companion doc) |
 | 27 | **Native subscription provider** | Direct StoreKit/Play Billing vs RevenueCat | **Decided:** RevenueCat account created; use RevenueCat for store lifecycle/customer identity while Coach Watts server entitlements remain authoritative |
 | 28 | **Store purchase instance scope** | Hosted only vs allow arbitrary self-hosted instances | **Decided:** hosted `https://coachwatts.com` only; self-hosted keeps instance-owned entitlement behavior |
@@ -45,7 +46,8 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 |------|----------|-----------|
 | 2026-07-14 | Companion, not full port | Daily athlete loop; web keeps depth (baseline PR) |
 | 2026-07-14 | Expo + TypeScript | Align with Nuxt/TS team; OTA-friendly |
-| 2026-07-14 | Four-tab IA: Today / Log / Coach / More | One job per tab |
+| 2026-07-14 | Four-tab IA: Today / Log / Coach / More | One job per tab — **superseded 2026-07-24** by five-tab IA (+ Plan) |
+| 2026-07-24 | Five-tab IA: Today / Plan / Log / Coach / More | Plan owns season/week training + nutrition plan; Today stays one decision |
 | 2026-07-14 | OAuth PKCE + Bearer | Existing IdP; cookies are web-only |
 | 2026-07-19 | Implementation lives in `watts-mobile` | Separate client repo; coach-wattz remains API/product host |
 | 2026-07-19 | Production instance URL is `https://coachwatts.com` | Not `app.coachwatts.com`; wired in `.env.example` / `app.json` extra |
@@ -91,7 +93,8 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 2026-07-21 | Positioning → activation companion | Mobile-first accounts; activate on device then daily loop; web keeps deep architect/analytics |
 | 2026-07-21 | Fully activated = data → goal → plan → insight | Soft-activated (goal+plan+insight) may enter tabs; Finish-setup until data |
 | 2026-07-21 | Wizard UX connect-last | Health Sync primary; Strava/etc. optional; Skip does not block soft activation |
-| 2026-07-21 | Plan creation = native lite wizard | Initialize + preview + activate in-app; PlanDashboard/adapt/replan stay web |
+| 2026-07-21 | Plan creation = native lite wizard | Initialize + preview + activate in-app; PlanDashboard/adapt/replan stay web — **superseded 2026-07-24** |
+| 2026-07-24 | Plan companion tab (full deal) | 5th tab Plan; Training \| Nutrition; generator + adapt/replan + structure; nutrition plan + grocery; Upcoming separate; templates/share/Intervals publish web — OpenSpec `plan-tab-shell` → `nutrition-plan-on-plan-tab` |
 | 2026-07-21 | Reposition product baseline | Rewrite [product-baseline.md](./product-baseline.md); mirror coach-wattz `mobile-companion-app.md` |
 | 2026-07-21 | Connected Apps lite in Settings | Status list + handoff to `/settings/apps`; no native provider OAuth; Health Sync stays a distinct phone-local path; `GET /api/integrations/status` via Bearer `profile:read` — `connected-apps-lite` |
 | 2026-07-22 | Subscription API authorization | `GET /api/subscriptions/me` reuses `profile:read`; `POST /api/subscriptions/reconcile` reuses `profile:write`; webhook authorization remains server-only — `store-subscriptions-revenuecat` |
@@ -103,10 +106,12 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 2026-07-22 | Mobile push prefs server-backed (364/365) | coach-wattz `GET/PUT /api/mobile/devices/preferences` + send gates; mobile follow-up OpenSpec `mobile-push-prefs-server-sync` |
 | 2026-07-22 | iOS store/TestFlight builds are local Xcode | Prefer Mac Archive over EAS cloud for iOS — [distribution.md](./distribution.md), tasks 005–006 |
 | 2026-07-22 | Android Play builds are local Gradle | Prefer `bundleRelease` + manual Play upload over EAS cloud — [distribution.md](./distribution.md), tasks 014–015 |
-| 2026-07-23 | Nutrition settings on mobile | Native Settings → Nutrition (tracking, metabolic, meal pattern, constraints, fuel calibration, adaptive, hydration); planning/grocery stay web; Bearer on `GET/POST /api/profile/nutrition` — `nutrition-settings-parity` |
+| 2026-07-23 | Nutrition settings on mobile | Native Settings → Nutrition (tracking, metabolic, meal pattern, constraints, fuel calibration, adaptive, hydration); Bearer on `GET/POST /api/profile/nutrition` — `nutrition-settings-parity`. Planning/grocery later in-scoped to Plan tab (2026-07-24). |
 | 2026-07-23 | Goals & Events More hubs | List + detail in-app from More; Athlete teaser (no inline rename); create/edit/delete + AI stay Open web — `goals-events-more-hubs` |
 | 2026-07-23 | Goals & Events lite create | Native create from Goals/Events hubs; edit/delete (+ goal AI) stay web; events require coach-wattz Bearer POST — `goals-lite-create`, `events-lite-create` |
 | 2026-07-24 | Athlete referral share (track-only) | More → Invite friends QR/link (`via=` code); server stores A→B `Referral` on signup; no reward grant yet; distinct from coaching `/join/{CODE}` — OpenSpec `athlete-referral-share` |
 | 2026-07-24 | Athlete activity glance | Rolling 12-week done/planned day circles on Athlete only (Today name / More); lists stay Recent/Upcoming; Today heatmaps / CTL grids / streaks remain non-goals — OpenSpec `athlete-activity-glance` |
+| 2026-07-24 | Athlete glance swipe + nutrition | Horizontal 12-week pages (live = newest); Activity \| Nutrition segment when tracking on; nutrition = logged vs gaps → Log — OpenSpec `athlete-glance-swipe-nutrition` |
+| 2026-07-24 | Planned list includes `structuredWorkout` | `GET /api/planned-workouts` returns full Prisma rows (structure present); OpenAPI schema omits the field. Mobile maps previewable endurance structure onto Upcoming/Coming-up mini charts without N+1 detail fetches — OpenSpec `structured-workout-minichart-parity` |
 
 When a row above is decided, move it here and update [product-baseline.md](./product-baseline.md) / [implementation-plan.md](./implementation-plan.md) if scope changes.

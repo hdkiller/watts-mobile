@@ -5,9 +5,11 @@ Phased delivery for this repository. Product detail: [product-baseline.md](./pro
 ## Current state
 
 - Phase 0–4 companion OpenSpecs shipped and archived under `openspec/changes/archive/2026-07-19-*` (auth, Today, Log, notifications/push, coach chat, recent/upcoming, deep links, store polish, athlete metrics, nutrition quick-log).
-- Active work: Health Sync / Connected Apps lite OpenSpecs; product baseline **repositioned 2026-07-21** to activation companion ([product-baseline.md](./product-baseline.md)). RevenueCat Apple catalog mapped + local V2/MCP env; native store subscriptions OpenSpec `store-subscriptions-revenuecat` (2026-07-22/23). Nutrition settings parity OpenSpec `nutrition-settings-parity` (2026-07-23).
-- Phase 5 (activation onboarding) proposed below — OpenSpec not created yet.
-- Follow-ups: AASA/assetlinks host association for https deep links; coach-wattz baseline PR [#239](https://github.com/hdkiller/coach/pull/239) still draft — merge when ready (now includes activation reposition).
+- Activation onboarding archived (`2026-07-22-mobile-activation-onboarding`); live specs under `openspec/specs/`.
+- Product baseline **expanded 2026-07-24**: five-tab IA with standing **Plan** companion (training generator + adapt/replan + nutrition plan). See [product-baseline.md](./product-baseline.md).
+- Active Plan train (apply in order): `plan-tab-shell` → `plan-generator-full` → `plan-adapt-replan` → `plan-structure-edit` → `nutrition-plan-on-plan-tab`.
+- Also in flight: `store-subscriptions-revenuecat`, Goals/Events lite create, nutrition settings/widgets/photo-log, athlete referral, etc.
+- Follow-ups: AASA/assetlinks host association for https deep links; coach-wattz baseline PR [#239](https://github.com/hdkiller/coach/pull/239) still draft — sync Plan companion narrative when merging.
 - OAuth client registered as **Official Mobile App** in local + production; wire `EXPO_PUBLIC_OAUTH_CLIENT_ID` from [oauth-setup.md](./oauth-setup.md).
 
 ## Phase 0 — Platform & auth
@@ -227,11 +229,25 @@ Checklist:
 
 **Exit:** athlete can add a race/life event in-app; Manage on web still covers edit/delete.
 
+## Plan companion tab (2026-07-24)
+
+Product: [product-baseline.md](./product-baseline.md) § Next chapter — Plan companion tab. Apply OpenSpecs **in order**:
+
+| Order | Change | Exit |
+|-------|--------|------|
+| 1 | `plan-tab-shell` | 5th tab Plan with Training \| Nutrition chrome; active-plan read; empty → create |
+| 2 | `plan-generator-full` | Full generator pipeline + job UX; activation reuses module |
+| 3 | `plan-adapt-replan` | Adapt / replan / abandon / start new on Plan |
+| 4 | `plan-structure-edit` | Week tune, move/reschedule, block CRUD (mobile patterns) |
+| 5 | `nutrition-plan-on-plan-tab` | Weekly nutrition plan + generate + meal actions + grocery |
+
+Upcoming (More) stays separate. Templates / share / Intervals publish stay Open web.
+
 ## Nutrition settings parity
 
 OpenSpec: `openspec/changes/nutrition-settings-parity`.
 
-Goal: Settings → Nutrition with web Profile → Nutrition field parity so athletes can calibrate tracking, metabolic targets, dietary constraints, fueling, and hydration without opening web. Meal plans / grocery stay web.
+Goal: Settings → Nutrition with web Profile → Nutrition field parity so athletes can calibrate tracking, metabolic targets, dietary constraints, fueling, and hydration without opening web. Meal plans / grocery land on Plan tab (`nutrition-plan-on-plan-tab`).
 
 | Slice | Focus |
 |-------|--------|

@@ -37,6 +37,18 @@ const accents = {
   ] as const,
   /** Neutral fill for structure-profile blocks with unknown intensity */
   zoneNeutral: '#52525b',
+  /**
+   * Plan season block accents (theme-invariant) — Plan tab timeline.
+   * Aligned with web PlanDashboard phase colours; prefer `blockTypeColor()`.
+   */
+  planBlocks: {
+    PREP: '#94a3b8',
+    BASE: '#3b82f6',
+    BUILD: '#f59e0b',
+    PEAK: '#ef4444',
+    RACE: '#a855f7',
+    TRANSITION: '#00DC82',
+  } as const,
 } as const;
 
 type SemanticNeutrals = {
@@ -111,4 +123,10 @@ export function zoneColor(index: number): string {
   if (!Number.isFinite(index) || index < 0) return zones[0] ?? Colors.zoneNeutral;
   if (index >= zones.length) return zones[zones.length - 1] ?? Colors.zoneNeutral;
   return zones[index] ?? Colors.zoneNeutral;
+}
+
+/** Plan block / phase type → accent hex from `Colors.planBlocks`. */
+export function blockTypeColor(type: string | null | undefined): string {
+  const key = (type ?? '').trim().toUpperCase() as keyof typeof Colors.planBlocks;
+  return Colors.planBlocks[key] ?? Colors.brand;
 }

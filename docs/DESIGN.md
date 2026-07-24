@@ -59,6 +59,19 @@ Shared by activity zone bars, planned zone rows, and the structure-profile silho
 | Z6 | `#a855f7` | `zone-6` | Purple |
 | Z7 | `#52525b` | `zone-7` | Zinc |
 
+### Plan block accents
+
+Season timeline phase colours. Access via `Colors.planBlocks` / `blockTypeColor(type)` — never a parallel hex map in feature code.
+
+| Type | Hex | Note |
+|------|-----|------|
+| PREP | `#94a3b8` | Slate |
+| BASE | `#3b82f6` | Same as Z1 |
+| BUILD | `#f59e0b` | Same as modify |
+| PEAK | `#ef4444` | Same as danger |
+| RACE | `#a855f7` | Same as Z6 |
+| TRANSITION | `#00DC82` | Brand |
+
 Neutral surfaces use semantic tokens: cards `bg-card(/80)` with `border-border`, input/button borders `border-border-strong`, hairline row dividers `border-border/80`.
 
 **Contrast rule:** text on brand green is always dark (`text-ink`), never white / `text-text-primary`.
@@ -132,4 +145,4 @@ To avoid keyboards layout overlap or blocking inputs:
 - No white text on brand green.
 - No new one-off button styles — extend `Button` with a variant instead.
 - No full-screen `ActivityIndicator` for initial loads.
-- No CTL grids, Today calendar heatmaps, or dashboard clones (see [product-baseline.md](./product-baseline.md)). Athlete’s compact 12-week done/planned day-circle glance is allowed; keep it glance-scale (no streak gamification, no TSS heat legend).
+- No CTL grids, Today calendar heatmaps, or dashboard clones (see [product-baseline.md](./product-baseline.md)). Athlete’s compact swipeable 12-week day-circle glance (Activity done/planned; Nutrition logged/gaps when tracking on) is allowed; keep it glance-scale (no streak gamification, no TSS/calorie heat legend).

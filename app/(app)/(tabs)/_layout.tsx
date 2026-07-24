@@ -34,6 +34,13 @@ export default function TabsLayout() {
         />
         <NativeTabs.Trigger.Label>Today</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="plan" contentStyle={tabContentStyle}>
+        <NativeTabs.Trigger.Icon
+          sf={{ default: 'calendar', selected: 'calendar' }}
+          md="calendar_month"
+        />
+        <NativeTabs.Trigger.Label>Plan</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="log" contentStyle={tabContentStyle}>
         <NativeTabs.Trigger.Icon
           sf={{ default: 'square.and.pencil', selected: 'square.and.pencil' }}

@@ -21,6 +21,15 @@ appId: com.coachwatts.app
           timeout: 2000
 - runFlow:
     when:
+      visible:
+        id: daily-checkin-sheet
+    commands:
+      - tapOn:
+          id: daily-checkin-cancel
+      - waitForAnimationToEnd:
+          timeout: 2000
+- runFlow:
+    when:
       visible: "Cancel meal logging"
     commands:
       - tapOn:

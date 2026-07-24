@@ -5,6 +5,11 @@ appId: com.coachwatts.app
     visible:
       id: today-screen
     timeout: 20000
+- tapOn: Plan
+- extendedWaitUntil:
+    visible:
+      id: plan-screen
+    timeout: 15000
 - tapOn: Log
 - extendedWaitUntil:
     visible:

@@ -43,9 +43,11 @@ export default function AppLayout() {
         <Stack.Screen
           name="daily-checkin"
           options={{
-            headerShown: true,
+            headerShown: false,
             title: 'Coach check-in',
-            presentation: 'modal',
+            presentation: 'transparentModal',
+            animation: 'slide_from_bottom',
+            contentStyle: { backgroundColor: 'transparent' },
           }}
         />
         <Stack.Screen
@@ -74,6 +76,12 @@ export default function AppLayout() {
           options={{ headerShown: true, title: 'New goal', presentation: 'modal' }}
         />
         <Stack.Screen name="goals/[id]" options={{ headerShown: true, title: 'Goal' }} />
+        <Stack.Screen
+          name="plan/create"
+          options={{ headerShown: true, title: 'Create plan', presentation: 'modal' }}
+        />
+        <Stack.Screen name="plan/blocks" options={{ headerShown: true, title: 'Edit blocks' }} />
+        <Stack.Screen name="plan/grocery" options={{ headerShown: true, title: 'Grocery list' }} />
         <Stack.Screen name="health-sync" options={{ headerShown: true, title: 'Health Sync' }} />
         <Stack.Screen name="health-history" options={{ headerShown: true, title: 'Sync history' }} />
         <Stack.Screen name="health-workouts" options={{ headerShown: true, title: 'Recent workouts' }} />

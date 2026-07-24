@@ -109,6 +109,10 @@ export function resolveDeepLinkPath(pathname: string): ResolvedDeepLink {
     return { kind: 'app', href: APP_HREFS.upcoming, canonicalPath: path };
   }
 
+  if (path === '/plan' || path === '/plans') {
+    return { kind: 'app', href: APP_HREFS.plan, canonicalPath: path };
+  }
+
   if (path === '/events') {
     return { kind: 'app', href: APP_HREFS.eventsList, canonicalPath: path };
   }

@@ -1,7 +1,30 @@
 import { apiFetch } from '@/src/api/client';
 import { ApiError } from '@/src/api/errors';
 
-import type { PlanInitializeInput, PlanInitializeResult, PlannedWorkoutPreview } from './types';
+import { pollUntilDone, type JobPollOptions } from './jobPoller';
+import type {
+  ActivePlanApi,
+  ActivePlanResponse,
+  BlockCreateInput,
+  BlockPatchInput,
+  PlanAdaptationType,
+  PlanInitializeInput,
+  PlanInitializeResult,
+  PlannedWorkoutPreview,
+  ReplanBlockInput,
+  WeekTuneInput,
+} from './types';
+
+const PLAN_JOB_FAILURE = new Set([
+  'FAILURE',
+  'FAILED',
+  'CANCELED',
+  'CANCELLED',
+  'TIMED_OUT',
+  'ABORTED',
+  'CRASHED',
+  'SYSTEM_FAILURE',
+]);
 
 async function readErrorBody(response: Response): Promise<unknown> {
   try {
@@ -166,4 +189,299 @@ export function extractFirstWeekPreview(result: PlanInitializeResult): PlannedWo
     date: w.date,
     duration: w.duration ?? (w.durationSec ? Math.round(w.durationSec / 60) : null),
   }));
+}
+
+export async function fetchActivePlan(): Promise<ActivePlanResponse> {
+  const response = await apiFetch('/api/plans/active');
+  if (!response.ok) {
+    const body = await readErrorBody(response);
+    throw new ApiError(
+      errorMessage(body, `Failed to load active plan (${response.status})`),
+      response.status,
+      body
+    );
+  }
+  return (await response.json()) as ActivePlanResponse;
+}
+
+export async function fetchPlanDetail(planId: string): Promise<ActivePlanApi> {
+  const response = await apiFetch(`/api/plans/${encodeURIComponent(planId)}`);
+  if (!response.ok) {
+    const body = await readErrorBody(response);
+    throw new ApiError(
+      errorMessage(body, `Failed to load plan (${response.status})`),
+      response.status,
+      body
+    );
+  }
+  return (await response.json()) as ActivePlanApi;
+}
+
+export async function adaptPlan(
+  planId: string,
+  adaptationType: PlanAdaptationType
+): Promise<{ jobId?: string }> {
+  const response = await apiFetch('/api/plans/adapt', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ planId, adaptationType }),
+  });
+  if (!response.ok) {
+    const body = await readErrorBody(response);
+    throw new ApiError(
+      errorMessage(body, `Failed to adapt plan (${response.status})`),
+      response.status,
+      body
+    );
+  }
+  const result = (await response.json()) as { jobId?: string };
+  if (result.jobId) await waitForPlanJob(result.jobId);
+  return result;
+}
+
+export async function abandonPlan(
+  planId: string
+): Promise<{ success?: boolean; deletedWorkouts?: number }> {
+  const response = await apiFetch(`/api/plans/${encodeURIComponent(planId)}/abandon`, {
+    method: 'POST',
+  });
+  if (!response.ok) {
+    const body = await readErrorBody(response);
+    throw new ApiError(
+      errorMessage(body, `Failed to abandon plan (${response.status})`),
+      response.status,
+      body
+    );
+  }
+  return (await response.json()) as { success?: boolean; deletedWorkouts?: number };
+}
+
+export async function replanStructure(
+  planId: string,
+  blocks: ReplanBlockInput[]
+): Promise<unknown> {
+  const response = await apiFetch(`/api/plans/${encodeURIComponent(planId)}/replan-structure`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ blocks }),
+  });
+  if (!response.ok) {
+    const body = await readErrorBody(response);
+    throw new ApiError(
+      errorMessage(body, `Failed to replan structure (${response.status})`),
+      response.status,
+      body
+    );
+  }
+  return response.json();
+}
+
+export async function patchPlanWeek(weekId: string, input: WeekTuneInput): Promise<unknown> {
+  const response = await apiFetch(`/api/plans/weeks/${encodeURIComponent(weekId)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!response.ok) {
+    const body = await readErrorBody(response);
+    throw new ApiError(
+      errorMessage(body, `Failed to update week (${response.status})`),
+      response.status,
+      body
+    );
+  }
+  return response.json();
+}
+
+export async function createPlanBlock(planId: string, input: BlockCreateInput): Promise<unknown> {
+  const response = await apiFetch(`/api/plans/${encodeURIComponent(planId)}/blocks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!response.ok) {
+    const body = await readErrorBody(response);
+    throw new ApiError(
+      errorMessage(body, `Failed to add block (${response.status})`),
+      response.status,
+      body
+    );
+  }
+  return response.json();
+}
+
+export async function patchPlanBlock(
+  planId: string,
+  blockId: string,
+  input: BlockPatchInput
+): Promise<unknown> {
+  const response = await apiFetch(
+    `/api/plans/${encodeURIComponent(planId)}/blocks/${encodeURIComponent(blockId)}`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    }
+  );
+  if (!response.ok) {
+    const body = await readErrorBody(response);
+    throw new ApiError(
+      errorMessage(body, `Failed to update block (${response.status})`),
+      response.status,
+      body
+    );
+  }
+  return response.json();
+}
+
+export async function deletePlanBlock(planId: string, blockId: string): Promise<void> {
+  const response = await apiFetch(
+    `/api/plans/${encodeURIComponent(planId)}/blocks/${encodeURIComponent(blockId)}`,
+    { method: 'DELETE' }
+  );
+  if (!response.ok) {
+    const body = await readErrorBody(response);
+    throw new ApiError(
+      errorMessage(body, `Failed to delete block (${response.status})`),
+      response.status,
+      body
+    );
+  }
+}
+
+export async function reorderPlanBlocks(
+  planId: string,
+  blocks: Array<{ id: string; order: number }>
+): Promise<void> {
+  const response = await apiFetch(`/api/plans/${encodeURIComponent(planId)}/blocks/reorder`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ blocks }),
+  });
+  if (!response.ok) {
+    const body = await readErrorBody(response);
+    throw new ApiError(
+      errorMessage(body, `Failed to reorder blocks (${response.status})`),
+      response.status,
+      body
+    );
+  }
+}
+
+export async function generateAiWeek(
+  blockId: string,
+  weekId: string,
+  instructions?: string
+): Promise<{ jobId?: string }> {
+  const response = await apiFetch('/api/plans/generate-ai-week', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      blockId,
+      weekId,
+      ...(instructions?.trim() ? { instructions: instructions.trim() } : {}),
+    }),
+  });
+  if (!response.ok) {
+    const body = await readErrorBody(response);
+    throw new ApiError(
+      errorMessage(body, `Failed to generate week (${response.status})`),
+      response.status,
+      body
+    );
+  }
+  const result = (await response.json()) as { jobId?: string };
+  if (result.jobId) await waitForPlanJob(result.jobId);
+  return result;
+}
+
+export async function generateTrainingBlock(blockId: string): Promise<{ jobId?: string }> {
+  const response = await apiFetch('/api/plans/generate-block', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ blockId }),
+  });
+  if (!response.ok) {
+    const body = await readErrorBody(response);
+    throw new ApiError(
+      errorMessage(body, `Failed to generate block (${response.status})`),
+      response.status,
+      body
+    );
+  }
+  const result = (await response.json()) as { jobId?: string };
+  if (result.jobId) await waitForPlanJob(result.jobId);
+  return result;
+}
+
+export async function generateWorkoutStructure(
+  plannedWorkoutId: string
+): Promise<{ jobId?: string }> {
+  const response = await apiFetch(
+    `/api/workouts/planned/${encodeURIComponent(plannedWorkoutId)}/generate-structure`,
+    { method: 'POST' }
+  );
+  if (!response.ok) {
+    const body = await readErrorBody(response);
+    throw new ApiError(
+      errorMessage(body, `Failed to generate structure (${response.status})`),
+      response.status,
+      body
+    );
+  }
+  const result = (await response.json()) as { jobId?: string; taskId?: string };
+  const jobId = result.jobId ?? result.taskId;
+  if (jobId) await waitForPlanJob(jobId);
+  return { jobId };
+}
+
+/** Move a planned workout by patching its date (YYYY-MM-DD or ISO). */
+export async function movePlannedWorkout(plannedWorkoutId: string, date: string): Promise<void> {
+  const response = await apiFetch(`/api/planned-workouts/${encodeURIComponent(plannedWorkoutId)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ date }),
+  });
+  if (!response.ok) {
+    const body = await readErrorBody(response);
+    throw new ApiError(
+      errorMessage(body, `Failed to move workout (${response.status})`),
+      response.status,
+      body
+    );
+  }
+}
+
+export async function fetchPlanJobStatus(
+  jobId: string
+): Promise<{ status?: string; completed?: boolean }> {
+  const response = await apiFetch(`/api/plans/status?jobId=${encodeURIComponent(jobId)}`);
+  if (!response.ok) {
+    const body = await readErrorBody(response);
+    throw new ApiError(
+      errorMessage(body, `Failed to check plan job (${response.status})`),
+      response.status,
+      body
+    );
+  }
+  return (await response.json()) as { status?: string; completed?: boolean };
+}
+
+/** Poll Trigger.dev plan jobs until terminal success (or throw on failure/timeout). */
+export async function waitForPlanJob(jobId: string, options: JobPollOptions = {}): Promise<void> {
+  await pollUntilDone(async () => {
+    const status = await fetchPlanJobStatus(jobId);
+    if (!status.completed) return { done: false };
+    const code = (status.status ?? '').toUpperCase();
+    if (PLAN_JOB_FAILURE.has(code)) {
+      throw new ApiError(
+        code === 'TIMED_OUT'
+          ? 'Plan job timed out — try again shortly'
+          : 'Plan job failed — try again',
+        500,
+        status
+      );
+    }
+    return { done: true, value: undefined };
+  }, options);
 }

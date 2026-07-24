@@ -625,6 +625,7 @@ export default function TodayScreen() {
       {!showFinishSetup && !checkinCompleted ? (
         <EnterSection order={1}>
           <Pressable
+            testID="daily-checkin"
             accessibilityRole="button"
             accessibilityLabel="Do Quick Daily Coach Check-In"
             className="mt-6 py-1 active:opacity-80"

@@ -58,7 +58,7 @@ Maestro selectors are **API surface**. Prefer stability over pretty names.
 | Kind | Pattern | Examples |
 |------|---------|----------|
 | Tab / stack screen root | `{area}-screen` | `today-screen`, `log-screen`, `coach-screen`, `more-screen`, `login-screen`, `athlete-screen`, `settings-screen` |
-| Sheet / modal root | `{feature}-sheet` | `log-meal-sheet`, `wellness-checkin-sheet` |
+| Sheet / modal root | `{feature}-sheet` | `log-meal-sheet`, `wellness-checkin-sheet`, `daily-checkin-sheet` |
 | Primary CTA | `{feature}` or `{feature}-{verb}` | `log-meal`, `wellness-checkin`, `coach-send`, `today-recommendation-accept` |
 | Important panel (not full screen) | `{area}-{surface}` | `today-recommendation`, `today-readiness-panel`, `coach-composer` |
 | Success / transient notice | `{feature}-{state}` | `wellness-checkin-saved` (offline path) |
@@ -86,6 +86,7 @@ Keep this table honest when you add or remove IDs.
 | `today-recommendation` | Recommendation hero | `flow-today-recommendation`, accept flow |
 | `today-recommendation-accept` | Accept CTA (when `canAccept`) | `flow-recommendation-accept` |
 | `today-readiness-panel` | Analyze Readiness empty state | today / accept flows (fallback) |
+| `daily-checkin` / `daily-checkin-sheet` / `daily-checkin-cancel` / `daily-checkin-submit` | Today CTA + routed sheet controls | `flow-daily-coach-checkin-open` |
 | `log-screen` | Log tab | shell, log flows, deeplink |
 | `wellness-checkin` | Log wellness banner CTA | check-in open / save |
 | `wellness-checkin-sheet` / `wellness-checkin-save` / `wellness-checkin-saved` | Wellness sheet | check-in flows |
