@@ -1,3 +1,5 @@
+import { localDateKey } from '@/src/features/today/weekGlance';
+
 import type { GoalApi, GoalDetail, GoalGlance, GoalLinkedEvent } from './types';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -81,15 +83,31 @@ function asLinkedEvents(raw: unknown): GoalLinkedEvent[] {
     .filter((item): item is GoalLinkedEvent => item != null);
 }
 
+/** Plan end date key: eventDate → targetDate → earliest linked event (web PlanWizard order). */
+export function goalPlanEndDateKey(goal: GoalApi): string | null {
+  const fromEvent = localDateKey(goal.eventDate);
+  if (fromEvent) return fromEvent;
+  const fromTarget = localDateKey(goal.targetDate);
+  if (fromTarget) return fromTarget;
+  if (!Array.isArray(goal.events)) return null;
+  for (const ev of goal.events) {
+    const key = localDateKey(ev?.date);
+    if (key) return key;
+  }
+  return null;
+}
+
 export function mapGoalGlance(goal: GoalApi): GoalGlance {
   const type = typeof goal.type === 'string' ? goal.type : 'GOAL';
+  const planEnd = goalPlanEndDateKey(goal);
   return {
     id: goal.id,
     title: goal.title?.trim() || 'Untitled goal',
     type,
     typeLabel: goalTypeLabel(type === 'GOAL' ? null : type),
     typeShort: goalTypeShort(type === 'GOAL' ? null : type),
-    targetDateLabel: asDateLabel(goal.targetDate),
+    targetDateLabel: asDateLabel(goal.eventDate ?? goal.targetDate ?? goal.events?.[0]?.date),
+    planEndDateKey: planEnd,
     status: goal.status ?? null,
     statusLabel: goalStatusLabel(goal.status),
     priority: goal.priority ?? null,

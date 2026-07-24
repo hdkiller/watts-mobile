@@ -35,6 +35,7 @@ describe('mapGoals', () => {
     expect(glance.statusLabel).toBe('Active');
     expect(glance.priorityLabel).toBe('High');
     expect(glance.targetDateLabel).toBeTruthy();
+    expect(glance.planEndDateKey).toBe('2026-09-01');
   });
 
   it('maps detail with linked events', () => {

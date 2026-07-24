@@ -15,6 +15,11 @@ type Props = {
   children: ReactNode;
   /** When true, wraps the sheet body for keyboard avoidance (forms). */
   keyboard?: boolean;
+  /**
+   * When false, children render without a ScrollView (native pickers / fixed chrome).
+   * Defaults to true.
+   */
+  scroll?: boolean;
   testID?: string;
 };
 
@@ -27,6 +32,7 @@ export function BottomSheet({
   onClose,
   children,
   keyboard = false,
+  scroll = true,
   testID,
 }: Props) {
   const body = (
@@ -37,9 +43,13 @@ export function BottomSheet({
       <View className="mb-3 items-center" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         <View className="h-1 w-10 rounded-full bg-border-strong" />
       </View>
-      <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        {children}
-      </ScrollView>
+      {scroll ? (
+        <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          {children}
+        </ScrollView>
+      ) : (
+        children
+      )}
     </View>
   );
 

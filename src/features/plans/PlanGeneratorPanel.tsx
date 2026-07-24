@@ -1,14 +1,19 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app
- * pre-emit critique: P5 H5 E5 S4 R5 V4 — days → volume → sports → approach (advanced collapsed)
+ * pre-emit critique: P5 H5 E5 S4 R5 V4 — goal → days → volume → sports → timeline → approach
  */
-import { useMemo, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Text, TextInput, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
 import { AnimatedPressable } from '@/src/components/AnimatedPressable';
 import { Button } from '@/src/components/Button';
 import { Skeleton } from '@/src/components/Skeleton';
+import { SportIcon } from '@/src/components/SportIcon';
+import { localDateYmd } from '@/src/features/log/mapLogForm';
+import { useGoalsQuery, usePrimaryGoalQuery } from '@/src/features/goals/useGoals';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
+import { blockTypeColor } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
 import {
@@ -20,9 +25,20 @@ import {
 import { formatDayChipLabel } from './formatPlanCopy';
 import {
   buildAvailabilityDays,
+  clampDurationWeeks,
   clampVolumeHours,
+  defaultSelectedGoalId,
+  DURATION_WEEK_CHIPS,
+  isPlanSpanValid,
+  mapPhaseGlance,
+  nextMondayYmd,
   PLAN_STRATEGY_OPTIONS,
+  planDateIsoNoon,
+  planEndDateIso,
+  type PhaseGlance,
+  type PlanEndMode,
   RECOVERY_RHYTHM_OPTIONS,
+  resolvePlanEndDateYmd,
   STARTING_PHASE_OPTIONS,
   VOLUME_HOUR_CHIPS,
   volumePreferenceFromHours,
@@ -41,13 +57,18 @@ const SPORTS = [
   { id: 'Gym', label: 'Strength' },
 ];
 
-const FORM_STEPS = ['days', 'volume', 'sports', 'approach'] as const;
+const FORM_STEPS = ['goal', 'days', 'volume', 'sports', 'timeline', 'approach'] as const;
 type FormStep = (typeof FORM_STEPS)[number];
+type LastAction = 'generate' | 'activate';
 
 type Props = {
-  goalId: string | null | undefined;
+  /** Preferred default when multiple goals exist (activation primary / host). */
+  preferredGoalId?: string | null;
+  /** @deprecated use preferredGoalId */
+  goalId?: string | null;
   onActivated: (planId: string) => void | Promise<void>;
   onGenerateStart?: () => void;
+  onCreateGoal?: () => void;
 };
 
 function stepIndex(step: FormStep): number {
@@ -70,7 +91,7 @@ function ChipRow<T extends string | number>({
     <View>
       <View className="flex-row flex-wrap gap-2">
         {options.map((opt) => {
-          const isSelected = value === opt.id;
+          const isSelected = opt.id === value;
           return (
             <AnimatedPressable
               key={String(opt.id)}
@@ -114,13 +135,22 @@ function StepMeta({ step, label }: { step: FormStep; label?: string }) {
   );
 }
 
-function BackLink({ label, onPress }: { label: string; onPress: () => void }) {
+function BackLink({
+  label,
+  onPress,
+  testID,
+}: {
+  label: string;
+  onPress: () => void;
+  testID?: string;
+}) {
   return (
     <AnimatedPressable
       hitSlop={8}
       onPress={onPress}
       accessibilityRole="button"
       className="mb-1 self-start"
+      testID={testID}
     >
       <Text className="text-sm font-semibold text-brand">{label}</Text>
     </AnimatedPressable>
@@ -128,11 +158,20 @@ function BackLink({ label, onPress }: { label: string; onPress: () => void }) {
 }
 
 export function PlanGeneratorPanel({
+  preferredGoalId,
   goalId,
   onActivated,
   onGenerateStart,
+  onCreateGoal,
 }: Props) {
   const theme = useThemeColors();
+  const hostPreferredId = preferredGoalId ?? goalId ?? null;
+  const goalsQuery = useGoalsQuery();
+  const { refetch: refetchGoals } = goalsQuery;
+  const primaryGoal = usePrimaryGoalQuery();
+  const goals = goalsQuery.data ?? [];
+
+  const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
   const [days, setDays] = useState<number[]>([1, 3, 5]);
   const [volumeHours, setVolumeHours] = useState(6);
   const [sports, setSports] = useState<string[]>(['Ride']);
@@ -141,12 +180,58 @@ export function PlanGeneratorPanel({
   const [startingPhase, setStartingPhase] = useState<StartingPhase>('BASE');
   const [customInstructions, setCustomInstructions] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [startYmd, setStartYmd] = useState(() => localDateYmd());
+  const [endMode, setEndMode] = useState<PlanEndMode>('goal');
+  const [durationWeeks, setDurationWeeks] = useState(12);
   const [phase, setPhase] = useState<'form' | 'working' | 'preview'>('form');
-  const [formStep, setFormStep] = useState<FormStep>('days');
+  const [formStep, setFormStep] = useState<FormStep>('goal');
   const [planId, setPlanId] = useState<string | null>(null);
+  const [activateStartIso, setActivateStartIso] = useState<string | null>(null);
   const [preview, setPreview] = useState<PlannedWorkoutPreview[]>([]);
+  const [phases, setPhases] = useState<PhaseGlance[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastAction, setLastAction] = useState<LastAction | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      void refetchGoals();
+    }, [refetchGoals])
+  );
+
+  useEffect(() => {
+    const ids = goals.map((g) => g.id);
+    setSelectedGoalId((prev) => {
+      if (prev && ids.includes(prev)) return prev;
+      return defaultSelectedGoalId(ids, hostPreferredId, primaryGoal.data?.id ?? null);
+    });
+  }, [goals, hostPreferredId, primaryGoal.data?.id]);
+
+  const selectedGoal = useMemo(
+    () => goals.find((g) => g.id === selectedGoalId) ?? null,
+    [goals, selectedGoalId]
+  );
+
+  useEffect(() => {
+    if (selectedGoal?.planEndDateKey) {
+      setEndMode((mode) => (mode === 'duration' ? mode : 'goal'));
+    } else {
+      setEndMode('duration');
+    }
+  }, [selectedGoal?.id, selectedGoal?.planEndDateKey]);
+
+  const endYmd = useMemo(
+    () =>
+      resolvePlanEndDateYmd({
+        mode: endMode,
+        startYmd,
+        goalEndYmd: selectedGoal?.planEndDateKey,
+        durationWeeks,
+      }),
+    [endMode, startYmd, selectedGoal?.planEndDateKey, durationWeeks]
+  );
+
+  const endReady = Boolean(endYmd && isPlanSpanValid(startYmd, endYmd));
 
   const toggleDay = (d: number) => {
     hapticLight();
@@ -161,16 +246,26 @@ export function PlanGeneratorPanel({
   };
 
   const canGenerate = useMemo(
-    () => Boolean(goalId) && days.length > 0 && sports.length > 0,
-    [goalId, days.length, sports.length]
+    () =>
+      Boolean(selectedGoalId) && days.length > 0 && sports.length > 0 && endReady,
+    [selectedGoalId, days.length, sports.length, endReady]
   );
 
   const volumeBand =
     volumeHours <= 5 ? 'lighter load' : volumeHours >= 10 ? 'heavier load' : 'balanced load';
 
+  const todayYmd = localDateYmd();
+  const mondayYmd = nextMondayYmd();
+
   const onGenerate = async () => {
-    if (!goalId) {
-      setError('Create a goal first, then return here.');
+    setLastAction('generate');
+    if (!selectedGoalId) {
+      setError('Select a goal first, then generate.');
+      hapticError();
+      return;
+    }
+    if (!endYmd || !isPlanSpanValid(startYmd, endYmd)) {
+      setError('Pick a target date or duration of at least 4 weeks.');
       hapticError();
       return;
     }
@@ -182,11 +277,11 @@ export function PlanGeneratorPanel({
       const hours = clampVolumeHours(volumeHours);
       await saveAvailability(buildAvailabilityDays(days, sports));
 
-      const startDate = new Date();
-      startDate.setUTCHours(12, 0, 0, 0);
+      const startIso = planDateIsoNoon(startYmd);
       const result = await initializePlan({
-        goalId,
-        startDate: startDate.toISOString(),
+        goalId: selectedGoalId,
+        startDate: startIso,
+        endDate: planEndDateIso(endYmd),
         volumeHours: hours,
         volumePreference: volumePreferenceFromHours(hours),
         preferredActivityTypes: sports,
@@ -198,6 +293,8 @@ export function PlanGeneratorPanel({
           : {}),
       });
       setPlanId(result.planId);
+      setActivateStartIso(startIso);
+      setPhases(mapPhaseGlance(result.plan?.blocks));
       const week = await generateFirstWeekPreview(result);
       setPreview(week);
       setPhase('preview');
@@ -214,10 +311,11 @@ export function PlanGeneratorPanel({
 
   const onActivate = async () => {
     if (!planId) return;
+    setLastAction('activate');
     setBusy(true);
     setError(null);
     try {
-      await activatePlan(planId);
+      await activatePlan(planId, activateStartIso ?? undefined);
       hapticSuccess();
       await onActivated(planId);
     } catch (err) {
@@ -228,18 +326,35 @@ export function PlanGeneratorPanel({
     }
   };
 
+  const onRetry = () => {
+    hapticLight();
+    if (lastAction === 'activate') {
+      void onActivate();
+      return;
+    }
+    void onGenerate();
+  };
+
+  const goalsLoading = goalsQuery.isLoading && goals.length === 0;
+
   return (
     <View testID="plan-generator" className="gap-4">
       {error ? (
         <View className="rounded-xl border border-danger/40 bg-tint-error p-3">
-          <Text className="text-sm text-danger">{error}</Text>
+          <Text className="text-sm text-red-400">{error}</Text>
+          {lastAction ? (
+            <AnimatedPressable
+              hitSlop={8}
+              onPress={onRetry}
+              accessibilityRole="button"
+              accessibilityLabel="Retry"
+              className="mt-2 self-start"
+              testID="plan-generator-retry"
+            >
+              <Text className="text-sm font-semibold text-brand">Retry</Text>
+            </AnimatedPressable>
+          ) : null}
         </View>
-      ) : null}
-
-      {!goalId ? (
-        <Text className="text-sm text-text-muted">
-          You need a primary goal before generating a plan. Create one under More → Goals.
-        </Text>
       ) : null}
 
       {phase === 'working' ? (
@@ -251,8 +366,104 @@ export function PlanGeneratorPanel({
         </View>
       ) : null}
 
+      {phase === 'form' && formStep === 'goal' ? (
+        <>
+          <StepMeta step="goal" />
+          <View>
+            <Text className="mb-1 text-base font-semibold text-text-primary">Goal</Text>
+            <Text className="mb-3 text-sm text-text-muted">
+              Which goal should this plan train toward?
+            </Text>
+            {goalsLoading ? (
+              <Skeleton className="h-16 rounded-xl" />
+            ) : goals.length === 0 ? (
+              <View className="gap-3">
+                <Text className="text-sm text-text-muted">
+                  Create a goal with a target date, then return here to generate.
+                </Text>
+                {onCreateGoal ? (
+                  <Button
+                    label="Create goal"
+                    onPress={() => {
+                      hapticLight();
+                      onCreateGoal();
+                    }}
+                    testID="plan-generator-create-goal"
+                  />
+                ) : null}
+              </View>
+            ) : (
+              <View className="gap-2">
+                {goals.map((g) => {
+                  const selected = g.id === selectedGoalId;
+                  return (
+                    <AnimatedPressable
+                      key={g.id}
+                      testID={`plan-generator-goal-${g.id}`}
+                      onPress={() => {
+                        hapticLight();
+                        setSelectedGoalId(g.id);
+                      }}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected }}
+                      className={`rounded-xl border px-3 py-3 ${
+                        selected ? 'border-brand bg-brand/15' : 'border-border bg-card/60'
+                      }`}
+                    >
+                      <Text
+                        className={`text-sm font-semibold ${
+                          selected ? 'text-brand' : 'text-text-primary'
+                        }`}
+                      >
+                        {g.title}
+                      </Text>
+                      <Text className="mt-0.5 text-xs text-text-muted">
+                        {[g.typeLabel, g.targetDateLabel, g.priorityLabel]
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </Text>
+                    </AnimatedPressable>
+                  );
+                })}
+                {onCreateGoal ? (
+                  <AnimatedPressable
+                    hitSlop={8}
+                    onPress={() => {
+                      hapticLight();
+                      onCreateGoal();
+                    }}
+                    accessibilityRole="button"
+                    className="self-start py-1"
+                    testID="plan-generator-create-goal"
+                  >
+                    <Text className="text-sm font-semibold text-brand">Create another goal</Text>
+                  </AnimatedPressable>
+                ) : null}
+              </View>
+            )}
+          </View>
+          <Button
+            label="Continue"
+            onPress={() => {
+              hapticLight();
+              setFormStep('days');
+            }}
+            disabled={!selectedGoalId}
+            testID="plan-generator-continue-days"
+          />
+        </>
+      ) : null}
+
       {phase === 'form' && formStep === 'days' ? (
         <>
+          <BackLink
+            label="Goal"
+            testID="plan-generator-back-goal"
+            onPress={() => {
+              hapticLight();
+              setFormStep('goal');
+            }}
+          />
           <StepMeta step="days" />
           <View>
             <Text className="mb-1 text-base font-semibold text-text-primary">Training days</Text>
@@ -263,6 +474,7 @@ export function PlanGeneratorPanel({
                 return (
                   <AnimatedPressable
                     key={label}
+                    testID={`plan-generator-day-${index}`}
                     onPress={() => toggleDay(index)}
                     hitSlop={8}
                     accessibilityRole="button"
@@ -290,7 +502,7 @@ export function PlanGeneratorPanel({
               setFormStep('volume');
             }}
             disabled={days.length === 0}
-            testID="plan-generator-continue"
+            testID="plan-generator-continue-volume"
           />
         </>
       ) : null}
@@ -298,7 +510,8 @@ export function PlanGeneratorPanel({
       {phase === 'form' && formStep === 'volume' ? (
         <>
           <BackLink
-            label="← Training days"
+            label="Training days"
+            testID="plan-generator-back-days"
             onPress={() => {
               hapticLight();
               setFormStep('days');
@@ -316,6 +529,7 @@ export function PlanGeneratorPanel({
                 return (
                   <AnimatedPressable
                     key={h}
+                    testID={`plan-generator-volume-${h}`}
                     onPress={() => {
                       hapticLight();
                       setVolumeHours(h);
@@ -353,7 +567,8 @@ export function PlanGeneratorPanel({
       {phase === 'form' && formStep === 'sports' ? (
         <>
           <BackLink
-            label="← Weekly volume"
+            label="Weekly volume"
+            testID="plan-generator-back-volume"
             onPress={() => {
               hapticLight();
               setFormStep('volume');
@@ -369,6 +584,7 @@ export function PlanGeneratorPanel({
                 return (
                   <AnimatedPressable
                     key={s.id}
+                    testID={`plan-generator-sport-${s.id}`}
                     onPress={() => toggleSport(s.id)}
                     hitSlop={8}
                     accessibilityRole="button"
@@ -393,10 +609,168 @@ export function PlanGeneratorPanel({
             label="Continue"
             onPress={() => {
               hapticLight();
+              setFormStep('timeline');
+            }}
+            disabled={sports.length === 0}
+            testID="plan-generator-continue-timeline"
+          />
+        </>
+      ) : null}
+
+      {phase === 'form' && formStep === 'timeline' ? (
+        <>
+          <BackLink
+            label="Sports"
+            testID="plan-generator-back-sports"
+            onPress={() => {
+              hapticLight();
+              setFormStep('sports');
+            }}
+          />
+          <StepMeta step="timeline" />
+          <View>
+            <Text className="mb-1 text-base font-semibold text-text-primary">Season timeline</Text>
+            <Text className="mb-3 text-sm text-text-muted">When should this plan start and end?</Text>
+            <Text className="mb-2 text-sm font-medium text-text-muted">Start</Text>
+            <View className="mb-3 flex-row flex-wrap gap-2">
+              {(
+                [
+                  { id: todayYmd, label: 'Today' },
+                  { id: mondayYmd, label: 'Next Monday' },
+                ] as const
+              ).map((opt) => {
+                const selected = startYmd === opt.id;
+                return (
+                  <AnimatedPressable
+                    key={opt.label}
+                    testID={`plan-start-${opt.label === 'Today' ? 'today' : 'monday'}`}
+                    onPress={() => {
+                      hapticLight();
+                      setStartYmd(opt.id);
+                    }}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                    className={`rounded-xl border px-3 py-2 ${
+                      selected ? 'border-brand bg-brand/15' : 'border-border bg-card/60'
+                    }`}
+                  >
+                    <Text
+                      className={`text-sm font-semibold ${
+                        selected ? 'text-brand' : 'text-text-primary'
+                      }`}
+                    >
+                      {opt.label}
+                    </Text>
+                  </AnimatedPressable>
+                );
+              })}
+            </View>
+            <Text className="mb-1 text-xs text-text-muted">
+              Starts {formatDayChipLabel(startYmd)}
+            </Text>
+
+            <Text className="mb-2 mt-3 text-sm font-medium text-text-muted">End</Text>
+            <View className="mb-2 flex-row flex-wrap gap-2">
+              <AnimatedPressable
+                testID="plan-end-mode-goal"
+                onPress={() => {
+                  hapticLight();
+                  setEndMode('goal');
+                }}
+                disabled={!selectedGoal?.planEndDateKey}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityState={{
+                  selected: endMode === 'goal',
+                  disabled: !selectedGoal?.planEndDateKey,
+                }}
+                className={`rounded-xl border px-3 py-2 ${
+                  endMode === 'goal' ? 'border-brand bg-brand/15' : 'border-border bg-card/60'
+                } ${!selectedGoal?.planEndDateKey ? 'opacity-40' : ''}`}
+              >
+                <Text
+                  className={`text-sm font-semibold ${
+                    endMode === 'goal' ? 'text-brand' : 'text-text-primary'
+                  }`}
+                >
+                  From goal
+                </Text>
+              </AnimatedPressable>
+              <AnimatedPressable
+                testID="plan-end-mode-duration"
+                onPress={() => {
+                  hapticLight();
+                  setEndMode('duration');
+                }}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityState={{ selected: endMode === 'duration' }}
+                className={`rounded-xl border px-3 py-2 ${
+                  endMode === 'duration' ? 'border-brand bg-brand/15' : 'border-border bg-card/60'
+                }`}
+              >
+                <Text
+                  className={`text-sm font-semibold ${
+                    endMode === 'duration' ? 'text-brand' : 'text-text-primary'
+                  }`}
+                >
+                  Duration
+                </Text>
+              </AnimatedPressable>
+            </View>
+            {endMode === 'duration' ? (
+              <View className="mb-2 flex-row flex-wrap gap-2">
+                {DURATION_WEEK_CHIPS.map((w) => {
+                  const selected = durationWeeks === w;
+                  return (
+                    <AnimatedPressable
+                      key={w}
+                      testID={`plan-duration-${w}`}
+                      onPress={() => {
+                        hapticLight();
+                        setDurationWeeks(clampDurationWeeks(w));
+                      }}
+                      hitSlop={8}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected }}
+                      className={`rounded-xl border px-3 py-2 ${
+                        selected ? 'border-brand bg-brand/15' : 'border-border bg-card/60'
+                      }`}
+                    >
+                      <Text
+                        className={`text-sm font-semibold ${
+                          selected ? 'text-brand' : 'text-text-primary'
+                        }`}
+                      >
+                        {w} wk
+                      </Text>
+                    </AnimatedPressable>
+                  );
+                })}
+              </View>
+            ) : null}
+            {endYmd && endReady ? (
+              <Text className="text-xs text-text-muted">
+                Ends {formatDayChipLabel(endYmd)}
+                {selectedGoal ? ` · ${selectedGoal.title}` : ''}
+              </Text>
+            ) : (
+              <Text className="text-xs text-danger">
+                {selectedGoal?.planEndDateKey
+                  ? 'Season must be at least 4 weeks. Switch to Duration or pick a later goal.'
+                  : 'This goal has no target date — choose a duration of at least 4 weeks.'}
+              </Text>
+            )}
+          </View>
+          <Button
+            label="Continue"
+            onPress={() => {
+              hapticLight();
               setShowAdvanced(false);
               setFormStep('approach');
             }}
-            disabled={sports.length === 0}
+            disabled={!endReady}
             testID="plan-generator-continue-approach"
           />
         </>
@@ -405,13 +779,15 @@ export function PlanGeneratorPanel({
       {phase === 'form' && formStep === 'approach' ? (
         <>
           <BackLink
-            label="← Sports"
+            label="Season timeline"
+            testID="plan-generator-back-timeline"
             onPress={() => {
               hapticLight();
-              setFormStep('sports');
+              setFormStep('timeline');
             }}
           />
           <StepMeta step="approach" />
+
           <View>
             <Text className="mb-1 text-base font-semibold text-text-primary">Starting point</Text>
             <Text className="mb-3 text-sm text-text-muted">
@@ -492,10 +868,46 @@ export function PlanGeneratorPanel({
 
       {phase === 'preview' ? (
         <View className="gap-3">
-          <Text className="text-base font-semibold text-text-primary">First week preview</Text>
+          <Text className="text-base font-semibold text-text-primary">Review your plan</Text>
           <Text className="text-sm text-text-muted">
-            Review these sessions, then activate. The plan may improve after you connect data.
+            Check the season phases and first week, then activate. The plan may improve after you
+            connect data.
           </Text>
+
+          {phases.length > 0 ? (
+            <View className="gap-2">
+              <Text className="text-sm font-semibold text-text-primary">Season phases</Text>
+              {phases.map((p) => {
+                const accent = blockTypeColor(p.type);
+                return (
+                  <View
+                    key={p.id}
+                    className="rounded-xl border border-border bg-card/70 px-3 py-2.5"
+                    testID={`plan-preview-phase-${p.id}`}
+                  >
+                    <View className="flex-row items-center justify-between gap-2">
+                      <View className="min-w-0 flex-1 flex-row items-center gap-2">
+                        <View
+                          accessibilityLabel={p.type ? `${p.type} phase` : 'Phase'}
+                          style={{ backgroundColor: accent }}
+                          className="h-2.5 w-2.5 rounded-sm"
+                        />
+                        <Text className="flex-1 text-sm font-semibold text-text-primary">
+                          {p.title}
+                        </Text>
+                      </View>
+                      <Text className="text-xs text-text-muted">{p.weeksLabel}</Text>
+                    </View>
+                    {p.rangeLabel ? (
+                      <Text className="mt-0.5 text-xs text-text-muted">{p.rangeLabel}</Text>
+                    ) : null}
+                  </View>
+                );
+              })}
+            </View>
+          ) : null}
+
+          <Text className="text-sm font-semibold text-text-primary">First week</Text>
           {preview.length === 0 ? (
             <Text className="text-sm text-text-muted">
               No sessions in the preview yet. You can still activate and generate weeks on Plan.
@@ -506,11 +918,15 @@ export function PlanGeneratorPanel({
               return (
                 <View
                   key={w.id ?? `${w.title}-${i}`}
+                  testID={`plan-preview-workout-${w.id ?? i}`}
                   className="rounded-xl border border-border bg-card/70 px-3 py-2.5"
                 >
-                  <Text className="text-sm font-semibold text-text-primary">
-                    {w.title || 'Workout'}
-                  </Text>
+                  <View className="flex-row items-center gap-2">
+                    <SportIcon type={w.type} size={14} />
+                    <Text className="flex-1 text-sm font-semibold text-text-primary">
+                      {w.title || 'Workout'}
+                    </Text>
+                  </View>
                   <Text className="mt-0.5 text-xs text-text-muted">
                     {[
                       w.type,
@@ -534,7 +950,9 @@ export function PlanGeneratorPanel({
           <Button
             label="Back to edit"
             variant="secondary"
+            testID="plan-generator-back-edit"
             onPress={() => {
+              hapticLight();
               setPhase('form');
               setFormStep('approach');
             }}

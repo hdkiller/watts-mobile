@@ -12,6 +12,8 @@ export type GoalApi = {
   title: string;
   description?: string | null;
   targetDate?: string | null;
+  /** Non-EVENT goals may carry a standalone event/target date. */
+  eventDate?: string | null;
   status?: string;
   metric?: string | null;
   startValue?: number | null;
@@ -37,6 +39,8 @@ export type GoalGlance = {
   /** Short code for list tile (e.g. PERF). */
   typeShort: string;
   targetDateLabel: string | null;
+  /** Best YYYY-MM-DD for plan end (eventDate → targetDate → first linked event). */
+  planEndDateKey: string | null;
   status: string | null;
   statusLabel: string | null;
   priority: string | null;

@@ -40,6 +40,10 @@ export type PlanInitializeResult = {
     id: string;
     blocks?: {
       id?: string;
+      name?: string | null;
+      type?: string | null;
+      startDate?: string | Date | null;
+      durationWeeks?: number | null;
       weeks?: {
         id?: string;
         workouts?: PlannedWorkoutPreview[];

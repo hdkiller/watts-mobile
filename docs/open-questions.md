@@ -113,5 +113,6 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 2026-07-24 | Athlete activity glance | Rolling 12-week done/planned day circles on Athlete only (Today name / More); lists stay Recent/Upcoming; Today heatmaps / CTL grids / streaks remain non-goals — OpenSpec `athlete-activity-glance` |
 | 2026-07-24 | Athlete glance swipe + nutrition | Horizontal 12-week pages (live = newest); Activity \| Nutrition segment when tracking on; nutrition = logged vs gaps → Log — OpenSpec `athlete-glance-swipe-nutrition` |
 | 2026-07-24 | Planned list includes `structuredWorkout` | `GET /api/planned-workouts` returns full Prisma rows (structure present); OpenAPI schema omits the field. Mobile maps previewable endurance structure onto Upcoming/Coming-up mini charts without N+1 detail fetches — OpenSpec `structured-workout-minichart-parity` |
+| 2026-07-24 | Plan generator wizard parity (lite) | Shared generator: in-flow goal pick, start/end (goal or duration), activate `startDate`, phase glance + first-week preview. **Deferred:** web anchor-workout multi-select (`anchorWorkoutIds`), nested EventGoalWizard, rich availability slots — OpenSpec `plan-generator-wizard-parity` |
 
 When a row above is decided, move it here and update [product-baseline.md](./product-baseline.md) / [implementation-plan.md](./implementation-plan.md) if scope changes.

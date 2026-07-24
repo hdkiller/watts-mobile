@@ -1,9 +1,19 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  addWeeksToYmd,
   buildAvailabilityDays,
+  clampDurationWeeks,
   clampVolumeHours,
+  defaultSelectedGoalId,
+  isPlanSpanValid,
+  mapPhaseGlance,
+  nextMondayYmd,
+  planDateIsoNoon,
+  planEndDateIso,
+  resolvePlanEndDateYmd,
   volumePreferenceFromHours,
+  weeksBetweenYmd,
 } from '../planGeneratorHelpers';
 
 describe('volumePreferenceFromHours', () => {
@@ -36,5 +46,106 @@ describe('buildAvailabilityDays', () => {
       bikeAccess: true,
     });
     expect(days[0]?.afternoon).toBe(true);
+  });
+});
+
+describe('plan calendar helpers', () => {
+  it('builds noon/end ISO from YMD', () => {
+    expect(planDateIsoNoon('2026-07-24')).toBe('2026-07-24T12:00:00.000Z');
+    expect(planEndDateIso('2026-10-15')).toBe('2026-10-15T23:59:59.000Z');
+  });
+
+  it('adds weeks on the local calendar', () => {
+    expect(addWeeksToYmd('2026-07-24', 12)).toBe('2026-10-16');
+  });
+
+  it('resolves end from goal or duration', () => {
+    expect(
+      resolvePlanEndDateYmd({
+        mode: 'goal',
+        startYmd: '2026-07-24',
+        goalEndYmd: '2026-10-15',
+        durationWeeks: 12,
+      })
+    ).toBe('2026-10-15');
+    expect(
+      resolvePlanEndDateYmd({
+        mode: 'goal',
+        startYmd: '2026-07-24',
+        goalEndYmd: null,
+        durationWeeks: 12,
+      })
+    ).toBeNull();
+    expect(
+      resolvePlanEndDateYmd({
+        mode: 'duration',
+        startYmd: '2026-07-24',
+        goalEndYmd: null,
+        durationWeeks: 12,
+      })
+    ).toBe('2026-10-16');
+  });
+
+  it('requires ≥4 weeks span', () => {
+    expect(weeksBetweenYmd('2026-07-24', '2026-08-21')).toBe(4);
+    expect(isPlanSpanValid('2026-07-24', '2026-08-21')).toBe(true);
+    expect(isPlanSpanValid('2026-07-24', '2026-08-01')).toBe(false);
+  });
+
+  it('clamps duration weeks 4–52', () => {
+    expect(clampDurationWeeks(2)).toBe(4);
+    expect(clampDurationWeeks(60)).toBe(52);
+  });
+
+  it('computes next Monday after today', () => {
+    // Friday 2026-07-24 → Monday 2026-07-27
+    expect(nextMondayYmd(new Date(2026, 6, 24))).toBe('2026-07-27');
+    // Monday → next Monday
+    expect(nextMondayYmd(new Date(2026, 6, 27))).toBe('2026-08-03');
+  });
+});
+
+describe('defaultSelectedGoalId', () => {
+  it('auto-selects sole goal; prefers preferred then primary', () => {
+    expect(defaultSelectedGoalId([])).toBeNull();
+    expect(defaultSelectedGoalId(['a'])).toBe('a');
+    expect(defaultSelectedGoalId(['a', 'b'], 'b', 'a')).toBe('b');
+    expect(defaultSelectedGoalId(['a', 'b'], null, 'a')).toBe('a');
+    expect(defaultSelectedGoalId(['a', 'b'])).toBe('a');
+  });
+});
+
+describe('mapPhaseGlance', () => {
+  it('maps initialize blocks for preview', () => {
+    const glances = mapPhaseGlance([
+      {
+        id: 'b1',
+        name: 'Base',
+        type: 'BASE',
+        durationWeeks: 4,
+        startDate: '2026-07-24',
+      },
+      {
+        id: 'b2',
+        type: 'BUILD',
+        weeks: [{ id: 'w1' }, { id: 'w2' }],
+      },
+    ]);
+    expect(glances).toEqual([
+      {
+        id: 'b1',
+        title: 'Base',
+        weeksLabel: '4 wk',
+        rangeLabel: '2026-07-24 → 2026-08-21',
+        type: 'BASE',
+      },
+      {
+        id: 'b2',
+        title: 'BUILD',
+        weeksLabel: '2 wk',
+        rangeLabel: null,
+        type: 'BUILD',
+      },
+    ]);
   });
 });

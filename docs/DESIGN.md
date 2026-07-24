@@ -100,8 +100,10 @@ All in [`src/components/`](../src/components):
 - **`Button`** — the only way to render a full-width action button. Variants: `primary` (brand-action fill, dark label), `secondary` (border-strong outline), `danger` (border-strong fill, red label). Handles loading spinner, disabled dimming (`opacity-50`), press feedback, and accessibility props. Pass margins via `className`.
 - **`AppSymbol`** — cross-platform glyph wrapper (`SF Symbol` on iOS, Material Symbol on Android). Prefer this over raw `SymbolView` + emoji branching. Add new SF→MD pairs in `src/components/AppSymbol.tsx`.
 - **`SportIcon`** — circular sport glyph derived from the workout `type` string. Sizes in use: 18 (detail/hero), 14 (list rows), 13 (Today teasers). Built on `AppSymbol`. Add new sport mappings there, not inline.
-- **`BottomSheet`** — bottom-anchored modal for forms / detail panes (grabber + scrim dismiss). Do not hand-roll `Modal` + top-pinned flex.
+- **`BottomSheet`** — bottom-anchored modal for forms / detail panes (grabber + scrim dismiss). Do not hand-roll `Modal` + top-pinned flex. Use `scroll={false}` when embedding native pickers.
+- **`DateYmdField`** — calendar date control for YYYY-MM-DD values (native `@expo/ui` picker + optional +1/+3/+6 mo chips). Prefer this over typed date strings on create forms.
 - **Sectioned choice menus** (e.g. Plan Adjust with This week + Season) — one `BottomSheet` with eyebrow sections and hairline action rows. Do **not** nest `ActionSheetIOS` / `Alert` menus for multi-group choices.
+- **Plan generator** — thumb-first steps (Goal → Days → Volume → Sports → Timeline → Approach), then working → preview (phase glance with plan-block accents + first week with SportIcon). Prefer chip rows over dense strategy cards; Create goal leaves the generator for the existing goals surface (no nested EventGoalWizard).
 - **`showActionSheet` / `ActionSheetPortal`** — short, single-level choice menus only (≤ ~5 options, one group). Mount `ActionSheetPortal` once at the root. Keep `Alert.alert` for true confirms (destructive / irreversible) only.
 - **`Skeleton` / `ListSkeleton` / `DetailSkeleton`** — loading placeholders. New screens get a skeleton that roughly matches their loaded layout.
 
