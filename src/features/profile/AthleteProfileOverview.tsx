@@ -12,6 +12,7 @@ import { Colors } from '@/src/theme/colors';
 
 import { ActivityGlanceStrip } from './ActivityGlanceStrip';
 import { AthleteReportSheet } from './AthleteReportSheet';
+import { AthleteStatusBadge } from './AthleteStatusBadge';
 import {
   fetchLatestAthleteProfileReport,
   generateAthleteProfile,
@@ -195,10 +196,10 @@ export function AthleteProfileOverview({
               setSheetOpen(true);
             }}
           >
-            {completedReport.fitnessStatusLabel ? (
-              <Text className="mb-2 text-xs font-semibold text-brand">
-                {completedReport.fitnessStatusLabel}
-              </Text>
+            {completedReport.fitnessStatusBadge ? (
+              <View className="mb-2 self-start">
+                <AthleteStatusBadge badge={completedReport.fitnessStatusBadge} />
+              </View>
             ) : (
               <Text className="mb-2 text-xs font-semibold text-text-muted">Latest sync</Text>
             )}
