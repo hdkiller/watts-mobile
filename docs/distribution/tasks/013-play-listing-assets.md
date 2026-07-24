@@ -16,7 +16,7 @@ Fill the main store listing Google requires for testing tracks and production. C
 | Full description | Reuse ASC voice + “not a medical device” disclaimer ([store-privacy-checklist.md](../../store-privacy-checklist.md)) | [ ] |
 | App icon 512×512 | From Coach Watts mark / `assets/images/icon.png` pipeline | [ ] |
 | Feature graphic 1024×500 | Real hero (not a stretched logo); marketing owns design | [ ] |
-| Phone screenshots | From **release / Internal** build; same story arc as Apple ([004](./004-listing-metadata-assets.md)): Today → Log → Coach → More | [ ] |
+| Phone screenshots | From **release / Internal** build; same story arc as Apple ([004](./004-listing-metadata-assets.md)): Today → Log → Coach → More. Capture runbook + masters: `~/Develop/watts-marketing/screenshots/mobile-app/README.md` | [ ] |
 | Contact / support | Align with `support@coachwatts.com` | [ ] |
 
 Skip tablet screenshots for v1 (phone-first; don’t claim tablet support).

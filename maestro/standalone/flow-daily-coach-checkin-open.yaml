@@ -1,0 +1,5 @@
+# Standalone wrapper: fresh auth, then Today → Daily Coach Check-In sheet.
+appId: com.coachwatts.app
+---
+- runFlow: ../subflows/boot-and-login.yaml
+- runFlow: ../scenarios/daily-coach-checkin-open.yaml

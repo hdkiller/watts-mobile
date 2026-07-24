@@ -39,6 +39,7 @@ On version **0.1.1 Prepare for Submission** / App Information:
    - Show the real product loop: Today → Log / check-in → Coach chat → More — no medical/diagnosis claims in overlays.
    - Optional marketing chrome (device frames, short captions) is fine if it still matches the shipped UI.
    - Prefer the same story arc and brand treatment as the Play phone set ([013](./013-play-listing-assets.md)).
+   - **Capture runbook + masters:** `~/Develop/watts-marketing/screenshots/mobile-app/README.md` (raw PNGs in that folder).
 
 ### Optional / later (not blocking first submit)
 

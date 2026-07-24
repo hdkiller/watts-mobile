@@ -92,7 +92,7 @@ Do **not** treat `eas build` / `eas submit` as the default shipping path on eith
 
 Shared work (do once): production OAuth (+ hosted SIWA), privacy copy, Sentry DSN + Android Maps keys in local `.env`, upload keystore in password manager, branded assets, delete-account path.  
 App Review sign-in: prefer **Sign in with Apple**; TestFlight Beta / Play / testers use Google demo `coachwatts.play.review@gmail.com` (password in ASC + Play Console + password manager, not git) — [008](./distribution/tasks/008-reviewer-demo-account.md).  
-**Marketing:** Apple screenshots [004](./distribution/tasks/004-listing-metadata-assets.md) · Play listing pack [013](./distribution/tasks/013-play-listing-assets.md) · optional stellar polish [023](./distribution/tasks/023-store-page-stellar-polish.md).
+**Marketing:** Apple screenshots [004](./distribution/tasks/004-listing-metadata-assets.md) · Play listing pack [013](./distribution/tasks/013-play-listing-assets.md) · optional stellar polish [023](./distribution/tasks/023-store-page-stellar-polish.md). Capture runbook + PNG masters: `~/Develop/watts-marketing/screenshots/mobile-app/README.md`.
 
 ## Hosted subscriptions (RevenueCat)
 

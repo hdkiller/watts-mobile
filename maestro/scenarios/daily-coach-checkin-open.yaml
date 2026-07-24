@@ -1,0 +1,34 @@
+# Today → Daily Coach Check-In sheet (open only) — assumes authenticated session.
+appId: com.coachwatts.app
+---
+- openLink: coachwatts://today
+- extendedWaitUntil:
+    visible: Open
+    timeout: 5000
+    optional: true
+- runFlow:
+    when:
+      visible: Open
+    commands:
+      - tapOn: Open
+- extendedWaitUntil:
+    visible:
+      id: today-screen
+    timeout: 15000
+- runFlow: ../subflows/dismiss-dev-menu.yaml
+- assertVisible:
+    id: daily-checkin
+- tapOn:
+    id: daily-checkin
+- extendedWaitUntil:
+    visible:
+      id: daily-checkin-sheet
+    timeout: 20000
+- assertVisible:
+    id: daily-checkin-cancel
+- tapOn:
+    id: daily-checkin-cancel
+- waitForAnimationToEnd:
+    timeout: 2000
+- assertNotVisible:
+    id: daily-checkin-sheet
