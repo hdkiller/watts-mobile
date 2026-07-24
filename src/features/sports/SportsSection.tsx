@@ -1,12 +1,12 @@
 import { router, type Href } from 'expo-router';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { AppSymbol } from '@/src/components/AppSymbol';
+import { Skeleton } from '@/src/components/Skeleton';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 import { APP_HREFS } from '@/src/linking/appHrefs';
-import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
 import {
@@ -25,8 +25,6 @@ function Chevron() {
 }
 
 export function SportsSection() {
-  const theme = useThemeColors();
-
   const { instanceUrl } = useAuth();
   const { data, isLoading, isError, error, refetch, isRefetching } = useSportProfilesQuery();
 
@@ -36,8 +34,11 @@ export function SportsSection() {
 
   if (isLoading && !data) {
     return (
-      <View className="mt-6 items-center py-8">
-        <ActivityIndicator color={Colors.brand} />
+      <View className="mt-6">
+        <Skeleton className="mb-3 h-3 w-28" />
+        {Array.from({ length: 3 }, (_, i) => (
+          <Skeleton key={i} className="mb-2 h-20 rounded-xl" />
+        ))}
       </View>
     );
   }

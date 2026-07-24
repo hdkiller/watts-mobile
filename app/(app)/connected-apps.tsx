@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack, type Href, router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
@@ -13,6 +14,7 @@ import { SafeAreaView } from 'react-native-screens/experimental';
 import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
 import { AppSymbol } from '@/src/components/AppSymbol';
+import { Skeleton } from '@/src/components/Skeleton';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 import { CONNECTED_APPS_WEB_PATH } from '@/src/features/integrations/providers';
 import { useIntegrationStatus } from '@/src/features/integrations/useIntegrationStatus';
@@ -48,9 +50,9 @@ function actionLabel(state: ProviderRowState): string {
 function StatusDot({ state }: { state: ProviderRowState }) {
   const color =
     state === 'connected'
-      ? 'bg-emerald-400'
+      ? 'bg-success'
       : state === 'error'
-        ? 'bg-amber-400'
+        ? 'bg-modify'
         : 'bg-text-muted';
   return <View className={`mr-1.5 h-1.5 w-1.5 rounded-full ${color}`} />;
 }
@@ -168,8 +170,8 @@ export default function ConnectedAppsLiteScreen() {
             onPress={() => router.push(APP_HREFS.settingsHealth as Href)}
           >
             <View className="flex-row items-center px-4 py-3.5">
-              <View className="mr-3 h-9 w-9 items-center justify-center rounded-full bg-border-strong">
-                <AppSymbol sf="heart" size={18} tintColor={theme.textBody} fallback="❤️" />
+              <View className="mr-3 h-5 w-5 items-center justify-center">
+                <AppSymbol sf="heart" size={18} tintColor={theme.textMuted} fallback="" />
               </View>
               <View className="min-w-0 flex-1">
                 <Text className="text-base font-medium text-text-primary">Health Sync</Text>
@@ -191,9 +193,10 @@ export default function ConnectedAppsLiteScreen() {
           </View>
 
           {isLoading && !rows ? (
-            <View className="mt-2 items-center rounded-xl border border-border bg-card py-10">
-              <ActivityIndicator color={theme.textMuted} />
-              <Text className="mt-3 text-sm text-text-muted">Loading connections…</Text>
+            <View className="mt-2 overflow-hidden rounded-xl border border-border bg-card px-4 py-3">
+              {Array.from({ length: 4 }, (_, i) => (
+                <Skeleton key={i} className={`${i < 3 ? 'mb-3' : ''} h-14 rounded-xl`} />
+              ))}
             </View>
           ) : isError && !rows ? (
             <View className="mt-2 rounded-xl border border-border bg-card px-4 py-5">

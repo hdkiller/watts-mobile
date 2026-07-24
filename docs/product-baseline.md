@@ -73,11 +73,11 @@ Already delivered as the daily athlete loop (former v1 / v1.5):
 1. **Today** — planned workout + AI recommendation (accept / modify / rest), **Analyze Readiness** generate when empty, Daily Coach Check-In, Recent Wellness, Training Load & Form, Monthly Progress, Active Recovery Context, week strip, Upcoming Events glance, Coming up, Recently teaser, nutrition glance when tracking on
 2. **Log** — wellness + recovery events + nutrition quick-log (when tracking enabled)
 3. **Session detail** — planned Complete/Skip; activity AI analysis, adherence, charts, lite route map; fueling prep when on; explorer/GPX → Open web
-4. **Recent + Upcoming** — More lists (not a calendar heatmap)
+4. **Recent + Upcoming** — More lists (detail escape; not a Today heatmap)
 5. **Coach chat** — seeded Q&A, markdown-lite, tool feedback lite, sessions + media
 6. **Notifications** — push + in-app inbox
 7. **Account glue** — instance URL, sign-in, Settings hub (push prefs, Health Sync, units/locale, **Nutrition settings**, coach identity lite, sports thresholds lite, export/delete via Open web), **Open web with Bearer→cookie session handoff**
-8. **Athlete** — More → Athlete metrics + AI report overview (full report Open web)
+8. **Athlete** — More / Today name → Athlete: metrics + AI report overview + **12-week activity glance** (done/planned day circles; full report Open web)
 
 ## Next chapter — Activation onboarding
 
@@ -104,7 +104,7 @@ Priority work that repositions the product. OpenSpec change: `openspec/changes/m
 Still **out** of native mobile (use Open web / handoff):
 
 - Full **plan architect** (PlanDashboard, block/week editor, adaptation wizard, drag-reschedule)
-- Analytics builder / performance explorer / workout comparison / calendar heatmaps
+- Analytics builder / performance explorer / workout comparison / **Today** calendar heatmaps (Athlete’s compact 12-week done/planned glance is in scope — not a CTL/year explorer)
 - Coaching teams / multi-athlete
 - Nutrition planning / grocery (meal-plan generate, grocery lists, day regenerate)
 - Workout library editing
@@ -135,11 +135,11 @@ OpenSpec: `openspec/changes/store-subscriptions-revenuecat`.
 
 Recovery **writes** stay Log-first. Coming up stays planned-only; race/life events via Upcoming Events (list/detail + **lite create** in-app; **edit/delete on web** — OpenSpec `events-lite-create`, needs Bearer `POST /api/events`). Goals after activation: More → Goals list/detail + **lite create** in-app (`goals-lite-create`); **edit/delete + AI suggest/review on web** (activation create remains native). Offline: last cached Today + planned detail with “last updated.” Instance **Open web** uses session handoff when available.
 
-**More hosts:** recent activity, upcoming planned, **Goals**, **Events**, notifications inbox, athlete (biometrics / AI report + primary-goal teaser → Goals hub), Settings hub, account glue.
+**More hosts:** recent activity, upcoming planned, **Goals**, **Events**, notifications inbox, athlete (biometrics / AI report / **activity glance** + primary-goal teaser → Goals hub), Settings hub, account glue, **Invite friends** (hosted/local QR + share link with Athlete A→B referral attribution; coaching `/join/{CODE}` relationships stay web).
 
 **Settings hub:** push prefs · Health Sync · **Connected Apps lite** (status + Connect/Fix/Manage via web handoff; disconnect/sync/ingest editors stay web) · Units & locale · Log defaults · **Nutrition settings** (tracking, metabolic, meal pattern, dietary constraints, fuel calibration, adaptive engine, hydration — web Profile → Nutrition parity) · Instance · Coach identity lite · Sports thresholds lite · **Subscription & Billing** (hosted current plan + Apple/Google purchase/restore/manage; Stripe manage via web) · Export / Delete via Open web. Billing administration, zone editors, and nutrition planning/grocery stay web.
 
-First viewport (once activated) = one decision. No CTL grids or calendar heatmaps.
+First viewport (once activated) = one decision. No CTL grids or calendar heatmaps on Today. Athlete may show a compact rolling 12-week done/planned day-circle glance (not a year contribution graph).
 
 ## Interaction principles
 

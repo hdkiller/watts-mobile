@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { router, Stack, type Href } from 'expo-router';
 import { useMemo } from 'react';
 import {
@@ -96,12 +97,14 @@ export default function UpcomingPlannedScreen() {
         <ListSkeleton />
       ) : isError && !data ? (
         <View className="flex-1 bg-surface px-6 pt-6">
-          <Text className="text-red-400">
-            {friendlyError(error, 'Failed to load upcoming workouts')}
-          </Text>
-          <Pressable className="mt-4" hitSlop={8} onPress={() => void refetch()}>
-            <Text className="text-sm font-medium text-brand">Try again</Text>
-          </Pressable>
+          <View className="rounded-xl border border-danger/40 bg-tint-error p-4">
+            <Text className="text-base text-danger">
+              {friendlyError(error, 'Failed to load upcoming workouts')}
+            </Text>
+            <Pressable className="mt-3" hitSlop={8} onPress={() => void refetch()}>
+              <Text className="text-sm font-semibold text-brand">Retry</Text>
+            </Pressable>
+          </View>
         </View>
       ) : (
         <SectionList

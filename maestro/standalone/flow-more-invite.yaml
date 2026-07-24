@@ -1,0 +1,8 @@
+# Standalone: More → Invite friends (wipe + login).
+# Auth: on (e2e seed). Hosted or localhost instance required for the menu row.
+appId: com.coachwatts.app
+tags:
+  - standalone
+---
+- runFlow: ../subflows/boot-and-login.yaml
+- runFlow: ../scenarios/more-invite.yaml

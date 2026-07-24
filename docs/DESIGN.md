@@ -38,6 +38,8 @@ Wired via CSS variables in `global.css` (`:root` light + `prefers-color-scheme: 
 | brand deep | `#00A155` | `brand-deep` | Chart accent |
 | recovery | `#38bdf8` | `text-recovery` / `bg-recovery` | Rest-day hero accent (sky on dark; not violet) |
 | modify | `#f59e0b` | `text-modify` / `bg-modify` | Modify hero accent |
+| macro calories / carbs / protein / fat | `#fb923c` / `#fbbf24` / `#60a5fa` / `#a78bfa` | `macro-calories` … `macro-fat` | Nutrition bars & explain accents — never raw hex in components |
+| hydration | `#38bdf8` (same as recovery) | `text-hydration` / `bg-hydration` | Fluid / water meters |
 | surface | see table | `bg-surface` | Screen background |
 | ink | `#09090b` | `text-ink` | Text **on** brand green |
 | danger | `#ef4444` | `text-danger` / `text-red-400` | Errors, destructive |
@@ -130,4 +132,4 @@ To avoid keyboards layout overlap or blocking inputs:
 - No white text on brand green.
 - No new one-off button styles — extend `Button` with a variant instead.
 - No full-screen `ActivityIndicator` for initial loads.
-- No CTL grids, calendar heatmaps, or dashboard clones (see [product-baseline.md](./product-baseline.md)).
+- No CTL grids, Today calendar heatmaps, or dashboard clones (see [product-baseline.md](./product-baseline.md)). Athlete’s compact 12-week done/planned day-circle glance is allowed; keep it glance-scale (no streak gamification, no TSS heat legend).

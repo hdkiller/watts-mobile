@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Modal, Pressable, Text, View } from 'react-native';
 
 import { hapticLight } from '@/src/lib/haptics';

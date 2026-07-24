@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
@@ -28,9 +29,9 @@ function TrendBadge({
   const sign = value > 0 ? '↑' : '↓';
   const percent = Math.abs(value);
   const bgClass = isGood
-    ? 'bg-emerald-500/10 border border-emerald-500/20'
-    : 'bg-red-500/10 border border-red-500/20';
-  const textClass = isGood ? 'text-emerald-400' : 'text-red-400';
+    ? 'bg-success/10 border border-success/25'
+    : 'bg-danger/10 border border-danger/25';
+  const textClass = isGood ? 'text-success' : 'text-danger';
 
   return (
     <View className={`rounded-full px-1.5 py-0.5 ${bgClass}`}>
@@ -137,7 +138,7 @@ function LoadCell({
       </Text>
       <Text className="text-[9px] font-normal lowercase text-text-muted">({sublabel})</Text>
       <View className="mt-1 flex-row flex-wrap items-center gap-1.5">
-        <Text className="text-xl font-black text-text-primary">{value}</Text>
+        <Text className="text-xl font-semibold text-text-primary">{value}</Text>
         <TrendBadge value={trend} lowerIsBetter={lowerIsBetter} />
       </View>
     </View>

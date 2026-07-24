@@ -1,7 +1,9 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Redirect, Stack, useSegments, type Href } from 'expo-router';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 
 import { useAuth } from '@/src/auth/AuthContext';
+import { Skeleton, SkeletonScreen } from '@/src/components/Skeleton';
 import { ActivationUnavailable } from '@/src/features/activation/ActivationUnavailable';
 import { activationStepRank } from '@/src/features/activation/mapStatus';
 import {
@@ -9,7 +11,6 @@ import {
   useActivationStatus,
 } from '@/src/features/activation/useActivationStatus';
 import { APP_HREFS } from '@/src/linking/appHrefs';
-import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
 export default function ActivationLayout() {
@@ -30,9 +31,14 @@ export default function ActivationLayout() {
 
   if (activationQuery.isLoading && !activationQuery.data) {
     return (
-      <View className="flex-1 items-center justify-center bg-surface">
-        <ActivityIndicator color={Colors.brand} />
-      </View>
+      <SkeletonScreen>
+        <View className="flex-1 bg-surface px-6 pt-4">
+          <Skeleton className="h-7 w-3/4" />
+          <Skeleton className="mt-3 h-4 w-1/2" />
+          <Skeleton className="mt-8 h-28 rounded-xl" />
+          <Skeleton className="mt-4 h-12 rounded-xl" />
+        </View>
+      </SkeletonScreen>
     );
   }
   if (activationQuery.isError) {

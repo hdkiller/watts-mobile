@@ -221,3 +221,5 @@ Ordered for maximum athlete-facing impact with minimal Workbench-repeat fatigue.
 |------|--------|
 | 2026-07-24 | Catalog created from Expo Router tree + Hallmark stamps + product IA |
 | 2026-07-24 | Systematic `hallmark audit` across Waves A–D + stamped regression → [`hallmark-reviews/`](./hallmark-reviews/README.md) |
+| 2026-07-24 | Patch pass on recommended order (nutrition tokens, Today/Log, subscription, activation skeletons, palette batch) — see [`hallmark-reviews/README.md`](./hallmark-reviews/README.md) § Patch log |
+| 2026-07-24 | Majors pass: +40 stamps, Planned/Activity error chrome, Coach Buttons, quiet More/Settings icons, Settings/Health skeletons |

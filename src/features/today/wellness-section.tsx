@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { router, type Href } from 'expo-router';
 import type { SFSymbol } from 'expo-symbols';
 import { useState } from 'react';
@@ -48,9 +49,9 @@ function TrendBadge({
   const percent = Math.abs(value);
 
   const bgClass = isGood
-    ? 'bg-emerald-500/10 border border-emerald-500/20'
-    : 'bg-red-500/10 border border-red-500/20';
-  const textClass = isGood ? 'text-emerald-400' : 'text-red-400';
+    ? 'bg-success/10 border border-success/25'
+    : 'bg-danger/10 border border-danger/25';
+  const textClass = isGood ? 'text-success' : 'text-danger';
 
   return (
     <View className={`rounded-full px-2 py-0.5 ${bgClass}`}>
@@ -93,7 +94,7 @@ function WellnessTile({
         </Text>
       </View>
       <View className="mt-1 flex-row items-baseline gap-0.5">
-        <Text className="text-xl font-black text-text-primary">{value}</Text>
+        <Text className="text-xl font-semibold text-text-primary">{value}</Text>
         <Text className="text-[10px] font-semibold text-text-muted"> {unit}</Text>
       </View>
       <View className="mt-1.5 min-h-5 flex-row items-center">
@@ -225,7 +226,7 @@ export function WellnessSection({
 
       {recoveryError ? (
         <View className="mt-3 rounded-xl border border-danger/40 bg-tint-error p-3">
-          <Text className="text-sm text-red-300">
+          <Text className="text-sm text-danger">
             {recoveryErrorMessage || 'Couldn’t load recovery events'}
           </Text>
           {onRetryRecovery ? (
@@ -237,28 +238,34 @@ export function WellnessSection({
       ) : null}
 
       {!recoveryError ? (
-        <View className="mt-1 flex-row flex-wrap">
-          {hasRecoveryItems
-            ? recoveryItems!.map((item) => (
-                <Pressable
-                  key={item.id}
-                  className="mr-2 mt-2 rounded-full border border-border-strong bg-card/80 px-3 py-1.5 active:opacity-80"
-                  onPress={() => openRecoveryEvent(item)}
-                >
-                  <Text className="text-xs font-semibold text-text-body">
-                    {item.label}
-                    {item.severity != null ? ` · ${item.severity}/10` : ''}
-                  </Text>
-                </Pressable>
-              ))
-            : null}
+        <View className="mt-3">
+          {hasRecoveryItems ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="View recovery context"
+              className="active:opacity-80"
+              hitSlop={8}
+              onPress={() => openRecoveryEvent(recoveryItems![0])}
+            >
+              <Text className="text-sm text-text-body">
+                {recoveryItems![0]!.label}
+                {recoveryItems![0]!.severity != null
+                  ? ` · ${recoveryItems![0]!.severity}/10`
+                  : ''}
+                {recoveryItems!.length > 1
+                  ? ` · +${recoveryItems!.length - 1} more`
+                  : ''}
+              </Text>
+            </Pressable>
+          ) : null}
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Log recovery event"
-            className="mr-2 mt-2 rounded-full border border-dashed border-border-strong px-3 py-1.5 active:opacity-80"
+            className="mt-1 self-start active:opacity-80"
+            hitSlop={8}
             onPress={() => openRecoveryEvent()}
           >
-            <Text className="text-xs font-semibold text-text-muted">+ Log event</Text>
+            <Text className="text-sm font-semibold text-brand">Log recovery event</Text>
           </Pressable>
         </View>
       ) : null}

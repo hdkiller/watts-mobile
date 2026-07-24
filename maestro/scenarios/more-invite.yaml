@@ -1,0 +1,22 @@
+# Invite friends QR — assumes authenticated session on hosted/local instance.
+appId: com.coachwatts.app
+---
+- runFlow: ../subflows/tap-tab-more.yaml
+- extendedWaitUntil:
+    visible:
+      id: more-invite-friends
+    timeout: 15000
+- tapOn:
+    id: more-invite-friends
+- extendedWaitUntil:
+    visible:
+      id: invite-screen
+    timeout: 20000
+- extendedWaitUntil:
+    visible:
+      id: invite-qr
+    timeout: 20000
+- assertVisible:
+    id: invite-code
+- assertVisible:
+    id: invite-share

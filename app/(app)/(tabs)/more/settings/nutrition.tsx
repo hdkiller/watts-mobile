@@ -1,11 +1,13 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack } from 'expo-router';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { friendlyError } from '@/src/api/errors';
+import { Button } from '@/src/components/Button';
+import { DetailSkeleton } from '@/src/components/Skeleton';
 import { NutritionSettingsForm } from '@/src/features/nutrition/NutritionSettingsForm';
 import { useNutritionSettingsQuery } from '@/src/features/nutrition/useNutritionSettings';
-import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
 export default function NutritionSettingsScreen() {
@@ -25,23 +27,18 @@ export default function NutritionSettingsScreen() {
         style={{ flex: 1, backgroundColor: theme.surface }}
       >
         {isLoading && !data ? (
-          <View className="flex-1 items-center justify-center bg-surface">
-            <ActivityIndicator color={Colors.brand} size="large" />
-          </View>
+          <DetailSkeleton />
         ) : isError && !data ? (
           <View className="flex-1 items-center justify-center bg-surface px-6">
             <Text className="text-center text-base text-text-primary">
               {friendlyError(error, 'Failed to load nutrition settings')}
             </Text>
-            <Pressable
-              accessibilityRole="button"
-              className="mt-4 rounded-xl bg-brand-action px-4 py-3 active:opacity-80"
+            <Button
+              className="mt-4"
+              label={isFetching ? 'Retrying…' : 'Retry'}
+              loading={isFetching}
               onPress={() => void refetch()}
-            >
-              <Text className="text-base font-semibold text-ink">
-                {isFetching ? 'Retrying…' : 'Retry'}
-              </Text>
-            </Pressable>
+            />
           </View>
         ) : data ? (
           <NutritionSettingsForm initial={data} />

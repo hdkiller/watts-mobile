@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
@@ -34,9 +35,9 @@ export function MonthlyProgressGlance() {
   const chart = mapMonthlyChartSeries(query.data, metric, 'cumulative');
   const deltaClass =
     summary.percentDiff > 0
-      ? 'text-emerald-400'
+      ? 'text-success'
       : summary.percentDiff < 0
-        ? 'text-amber-300'
+        ? 'text-modify'
         : 'text-text-muted';
 
   return (
@@ -53,7 +54,7 @@ export function MonthlyProgressGlance() {
             <Text className="text-[10px] font-bold uppercase tracking-wide text-text-muted">
               {query.data.currentMonthName} {monthlyMetricLabel(metric)}
             </Text>
-            <Text className="mt-1 text-xl font-black text-text-primary">
+            <Text className="mt-1 text-xl font-semibold text-text-primary">
               {summary.formattedCurrent}
             </Text>
           </View>
@@ -61,7 +62,7 @@ export function MonthlyProgressGlance() {
             <Text className="text-[10px] font-bold uppercase tracking-wide text-text-muted">
               vs {query.data.lastMonthName}
             </Text>
-            <Text className={`mt-1 text-lg font-black ${deltaClass}`}>
+            <Text className={`mt-1 text-lg font-semibold ${deltaClass}`}>
               {formatDeltaPercent(summary.percentDiff)}
             </Text>
           </View>

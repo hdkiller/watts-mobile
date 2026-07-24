@@ -1,7 +1,7 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
   Pressable,
   ScrollView,
   Text,
@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { friendlyError } from '@/src/api/errors';
 import { Button } from '@/src/components/Button';
+import { DetailSkeleton } from '@/src/components/Skeleton';
 import {
   distanceUnitLabel,
   temperatureUnitLabel,
@@ -24,7 +25,6 @@ import {
 } from '@/src/features/profile/useProfile';
 import type { DistanceUnits, TemperatureUnits, WeightUnits } from '@/src/features/profile/types';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
-import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
 function ChoiceRow<T extends string>({
@@ -130,13 +130,10 @@ export default function UnitsLocaleScreen() {
         style={{ flex: 1, backgroundColor: theme.surface }}
       >
         {isLoading && !data ? (
-          <View className="flex-1 items-center justify-center bg-surface">
-            <ActivityIndicator color={Colors.brand} size="large" />
-            <Text className="mt-3 text-sm text-text-muted">Loading units…</Text>
-          </View>
+          <DetailSkeleton />
         ) : isError && !data ? (
           <View className="flex-1 bg-surface px-6 pt-6">
-            <Text className="text-red-400">
+            <Text className="text-danger">
               {friendlyError(error, 'Failed to load units')}
             </Text>
             <Button className="mt-4" label="Try again" onPress={() => void refetch()} />
@@ -264,9 +261,9 @@ export default function UnitsLocaleScreen() {
               </View>
             </View>
 
-            {formError ? <Text className="mt-4 text-sm text-red-400">{formError}</Text> : null}
+            {formError ? <Text className="mt-4 text-sm text-danger">{formError}</Text> : null}
             {successMessage ? (
-              <Text className="mt-4 text-sm text-emerald-400">{successMessage}</Text>
+              <Text className="mt-4 text-sm text-success">{successMessage}</Text>
             ) : null}
 
             <Button

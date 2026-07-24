@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useEffect, useRef, useState } from 'react';
 import {
   ActionSheetIOS,
@@ -80,15 +81,15 @@ function domainGlyph(domain: ToolDomain): { sf: SFSymbol; emoji: string; tint: s
 function domainAccentBorder(domain: ToolDomain): string {
   switch (domain) {
     case 'nutrition':
-      return 'border-emerald-800/40';
+      return 'border-success/40';
     case 'wellness':
-      return 'border-rose-800/40';
+      return 'border-border';
     case 'planning':
-      return 'border-indigo-800/40';
+      return 'border-border';
     case 'workouts':
-      return 'border-sky-800/40';
+      return 'border-border';
     default:
-      return 'border-border-strong';
+      return 'border-border';
   }
 }
 
@@ -198,32 +199,33 @@ function Bubble({
         return (
           <View
             key={approval.toolCallId}
-            className={`mt-2 rounded-xl border border-amber-700/60 bg-amber-950/40 px-3 py-3 ${domainAccentBorder(domain)}`}
+            className={`mt-2 rounded-xl border border-modify/40 bg-modify/10 px-3 py-3 ${domainAccentBorder(domain)}`}
           >
             <View className="flex-row items-center gap-2">
               <ChatGlyph sf={glyph.sf} emoji={glyph.emoji} size={14} tint={glyph.tint} />
-              <Text className="flex-1 text-sm font-semibold text-amber-100">
+              <Text className="flex-1 text-sm font-semibold text-modify">
                 Approve {humanizeToolName(approval.toolName)}?
               </Text>
             </View>
             {preview ? (
-              <Text className="mt-1 text-xs text-amber-200/80" numberOfLines={1}>
+              <Text className="mt-1 text-xs text-modify/80" numberOfLines={1}>
                 {preview}
               </Text>
             ) : null}
             <View className="mt-3 flex-row gap-2">
-              <Pressable
-                className="rounded-lg bg-brand px-3 py-2 active:opacity-80"
-                onPress={() => onApprove({ approvalId: approval.toolCallId, approved: true })}
-              >
-                <Text className="text-sm font-semibold text-ink">Approve</Text>
-              </Pressable>
-              <Pressable
-                className="rounded-lg border border-border-strong px-3 py-2 active:opacity-80"
-                onPress={() => onApprove({ approvalId: approval.toolCallId, approved: false })}
-              >
-                <Text className="text-sm font-semibold text-text-primary">Deny</Text>
-              </Pressable>
+              <View className="flex-1">
+                <Button
+                  label="Approve"
+                  onPress={() => onApprove({ approvalId: approval.toolCallId, approved: true })}
+                />
+              </View>
+              <View className="flex-1">
+                <Button
+                  label="Deny"
+                  variant="secondary"
+                  onPress={() => onApprove({ approvalId: approval.toolCallId, approved: false })}
+                />
+              </View>
             </View>
           </View>
         );
@@ -461,7 +463,7 @@ export function CoachChat({
       </View>
 
       {chat.notice ? (
-        <Text className="px-5 pt-2 text-sm text-amber-300">{chat.notice}</Text>
+        <Text className="px-5 pt-2 text-sm text-modify">{chat.notice}</Text>
       ) : null}
 
       {chat.isReadOnly ? (

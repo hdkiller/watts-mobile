@@ -273,6 +273,7 @@ function AthleteScreenSkeleton() {
             <Skeleton className="h-4 w-4/5" />
           </View>
         </View>
+        <Skeleton className="mt-5 h-20 w-full rounded-xl" />
         <Skeleton className="mt-5 h-36 rounded-xl" />
         <Skeleton className="mt-6 h-28 rounded-2xl" />
         <Skeleton className="mt-8 h-7 w-40" />

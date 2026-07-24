@@ -1,5 +1,5 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import {
-  ActivityIndicator,
   FlatList,
   Modal,
   Platform,
@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Colors } from '@/src/theme/colors';
+import { Skeleton } from '@/src/components/Skeleton';
 
 import type { ChatRoomSummary } from './types';
 
@@ -84,8 +84,10 @@ export function RoomListSheet({
         </Pressable>
 
         {loading && rooms.length === 0 ? (
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator color={Colors.brand} />
+          <View className="flex-1 px-5 pt-1">
+            {Array.from({ length: 5 }, (_, i) => (
+              <Skeleton key={i} className="mb-3 h-16 rounded-2xl" />
+            ))}
           </View>
         ) : (
           <FlatList

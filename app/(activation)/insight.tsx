@@ -1,10 +1,12 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { friendlyError } from '@/src/api/errors';
 import { Button } from '@/src/components/Button';
+import { Skeleton } from '@/src/components/Skeleton';
 import { trackActivationEvent } from '@/src/features/activation/analytics';
 import { markFirstInsightViewed } from '@/src/features/activation/api';
 import { useAdvanceActivationStatus } from '@/src/features/activation/useActivationStatus';
@@ -60,8 +62,11 @@ export default function ActivationInsightScreen() {
         </Text>
 
         {loading ? (
-          <View className="mt-10 items-center">
-            <ActivityIndicator />
+          <View className="mt-6 gap-2">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-16 rounded-xl" />
+            <Skeleton className="h-16 rounded-xl" />
+            <Skeleton className="h-16 rounded-xl" />
           </View>
         ) : (
           <View className="mt-6 gap-2">

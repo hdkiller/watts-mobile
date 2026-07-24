@@ -37,6 +37,10 @@ _None._
 
 0 critical · 0 major · 0 minor
 
+## Related
+
+Activity glance add-on (2026-07-24): [athlete-activity-glance.md](./athlete-activity-glance.md).
+
 ## What works
 
 Layout-matching skeleton; asymmetric `HrMetrics` (breaks equal three-tile); ScoreChips; restrained AI summary → sheet; GoalsLiteSection teaser; metrics collapsed by default (one decision per fold); Profile Settings / full report web handoffs; haptics + `Button` for save.

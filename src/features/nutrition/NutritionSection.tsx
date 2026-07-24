@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
@@ -16,6 +17,7 @@ import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
+import { NutritionAccents } from '@/src/theme/nutritionAccents';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
 import { NutritionMacroExplainSheet } from './NutritionMacroExplainSheet';
@@ -342,7 +344,7 @@ export function NutritionSection() {
                       </Text>
                       <AppSymbol sf="flame" size={14} tintColor={Colors.modify} fallback="🔥" />
                     </View>
-                    <Text className="mt-2 text-2xl font-black text-text-primary">
+                    <Text className="mt-2 text-2xl font-semibold text-text-primary">
                       {today.calories}
                       <Text className="text-xs font-semibold text-text-muted">
                         {today.caloriesGoal != null ? ` / ${today.caloriesGoal} kcal` : ' kcal'}
@@ -361,7 +363,7 @@ export function NutritionSection() {
                       </Text>
                       <AppSymbol sf="flame" size={14} tintColor={Colors.modify} fallback="🔥" />
                     </View>
-                    <Text className="mt-2 text-2xl font-black text-text-primary">
+                    <Text className="mt-2 text-2xl font-semibold text-text-primary">
                       {today.calories}
                       <Text className="text-xs font-semibold text-text-muted"> kcal</Text>
                     </Text>
@@ -374,9 +376,9 @@ export function NutritionSection() {
                     <Text className="text-[10px] font-bold uppercase tracking-wide text-text-muted">
                       Hydration
                     </Text>
-                    <AppSymbol sf="drop.fill" size={14} tintColor="#60a5fa" fallback="💧" />
+                    <AppSymbol sf="drop.fill" size={14} tintColor={NutritionAccents.hydration} fallback="ml" />
                   </View>
-                  <Text className="mt-2 text-2xl font-black text-text-primary">
+                  <Text className="mt-2 text-2xl font-semibold text-text-primary">
                     {(today.waterMl / 1000).toFixed(1)}
                     <Text className="text-xs font-semibold text-text-muted">
                       {today.fluidGoalMl != null
@@ -386,7 +388,7 @@ export function NutritionSection() {
                   </Text>
                   <GoalBar
                     pct={goalProgressPct(today.waterMl, today.fluidGoalMl)}
-                    barClassName="bg-blue-400"
+                    barClassName="bg-hydration"
                   />
                 </View>
               </View>
@@ -398,8 +400,8 @@ export function NutritionSection() {
                   value={today.carbs}
                   goal={today.carbsGoal}
                   unit="g"
-                  accentClassName="text-amber-400"
-                  barClassName="bg-amber-400"
+                  accentClassName="text-macro-carbs"
+                  barClassName="bg-macro-carbs"
                   onPress={
                     canExplainMetric(today, 'Carbs') ? () => openExplain('Carbs') : undefined
                   }
@@ -409,8 +411,8 @@ export function NutritionSection() {
                   value={today.protein}
                   goal={today.proteinGoal}
                   unit="g"
-                  accentClassName="text-blue-400"
-                  barClassName="bg-blue-400"
+                  accentClassName="text-macro-protein"
+                  barClassName="bg-macro-protein"
                   onPress={
                     canExplainMetric(today, 'Protein')
                       ? () => openExplain('Protein')
@@ -422,8 +424,8 @@ export function NutritionSection() {
                   value={today.fat}
                   goal={today.fatGoal}
                   unit="g"
-                  accentClassName="text-violet-400"
-                  barClassName="bg-violet-400"
+                  accentClassName="text-macro-fat"
+                  barClassName="bg-macro-fat"
                   onPress={canExplainMetric(today, 'Fat') ? () => openExplain('Fat') : undefined}
                 />
               </View>

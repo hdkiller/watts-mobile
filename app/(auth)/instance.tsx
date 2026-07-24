@@ -1,7 +1,7 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
-import { Colors } from '@/src/theme/colors';
+import { Button } from '@/src/components/Button';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
 export default function InstanceScreen() {
@@ -63,19 +63,14 @@ export default function InstanceScreen() {
           editable={!busy}
         />
 
-        {message ? <Text className="mt-3 text-sm text-red-400">{message}</Text> : null}
+        {message ? <Text className="mt-3 text-sm text-danger">{message}</Text> : null}
 
-        <Pressable
-          className="mt-6 items-center rounded-xl bg-brand-action py-3.5 active:opacity-80"
+        <Button
+          className="mt-6"
+          label="Continue"
+          loading={busy}
           onPress={() => void onContinue()}
-          disabled={busy}
-        >
-          {busy ? (
-            <ActivityIndicator color={Colors.ink} />
-          ) : (
-            <Text className="text-base font-semibold text-ink">Continue</Text>
-          )}
-        </Pressable>
+        />
 
         <Pressable
           className="mt-3 items-center py-3 active:opacity-80"

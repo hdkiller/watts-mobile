@@ -1,7 +1,7 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack, type Href, router } from 'expo-router';
 import { useMemo } from 'react';
 import {
-  ActivityIndicator,
   FlatList,
   Platform,
   Pressable,
@@ -12,6 +12,7 @@ import {
 
 import { friendlyError } from '@/src/api/errors';
 import { AppSymbol } from '@/src/components/AppSymbol';
+import { ListSkeleton } from '@/src/components/Skeleton';
 import {
   formatNotificationTime,
   markNotificationRepeats,
@@ -146,17 +147,17 @@ export default function NotificationsScreen() {
         }}
       />
       {isLoading && !data ? (
-        <View className="flex-1 items-center justify-center bg-surface">
-          <ActivityIndicator color={Colors.brand} size="large" />
-        </View>
+        <ListSkeleton />
       ) : isError ? (
         <View className="flex-1 bg-surface px-6 pt-6">
-          <Text className="text-red-400">
-            {friendlyError(error, 'Failed to load notifications')}
-          </Text>
-          <Pressable className="mt-4" hitSlop={8} onPress={() => void refetch()}>
-            <Text className="text-sm font-medium text-brand">Try again</Text>
-          </Pressable>
+          <View className="rounded-xl border border-danger/40 bg-tint-error p-4">
+            <Text className="text-base text-danger">
+              {friendlyError(error, 'Failed to load notifications')}
+            </Text>
+            <Pressable className="mt-3" hitSlop={8} onPress={() => void refetch()}>
+              <Text className="text-sm font-semibold text-brand">Retry</Text>
+            </Pressable>
+          </View>
         </View>
       ) : (
         <FlatList

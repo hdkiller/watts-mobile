@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import { Button } from '@/src/components/Button';
@@ -20,7 +21,7 @@ const shellByState: Record<AnalyzeReadinessState, string> = {
   idle: 'py-1',
   generating: 'rounded-2xl border border-border bg-card/80 p-5',
   error: 'rounded-2xl border border-danger/40 bg-tint-error p-5',
-  quota: 'rounded-2xl border border-amber-900/40 bg-amber-950/25 p-5',
+  quota: 'rounded-2xl border border-modify/40 bg-modify/10 p-5',
 };
 
 export function AnalyzeReadinessPanel({

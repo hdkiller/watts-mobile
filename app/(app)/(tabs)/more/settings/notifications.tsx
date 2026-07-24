@@ -1,7 +1,7 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack, type Href, router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   AppState,
   Linking,
   Platform,
@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-screens/experimental';
 import { friendlyError } from '@/src/api/errors';
 import { Button } from '@/src/components/Button';
 import { AppSymbol } from '@/src/components/AppSymbol';
+import { DetailSkeleton } from '@/src/components/Skeleton';
 import {
   useNotificationPreferencesQuery,
   useUpdateNotificationPreferences,
@@ -147,13 +148,10 @@ export default function NotificationSettingsScreen() {
         style={{ flex: 1, backgroundColor: theme.surface }}
       >
         {isLoading ? (
-          <View className="flex-1 items-center justify-center bg-surface">
-            <ActivityIndicator color={Colors.brand} size="large" />
-            <Text className="mt-3 text-sm text-text-muted">Loading preferences…</Text>
-          </View>
+          <DetailSkeleton />
         ) : isError ? (
           <View className="flex-1 bg-surface px-6 pt-6">
-            <Text className="text-red-400">
+            <Text className="text-danger">
               {friendlyError(error, 'Failed to load preferences')}
             </Text>
             <Button className="mt-4" label="Try again" onPress={() => void refetch()} />
@@ -170,10 +168,10 @@ export default function NotificationSettingsScreen() {
             </Text>
 
             {osPermission === 'denied' ? (
-              <View className="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+              <View className="mt-6 rounded-xl border border-modify/40 bg-modify/10 p-4">
                 <View className="flex-row items-center gap-2">
-                  <AppSymbol sf="exclamationmark.triangle" size={18} tintColor="#f59e0b" fallback="⚠️" />
-                  <Text className="text-sm font-semibold text-amber-400">Notifications disabled in device settings</Text>
+                  <AppSymbol sf="exclamationmark.triangle" size={18} tintColor={Colors.modify} fallback="⚠️" />
+                  <Text className="text-sm font-semibold text-modify">Notifications disabled in device settings</Text>
                 </View>
                 <Text className="mt-1.5 text-xs leading-4.5 text-text-muted">
                   System notifications are currently turned off for Coach Watts. Enable notifications in your phone settings to receive coaching alerts.
@@ -182,7 +180,7 @@ export default function NotificationSettingsScreen() {
                   className="mt-3 self-start active:opacity-75"
                   onPress={() => void Linking.openSettings()}
                 >
-                  <Text className="text-xs font-semibold text-amber-400">Open Device Settings ›</Text>
+                  <Text className="text-xs font-semibold text-modify">Open Device Settings ›</Text>
                 </Pressable>
               </View>
             ) : null}
@@ -212,7 +210,7 @@ export default function NotificationSettingsScreen() {
             </View>
 
             {updateMutation.isError ? (
-              <Text className="mt-4 text-center text-sm text-red-400">
+              <Text className="mt-4 text-center text-sm text-danger">
                 Failed to save changes. Please try again.
               </Text>
             ) : null}

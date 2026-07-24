@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { router, Stack, type Href } from 'expo-router';
 import { useMemo } from 'react';
 import {
@@ -33,11 +34,11 @@ import { Colors } from '@/src/theme/colors';
 function statusColor(kind: ActivityListItem['status']['kind']): string {
   switch (kind) {
     case 'ready':
-      return 'text-emerald-400';
+      return 'text-success';
     case 'processing':
-      return 'text-amber-300';
+      return 'text-modify';
     case 'failed':
-      return 'text-red-400';
+      return 'text-danger';
     default:
       return 'text-text-muted';
   }
@@ -109,12 +110,14 @@ export default function RecentActivityScreen() {
         <ListSkeleton />
       ) : isError && !data ? (
         <View className="flex-1 bg-surface px-6 pt-6">
-          <Text className="text-red-400">
-            {friendlyError(error, 'Failed to load recent activity')}
-          </Text>
-          <Pressable className="mt-4" hitSlop={8} onPress={() => void refetch()}>
-            <Text className="text-sm font-medium text-brand">Try again</Text>
-          </Pressable>
+          <View className="rounded-xl border border-danger/40 bg-tint-error p-4">
+            <Text className="text-base text-danger">
+              {friendlyError(error, 'Failed to load recent activity')}
+            </Text>
+            <Pressable className="mt-3" hitSlop={8} onPress={() => void refetch()}>
+              <Text className="text-sm font-semibold text-brand">Retry</Text>
+            </Pressable>
+          </View>
         </View>
       ) : (
         <FlatList

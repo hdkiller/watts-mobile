@@ -1,12 +1,15 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { router, type Href } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { AppSymbol } from '@/src/components/AppSymbol';
+import { Skeleton } from '@/src/components/Skeleton';
 import { isNutritionTrackingEnabled } from '@/src/features/profile/mapProfile';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { hapticLight } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
+import { NutritionAccents } from '@/src/theme/nutritionAccents';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
 import { NutritionMacroExplainSheet } from './NutritionMacroExplainSheet';
@@ -115,13 +118,21 @@ export function NutritionGlance() {
         <Text className="text-xs font-semibold uppercase tracking-widest text-text-muted">
           Nutrition
         </Text>
-        <Pressable className="py-1 active:opacity-70" onPress={openMealLogSheet}>
+        <Pressable hitSlop={8} className="py-1 active:opacity-70" onPress={openMealLogSheet}>
           <Text className="text-sm font-semibold text-brand">Log meal</Text>
         </Pressable>
       </View>
 
       {isLoading && !today ? (
-        <ActivityIndicator className="mt-3" color={Colors.brand} />
+        <View className="mt-3 rounded-2xl border border-border bg-card/60 p-4">
+          <Skeleton className="h-7 w-40" />
+          <Skeleton className="mt-3 h-1.5 w-full rounded-full" />
+          <View className="mt-4 flex-row gap-3">
+            <Skeleton className="h-12 flex-1" />
+            <Skeleton className="h-12 flex-1" />
+            <Skeleton className="h-12 flex-1" />
+          </View>
+        </View>
       ) : (
         <View className="mt-3 rounded-2xl border border-border bg-card/60 p-4">
           {!today || (today.isEmpty && !hasGoals) ? (
@@ -174,28 +185,28 @@ export function NutritionGlance() {
                   label="Carbs"
                   value={today.carbs}
                   goal={today.carbsGoal}
-                  color="#fbbf24"
+                  color={NutritionAccents.carbs}
                   onPress={canExplainMetric(today, 'Carbs') ? () => openExplain('Carbs') : undefined}
                 />
                 <MacroColumn
                   label="Protein"
                   value={today.protein}
                   goal={today.proteinGoal}
-                  color="#60a5fa"
+                  color={NutritionAccents.protein}
                   onPress={canExplainMetric(today, 'Protein') ? () => openExplain('Protein') : undefined}
                 />
                 <MacroColumn
                   label="Fat"
                   value={today.fat}
                   goal={today.fatGoal}
-                  color="#a78bfa"
+                  color={NutritionAccents.fat}
                   onPress={canExplainMetric(today, 'Fat') ? () => openExplain('Fat') : undefined}
                 />
               </View>
 
               {/* Hydration Row */}
               <View className="mt-3.5 flex-row items-center gap-2">
-                <AppSymbol sf="drop.fill" size={13} tintColor="#60a5fa" fallback="💧" />
+                <AppSymbol sf="drop.fill" size={13} tintColor={NutritionAccents.hydration} fallback="ml" />
                 <Text className="text-sm font-semibold text-text-primary">
                   {today.waterMl}
                   <Text className="text-sm font-normal text-text-muted">
@@ -205,7 +216,7 @@ export function NutritionGlance() {
                 <View className="flex-1">
                   <GoalBar
                     pct={goalProgressPct(today.waterMl, today.fluidGoalMl)}
-                    color="#60a5fa"
+                    color={NutritionAccents.hydration}
                   />
                 </View>
               </View>

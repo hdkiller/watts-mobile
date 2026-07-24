@@ -274,3 +274,8 @@ export type FuelingPrepGlance = {
 export const RECENT_ACTIVITY_LIMIT = 10;
 export const UPCOMING_PLANNED_LIMIT = 20;
 export const UPCOMING_WINDOW_DAYS = 14;
+
+/** Athlete activity glance — wider than Today list defaults. */
+export const ACTIVITY_GLANCE_WORKOUT_PAGE_SIZE = 50;
+export const ACTIVITY_GLANCE_WORKOUT_MAX_PAGES = 4;
+export const ACTIVITY_GLANCE_PLANNED_LIMIT = 100;

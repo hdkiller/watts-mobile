@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { MeasurementsSection } from '@/src/features/measurements/MeasurementsSection';

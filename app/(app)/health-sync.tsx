@@ -1,7 +1,7 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack, type Href, router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   AppState,
   Platform,
   Pressable,
@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { Button } from '@/src/components/Button';
 import { AppSymbol } from '@/src/components/AppSymbol';
+import { DetailSkeleton } from '@/src/components/Skeleton';
 import {
   disconnectHealth,
   getHealthAuthStatus,
@@ -36,20 +37,20 @@ function StatusBadge({ status }: { status: string }) {
   let dotBg = 'bg-text-muted';
 
   if (status === 'connected' || status === 'unnecessary') {
-    bg = 'bg-emerald-500/10 border border-emerald-500/25';
-    text = 'text-emerald-400';
+    bg = 'bg-success/10 border border-success/25';
+    text = 'text-success';
     label = 'Connected';
-    dotBg = 'bg-emerald-400';
+    dotBg = 'bg-success';
   } else if (status === 'partially_connected') {
-    bg = 'bg-amber-500/10 border border-amber-500/25';
-    text = 'text-amber-400';
+    bg = 'bg-modify/10 border border-modify/40';
+    text = 'text-modify';
     label = 'Partially connected';
-    dotBg = 'bg-amber-400';
+    dotBg = 'bg-modify';
   } else if (status === 'not_available') {
-    bg = 'bg-red-500/10 border border-red-500/25';
-    text = 'text-red-400';
+    bg = 'bg-danger/10 border border-danger/25';
+    text = 'text-danger';
     label = 'Not available';
-    dotBg = 'bg-red-500';
+    dotBg = 'bg-danger';
   }
 
   return (
@@ -67,16 +68,16 @@ function PermissionRow({ title, granted }: { title: string; granted: boolean }) 
       <View className="flex-row items-center">
         <View
           className={`h-4.5 w-4.5 items-center justify-center rounded-full mr-2 ${
-            granted ? 'bg-emerald-500/15' : 'bg-border-strong'
+            granted ? 'bg-success/15' : 'bg-border-strong'
           }`}
         >
           {granted ? (
-            <Text className="text-xs text-emerald-400 font-bold">✓</Text>
+            <Text className="text-xs text-success font-bold">✓</Text>
           ) : (
             <Text className="text-xs text-text-muted font-bold">×</Text>
           )}
         </View>
-        <Text className={`text-sm font-medium ${granted ? 'text-emerald-400' : 'text-text-muted'}`}>
+        <Text className={`text-sm font-medium ${granted ? 'text-success' : 'text-text-muted'}`}>
           {granted ? 'Granted' : 'Denied'}
         </Text>
       </View>
@@ -250,10 +251,7 @@ export default function HealthSyncSettingsScreen() {
       />
       <SafeAreaView edges={{ bottom: true }} style={{ flex: 1, backgroundColor: theme.surface }}>
         {loading ? (
-          <View className="flex-1 items-center justify-center bg-surface">
-            <ActivityIndicator color={Colors.brand} size="large" />
-            <Text className="mt-3 text-sm text-text-muted">Reading status…</Text>
-          </View>
+          <DetailSkeleton />
         ) : (
           <ScrollView className="flex-1 bg-surface" contentContainerClassName="px-6 pb-12 pt-4">
             <Text className="text-sm text-text-muted leading-5">
@@ -264,12 +262,12 @@ export default function HealthSyncSettingsScreen() {
             <View className="mt-6 rounded-xl border border-border bg-card/60 p-5">
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center">
-                  <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-border-strong">
+                  <View className="mr-3 h-5 w-5 items-center justify-center">
                     <AppSymbol
                       sf="heart.text.square.fill"
-                      size={20}
-                      tintColor="#ef4444"
-                      fallback="❤️"
+                      size={18}
+                      tintColor={theme.textMuted}
+                      fallback=""
                     />
                   </View>
                   <View>
@@ -360,7 +358,7 @@ export default function HealthSyncSettingsScreen() {
                       />
 
                       {authStatus.status === 'partially_connected' ? (
-                        <Text className="mt-3 text-xs text-amber-400 leading-4.5">
+                        <Text className="mt-3 text-xs text-modify leading-4.5">
                           Some required permissions are missing. Grant them again below, or manage
                           access in Health Connect.
                         </Text>
@@ -459,7 +457,7 @@ export default function HealthSyncSettingsScreen() {
                     variant="secondary"
                   />
                   {noDataFound && (
-                    <Text className="text-xs text-amber-400 leading-4.5">
+                    <Text className="text-xs text-modify leading-4.5">
                       {isIOS
                         ? 'No Health data was found on this device. If you granted access recently, open Health → Profile → Apps → Coach Watts and check that read access is on.'
                         : 'No Health Connect data was found on this device. Check that your fitness apps write to Health Connect and that Coach Watts has read access.'}

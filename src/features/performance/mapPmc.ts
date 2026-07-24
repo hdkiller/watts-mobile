@@ -24,15 +24,15 @@ function dateKey(raw: unknown): string | null {
 export function formStatusTextClass(color: string): string {
   switch (color) {
     case 'green':
-      return 'text-emerald-400';
+      return 'text-success';
     case 'yellow':
       return 'text-text-muted';
     case 'blue':
-      return 'text-sky-400';
+      return 'text-recovery';
     case 'orange':
-      return 'text-orange-400';
+      return 'text-modify';
     case 'red':
-      return 'text-red-400';
+      return 'text-danger';
     default:
       return 'text-text-muted';
   }

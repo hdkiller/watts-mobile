@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Link } from 'expo-router';
 import { type ReactNode, useEffect, useState } from 'react';
 import { Image, Linking, Pressable, Text, View } from 'react-native';

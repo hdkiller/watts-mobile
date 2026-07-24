@@ -1,6 +1,6 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useState } from 'react';
 import {
-  ActivityIndicator,
   Modal,
   Pressable,
   ScrollView,
@@ -10,8 +10,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
+import { Skeleton } from '@/src/components/Skeleton';
 import { LineSeriesChart } from '@/src/features/activity/charts/LineSeriesChart';
-import { Colors } from '@/src/theme/colors';
 
 import {
   formStatusTextClass,
@@ -86,8 +86,14 @@ export function TrainingLoadSheet({
           </View>
 
           {query.isLoading && !query.data ? (
-            <View className="mt-16 items-center">
-              <ActivityIndicator color={Colors.brand} />
+            <View className="mt-5">
+              <View className="flex-row flex-wrap justify-between gap-y-3">
+                <Skeleton className="h-20 w-[48%] rounded-xl" />
+                <Skeleton className="h-20 w-[48%] rounded-xl" />
+                <Skeleton className="h-20 w-[48%] rounded-xl" />
+                <Skeleton className="h-20 w-[48%] rounded-xl" />
+              </View>
+              <Skeleton className="mt-6 h-48 rounded-xl" />
             </View>
           ) : query.isError ? (
             <View className="mt-8">
@@ -167,7 +173,7 @@ function SummaryCard({
         {label}
       </Text>
       <View className="mt-2 flex-row items-baseline gap-1">
-        <Text className="text-xl font-black text-text-primary">{value}</Text>
+        <Text className="text-xl font-semibold text-text-primary">{value}</Text>
         {unit ? <Text className="text-[10px] font-semibold text-text-muted">{unit}</Text> : null}
       </View>
     </View>

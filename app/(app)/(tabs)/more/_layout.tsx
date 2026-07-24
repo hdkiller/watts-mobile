@@ -25,6 +25,7 @@ export default function MoreStackLayout() {
         name="notifications"
         options={{ headerShown: true, title: 'Notifications' }}
       />
+      <Stack.Screen name="invite" options={{ headerShown: false }} />
       <Stack.Screen name="settings" options={{ headerShown: false }} />
     </Stack>
   );

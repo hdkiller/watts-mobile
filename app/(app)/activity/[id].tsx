@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack, useLocalSearchParams, router, type Href } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
@@ -280,7 +281,7 @@ function DescriptionBlock({ text }: { text: string }) {
 export default function ActivitySummaryScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { instanceUrl } = useAuth();
-  const { data, isLoading, isError, error, dataUpdatedAt } = useActivitySummaryQuery(id);
+  const { data, isLoading, isError, error, dataUpdatedAt, refetch } = useActivitySummaryQuery(id);
   const streams = useActivityStreamsQuery(id);
   const analyzeMutation = useRequestWorkoutAnalysis(id);
   const { showCachedOffline, lastUpdatedLabel } = useOfflineCached({
@@ -334,9 +335,14 @@ export default function ActivitySummaryScreen() {
         <DetailSkeleton />
       ) : isError && !data ? (
         <View className="flex-1 bg-surface px-6 pt-6">
-          <Text className="text-red-400">
-            {friendlyError(error, 'Failed to load activity')}
-          </Text>
+          <View className="rounded-xl border border-danger/40 bg-tint-error p-4">
+            <Text className="text-base text-danger">
+              {friendlyError(error, 'Failed to load activity')}
+            </Text>
+            <Pressable className="mt-3" hitSlop={8} onPress={() => void refetch()}>
+              <Text className="text-sm font-semibold text-brand">Retry</Text>
+            </Pressable>
+          </View>
         </View>
       ) : data ? (
         <ScrollView className="flex-1 bg-surface" contentContainerClassName="px-6 pb-10 pt-4">

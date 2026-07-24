@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { NutritionSection } from '@/src/features/nutrition/NutritionSection';
@@ -29,7 +30,7 @@ export function NutritionDetailSheet({ visible, onClose }: NutritionDetailSheetP
           {/* Header */}
           <View className="flex-row items-center justify-between mb-2">
             <View>
-              <Text className="text-xl font-bold text-text-primary">Nutrition & Hydration</Text>
+              <Text className="text-lg font-semibold text-text-primary">Nutrition & Hydration</Text>
               <Text className="text-xs text-text-muted">Daily macro breakdown and targets</Text>
             </View>
             <Pressable hitSlop={8} onPress={onClose} className="p-1 active:opacity-70">

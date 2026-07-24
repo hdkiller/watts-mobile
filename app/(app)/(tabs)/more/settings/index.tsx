@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { router, type Href, Stack } from 'expo-router';
 import type { SFSymbol } from 'expo-symbols';
 import { useState, useEffect, type ReactNode } from 'react';
@@ -23,11 +24,11 @@ import { connectedAppsHubDetail } from '@/src/features/integrations/mapCatalog';
 import { useIntegrationStatus } from '@/src/features/integrations/useIntegrationStatus';
 import { APP_HREFS } from '@/src/linking/appHrefs';
 
-function RowIcon({ sf, emoji }: { sf: SFSymbol; emoji: string }) {
+function RowIcon({ sf }: { sf: SFSymbol }) {
   const theme = useThemeColors();
   return (
-    <View className="mr-3 h-9 w-9 items-center justify-center rounded-full bg-border-strong">
-      <AppSymbol sf={sf} size={18} tintColor={theme.textBody} fallback={emoji} />
+    <View className="mr-3 h-5 w-5 items-center justify-center">
+      <AppSymbol sf={sf} size={18} tintColor={theme.textMuted} fallback="" />
     </View>
   );
 }
@@ -54,7 +55,6 @@ function MenuRow({
   title,
   detail,
   sf,
-  emoji,
   onPress,
   showChevron = true,
   isLast = false,
@@ -63,7 +63,6 @@ function MenuRow({
   title: string;
   detail?: string;
   sf: SFSymbol;
-  emoji: string;
   onPress?: () => void;
   showChevron?: boolean;
   isLast?: boolean;
@@ -75,7 +74,7 @@ function MenuRow({
         isLast ? '' : 'border-b border-border/80'
       }`}
     >
-      <RowIcon sf={sf} emoji={emoji} />
+      <RowIcon sf={sf} />
       <View className="min-w-0 flex-1">
         <Text className="text-base font-medium text-text-primary">{title}</Text>
         {detail ? (
@@ -226,14 +225,12 @@ export default function SettingsScreen() {
               title="Health Sync"
               detail={healthStatus}
               sf="heart"
-              emoji="❤️"
               onPress={() => router.push(APP_HREFS.settingsHealth as Href)}
             />
             <MenuRow
               title="Connected Apps"
               detail={connectedAppsDetail}
               sf="link.circle"
-              emoji="🔌"
               onPress={() => router.push(APP_HREFS.settingsConnectedApps as Href)}
               isLast
             />
@@ -244,34 +241,29 @@ export default function SettingsScreen() {
               title="Appearance"
               detail={themePreferenceLabel(themePreference)}
               sf="circle.lefthalf.filled"
-              emoji="🌓"
               onPress={() => router.push('/(app)/(tabs)/more/settings/appearance' as Href)}
             />
             <MenuRow
               title="Notification preferences"
               detail="Push & email alerts"
               sf="bell"
-              emoji="🔔"
               onPress={() => router.push('/(app)/(tabs)/more/settings/notifications' as Href)}
             />
             <MenuRow
               title="Units & locale"
               sf="ruler"
-              emoji="📏"
               onPress={() => router.push('/(app)/(tabs)/more/settings/units' as Href)}
             />
             <MenuRow
               title="Log defaults"
               detail={logTabPreferenceLabel(logTabPreference, nutritionEnabled)}
               sf="list.bullet.rectangle"
-              emoji="📋"
               onPress={() => router.push(APP_HREFS.settingsLog as Href)}
             />
             <MenuRow
               title="Nutrition"
               detail={nutritionEnabled ? 'Tracking on' : 'Tracking off'}
               sf="leaf"
-              emoji="🥗"
               onPress={() => router.push(APP_HREFS.settingsNutrition as Href)}
               isLast
             />
@@ -282,14 +274,12 @@ export default function SettingsScreen() {
               title="Coach identity"
               detail="Persona, nickname, About me"
               sf="bubble.left.and.bubble.right"
-              emoji="💬"
               onPress={() => router.push('/(app)/(tabs)/more/settings/coach' as Href)}
             />
             <MenuRow
               title="Sports"
               detail="Per-sport FTP, LTHR, Max HR"
               sf="figure.run"
-              emoji="🏃"
               onPress={() => router.push(APP_HREFS.settingsSports as Href)}
               isLast
             />
@@ -300,14 +290,12 @@ export default function SettingsScreen() {
               title="Subscription & Billing"
               detail="Plan, billing provider, restore purchases"
               sf="creditcard"
-              emoji="💳"
               onPress={() => router.push(APP_HREFS.settingsSubscription as Href)}
             />
             <MenuRow
               title="Instance"
               detail={instanceUrl ?? 'Not set'}
               sf="link"
-              emoji="🔗"
               onPress={() => handleInstancePress()}
               isLast
             />
@@ -317,19 +305,16 @@ export default function SettingsScreen() {
             <MenuRow
               title="Export my data"
               sf="square.and.arrow.up"
-              emoji="📤"
               onPress={() => void openWebPath(dangerZoneWebPath())}
             />
             <MenuRow
               title="Delete account"
               sf="trash"
-              emoji="🗑️"
               onPress={handleDeleteAccount}
             />
             <MenuRow
               title="Open Profile Settings"
               sf="globe"
-              emoji="🌐"
               onPress={() => void openWebPath(profileSettingsWebPath())}
               isLast
             />

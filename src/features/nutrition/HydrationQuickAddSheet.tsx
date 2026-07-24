@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -16,7 +17,7 @@ import { useQuickAddHydration } from '@/src/features/nutrition/useNutrition';
 import { useNutritionSettingsQuery } from '@/src/features/nutrition/useNutritionSettings';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
-import { useThemeColors } from '@/src/theme/useThemeColors';
+import { NutritionAccents } from '@/src/theme/nutritionAccents';
 
 function formatVolumeLabel(ml: number): string {
   if (ml >= 1000 && ml % 1000 === 0) return `${ml / 1000} L`;
@@ -36,7 +37,6 @@ export function HydrationQuickAddSheet({
   currentWaterMl = 0,
   targetWaterMl,
 }: HydrationQuickAddSheetProps) {
-  const theme = useThemeColors();
   const hydrationMutation = useQuickAddHydration();
   const { data: settings } = useNutritionSettingsQuery({ enabled: visible });
 
@@ -85,8 +85,8 @@ export function HydrationQuickAddSheet({
 
           <View className="flex-row items-center justify-between mb-2">
             <View className="flex-row items-center gap-2">
-              <AppSymbol sf="drop.fill" size={20} tintColor="#60a5fa" fallback="💧" />
-              <Text className="text-xl font-bold text-text-primary">Add Water</Text>
+              <AppSymbol sf="drop.fill" size={20} tintColor={NutritionAccents.hydration} fallback="ml" />
+              <Text className="text-lg font-semibold text-text-primary">Add water</Text>
             </View>
             <Pressable hitSlop={8} onPress={onClose} className="p-1 active:opacity-70">
               <Text className="text-base font-semibold text-text-muted">Close</Text>
@@ -111,13 +111,11 @@ export function HydrationQuickAddSheet({
                 onPress={() => void handleAdd(p.ml)}
                 disabled={hydrationMutation.isPending}
               >
-                <View>
-                  <Text className="text-base font-bold text-text-primary">+{p.label}</Text>
+                <View className="min-w-0 flex-1">
+                  <Text className="text-base font-medium text-text-primary">+{p.label}</Text>
                   <Text className="text-xs text-text-muted">{p.sub}</Text>
                 </View>
-                <View className="h-8 w-8 items-center justify-center rounded-full bg-border-strong">
-                  <AppSymbol sf="drop.fill" size={14} tintColor={theme.textPrimary} fallback="💧" />
-                </View>
+                <Text className="text-sm font-semibold text-hydration">Add</Text>
               </Pressable>
             ))}
           </View>

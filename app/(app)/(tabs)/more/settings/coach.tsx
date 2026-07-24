@@ -1,7 +1,7 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   Platform,
   Pressable,
   ScrollView,
@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-screens/experimental';
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
+import { DetailSkeleton } from '@/src/components/Skeleton';
 import {
   aiPersonaOptions,
   profileSettingsWebPath } from '@/src/features/profile/mapProfile';
@@ -106,13 +107,10 @@ export default function CoachIdentityScreen() {
         style={{ flex: 1, backgroundColor: theme.surface }}
       >
         {loading ? (
-          <View className="flex-1 items-center justify-center bg-surface">
-            <ActivityIndicator color={Colors.brand} size="large" />
-            <Text className="mt-3 text-sm text-text-muted">Loading coach prefs…</Text>
-          </View>
+          <DetailSkeleton />
         ) : loadError ? (
           <View className="flex-1 bg-surface px-6 pt-6">
-            <Text className="text-red-400">
+            <Text className="text-danger">
               {friendlyError(
                 profileQuery.error ?? aiQuery.error,
                 'Failed to load coach identity'
@@ -235,9 +233,9 @@ export default function CoachIdentityScreen() {
               </View>
             )}
 
-            {formError ? <Text className="mt-4 text-sm text-red-400">{formError}</Text> : null}
+            {formError ? <Text className="mt-4 text-sm text-danger">{formError}</Text> : null}
             {successMessage ? (
-              <Text className="mt-4 text-sm text-emerald-400">{successMessage}</Text>
+              <Text className="mt-4 text-sm text-success">{successMessage}</Text>
             ) : null}
 
             <Button

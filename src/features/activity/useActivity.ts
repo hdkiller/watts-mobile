@@ -11,10 +11,12 @@ import {
   fetchActivityPowerCurve,
   fetchActivityStreamCharts,
   fetchActivitySummary,
+  fetchPlannedForActivityGlance,
   fetchPlannedFuelingPrep,
   fetchPlannedWorkoutDetail,
   fetchRecentActivities,
   fetchUpcomingPlanned,
+  fetchWorkoutsForActivityGlance,
   requestWorkoutAnalysis,
   skipPlannedWorkout,
 } from './api';
@@ -22,6 +24,8 @@ import { RECENT_ACTIVITY_LIMIT, UPCOMING_PLANNED_LIMIT, UPCOMING_WINDOW_DAYS } f
 
 export const RECENT_ACTIVITY_QUERY_KEY = ['activity', 'recent'] as const;
 export const UPCOMING_PLANNED_QUERY_KEY = ['activity', 'upcoming'] as const;
+export const ACTIVITY_GLANCE_WORKOUTS_KEY = ['activity', 'glance', 'workouts'] as const;
+export const ACTIVITY_GLANCE_PLANNED_KEY = ['activity', 'glance', 'planned'] as const;
 
 export function activityDetailQueryKey(id: string) {
   return ['activity', 'detail', id] as const;
@@ -48,6 +52,8 @@ async function invalidatePlannedCaches(queryClient: QueryClient, id?: string) {
     queryClient.invalidateQueries({ queryKey: TODAY_QUERY_KEY }),
     queryClient.invalidateQueries({ queryKey: UPCOMING_PLANNED_QUERY_KEY }),
     queryClient.invalidateQueries({ queryKey: RECENT_ACTIVITY_QUERY_KEY }),
+    queryClient.invalidateQueries({ queryKey: ACTIVITY_GLANCE_WORKOUTS_KEY }),
+    queryClient.invalidateQueries({ queryKey: ACTIVITY_GLANCE_PLANNED_KEY }),
     id
       ? queryClient.invalidateQueries({ queryKey: plannedDetailQueryKey(id) })
       : Promise.resolve(),
@@ -73,6 +79,22 @@ export function useUpcomingPlannedQuery() {
         windowDays: UPCOMING_WINDOW_DAYS,
         lookbackDays: PLANNED_LOOKBACK_DAYS,
       }),
+  });
+}
+
+export function useActivityGlanceWorkoutsQuery(start: Date, end: Date) {
+  return useQuery({
+    queryKey: [...ACTIVITY_GLANCE_WORKOUTS_KEY, start.toISOString(), end.toISOString()] as const,
+    queryFn: () => fetchWorkoutsForActivityGlance(start, end),
+    staleTime: 60_000,
+  });
+}
+
+export function useActivityGlancePlannedQuery(start: Date, end: Date) {
+  return useQuery({
+    queryKey: [...ACTIVITY_GLANCE_PLANNED_KEY, start.toISOString(), end.toISOString()] as const,
+    queryFn: () => fetchPlannedForActivityGlance(start, end),
+    staleTime: 60_000,
   });
 }
 

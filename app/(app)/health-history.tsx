@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
@@ -23,11 +24,11 @@ type Filter = 'all' | 'failed' | 'needs_sync';
 function statusColor(status: SyncLedgerStatus): string {
   switch (status) {
     case 'synced':
-      return 'text-emerald-400';
+      return 'text-success';
     case 'failed':
-      return 'text-red-400';
+      return 'text-danger';
     case 'needs_sync':
-      return 'text-amber-400';
+      return 'text-modify';
     case 'syncing':
       return 'text-brand';
     default:
@@ -191,7 +192,7 @@ export default function HealthSyncHistoryScreen() {
                       </Text>
                       <Text className="mt-1 text-xs text-text-muted">{formatWhen(item)}</Text>
                       {item.lastError ? (
-                        <Text className="mt-1.5 text-xs text-red-400" numberOfLines={2}>
+                        <Text className="mt-1.5 text-xs text-danger" numberOfLines={2}>
                           {item.lastError}
                         </Text>
                       ) : null}

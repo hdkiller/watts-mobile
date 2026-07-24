@@ -106,5 +106,7 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 2026-07-23 | Nutrition settings on mobile | Native Settings → Nutrition (tracking, metabolic, meal pattern, constraints, fuel calibration, adaptive, hydration); planning/grocery stay web; Bearer on `GET/POST /api/profile/nutrition` — `nutrition-settings-parity` |
 | 2026-07-23 | Goals & Events More hubs | List + detail in-app from More; Athlete teaser (no inline rename); create/edit/delete + AI stay Open web — `goals-events-more-hubs` |
 | 2026-07-23 | Goals & Events lite create | Native create from Goals/Events hubs; edit/delete (+ goal AI) stay web; events require coach-wattz Bearer POST — `goals-lite-create`, `events-lite-create` |
+| 2026-07-24 | Athlete referral share (track-only) | More → Invite friends QR/link (`via=` code); server stores A→B `Referral` on signup; no reward grant yet; distinct from coaching `/join/{CODE}` — OpenSpec `athlete-referral-share` |
+| 2026-07-24 | Athlete activity glance | Rolling 12-week done/planned day circles on Athlete only (Today name / More); lists stay Recent/Upcoming; Today heatmaps / CTL grids / streaks remain non-goals — OpenSpec `athlete-activity-glance` |
 
 When a row above is decided, move it here and update [product-baseline.md](./product-baseline.md) / [implementation-plan.md](./implementation-plan.md) if scope changes.

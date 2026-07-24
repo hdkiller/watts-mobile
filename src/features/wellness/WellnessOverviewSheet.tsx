@@ -1,6 +1,6 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { router, type Href } from 'expo-router';
 import {
-  ActivityIndicator,
   Modal,
   Pressable,
   ScrollView,
@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
-import { Colors } from '@/src/theme/colors';
+import { Skeleton } from '@/src/components/Skeleton';
 
 import { wellnessDayWebPath } from './mapWellnessOverview';
 import type { WellnessBarSeries, WellnessOverviewMetric } from './types';
@@ -40,7 +40,7 @@ function TrendText({
   const isGood = lowerIsBetter ? value < 0 : value > 0;
   const sign = value > 0 ? '+' : '';
   return (
-    <Text className={`mt-1 text-[11px] font-semibold ${isGood ? 'text-emerald-400' : 'text-red-400'}`}>
+    <Text className={`mt-1 text-[11px] font-semibold ${isGood ? 'text-success' : 'text-danger'}`}>
       {sign}
       {value}%
     </Text>
@@ -54,7 +54,7 @@ function MetricTile({ metric }: { metric: WellnessOverviewMetric }) {
         {metric.label}
       </Text>
       <View className="mt-2 flex-row items-baseline gap-1">
-        <Text className="text-xl font-black text-text-primary">{metric.value}</Text>
+        <Text className="text-xl font-semibold text-text-primary">{metric.value}</Text>
         {metric.unit ? (
           <Text className="text-[10px] font-semibold text-text-muted">{metric.unit}</Text>
         ) : null}
@@ -128,7 +128,7 @@ export function WellnessOverviewSheet({
               <Text className="mt-1 text-sm text-text-muted">{formatOverviewDate(date)}</Text>
             ) : null}
             {query.data?.isStale ? (
-              <Text className="mt-1 text-xs font-semibold text-amber-400">
+              <Text className="mt-1 text-xs font-semibold text-modify">
                 Not from today
               </Text>
             ) : null}
@@ -139,12 +139,16 @@ export function WellnessOverviewSheet({
         </View>
 
         {query.isLoading && !query.data ? (
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator color={Colors.brand} />
+          <View className="flex-1 px-5 pt-5">
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="mt-4 h-16 rounded-xl" />
+            <Skeleton className="mt-3 h-16 rounded-xl" />
+            <Skeleton className="mt-3 h-16 rounded-xl" />
+            <Skeleton className="mt-6 h-28 rounded-xl" />
           </View>
         ) : query.isError ? (
           <View className="flex-1 px-5 pt-8">
-            <Text className="text-red-400">
+            <Text className="text-danger">
               {friendlyError(query.error, 'Failed to load wellness overview')}
             </Text>
             <Pressable

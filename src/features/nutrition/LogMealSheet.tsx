@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -94,27 +95,27 @@ function MacroRatioBar({ form }: { form: NutritionQuickLogForm }) {
 
       <View className="h-2.5 w-full flex-row overflow-hidden rounded-full bg-border">
         {carbsPct > 0 ? (
-          <View style={{ width: `${carbsPct}%` }} className="h-full bg-amber-500" />
+          <View style={{ width: `${carbsPct}%` }} className="h-full bg-macro-carbs" />
         ) : null}
         {proteinPct > 0 ? (
-          <View style={{ width: `${proteinPct}%` }} className="h-full bg-emerald-500" />
+          <View style={{ width: `${proteinPct}%` }} className="h-full bg-macro-protein" />
         ) : null}
         {fatPct > 0 ? (
-          <View style={{ width: `${fatPct}%` }} className="h-full bg-rose-500" />
+          <View style={{ width: `${fatPct}%` }} className="h-full bg-macro-fat" />
         ) : null}
       </View>
 
       <View className="mt-2 flex-row items-center justify-between">
         <View className="flex-row items-center gap-1.5">
-          <View className="h-2 w-2 rounded-full bg-amber-500" />
+          <View className="h-2 w-2 rounded-full bg-macro-carbs" />
           <Text className="text-[11px] text-text-muted">Carbs {carbsPct}%</Text>
         </View>
         <View className="flex-row items-center gap-1.5">
-          <View className="h-2 w-2 rounded-full bg-emerald-500" />
+          <View className="h-2 w-2 rounded-full bg-macro-protein" />
           <Text className="text-[11px] text-text-muted">Protein {proteinPct}%</Text>
         </View>
         <View className="flex-row items-center gap-1.5">
-          <View className="h-2 w-2 rounded-full bg-rose-500" />
+          <View className="h-2 w-2 rounded-full bg-macro-fat" />
           <Text className="text-[11px] text-text-muted">Fat {fatPct}%</Text>
         </View>
       </View>
@@ -1006,11 +1007,11 @@ export function LogMealSheet({
                   <TextInput
                     className={`rounded-xl border bg-card px-4 py-3 text-base text-text-primary ${
                       estimateConfidence === 'HIGH'
-                        ? 'border-emerald-500'
+                        ? 'border-success'
                         : estimateConfidence === 'MEDIUM'
-                          ? 'border-amber-500'
+                          ? 'border-modify'
                           : estimateConfidence === 'LOW'
-                            ? 'border-rose-500'
+                            ? 'border-danger'
                             : 'border-brand/50'
                     }`}
                     placeholderTextColor={theme.textMuted}
@@ -1024,8 +1025,8 @@ export function LogMealSheet({
                         estimateConfidence === 'HIGH'
                           ? 'text-brand'
                           : estimateConfidence === 'MEDIUM'
-                            ? 'text-amber-500'
-                            : 'text-rose-500'
+                            ? 'text-modify'
+                            : 'text-danger'
                       }`}
                     >
                       {confidenceCopy}

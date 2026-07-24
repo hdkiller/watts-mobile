@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import Constants from 'expo-constants';
 import { router, type Href } from 'expo-router';
 import * as Linking from 'expo-linking';
@@ -18,8 +19,10 @@ import {
 import { useUnreadNotificationsCount } from '@/src/features/notifications/useNotifications';
 import { useTabScrollPadding } from '@/src/hooks/useTabScrollPadding';
 import { APP_HREFS } from '@/src/linking/appHrefs';
+import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
+import { canUseAthleteReferralShare } from '@/src/features/referrals/isHostedReferralInstance';
 
 function appVersionLabel(): string {
   const version = Constants.expoConfig?.version ?? '0.1.0';
@@ -32,19 +35,15 @@ function appVersionLabel(): string {
   return build ? `v${version} (${build})` : `v${version}`;
 }
 
-function RowIcon({ sf, emoji, isDestructive = false }: { sf: SFSymbol; emoji: string; isDestructive?: boolean }) {
+function RowIcon({ sf, isDestructive = false }: { sf: SFSymbol; isDestructive?: boolean }) {
   const theme = useThemeColors();
   return (
-    <View
-      className={`mr-3 h-9 w-9 items-center justify-center rounded-full ${
-        isDestructive ? 'bg-red-500/10' : 'bg-border-strong'
-      }`}
-    >
+    <View className="mr-3 h-5 w-5 items-center justify-center">
       <AppSymbol
         sf={sf}
         size={18}
-        tintColor={isDestructive ? '#ef4444' : theme.textBody}
-        fallback={emoji}
+        tintColor={isDestructive ? Colors.danger : theme.textMuted}
+        fallback=""
       />
     </View>
   );
@@ -89,7 +88,6 @@ function MenuRow({
   title,
   detail,
   sf,
-  emoji,
   onPress,
   showChevron = true,
   isLast = false,
@@ -99,7 +97,6 @@ function MenuRow({
   title: string;
   detail?: string;
   sf: SFSymbol;
-  emoji: string;
   onPress?: () => void;
   showChevron?: boolean;
   isLast?: boolean;
@@ -112,11 +109,11 @@ function MenuRow({
         isLast ? '' : 'border-b border-border/80'
       }`}
     >
-      <RowIcon sf={sf} emoji={emoji} isDestructive={isDestructive} />
+      <RowIcon sf={sf} isDestructive={isDestructive} />
       <View className="min-w-0 flex-1">
         <Text
           className={`text-base font-medium ${
-            isDestructive ? 'text-red-500' : 'text-text-primary'
+            isDestructive ? 'text-danger' : 'text-text-primary'
           }`}
         >
           {title}
@@ -159,6 +156,7 @@ export default function MoreScreen() {
   const unreadCount = useUnreadNotificationsCount();
   const tabBottomPad = useTabScrollPadding();
   const [busy, setBusy] = useState(false);
+  const showInviteFriends = canUseAthleteReferralShare(instanceUrl);
 
   const openWeb = async () => {
     await openInstanceWeb(instanceUrl, '/');
@@ -188,7 +186,6 @@ export default function MoreScreen() {
           key: 'privacy',
           title: 'Privacy policy',
           sf: 'hand.raised' as const,
-          emoji: '🔒',
           onPress: () => void openExternal(PRIVACY_POLICY_URL),
         }
       : null,
@@ -197,7 +194,6 @@ export default function MoreScreen() {
           key: 'terms',
           title: 'Terms',
           sf: 'doc.text' as const,
-          emoji: '📄',
           onPress: () => void openExternal(TERMS_OF_SERVICE_URL),
         }
       : null,
@@ -206,7 +202,6 @@ export default function MoreScreen() {
           key: 'support',
           title: 'Support',
           sf: 'questionmark.circle' as const,
-          emoji: '❓',
           onPress: () => void openExternal(SUPPORT_URL),
         }
       : null,
@@ -264,14 +259,21 @@ export default function MoreScreen() {
             title="Notification inbox"
             detail={unreadCount > 0 ? `${unreadCount} unread` : 'All caught up'}
             sf="bell"
-            emoji="🔔"
             onPress={() => router.push('/(app)/(tabs)/more/notifications' as Href)}
           />
+          {showInviteFriends ? (
+            <MenuRow
+              testID="more-invite-friends"
+              title="Invite friends"
+              detail="QR & link so others can join"
+              sf="qrcode"
+              onPress={() => router.push('/(app)/(tabs)/more/invite' as Href)}
+            />
+          ) : null}
           <MenuRow
             title="Help Center & Support"
             detail="Documentation, tickets & community"
             sf="questionmark.circle"
-            emoji="❓"
             onPress={() => void openInstanceWeb(instanceUrl, helpCenterWebPath())}
           />
           <MenuRow
@@ -279,14 +281,12 @@ export default function MoreScreen() {
             title="Settings"
             detail="Preferences, integrations & coach"
             sf="gearshape"
-            emoji="⚙️"
             onPress={() => router.push('/(app)/(tabs)/more/settings' as Href)}
           />
           <MenuRow
             title="Open Coach Watts"
             detail="Web control room & deep tools"
             sf="globe"
-            emoji="🌐"
             onPress={() => void openWeb()}
             isLast
           />
@@ -297,28 +297,24 @@ export default function MoreScreen() {
             title="Recent activity"
             detail="Completed workouts & analysis"
             sf="list.bullet"
-            emoji="📋"
             onPress={() => router.push(APP_HREFS.activityList as Href)}
           />
           <MenuRow
             title="Upcoming planned"
             detail="Scheduled workouts"
             sf="calendar"
-            emoji="📅"
             onPress={() => router.push(APP_HREFS.upcoming as Href)}
           />
           <MenuRow
             title="Goals"
             detail="Browse goals · manage on web"
             sf="flag"
-            emoji="🎯"
             onPress={() => router.push(APP_HREFS.goalsList as Href)}
           />
           <MenuRow
             title="Events"
             detail="Race & life events · manage on web"
             sf="calendar.badge.clock"
-            emoji="🏁"
             onPress={() => router.push(APP_HREFS.eventsList as Href)}
             isLast
           />
@@ -331,7 +327,6 @@ export default function MoreScreen() {
                 key={row.key}
                 title={row.title}
                 sf={row.sf}
-                emoji={row.emoji}
                 onPress={row.onPress}
                 isLast={index === aboutRows.length - 1}
               />
@@ -344,7 +339,6 @@ export default function MoreScreen() {
             title="Sign out"
             detail={busy ? 'Signing out…' : 'Disconnect this device'}
             sf="rectangle.portrait.and.arrow.right"
-            emoji="🚪"
             onPress={() => void onSignOut()}
             isDestructive
             isLast

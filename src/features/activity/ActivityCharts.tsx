@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { ActivityIndicator, Text, View } from 'react-native';
 
 import { Colors } from '@/src/theme/colors';

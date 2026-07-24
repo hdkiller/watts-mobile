@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-screens/experimental';
 

@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, PanResponder, Pressable, Text, View } from 'react-native';
 
@@ -5,6 +6,7 @@ import { AppSymbol } from '@/src/components/AppSymbol';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { hapticLight } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
+import { NutritionAccents } from '@/src/theme/nutritionAccents';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
 import { NutritionMacroExplainSheet } from './NutritionMacroExplainSheet';
@@ -267,21 +269,21 @@ export function NutritionTargetsCard({
               label="Carbs"
               value={day.carbs}
               goal={day.carbsGoal}
-              color="#fbbf24"
+              color={NutritionAccents.carbs}
               onPress={canExplainMetric(day, 'Carbs') ? () => openExplain('Carbs') : undefined}
             />
             <MacroColumn
               label="Protein"
               value={day.protein}
               goal={day.proteinGoal}
-              color="#60a5fa"
+              color={NutritionAccents.protein}
               onPress={canExplainMetric(day, 'Protein') ? () => openExplain('Protein') : undefined}
             />
             <MacroColumn
               label="Fat"
               value={day.fat}
               goal={day.fatGoal}
-              color="#a78bfa"
+              color={NutritionAccents.fat}
               onPress={canExplainMetric(day, 'Fat') ? () => openExplain('Fat') : undefined}
             />
           </View>
@@ -289,7 +291,7 @@ export function NutritionTargetsCard({
           {/* Hydration Row */}
           {showHydration && (day.waterMl > 0 || day.fluidGoalMl != null) ? (
             <View className="mt-3.5 flex-row items-center gap-2.5">
-              <AppSymbol sf="drop.fill" size={13} tintColor="#60a5fa" fallback="💧" />
+              <AppSymbol sf="drop.fill" size={13} tintColor={NutritionAccents.hydration} fallback="ml" />
               <Text className="text-xs font-bold text-text-primary">
                 {day.waterMl}
                 <Text className="text-xs font-normal text-text-muted">
@@ -299,7 +301,7 @@ export function NutritionTargetsCard({
               <View className="flex-1">
                 <GoalBar
                   pct={goalProgressPct(day.waterMl, day.fluidGoalMl)}
-                  color="#60a5fa"
+                  color={NutritionAccents.hydration}
                 />
               </View>
             </View>

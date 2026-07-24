@@ -1,7 +1,7 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack, router, useLocalSearchParams, type Href } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
   Pressable,
   ScrollView,
   Text,
@@ -11,6 +11,7 @@ import {
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
+import { DetailSkeleton } from '@/src/components/Skeleton';
 import {
   displaySportName,
   formFromSportProfile,
@@ -22,14 +23,11 @@ import type { SportThresholdFormValues } from '@/src/features/sports/types';
 import { usePatchSportThresholds, useSportProfilesQuery } from '@/src/features/sports/useSports';
 import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
 import { hapticError, hapticSuccess } from '@/src/lib/haptics';
-import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 import { APP_HREFS } from '@/src/linking/appHrefs';
 
 export default function SportProfileEditorScreen() {
-  const theme = useThemeColors();
-
   const params = useLocalSearchParams<{ id?: string }>();
   const profileId = typeof params.id === 'string' ? decodeURIComponent(params.id) : '';
   const { instanceUrl } = useAuth();
@@ -99,12 +97,10 @@ export default function SportProfileEditorScreen() {
     <>
       <Stack.Screen options={{ title, headerShown: true }} />
       {isLoading && !profiles ? (
-        <View className="flex-1 items-center justify-center bg-surface">
-          <ActivityIndicator color={Colors.brand} size="large" />
-        </View>
+        <DetailSkeleton />
       ) : isError && !profiles ? (
         <View className="flex-1 bg-surface px-6 pt-6">
-          <Text className="text-red-400">
+          <Text className="text-danger">
             {friendlyError(error, 'Failed to load sport profiles')}
           </Text>
           <Pressable className="mt-4" hitSlop={8} onPress={() => void refetch()}>
@@ -168,9 +164,9 @@ export default function SportProfileEditorScreen() {
               />
             ) : null}
 
-            {formError ? <Text className="mt-4 text-sm text-red-400">{formError}</Text> : null}
+            {formError ? <Text className="mt-4 text-sm text-danger">{formError}</Text> : null}
             {successMessage ? (
-              <Text className="mt-4 text-sm text-emerald-400">{successMessage}</Text>
+              <Text className="mt-4 text-sm text-success">{successMessage}</Text>
             ) : null}
 
             <Button

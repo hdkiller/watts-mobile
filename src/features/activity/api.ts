@@ -27,7 +27,14 @@ import type {
   WorkoutListItemApi,
   WorkoutSummaryApi,
 } from './types';
-import { RECENT_ACTIVITY_LIMIT, UPCOMING_PLANNED_LIMIT, UPCOMING_WINDOW_DAYS } from './types';
+import {
+  ACTIVITY_GLANCE_PLANNED_LIMIT,
+  ACTIVITY_GLANCE_WORKOUT_MAX_PAGES,
+  ACTIVITY_GLANCE_WORKOUT_PAGE_SIZE,
+  RECENT_ACTIVITY_LIMIT,
+  UPCOMING_PLANNED_LIMIT,
+  UPCOMING_WINDOW_DAYS,
+} from './types';
 
 async function readErrorMessage(response: Response, fallback: string): Promise<string> {
   try {
@@ -61,12 +68,12 @@ export async function fetchUpcomingPlanned(
     windowDays?: number;
     /** Include this many local days before today (for plan-vs-done pairing). */
     lookbackDays?: number;
+    /** Raise above Today’s default cap (glance only). */
+    maxLimit?: number;
   } = {}
 ): Promise<PlannedListItem[]> {
-  const limit = Math.min(
-    Math.max(options.limit ?? UPCOMING_PLANNED_LIMIT, 1),
-    UPCOMING_PLANNED_LIMIT
-  );
+  const maxLimit = options.maxLimit ?? UPCOMING_PLANNED_LIMIT;
+  const limit = Math.min(Math.max(options.limit ?? UPCOMING_PLANNED_LIMIT, 1), maxLimit);
   const windowDays = options.windowDays ?? UPCOMING_WINDOW_DAYS;
   const lookbackDays = Math.max(options.lookbackDays ?? 0, 0);
 
@@ -78,10 +85,18 @@ export async function fetchUpcomingPlanned(
   end.setDate(end.getDate() + windowDays);
   end.setHours(23, 59, 59, 999);
 
+  return fetchPlannedInRange({ start, end, limit });
+}
+
+async function fetchPlannedInRange(options: {
+  start: Date;
+  end: Date;
+  limit: number;
+}): Promise<PlannedListItem[]> {
   const params = new URLSearchParams({
-    limit: String(limit),
-    startDate: toIsoDate(start),
-    endDate: toIsoDate(end),
+    limit: String(options.limit),
+    startDate: toIsoDate(options.start),
+    endDate: toIsoDate(options.end),
   });
 
   const response = await apiFetch(`/api/planned-workouts?${params.toString()}`);
@@ -93,6 +108,44 @@ export async function fetchUpcomingPlanned(
   const json = (await response.json()) as PlannedListItemApi[];
   if (!Array.isArray(json)) return [];
   return json.map(mapPlannedListItem);
+}
+
+/** Workouts for Athlete activity glance — date-ranged, paginated, not Today’s limit-10 list. */
+export async function fetchWorkoutsForActivityGlance(
+  start: Date,
+  end: Date
+): Promise<ActivityListItem[]> {
+  const all: ActivityListItem[] = [];
+  for (let page = 0; page < ACTIVITY_GLANCE_WORKOUT_MAX_PAGES; page += 1) {
+    const offset = page * ACTIVITY_GLANCE_WORKOUT_PAGE_SIZE;
+    const params = new URLSearchParams({
+      limit: String(ACTIVITY_GLANCE_WORKOUT_PAGE_SIZE),
+      offset: String(offset),
+      startDate: toIsoDate(start),
+      endDate: toIsoDate(end),
+    });
+    const response = await apiFetch(`/api/workouts?${params.toString()}`);
+    if (!response.ok) {
+      throw new Error(await readErrorMessage(response, `Failed to load workouts (${response.status})`));
+    }
+    const json = (await response.json()) as WorkoutListItemApi[];
+    if (!Array.isArray(json) || json.length === 0) break;
+    all.push(...json.map(mapWorkoutListItem));
+    if (json.length < ACTIVITY_GLANCE_WORKOUT_PAGE_SIZE) break;
+  }
+  return all;
+}
+
+/** Planned workouts for Athlete activity glance window. */
+export async function fetchPlannedForActivityGlance(
+  start: Date,
+  end: Date
+): Promise<PlannedListItem[]> {
+  return fetchPlannedInRange({
+    start,
+    end,
+    limit: ACTIVITY_GLANCE_PLANNED_LIMIT,
+  });
 }
 
 export async function fetchActivitySummary(

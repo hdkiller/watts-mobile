@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -57,9 +58,9 @@ export function MonthlyProgressSheet({
 
   const deltaClass =
     summary && summary.percentDiff > 0
-      ? 'text-emerald-400'
+      ? 'text-success'
       : summary && summary.percentDiff < 0
-        ? 'text-amber-300'
+        ? 'text-modify'
         : 'text-text-muted';
 
   return (

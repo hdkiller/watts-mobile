@@ -14,6 +14,14 @@ module.exports = {
         modify: '#f59e0b',
         danger: '#ef4444',
         success: '#22c55e',
+        /** Nutrition macros — keep in sync with Colors.macro* / NutritionAccents */
+        macro: {
+          calories: '#fb923c',
+          carbs: '#fbbf24',
+          protein: '#60a5fa',
+          fat: '#a78bfa',
+        },
+        hydration: '#38bdf8',
         /** Dark ink for text on brand green — theme-invariant */
         ink: {
           DEFAULT: '#09090b',

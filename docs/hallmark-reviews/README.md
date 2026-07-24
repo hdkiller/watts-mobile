@@ -2,7 +2,7 @@
 
 Read-only `hallmark audit` pass against [`docs/DESIGN.md`](../DESIGN.md). Catalog: [`docs/hallmark-review-catalog.md`](../hallmark-review-catalog.md). Date: **2026-07-24**.
 
-No app source was edited. Each surface file lists Tell · Where · Severity · Fix, grouped by severity.
+Audits are read-only snapshots from 2026-07-24. A follow-up patch pass (same day) addressed the recommended redesign order where it made sense — see **Patch log** below. Each surface file still lists Tell · Where · Severity · Fix from the audit.
 
 ## Grand totals
 
@@ -47,6 +47,32 @@ Many majors are the same cross-cutting debt (especially **missing Hallmark stamp
 6. **Coach chat** + dictation danger chrome + **Recovery event** / meal sheet token cleanup  
 7. **Planned + Activity detail** error chrome + stamps  
 8. **More / Settings / Health / Measurements** batch: stamps, skeletons, icon quieting, palette
+
+## Patch log (2026-07-24)
+
+Shipped in-repo (not a full IA rewrite):
+
+| Order item | What landed |
+|------------|-------------|
+| Nutrition tokens | `Colors.macro*` / `hydration` + Tailwind + `nutritionAccents.ts`; glance / section / targets / macro explain / hydration / meal macro bars |
+| Subscription | `border-modify` collision, Coach Watts copy, skeletons, shared `Button` CTAs, stamp |
+| Today | Stamp; Context fold kicker; camera hit target; modify quota shell; recovery line (no pill strip); success checkmarks |
+| Log | Icon grid → text-first list; primary wellness CTA; banner skeleton; stamp (`log-meal` testID kept) |
+| Activation | Stamps + load skeletons (incl. `_layout` gate) |
+| Palette batch | emerald/amber/hex → `success` / `modify` / `danger` across More, Health, Coach, glances, settings |
+| Auth | Login/instance stamps; instance Continue → `Button` |
+
+**Deferred / lighter touch:** full Today section reordering (product still stacks glances by baseline); Measurement sheet polish beyond stamp.
+
+### Patch log continued (majors pass)
+
+| Item | What landed |
+|------|-------------|
+| Stamps | +40 P0–P1 routes/sheets stamped with DESIGN.md reference |
+| Error chrome | Planned/Activity detail + Recent/Upcoming lists → tinted error card + Retry |
+| Coach approvals | Approve/Deny → shared `Button` |
+| More / Settings icons | Dropped circular emoji wells; quiet muted `AppSymbol` |
+| Skeletons | Health Sync/workouts, Connected Apps, inbox, Settings (nutrition/units/coach/notifications), Sports, WellnessOverview, TrainingLoad, RoomList |
 
 ## Folder map
 

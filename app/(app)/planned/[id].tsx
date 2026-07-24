@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack, useLocalSearchParams, router, type Href } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
@@ -53,7 +54,7 @@ function plannedHeroStats(data: {
 export default function PlannedWorkoutDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { instanceUrl } = useAuth();
-  const { data, isLoading, isError, error, dataUpdatedAt } = usePlannedDetailQuery(id);
+  const { data, isLoading, isError, error, dataUpdatedAt, refetch } = usePlannedDetailQuery(id);
   const profileQuery = useAthleteProfileQuery();
   const nutritionOn = isNutritionTrackingEnabled(profileQuery.data);
   const fuelingQuery = usePlannedFuelingQuery(id, {
@@ -119,9 +120,14 @@ export default function PlannedWorkoutDetailScreen() {
         <DetailSkeleton />
       ) : isError && !data ? (
         <View className="flex-1 bg-surface px-6 pt-6">
-          <Text className="text-red-400">
-            {friendlyError(error, 'Failed to load workout')}
-          </Text>
+          <View className="rounded-xl border border-danger/40 bg-tint-error p-4">
+            <Text className="text-base text-danger">
+              {friendlyError(error, 'Failed to load workout')}
+            </Text>
+            <Pressable className="mt-3" hitSlop={8} onPress={() => void refetch()}>
+              <Text className="text-sm font-semibold text-brand">Retry</Text>
+            </Pressable>
+          </View>
         </View>
       ) : data ? (
         <ScrollView className="flex-1 bg-surface" contentContainerClassName="px-6 pb-10 pt-4">

@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { router, type Href } from 'expo-router';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Alert, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
@@ -197,6 +198,30 @@ function PlannedSummaryCard({
 function EnterSection({ order, children }: { order: number; children: ReactNode }) {
   return (
     <Animated.View entering={FadeInDown.duration(300).delay(order * 60)}>{children}</Animated.View>
+  );
+}
+
+/** Secondary fold under the morning decision — omit the kicker when nothing renders. */
+function ContextSection({ children }: { children: ReactNode }) {
+  const [hasContent, setHasContent] = useState(false);
+
+  return (
+    <>
+      {hasContent ? (
+        <Text className="mt-10 text-xs font-semibold uppercase tracking-widest text-text-muted">
+          Context
+        </Text>
+      ) : null}
+      <View
+        collapsable={false}
+        onLayout={(event) => {
+          const next = event.nativeEvent.layout.height > 0;
+          setHasContent((prev) => (prev === next ? prev : next));
+        }}
+      >
+        {children}
+      </View>
+    </>
   );
 }
 
@@ -579,10 +604,11 @@ export default function TodayScreen() {
             </AnimatedPressable>
           </View>
           {nutritionEnabled ? (
-            <Pressable
+            <AnimatedPressable
               accessibilityRole="button"
               accessibilityLabel="Scan meal photo"
-              className="h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card active:opacity-70"
+              hitSlop={8}
+              className="h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-card"
               onPress={() =>
                 router.push({
                   pathname: APP_HREFS.log,
@@ -590,8 +616,8 @@ export default function TodayScreen() {
                 } as Href)
               }
             >
-              <AppSymbol sf="camera.fill" size={18} tintColor={theme.brand} fallback="📷" />
-            </Pressable>
+              <AppSymbol sf="camera.fill" size={18} tintColor={theme.brand} fallback="cam" />
+            </AnimatedPressable>
           ) : null}
         </View>
       </EnterSection>
@@ -608,7 +634,7 @@ export default function TodayScreen() {
 
       {hardError ? (
         <View className="mt-6 rounded-xl border border-danger/40 bg-tint-error p-4">
-          <Text className="text-base text-red-300">
+          <Text className="text-base text-red-400">
             {friendlyError(error, 'Could not load today')}
           </Text>
           <Pressable className="mt-3" hitSlop={8} onPress={() => void refetch()}>
@@ -666,7 +692,7 @@ export default function TodayScreen() {
       ) : null}
 
       {adhocState === 'quota' ? (
-        <View className="mt-6 rounded-2xl border border-amber-900/40 bg-amber-950/25 p-5">
+        <View className="mt-6 rounded-2xl border border-modify/40 bg-modify/10 p-5">
           <Text className="text-xs uppercase tracking-wide text-modify">Plan limit</Text>
           <Text className="mt-2 text-lg font-semibold text-text-primary">
             Workout generation limit reached
@@ -684,7 +710,7 @@ export default function TodayScreen() {
       {adhocState === 'error' ? (
         <View className="mt-6 rounded-2xl border border-danger/40 bg-tint-error p-5">
           <Text className="text-lg font-semibold text-text-primary">Couldn’t generate workout</Text>
-          <Text className="mt-2 text-sm leading-5 text-red-300">
+          <Text className="mt-2 text-sm leading-5 text-red-400">
             {adhocError || 'Something went wrong. Try again, or continue in Coach Watts.'}
           </Text>
           <View className="mt-5 gap-3">
@@ -751,15 +777,15 @@ export default function TodayScreen() {
                   className="flex-row items-center justify-center gap-2 rounded-xl border border-border-strong bg-card/80 px-4 py-3.5 active:opacity-70"
                   onPress={() => openPlannedWorkout(planned.id)}
                 >
-                  <Text className="text-base font-semibold text-green-400">✓</Text>
-                  <Text className="text-base font-semibold text-green-400">
+                  <AppSymbol sf="checkmark" size={16} tintColor={Colors.success} fallback="ok" />
+                  <Text className="text-base font-semibold text-success">
                     Accepted — view workout
                   </Text>
                 </Pressable>
               ) : (
                 <View className="flex-row items-center justify-center gap-2 rounded-xl border border-border-strong bg-card/80 px-4 py-3.5">
-                  <Text className="text-base font-semibold text-green-400">✓</Text>
-                  <Text className="text-base font-semibold text-green-400">
+                  <AppSymbol sf="checkmark" size={16} tintColor={Colors.success} fallback="ok" />
+                  <Text className="text-base font-semibold text-success">
                     {data.action === 'rest' ? 'Rest day accepted' : 'Accepted'}
                   </Text>
                 </View>
@@ -886,7 +912,7 @@ export default function TodayScreen() {
       ) : null}
 
       {!showFinishSetup ? (
-        <>
+        <ContextSection>
           {/* Full nutrition glance stays below primary decision CTAs (not above the hero). */}
           <NutritionGlance />
 
@@ -910,7 +936,7 @@ export default function TodayScreen() {
             <ComingUpStrip excludePlannedId={planned?.id} />
             <RecentlyTeaser />
           </View>
-        </>
+        </ContextSection>
       ) : null}
     </ScrollView>
 

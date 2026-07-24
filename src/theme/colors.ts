@@ -12,6 +12,17 @@ const accents = {
   danger: '#ef4444',
   success: '#22c55e',
   /**
+   * Nutrition macro / hydration accents (theme-invariant).
+   * Prefer these over raw amber/sky/violet hex in nutrition UI.
+   * Keep in sync with `macro.*` / `hydration` in `tailwind.config.js`
+   * and `src/theme/nutritionAccents.ts`.
+   */
+  macroCalories: '#fb923c',
+  macroCarbs: '#fbbf24',
+  macroProtein: '#60a5fa',
+  macroFat: '#a78bfa',
+  hydration: '#38bdf8', // same value as recovery — fluid accent
+  /**
    * Z1→Z7 training-zone ramp (blue → teal → yellow → orange → red → purple → zinc).
    * Z2 is teal (`#14b8a6`) so it stays distinct from brand green.
    */

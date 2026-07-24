@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import type { SFSymbol } from 'expo-symbols';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -82,25 +83,19 @@ function selectStyles(theme: ReturnType<typeof useThemeColors>) {
 
 function OptionGlyph({
   sf,
-  emoji,
   active,
   size = 'md',
 }: {
   sf: SFSymbol;
-  emoji: string;
   active?: boolean;
   size?: 'sm' | 'md';
 }) {
   const theme = useThemeColors();
-  const tint = active ? Colors.brand : theme.textBody;
-  const box = size === 'sm' ? 32 : 36;
+  const tint = active ? Colors.brand : theme.textMuted;
   const icon = size === 'sm' ? 15 : 17;
   return (
-    <View
-      className="mr-3 items-center justify-center rounded-full bg-border-strong"
-      style={{ width: box, height: box }}
-    >
-      <AppSymbol sf={sf} size={icon} tintColor={tint} fallback={emoji} />
+    <View className="mr-3 h-5 w-5 items-center justify-center">
+      <AppSymbol sf={sf} size={icon} tintColor={tint} fallback="" />
     </View>
   );
 }
@@ -333,7 +328,7 @@ export default function RecoveryEventScreen() {
                   }}
                 >
                   <View className="flex-row items-start">
-                    <OptionGlyph sf={option.sf} emoji={option.emoji} active={active} />
+                    <OptionGlyph sf={option.sf} active={active} />
                     <View className="min-w-0 flex-1">
                       <Text className="text-sm font-semibold text-text-primary">{option.title}</Text>
                       <Text className="mt-1 text-xs text-text-muted">{option.subtitle}</Text>
@@ -371,7 +366,7 @@ export default function RecoveryEventScreen() {
                       }}
                     >
                       <View className="flex-row items-start">
-                        <OptionGlyph sf={level.sf} emoji={level.emoji} active={active} />
+                        <OptionGlyph sf={level.sf} active={active} />
                         <View className="min-w-0 flex-1">
                           <View className="flex-row items-center justify-between">
                             <Text className="text-sm font-semibold text-text-primary">{level.label}</Text>

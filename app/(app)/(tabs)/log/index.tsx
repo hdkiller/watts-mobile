@@ -1,7 +1,7 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { router, useLocalSearchParams, usePathname, type Href } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
   Pressable,
   ScrollView,
   Text,
@@ -9,11 +9,13 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-screens/experimental';
 
-import { friendlyError } from '@/src/api/errors';
-import { AppSymbol } from '@/src/components/AppSymbol';
+import { AnimatedPressable } from '@/src/components/AnimatedPressable';
 import { Button } from '@/src/components/Button';
+import { Skeleton } from '@/src/components/Skeleton';
 import { WellnessCheckinSheet } from '@/src/features/log/WellnessCheckinSheet';
+import { isDailyCheckinCompleted } from '@/src/features/log/isDailyCheckinCompleted';
 import { formFromWellness, formHasContent } from '@/src/features/log/mapLogForm';
+import { useDailyCheckinQuery } from '@/src/features/log/useDailyCheckin';
 import { useTodayWellnessQuery } from '@/src/features/log/useLog';
 import { MeasurementSheet } from '@/src/features/measurements/MeasurementSheet';
 import { MeasurementsDetailSheet } from '@/src/features/measurements/MeasurementsDetailSheet';
@@ -31,6 +33,7 @@ import { useRecoveryContextQuery } from '@/src/features/recovery/useRecovery';
 import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
 import { useTabScrollPadding } from '@/src/hooks/useTabScrollPadding';
 import { hapticLight } from '@/src/lib/haptics';
+import { APP_HREFS } from '@/src/linking/appHrefs';
 import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
@@ -47,9 +50,12 @@ export default function LogScreen() {
   const weightUnitLabel = weightUnit(athleteProfile);
 
   const { data: todayWellness, isLoading: wellnessLoading } = useTodayWellnessQuery();
+  const { data: dailyCheckin, isLoading: dailyCheckinLoading } = useDailyCheckinQuery();
   const { data: todayNutrition } = useTodayNutritionQuery();
   const { data: recoveryItems } = useRecoveryContextQuery();
   const { data: measurementsData } = useBodyMeasurementsQuery();
+  const checkinCompleted = isDailyCheckinCompleted(dailyCheckin);
+  const showCoachCheckinPending = !dailyCheckinLoading && !checkinCompleted;
 
   // Active recovery items for today
   const activeTodayRecovery = useMemo(
@@ -223,140 +229,149 @@ export default function LogScreen() {
           keyboardShouldPersistTaps="handled"
         >
           {/* Top Header */}
-          <View className="flex-row items-baseline justify-between mb-1">
-            <Text className="text-2xl font-bold text-text-primary">Today's Log</Text>
+          <View className="mb-1 flex-row items-baseline justify-between">
+            <Text className="text-2xl font-semibold text-text-primary">Today's Log</Text>
             <Text className="text-sm font-semibold text-text-muted">{todayDateStr}</Text>
           </View>
 
-          {/* Context-Aware Daily Status Banner */}
-          <View className="mt-2 flex-row items-center justify-between rounded-xl border border-border bg-card p-3.5">
-            <View className="flex-row items-center gap-2.5">
-              <View
-                className="h-2.5 w-2.5 rounded-full"
-                style={{
-                  backgroundColor: isWellnessDone ? Colors.brand : Colors.modify,
-                }}
-              />
-              <Text className="text-xs font-semibold text-text-primary">
-                {isWellnessDone ? 'Wellness completed' : 'Wellness pending'}
-                {activeTodayRecovery.length > 0
-                  ? ` • ${activeTodayRecovery.length} active recovery context`
-                  : ''}
-              </Text>
+          {/* Primary status — first-viewport decision */}
+          {wellnessLoading && !todayWellness ? (
+            <Skeleton className="mt-2 h-14 w-full rounded-xl" />
+          ) : (
+            <View className="mt-2 rounded-xl border border-border bg-card p-3.5">
+              <View className="flex-row items-center justify-between gap-3">
+                <View className="min-w-0 flex-1 flex-row items-center gap-2.5">
+                  <View
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{
+                      backgroundColor: isWellnessDone ? Colors.brand : Colors.modify,
+                    }}
+                  />
+                  <Text className="text-sm font-medium text-text-primary">
+                    {isWellnessDone ? 'Wellness completed' : 'Wellness pending'}
+                    {activeTodayRecovery.length > 0
+                      ? ` · ${activeTodayRecovery.length} recovery`
+                      : ''}
+                  </Text>
+                </View>
+                <Pressable
+                  testID="wellness-checkin"
+                  accessibilityRole="button"
+                  accessibilityLabel={isWellnessDone ? 'Update wellness check-in' : 'Wellness check-in'}
+                  hitSlop={8}
+                  onPress={() => {
+                    hapticLight();
+                    setWellnessSheetOpen(true);
+                  }}
+                >
+                  <Text className="text-sm font-semibold text-brand">
+                    {isWellnessDone ? 'Update' : 'Check in'}
+                  </Text>
+                </Pressable>
+              </View>
+              {!isWellnessDone ? (
+                <Button
+                  className="mt-3"
+                  label="Start wellness check-in"
+                  onPress={() => {
+                    hapticLight();
+                    setWellnessSheetOpen(true);
+                  }}
+                />
+              ) : null}
+              {showCoachCheckinPending ? (
+                <View className="mt-3 border-t border-border/80 pt-3">
+                  <View className="flex-row items-center justify-between gap-3">
+                    <View className="min-w-0 flex-1 flex-row items-center gap-2.5">
+                      <View
+                        className="h-2.5 w-2.5 rounded-full"
+                        style={{ backgroundColor: Colors.modify }}
+                      />
+                      <Text className="text-sm font-medium text-text-primary">
+                        Coach check-in pending
+                      </Text>
+                    </View>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel="Start coach check-in"
+                      hitSlop={8}
+                      onPress={() => {
+                        hapticLight();
+                        router.push(APP_HREFS.dailyCheckin as Href);
+                      }}
+                    >
+                      <Text className="text-sm font-semibold text-brand">Start</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              ) : null}
             </View>
-            <Pressable
-              testID="wellness-checkin"
-              accessibilityRole="button"
-              accessibilityLabel={isWellnessDone ? 'Update wellness check-in' : 'Wellness check-in'}
-              hitSlop={8}
-              onPress={() => {
-                hapticLight();
-                setWellnessSheetOpen(true);
-              }}
-            >
-              <Text className="text-xs font-semibold text-brand">
-                {isWellnessDone ? 'Update' : 'Check in'}
-              </Text>
-            </Pressable>
-          </View>
+          )}
 
-          {/* Quick Action Buttons Grid */}
-          <Text className="mt-5 mb-2.5 text-xs font-semibold uppercase tracking-widest text-text-muted">
-            Quick Actions
+          {/* Text-first write list (replaces icon grid) */}
+          <Text className="mb-2.5 mt-6 text-xs font-semibold uppercase tracking-widest text-text-muted">
+            Log
           </Text>
-          <View className="flex-row flex-wrap gap-2.5">
-            {nutritionEnabled ? (
-              <Pressable
-                testID="log-meal"
-                accessibilityRole="button"
-                accessibilityLabel="Log meal"
-                className="flex-1 min-w-[45%] flex-row items-center gap-3 rounded-xl border border-border bg-card p-3.5 active:opacity-80"
-                onPress={() => {
-                  hapticLight();
-                  setMealSheetOpen(true);
-                }}
-              >
-                <View className="h-9 w-9 items-center justify-center rounded-full bg-border-strong">
-                  <AppSymbol sf="fork.knife" size={16} tintColor={theme.textPrimary} fallback="🍽️" />
-                </View>
-                <View>
-                  <Text className="text-sm font-bold text-text-primary">Log Meal</Text>
-                  <Text className="text-[11px] text-text-muted">Food & macros</Text>
-                </View>
-              </Pressable>
-            ) : null}
-
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Add water"
-              className="flex-1 min-w-[45%] flex-row items-center gap-3 rounded-xl border border-border bg-card p-3.5 active:opacity-80"
-              onPress={() => {
-                hapticLight();
-                setHydrationSheetOpen(true);
-              }}
-            >
-              <View className="h-9 w-9 items-center justify-center rounded-full bg-border-strong">
-                <AppSymbol sf="drop.fill" size={16} tintColor={theme.textPrimary} fallback="💧" />
-              </View>
-              <View>
-                <Text className="text-sm font-bold text-text-primary">Add Water</Text>
-                <Text className="text-[11px] text-text-muted">Hydration presets</Text>
-              </View>
-            </Pressable>
-
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Log recovery event"
-              className="flex-1 min-w-[45%] flex-row items-center gap-3 rounded-xl border border-border bg-card p-3.5 active:opacity-80"
-              onPress={() => {
-                hapticLight();
-                router.push('/(app)/recovery-event' as Href);
-              }}
-            >
-              <View className="h-9 w-9 items-center justify-center rounded-full bg-border-strong">
-                <AppSymbol sf="cross.case.fill" size={16} tintColor={theme.textPrimary} fallback="🩹" />
-              </View>
-              <View>
-                <Text className="text-sm font-bold text-text-primary">Recovery Event</Text>
-                <Text className="text-[11px] text-text-muted">Illness, stress, injury</Text>
-              </View>
-            </Pressable>
-
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Add measurement"
-              className="flex-1 min-w-[45%] flex-row items-center gap-3 rounded-xl border border-border bg-card p-3.5 active:opacity-80"
-              onPress={() => {
-                hapticLight();
-                setMeasurementSheetOpen(true);
-              }}
-            >
-              <View className="h-9 w-9 items-center justify-center rounded-full bg-border-strong">
-                <AppSymbol sf="ruler" size={16} tintColor={theme.textPrimary} fallback="📏" />
-              </View>
-              <View>
-                <Text className="text-sm font-bold text-text-primary">Measurement</Text>
-                <Text className="text-[11px] text-text-muted">Weight, HR, body comp</Text>
-              </View>
-            </Pressable>
-
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="AI Coach Check-in"
-              className="flex-1 min-w-[45%] flex-row items-center gap-3 rounded-xl border border-border bg-card p-3.5 active:opacity-80"
-              onPress={() => {
-                hapticLight();
-                router.push('/(app)/daily-checkin' as Href);
-              }}
-            >
-              <View className="h-9 w-9 items-center justify-center rounded-full bg-border-strong">
-                <AppSymbol sf="bubble.left.and.bubble.right" size={16} tintColor={theme.brand} fallback="💬" />
-              </View>
-              <View>
-                <Text className="text-sm font-bold text-text-primary">AI Coach Qs</Text>
-                <Text className="text-[11px] text-text-muted">Tailored readiness</Text>
-              </View>
-            </Pressable>
+          <View className="overflow-hidden rounded-xl border border-border bg-card">
+            {(
+              [
+                nutritionEnabled
+                  ? {
+                      testID: 'log-meal',
+                      label: 'Log meal',
+                      detail: 'Food & macros',
+                      onPress: () => setMealSheetOpen(true),
+                    }
+                  : null,
+                {
+                  label: 'Add water',
+                  detail: 'Hydration presets',
+                  onPress: () => setHydrationSheetOpen(true),
+                },
+                {
+                  label: 'Recovery event',
+                  detail: 'Illness, stress, injury',
+                  onPress: () => router.push('/(app)/recovery-event' as Href),
+                },
+                {
+                  label: 'Measurement',
+                  detail: 'Weight, HR, body comp',
+                  onPress: () => setMeasurementSheetOpen(true),
+                },
+                {
+                  label: 'Coach check-in',
+                  detail: 'Tailored readiness questions',
+                  onPress: () => router.push('/(app)/daily-checkin' as Href),
+                },
+              ] as Array<{
+                testID?: string;
+                label: string;
+                detail: string;
+                onPress: () => void;
+              } | null>
+            )
+              .filter((row): row is NonNullable<typeof row> => row != null)
+              .map((row, index, rows) => (
+                <AnimatedPressable
+                  key={row.label}
+                  testID={row.testID}
+                  accessibilityRole="button"
+                  accessibilityLabel={row.label}
+                  className={`flex-row items-center px-4 py-3.5 ${
+                    index < rows.length - 1 ? 'border-b border-border/80' : ''
+                  }`}
+                  onPress={() => {
+                    hapticLight();
+                    row.onPress();
+                  }}
+                >
+                  <View className="min-w-0 flex-1">
+                    <Text className="text-base font-medium text-text-primary">{row.label}</Text>
+                    <Text className="mt-0.5 text-sm text-text-muted">{row.detail}</Text>
+                  </View>
+                  <Text className="ml-2 text-sm font-semibold text-brand">Add</Text>
+                </AnimatedPressable>
+              ))}
           </View>
 
           {/* Today's Entries Timeline Feed */}
@@ -367,7 +382,7 @@ export default function LogScreen() {
           {todayEntries.length === 0 ? (
             <View className="rounded-xl border border-border bg-card p-4">
               <Text className="text-sm text-text-muted">
-                No entries logged yet today. Tap a quick action above to start.
+                No entries logged yet today. Use Log above to start.
               </Text>
             </View>
           ) : (

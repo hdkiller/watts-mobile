@@ -10,6 +10,7 @@ import { Skeleton } from '@/src/components/Skeleton';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
 
+import { ActivityGlanceStrip } from './ActivityGlanceStrip';
 import { AthleteReportSheet } from './AthleteReportSheet';
 import {
   fetchLatestAthleteProfileReport,
@@ -128,6 +129,8 @@ export function AthleteProfileOverview({
         restingHr={profile.restingHr}
         lthr={profile.lthr}
       />
+
+      <ActivityGlanceStrip />
 
       <View className="mt-5">
         {reportQuery.isLoading && !reportQuery.data ? (

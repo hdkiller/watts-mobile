@@ -12,6 +12,7 @@ const SF_TO_MD = {
   'list.bullet': 'format_list_bulleted',
   'list.bullet.rectangle': 'list_alt',
   calendar: 'calendar_month',
+  'calendar.badge.clock': 'calendar_clock',
   'person.crop.circle': 'account_circle',
   bell: 'notifications',
   gearshape: 'settings',
@@ -29,6 +30,9 @@ const SF_TO_MD = {
   'bubble.left.and.bubble.right': 'forum',
   'square.and.arrow.up': 'ios_share',
   trash: 'delete',
+  flag: 'flag',
+  creditcard: 'credit_card',
+  'rectangle.portrait.and.arrow.right': 'logout',
   'drop.fill': 'water_drop',
   'clock.fill': 'schedule',
   'moon.stars': 'moon_stars',
@@ -58,6 +62,7 @@ const SF_TO_MD = {
   'gauge.with.dots.needle.33percent': 'speed',
   'exclamationmark.triangle': 'warning',
   'heart.text.square.fill': 'health_and_safety',
+  qrcode: 'qr_code',
 } as const satisfies Record<string, AndroidSymbol>;
 
 export type MappedSFSymbol = keyof typeof SF_TO_MD;

@@ -1,10 +1,13 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { useAuth } from '@/src/auth/AuthContext';
 import { friendlyError } from '@/src/api/errors';
+import { Button } from '@/src/components/Button';
+import { Skeleton } from '@/src/components/Skeleton';
 import { PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from '@/src/features/account/paths';
 import { canAcquireNativeSubscription, isOfficialHostedInstance } from '@/src/features/subscriptions/gating';
 import {
@@ -96,13 +99,24 @@ export default function SubscriptionScreen() {
         <ScrollView className="flex-1 bg-surface" contentContainerClassName="px-6 pb-12 pt-5">
           <View className="rounded-2xl border border-border bg-card p-5">
             <Text className="text-xs font-semibold uppercase tracking-widest text-text-muted">Current access</Text>
-            {summary.isLoading ? <ActivityIndicator className="mt-4" color={theme.brand} /> : null}
+            {summary.isLoading ? (
+              <View className="mt-4 gap-3">
+                <Skeleton className="h-8 w-32" />
+                <Skeleton className="h-4 w-48" />
+                <Skeleton className="h-10 w-full rounded-xl" />
+              </View>
+            ) : null}
             {summary.isError ? (
-              <Text className="mt-3 text-sm text-danger">Could not load subscription status.</Text>
+              <View className="mt-3 rounded-xl border border-danger/40 bg-tint-error p-3">
+                <Text className="text-sm text-red-400">Could not load subscription status.</Text>
+                <Pressable className="mt-2" hitSlop={8} onPress={() => void summary.refetch()}>
+                  <Text className="text-sm font-semibold text-brand">Retry</Text>
+                </Pressable>
+              </View>
             ) : null}
             {summary.data ? (
               <>
-                <Text className="mt-2 text-3xl font-bold text-text-primary">{summary.data.tier}</Text>
+                <Text className="mt-2 text-2xl font-semibold text-text-primary">{summary.data.tier}</Text>
                 {summary.data.subscriptions.map((item) => (
                   <View key={`${item.provider}:${item.productId}`} className="mt-4 border-t border-border pt-4">
                     <Text className="font-semibold text-text-primary">{providerLabels[item.provider]}</Text>
@@ -110,9 +124,12 @@ export default function SubscriptionScreen() {
                     {item.entitlementEnd ? (
                       <Text className="mt-1 text-sm text-text-muted">Access through {new Date(item.entitlementEnd).toLocaleDateString()}</Text>
                     ) : null}
-                    <Pressable className="mt-3 self-start rounded-lg border border-border px-4 py-2 active:opacity-75" onPress={() => void manage(item.provider, item.managementUrl)}>
-                      <Text className="font-semibold text-text-primary">Manage with {providerLabels[item.provider]}</Text>
-                    </Pressable>
+                    <Button
+                      className="mt-3"
+                      label={`Manage with ${providerLabels[item.provider]}`}
+                      variant="secondary"
+                      onPress={() => void manage(item.provider, item.managementUrl)}
+                    />
                   </View>
                 ))}
               </>
@@ -120,7 +137,7 @@ export default function SubscriptionScreen() {
           </View>
 
           {summary.data?.hasCollision ? (
-            <View className="mt-4 rounded-xl border border-warning bg-card p-4">
+            <View className="mt-4 rounded-xl border border-modify/40 bg-modify/10 p-4">
               <Text className="font-semibold text-text-primary">Multiple active subscriptions</Text>
               <Text className="mt-1 text-sm text-text-muted">Your highest tier is active. Manage the subscription you no longer want with its provider above; Coach Watts will not cancel it automatically.</Text>
             </View>
@@ -129,7 +146,7 @@ export default function SubscriptionScreen() {
           {!hosted ? (
             <View className="mt-6 rounded-xl border border-border bg-card p-4">
               <Text className="font-semibold text-text-primary">Managed by this instance</Text>
-              <Text className="mt-2 text-sm leading-5 text-text-muted">Watt Mind store purchases and restores are available only on the official hosted Coach Watts service. This screen shows access reported by your current instance.</Text>
+              <Text className="mt-2 text-sm leading-5 text-text-muted">Store purchases and restores are available only on the official hosted Coach Watts service. This screen shows access reported by your current instance.</Text>
             </View>
           ) : null}
 
@@ -142,19 +159,31 @@ export default function SubscriptionScreen() {
 
           {acquisitionEnabled && !summary.data?.acquisitionSuppressed ? (
             <View className="mt-8">
-              <Text className="text-xl font-bold text-text-primary">Choose a plan</Text>
+              <Text className="text-2xl font-semibold text-text-primary">Choose a plan</Text>
               <Text className="mt-2 text-sm leading-5 text-text-muted">Payment is charged to your store account. Subscriptions renew automatically unless canceled in store settings before renewal.</Text>
-              {offerings.isLoading ? <ActivityIndicator className="mt-6" color={theme.brand} /> : null}
+              {offerings.isLoading ? (
+                <View className="mt-6 gap-3">
+                  <Skeleton className="h-24 w-full rounded-2xl" />
+                  <Skeleton className="h-24 w-full rounded-2xl" />
+                </View>
+              ) : null}
               {offerings.data?.map((item) => (
-                <Pressable key={`${item.tier}:${item.period}:${item.id}`} disabled={Boolean(operation)} className="mt-4 rounded-2xl border border-border bg-card p-5 active:opacity-75" onPress={() => void purchase(item)}>
+                <View key={`${item.tier}:${item.period}:${item.id}`} className="mt-4 rounded-2xl border border-border bg-card p-5">
                   <View className="flex-row items-start justify-between gap-3">
                     <View className="flex-1">
-                      <Text className="text-lg font-bold text-text-primary">{item.tier === 'PRO' ? 'Pro' : 'Supporter'}</Text>
+                      <Text className="text-lg font-semibold text-text-primary">{item.tier === 'PRO' ? 'Pro' : 'Supporter'}</Text>
                       <Text className="mt-1 text-sm text-text-muted">{item.period === 'ANNUAL' ? 'Annual' : 'Monthly'} subscription</Text>
                     </View>
-                    <Text className="text-lg font-bold text-brand">{item.price}</Text>
+                    <Text className="text-lg font-semibold text-brand">{item.price}</Text>
                   </View>
-                </Pressable>
+                  <Button
+                    className="mt-4"
+                    label={`Subscribe · ${item.price}`}
+                    disabled={Boolean(operation)}
+                    loading={operation?.includes('checkout') ?? false}
+                    onPress={() => void purchase(item)}
+                  />
+                </View>
               ))}
               {!offerings.isLoading && offerings.data?.length === 0 ? (
                 <Text className="mt-4 text-sm text-text-muted">No store packages are available for this app build.</Text>
@@ -163,16 +192,25 @@ export default function SubscriptionScreen() {
           ) : null}
 
           {acquisitionEnabled ? (
-            <Pressable disabled={Boolean(operation)} className="mt-6 items-center rounded-xl border border-border px-4 py-3 active:opacity-75" onPress={() => void restore()}>
-              <Text className="font-semibold text-text-primary">Restore Purchases</Text>
-            </Pressable>
+            <Button
+              className="mt-6"
+              label="Restore Purchases"
+              variant="secondary"
+              disabled={Boolean(operation)}
+              loading={operation === 'Restoring purchases…'}
+              onPress={() => void restore()}
+            />
           ) : null}
           {operation ? <Text className="mt-4 text-center text-sm text-text-muted">{operation}</Text> : null}
           {message ? <Text className="mt-4 text-center text-sm text-text-primary">{message}</Text> : null}
 
           <View className="mt-8 flex-row justify-center gap-6">
-            <Pressable onPress={() => void Linking.openURL(TERMS_OF_SERVICE_URL)}><Text className="text-sm font-semibold text-brand">Terms</Text></Pressable>
-            <Pressable onPress={() => void Linking.openURL(PRIVACY_POLICY_URL)}><Text className="text-sm font-semibold text-brand">Privacy</Text></Pressable>
+            <Pressable hitSlop={8} onPress={() => void Linking.openURL(TERMS_OF_SERVICE_URL)}>
+              <Text className="text-sm font-semibold text-brand">Terms</Text>
+            </Pressable>
+            <Pressable hitSlop={8} onPress={() => void Linking.openURL(PRIVACY_POLICY_URL)}>
+              <Text className="text-sm font-semibold text-brand">Privacy</Text>
+            </Pressable>
           </View>
         </ScrollView>
       </SafeAreaView>

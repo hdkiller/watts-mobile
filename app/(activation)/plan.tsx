@@ -1,11 +1,13 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
+import { Skeleton } from '@/src/components/Skeleton';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 import { trackActivationEvent } from '@/src/features/activation/analytics';
 import { useActivationStatus, useAdvanceActivationStatus } from '@/src/features/activation/useActivationStatus';
@@ -125,13 +127,18 @@ export default function ActivationPlanScreen() {
         </Text>
 
         {phase === 'working' ? (
-          <View className="mt-12 items-center gap-3">
-            <ActivityIndicator />
-            <Text className="text-center text-base text-text-muted">
+          <View className="mt-8">
+            <Text className="text-base text-text-muted">
               Generating your plan and first training week…
             </Text>
+            <View className="mt-4 gap-2">
+              <Skeleton className="h-16 rounded-xl" />
+              <Skeleton className="h-16 rounded-xl" />
+              <Skeleton className="h-16 rounded-xl" />
+              <Skeleton className="h-16 rounded-xl" />
+            </View>
             <Button
-              className="mt-4 w-full"
+              className="mt-6 w-full"
               variant="secondary"
               label="Open plan tools on web"
               onPress={() => void openInstanceWeb(instanceUrl, '/plans')}

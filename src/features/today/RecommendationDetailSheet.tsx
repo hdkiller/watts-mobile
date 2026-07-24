@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -32,11 +33,11 @@ const BADGE_TEXT: Record<HeroTone, string> = {
 function sourceBadgeClass(sourceType: RecoveryContextItem['sourceType']): string {
   switch (sourceType) {
     case 'imported':
-      return 'bg-sky-950/40 border-sky-800/50 text-sky-300';
+      return 'bg-recovery/10 border-recovery/40 text-recovery';
     case 'manual_event':
-      return 'bg-amber-950/40 border-amber-800/50 text-amber-300';
+      return 'bg-modify/10 border-modify/40 text-modify';
     default:
-      return 'bg-green-950/40 border-green-800/50 text-green-300';
+      return 'bg-success/10 border-success/25 text-success';
   }
 }
 

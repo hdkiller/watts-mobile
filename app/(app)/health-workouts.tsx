@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack, type Href, router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -12,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { Button } from '@/src/components/Button';
+import { ListSkeleton } from '@/src/components/Skeleton';
 import { formatLedgerStatusLabel } from '@/src/features/health/ledgerHelpers';
 import {
   syncUnsyncedWorkouts,
@@ -32,13 +34,13 @@ import { useThemeColors } from '@/src/theme/useThemeColors';
 function statusColor(status: SyncLedgerStatus): string {
   switch (status) {
     case 'synced':
-      return 'text-emerald-400';
+      return 'text-success';
     case 'failed':
-      return 'text-red-400';
+      return 'text-danger';
     case 'needs_sync':
-      return 'text-amber-400';
+      return 'text-modify';
     case 'pending':
-      return 'text-amber-400';
+      return 'text-modify';
     case 'syncing':
       return 'text-brand';
     default:
@@ -168,9 +170,9 @@ export default function HealthRecentWorkoutsScreen() {
                 hapticLight();
                 router.push(APP_HREFS.settingsHealth as Href);
               }}
-              className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-3"
+              className="mt-3 rounded-xl border border-modify/40 bg-modify/10 px-3 py-3"
             >
-              <Text className="text-xs text-amber-400 leading-4.5">
+              <Text className="text-xs text-modify leading-4.5">
                 {!preferences.syncEnabled
                   ? 'Sync to Coach Watts is off. You can browse workouts here; turn sync on to upload.'
                   : 'Sync workouts is off. Turn it on in Health Sync to upload from this list.'}
@@ -189,18 +191,15 @@ export default function HealthRecentWorkoutsScreen() {
             </View>
           ) : null}
           {actionError ? (
-            <Text className="mt-2 text-xs text-red-400 leading-4.5">{actionError}</Text>
+            <Text className="mt-2 text-xs text-danger leading-4.5">{actionError}</Text>
           ) : null}
           {loadError ? (
-            <Text className="mt-2 text-xs text-red-400 leading-4.5">{loadError}</Text>
+            <Text className="mt-2 text-xs text-danger leading-4.5">{loadError}</Text>
           ) : null}
         </View>
 
         {loading && !refreshing ? (
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator color={Colors.brand} size="large" />
-            <Text className="mt-3 text-sm text-text-muted">Reading workouts…</Text>
-          </View>
+          <ListSkeleton />
         ) : (
           <ScrollView
             className="flex-1"
@@ -242,7 +241,7 @@ export default function HealthRecentWorkoutsScreen() {
                           On phone · {formatWhen(row.startedAt)}
                         </Text>
                         {row.lastError ? (
-                          <Text className="mt-1.5 text-xs text-red-400" numberOfLines={2}>
+                          <Text className="mt-1.5 text-xs text-danger" numberOfLines={2}>
                             {row.lastError}
                           </Text>
                         ) : null}

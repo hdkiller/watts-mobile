@@ -1,3 +1,4 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack } from 'expo-router';
 import { ScrollView, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-screens/experimental';
