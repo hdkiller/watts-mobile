@@ -2,6 +2,7 @@
 import { router, Stack, type Href } from 'expo-router';
 import { useMemo } from 'react';
 import {
+  Platform,
   Pressable,
   RefreshControl,
   SectionList,
@@ -10,9 +11,11 @@ import {
 } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
+import { AppSymbol } from '@/src/components/AppSymbol';
 import { OfflineBanner } from '@/src/components/OfflineBanner';
 import { ListSkeleton } from '@/src/components/Skeleton';
 import { SportIcon } from '@/src/components/SportIcon';
+import { StructureProfile } from '@/src/features/activity/charts/StructureProfile';
 import { formatDuration } from '@/src/features/activity/mapActivity';
 import { buildComplianceIndex, type ComplianceMark } from '@/src/features/activity/compliance';
 import { ComplianceMarkView } from '@/src/features/activity/ComplianceMark';
@@ -27,6 +30,16 @@ import { useOfflineCached } from '@/src/hooks/useOfflineCached';
 import { humanizeWorkoutType } from '@/src/lib/humanizeWorkoutType';
 import { APP_HREFS } from '@/src/linking/appHrefs';
 import { Colors } from '@/src/theme/colors';
+import { useThemeColors } from '@/src/theme/useThemeColors';
+
+/** Root-stack lists opened from tabs/deep links often omit the native back chevron. */
+function goBackFromUpcomingList() {
+  if (router.canGoBack()) {
+    router.back();
+    return;
+  }
+  router.replace(APP_HREFS.today as Href);
+}
 
 function PlannedRow({
   item,
@@ -43,6 +56,7 @@ function PlannedRow({
   ]
     .filter(Boolean)
     .join(' · ');
+  const chartBlocks = item.structureChartBlocks;
 
   return (
     <Pressable
@@ -59,6 +73,9 @@ function PlannedRow({
             <ComplianceMarkView mark={mark} />
           </View>
           {meta ? <Text className="mt-1.5 text-sm text-text-muted">{meta}</Text> : null}
+          {chartBlocks && chartBlocks.length >= 2 ? (
+            <StructureProfile blocks={chartBlocks} compact />
+          ) : null}
         </View>
       </View>
     </Pressable>
@@ -66,6 +83,7 @@ function PlannedRow({
 }
 
 export default function UpcomingPlannedScreen() {
+  const theme = useThemeColors();
   const { data, isLoading, isError, error, refetch, isRefetching, dataUpdatedAt } =
     useUpcomingPlannedQuery();
   const recent = useRecentActivityQuery();
@@ -92,7 +110,34 @@ export default function UpcomingPlannedScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Upcoming', headerShown: true }} />
+      <Stack.Screen
+        options={{
+          title: 'Upcoming',
+          headerShown: true,
+          headerLeft: () => (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Back"
+              hitSlop={12}
+              onPress={goBackFromUpcomingList}
+              style={{
+                minWidth: 44,
+                minHeight: 44,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginLeft: Platform.OS === 'ios' ? -6 : 0,
+              }}
+            >
+              <AppSymbol
+                sf="chevron.left"
+                size={22}
+                tintColor={theme.textPrimary}
+                fallback="←"
+              />
+            </Pressable>
+          ),
+        }}
+      />
       {isLoading && !data ? (
         <ListSkeleton />
       ) : isError && !data ? (

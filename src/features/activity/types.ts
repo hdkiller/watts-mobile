@@ -1,3 +1,7 @@
+import type { StructureChartBlock } from './structureIntensity';
+
+export type { StructureChartBlock };
+
 export type WorkoutAnalysisStatus =
   | 'NOT_STARTED'
   | 'PENDING'
@@ -31,6 +35,8 @@ export type PlannedListItemApi = {
   durationSec?: number | null;
   tss?: number | null;
   trainingWeekId?: string | null;
+  /** Present on Prisma list rows even when OpenAPI omits it. */
+  structuredWorkout?: unknown;
 };
 
 export type PlanAdherenceApi = {
@@ -218,6 +224,8 @@ export type PlannedListItem = {
   type: string | null;
   durationSec: number | null;
   tss: number | null;
+  /** Compact endurance silhouette when list payload includes structuredWorkout. */
+  structureChartBlocks?: StructureChartBlock[];
 };
 
 export type PlannedStructureStep = {
@@ -226,6 +234,8 @@ export type PlannedStructureStep = {
   intensityLabel: string | null;
   /** Strength block title / warmup-cooldown cue — not an exercise row. */
   isSection?: boolean;
+  /** Target-aware zone hint for step rail color when resolvable. */
+  zoneIndex?: number | null;
 };
 
 export type PlannedZoneBand = {
@@ -250,6 +260,10 @@ export type PlannedDetail = PlannedListItem & {
   structureSteps: PlannedStructureStep[];
   /** True when structure was mapped from strength `blocks` / `exercises`. */
   structureIsStrength: boolean;
+  /** Endurance silhouette blocks (may be empty). Rebuilt with athlete FTP when available. */
+  structureChartBlocks: StructureChartBlock[];
+  /** Raw structuredWorkout for re-resolving chart intensity with athlete thresholds. */
+  structureSource: unknown | null;
   workIntensityLabel: string | null;
   completionLabel: string | null;
   /** Raw uppercased completion status when known. */

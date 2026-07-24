@@ -7,6 +7,7 @@ import {
   ACTIVITY_GLANCE_WEEK_COUNT,
   activityGlanceRange,
   computeActivityGlance,
+  computeNutritionGlance,
   resolveActivityGlanceTap,
 } from '../activityGlance';
 
@@ -103,6 +104,33 @@ describe('activityGlance', () => {
     const day = glance.weeks.flatMap((w) => w.days).find((d) => d.dateKey === '2026-07-16')!;
     expect(day.hasDone).toBe(true);
     expect(day.hasPlanned).toBe(false);
+  });
+
+  it('shifts the window back by twelve weeks per pageOffset', () => {
+    const now = new Date(2026, 6, 15, 12, 0, 0);
+    const live = activityGlanceRange(now, 0);
+    const older = activityGlanceRange(now, -1);
+    expect(live.startKey).toBe('2026-05-11');
+    expect(older.endKey).toBe('2026-05-10'); // Sunday before live start
+    expect(older.startKey).toBe('2026-02-16');
+    expect(older.pageOffset).toBe(-1);
+  });
+
+  it('computes nutrition logged vs gap days for a page', () => {
+    const now = new Date(2026, 6, 15, 12, 0, 0);
+    const glance = computeNutritionGlance(
+      ['2026-07-14', '2026-07-15', '2026-04-01'],
+      now,
+      0
+    );
+    expect(glance.loggedDayCount).toBe(2);
+    expect(glance.summaryLine).toContain('logged');
+    expect(glance.summaryLine).toContain('gaps');
+    const flat = glance.weeks.flatMap((w) => w.days);
+    expect(flat.find((d) => d.dateKey === '2026-07-14')?.hasLogged).toBe(true);
+    expect(flat.find((d) => d.dateKey === '2026-07-13')?.hasLogged).toBe(false);
+    expect(flat.find((d) => d.dateKey === '2026-07-16')?.isFuture).toBe(true);
+    expect(flat.find((d) => d.dateKey === '2026-07-16')?.hasLogged).toBe(false);
   });
 
   it('resolves taps to detail or list destinations', () => {

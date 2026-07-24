@@ -107,7 +107,7 @@ async function fetchPlannedInRange(options: {
   }
   const json = (await response.json()) as PlannedListItemApi[];
   if (!Array.isArray(json)) return [];
-  return json.map(mapPlannedListItem);
+  return json.map((row) => mapPlannedListItem(row));
 }
 
 /** Workouts for Athlete activity glance — date-ranged, paginated, not Today’s limit-10 list. */

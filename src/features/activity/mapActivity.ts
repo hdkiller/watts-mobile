@@ -23,6 +23,25 @@ import type {
   WorkoutListItemApi,
   WorkoutSummaryApi,
 } from './types';
+import {
+  buildStructureChartBlocks,
+  emptyChartRefs,
+  hasStructuredWorkoutPreviewData,
+  resolveChartStepIntensity,
+  unitsLookLikePercentFtp,
+  zoneIndexFromIntensity,
+  type ChartTargetRefs,
+  type StructureChartBlock,
+  type ZoneProfileSnapshot,
+} from './structureIntensity';
+
+export type { ChartTargetRefs, StructureChartBlock };
+export {
+  buildStructureChartBlocks,
+  emptyChartRefs,
+  hasStructuredWorkoutPreviewData,
+  refsFromAthlete,
+} from './structureIntensity';
 
 const COACH_INSTRUCTIONS_MAX = 400;
 const ZONE_BAND_MAX = 8;
@@ -49,15 +68,9 @@ export type StepIntensity = {
   fraction?: number;
 };
 
-/** Coggan-style %FTP → 0-based zone index. */
+/** Align %FTP label zones with chart default bands (`zoneIndexFromIntensity`). */
 function zoneIndexFromFtpPercent(pct: number): number {
-  if (pct < 55) return 0;
-  if (pct < 75) return 1;
-  if (pct < 90) return 2;
-  if (pct < 105) return 3;
-  if (pct < 120) return 4;
-  if (pct < 150) return 5;
-  return 6;
+  return zoneIndexFromIntensity(pct / 100);
 }
 
 const NAMED_ZONE_INDEX: Record<string, number> = {
@@ -753,7 +766,18 @@ export function mapWorkoutSummary(
   };
 }
 
-export function mapPlannedListItem(raw: PlannedListItemApi): PlannedListItem {
+export function mapPlannedListItem(
+  raw: PlannedListItemApi,
+  refs: ChartTargetRefs = emptyChartRefs()
+): PlannedListItem {
+  const structuredWorkout = raw.structuredWorkout;
+  const chartBlocks =
+    hasStructuredWorkoutPreviewData(structuredWorkout) &&
+    !Array.isArray((structuredWorkout as { blocks?: unknown[] })?.blocks) &&
+    !Array.isArray((structuredWorkout as { exercises?: unknown[] })?.exercises)
+      ? buildStructureChartBlocks(structuredWorkout, refs)
+      : [];
+
   return {
     id: raw.id,
     title: raw.title?.trim() || 'Planned workout',
@@ -761,6 +785,7 @@ export function mapPlannedListItem(raw: PlannedListItemApi): PlannedListItem {
     type: raw.type ?? null,
     durationSec: typeof raw.durationSec === 'number' ? raw.durationSec : null,
     tss: typeof raw.tss === 'number' ? raw.tss : null,
+    ...(chartBlocks.length >= 2 ? { structureChartBlocks: chartBlocks } : {}),
   };
 }
 
@@ -842,6 +867,11 @@ function intensityFromZoneTarget(
   return null;
 }
 
+function formatPercentFtpLabel(raw: number): string {
+  const pct = raw > 0 && raw <= 3 ? Math.round(raw * 100) : Math.round(raw);
+  return `${pct}% FTP`;
+}
+
 function intensityFromStep(
   step: Record<string, unknown>,
   bands?: PlannedZoneBand[] | null
@@ -853,6 +883,24 @@ function intensityFromStep(
   if (power) {
     const zoneLabel = intensityFromZoneTarget(power, bands);
     if (zoneLabel) return zoneLabel;
+    if (unitsLookLikePercentFtp(power.units)) {
+      if (typeof power.value === 'number') return formatPercentFtpLabel(power.value);
+      const { min, max } = targetRangeBounds(power.range);
+      if (min != null && max != null) {
+        return `${formatPercentFtpLabel(min).replace(' FTP', '')}–${formatPercentFtpLabel(max)}`;
+      }
+      if (min != null) return formatPercentFtpLabel(min);
+      if (max != null) return formatPercentFtpLabel(max);
+    }
+    // Bare fractional values (≤3) match chart relative-% semantics — not watts.
+    if (
+      typeof power.value === 'number' &&
+      (!power.units || power.units === '') &&
+      power.value > 0 &&
+      power.value <= 3
+    ) {
+      return formatPercentFtpLabel(power.value);
+    }
     if (typeof power.value === 'number') return `${Math.round(power.value)} W`;
     const { min, max } = targetRangeBounds(power.range);
     if (min != null || max != null) {
@@ -907,7 +955,9 @@ function flattenSteps(
   nodes: unknown[],
   out: PlannedStructureStep[],
   depth = 0,
-  bands?: PlannedZoneBand[] | null
+  bands?: PlannedZoneBand[] | null,
+  refs: ChartTargetRefs = emptyChartRefs(),
+  snapshot?: ZoneProfileSnapshot
 ): void {
   if (depth > 3) return;
   for (const node of nodes) {
@@ -928,13 +978,29 @@ function flattenSteps(
           intensityLabel: null,
         });
       }
-      flattenSteps(nested, out, depth + 1, bands);
+      flattenSteps(nested, out, depth + 1, bands, refs, snapshot);
       continue;
+    }
+    const intensityLabel = intensityFromStep(step, bands);
+    const fromLabel = stepIntensity({ intensityLabel });
+    const chartIntensity = resolveChartStepIntensity(step, refs, snapshot);
+    let zoneIndex: number | null = fromLabel.zoneIndex ?? null;
+    if (chartIntensity != null) {
+      const power = step.power as { units?: string; value?: number } | undefined;
+      const hr = step.heartRate as { units?: string; value?: number } | undefined;
+      if (power && unitsLookLikeZone(power.units) && typeof power.value === 'number') {
+        zoneIndex = Math.max(0, Math.round(power.value) - 1);
+      } else if (hr && unitsLookLikeZone(hr.units) && typeof hr.value === 'number') {
+        zoneIndex = Math.max(0, Math.round(hr.value) - 1);
+      } else {
+        zoneIndex = zoneIndexFromIntensity(chartIntensity);
+      }
     }
     out.push({
       name: stepName(step, out.length),
       durationSec: stepDurationSec(step),
-      intensityLabel: intensityFromStep(step, bands),
+      intensityLabel,
+      zoneIndex,
     });
   }
 }
@@ -1105,7 +1171,10 @@ export type MappedPlannedStructure = {
  * Prefers strength `blocks`, then legacy `exercises`, then endurance `steps`/`intervals`.
  * Returns empty steps when absent — never invents structure.
  */
-export function mapPlannedStructure(structuredWorkout: unknown): MappedPlannedStructure {
+export function mapPlannedStructure(
+  structuredWorkout: unknown,
+  refs: ChartTargetRefs = emptyChartRefs()
+): MappedPlannedStructure {
   if (!structuredWorkout || typeof structuredWorkout !== 'object') {
     return { steps: [], isStrength: false };
   }
@@ -1114,6 +1183,7 @@ export function mapPlannedStructure(structuredWorkout: unknown): MappedPlannedSt
     exercises?: unknown[];
     steps?: unknown[];
     intervals?: unknown[];
+    zoneProfileSnapshot?: unknown;
   };
 
   if (Array.isArray(root.blocks) && root.blocks.length > 0) {
@@ -1124,11 +1194,15 @@ export function mapPlannedStructure(structuredWorkout: unknown): MappedPlannedSt
   }
 
   const bands = mapZoneSummary(structuredWorkout)?.bands ?? null;
+  const snapshot =
+    root.zoneProfileSnapshot && typeof root.zoneProfileSnapshot === 'object'
+      ? (root.zoneProfileSnapshot as ZoneProfileSnapshot)
+      : undefined;
   const out: PlannedStructureStep[] = [];
   if (Array.isArray(root.steps) && root.steps.length > 0) {
-    flattenSteps(root.steps, out, 0, bands);
+    flattenSteps(root.steps, out, 0, bands, refs, snapshot);
   } else if (Array.isArray(root.intervals) && root.intervals.length > 0) {
-    flattenSteps(root.intervals, out, 0, bands);
+    flattenSteps(root.intervals, out, 0, bands, refs, snapshot);
   }
   return { steps: out.slice(0, 24), isStrength: false };
 }
@@ -1145,9 +1219,16 @@ function mapLinkedCompleted(raw: PlannedDetailApi): PlannedDetail['linkedComplet
   };
 }
 
-export function mapPlannedDetail(raw: PlannedDetailApi): PlannedDetail {
-  const base = mapPlannedListItem(raw);
-  const structure = mapPlannedStructure(raw.structuredWorkout);
+export function mapPlannedDetail(
+  raw: PlannedDetailApi,
+  refs: ChartTargetRefs = emptyChartRefs()
+): PlannedDetail {
+  const base = mapPlannedListItem(raw, refs);
+  const structure = mapPlannedStructure(raw.structuredWorkout, refs);
+  const structureSource = raw.structuredWorkout ?? null;
+  const structureChartBlocks = structure.isStrength
+    ? []
+    : buildStructureChartBlocks(structureSource, refs);
   const completionStatus =
     typeof raw.completionStatus === 'string' && raw.completionStatus.trim()
       ? raw.completionStatus.trim().toUpperCase()
@@ -1161,6 +1242,8 @@ export function mapPlannedDetail(raw: PlannedDetailApi): PlannedDetail {
     description: typeof raw.description === 'string' ? raw.description : null,
     structureSteps: structure.steps,
     structureIsStrength: structure.isStrength,
+    structureChartBlocks,
+    structureSource,
     workIntensityLabel: formatIntensityFactor(raw.workIntensity),
     completionLabel: mapCompletionLabel(raw.completionStatus),
     completionStatus,

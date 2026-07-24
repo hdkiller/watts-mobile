@@ -3,6 +3,7 @@ import { router, Stack, type Href } from 'expo-router';
 import { useMemo } from 'react';
 import {
   FlatList,
+  Platform,
   Pressable,
   RefreshControl,
   Text,
@@ -12,6 +13,7 @@ import { FadeInDown } from 'react-native-reanimated';
 
 import { friendlyError } from '@/src/api/errors';
 import { AnimatedPressable } from '@/src/components/AnimatedPressable';
+import { AppSymbol } from '@/src/components/AppSymbol';
 import { OfflineBanner } from '@/src/components/OfflineBanner';
 import { ListSkeleton } from '@/src/components/Skeleton';
 import { SportIcon } from '@/src/components/SportIcon';
@@ -30,6 +32,16 @@ import { useOfflineCached } from '@/src/hooks/useOfflineCached';
 import { humanizeWorkoutType } from '@/src/lib/humanizeWorkoutType';
 import { APP_HREFS } from '@/src/linking/appHrefs';
 import { Colors } from '@/src/theme/colors';
+import { useThemeColors } from '@/src/theme/useThemeColors';
+
+/** Root-stack lists opened from tabs/deep links often omit the native back chevron. */
+function goBackFromActivityList() {
+  if (router.canGoBack()) {
+    router.back();
+    return;
+  }
+  router.replace(APP_HREFS.today as Href);
+}
 
 function statusColor(kind: ActivityListItem['status']['kind']): string {
   switch (kind) {
@@ -90,6 +102,7 @@ function ActivityRow({
 }
 
 export default function RecentActivityScreen() {
+  const theme = useThemeColors();
   const { data, isLoading, isError, error, refetch, isRefetching, dataUpdatedAt } =
     useRecentActivityQuery();
   const upcoming = useUpcomingPlannedQuery();
@@ -105,7 +118,34 @@ export default function RecentActivityScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Recent activity', headerShown: true }} />
+      <Stack.Screen
+        options={{
+          title: 'Recent activity',
+          headerShown: true,
+          headerLeft: () => (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Back"
+              hitSlop={12}
+              onPress={goBackFromActivityList}
+              style={{
+                minWidth: 44,
+                minHeight: 44,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginLeft: Platform.OS === 'ios' ? -6 : 0,
+              }}
+            >
+              <AppSymbol
+                sf="chevron.left"
+                size={22}
+                tintColor={theme.textPrimary}
+                fallback="←"
+              />
+            </Pressable>
+          ),
+        }}
+      />
       {isLoading && !data ? (
         <ListSkeleton />
       ) : isError && !data ? (

@@ -1,6 +1,6 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack, useLocalSearchParams, router, type Href } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
@@ -12,9 +12,12 @@ import { DetailSkeleton } from '@/src/components/Skeleton';
 import { SportIcon } from '@/src/components/SportIcon';
 import { StructureProfile } from '@/src/features/activity/charts/StructureProfile';
 import {
+  buildStructureChartBlocks,
   formatActivityDate,
   formatDuration,
+  mapPlannedStructure,
   plannedWorkoutWebPath,
+  refsFromAthlete,
   zoneIndexFromBandName,
   stepIntensity,
 } from '@/src/features/activity/mapActivity';
@@ -81,6 +84,30 @@ export default function PlannedWorkoutDetailScreen() {
     : null;
 
   const busy = completeMutation.isPending || skipMutation.isPending;
+
+  const athleteRefs = useMemo(
+    () =>
+      refsFromAthlete({
+        ftp: profileQuery.data?.ftp,
+        lthr: profileQuery.data?.lthr,
+        maxHr: profileQuery.data?.maxHr,
+      }),
+    [profileQuery.data?.ftp, profileQuery.data?.lthr, profileQuery.data?.maxHr]
+  );
+
+  const chartBlocks = useMemo(() => {
+    if (!data || data.structureIsStrength) return [];
+    if (data.structureSource) {
+      return buildStructureChartBlocks(data.structureSource, athleteRefs);
+    }
+    return data.structureChartBlocks;
+  }, [data, athleteRefs]);
+
+  const structureSteps = useMemo(() => {
+    if (!data) return [];
+    if (data.structureIsStrength || !data.structureSource) return data.structureSteps;
+    return mapPlannedStructure(data.structureSource, athleteRefs).steps;
+  }, [data, athleteRefs]);
 
   const onComplete = () => {
     Alert.alert('Mark complete?', 'This marks the planned session as completed.', [
@@ -214,23 +241,20 @@ export default function PlannedWorkoutDetailScreen() {
             </View>
           ) : null}
 
-          {data.structureSteps.length > 0 ? (
+              {structureSteps.length > 0 ? (
             <View className="mt-6">
               <Text className="text-xs uppercase tracking-wide text-text-muted">
                 {data.structureIsStrength ? 'Exercises' : 'Structure'}
               </Text>
-              {!data.structureIsStrength ? (
-                <StructureProfile steps={data.structureSteps} />
-              ) : null}
-              {data.structureSteps.map((step, index) => {
+              {!data.structureIsStrength ? <StructureProfile blocks={chartBlocks} /> : null}
+              {structureSteps.map((step, index) => {
                 const meta = [formatDuration(step.durationSec), step.intensityLabel]
                   .filter(Boolean)
                   .join(' · ');
                 const intensity = stepIntensity(step);
+                const zoneIndex = step.zoneIndex ?? intensity.zoneIndex;
                 const color =
-                  intensity.zoneIndex !== undefined
-                    ? zoneColor(intensity.zoneIndex)
-                    : Colors.zoneNeutral;
+                  zoneIndex != null ? zoneColor(zoneIndex) : Colors.zoneNeutral;
                 const isSectionCue = Boolean(step.isSection);
                 return (
                   <View
@@ -263,7 +287,7 @@ export default function PlannedWorkoutDetailScreen() {
 
           {data.zoneSummary ? (
             <View className="mt-6">
-              {data.structureSteps.length > 0 ? (
+              {structureSteps.length > 0 ? (
                 <Pressable
                   accessibilityRole="button"
                   accessibilityState={{ expanded: zonesExpanded }}
@@ -284,7 +308,7 @@ export default function PlannedWorkoutDetailScreen() {
                   Zones · {data.zoneSummary.channelLabel}
                 </Text>
               )}
-              {(data.structureSteps.length === 0 || zonesExpanded) &&
+              {(structureSteps.length === 0 || zonesExpanded) &&
                 data.zoneSummary.bands.map((band, index) => {
                   const color = zoneColor(zoneIndexFromBandName(band.name, index));
                   return (
@@ -309,7 +333,7 @@ export default function PlannedWorkoutDetailScreen() {
 
           {data.description ? (
             <Text className="mt-6 text-base leading-6 text-text-body">{data.description}</Text>
-          ) : data.structureSteps.length === 0 && !data.coachInstructions ? (
+          ) : structureSteps.length === 0 && !data.coachInstructions ? (
             <Text className="mt-6 text-sm text-text-muted">
               No structure summary here. Open Coach Watts for full details.
             </Text>

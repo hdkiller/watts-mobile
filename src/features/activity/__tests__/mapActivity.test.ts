@@ -11,6 +11,7 @@ import {
   mapFuelingPrepGlance,
   mapPlanAdherence,
   mapPlannedDetail,
+  mapPlannedListItem,
   mapPlannedStructure,
   mapWorkoutListItem,
   mapWorkoutStatus,
@@ -225,6 +226,70 @@ describe('mapPlannedDetail', () => {
     expect(detail.structureSteps).toHaveLength(1);
     expect(detail.structureSteps[0]?.name).toBe('SS');
     expect(detail.structureIsStrength).toBe(false);
+    expect(detail.structureSource).toBeTruthy();
+  });
+
+  it('labels %FTP power targets as percent not watts', () => {
+    const detail = mapPlannedDetail({
+      id: 'p-ftp',
+      title: 'Sweet Spot',
+      structuredWorkout: {
+        steps: [
+          {
+            name: 'SS',
+            durationSeconds: 1200,
+            power: { value: 88, units: '%FTP' },
+          },
+          {
+            name: 'WU',
+            durationSeconds: 300,
+            power: { value: 55, units: '%FTP' },
+          },
+        ],
+      },
+    });
+    expect(detail.structureSteps[0]?.intensityLabel).toBe('88% FTP');
+    expect(detail.structureChartBlocks).toHaveLength(2);
+    expect(detail.structureChartBlocks[0]!.zoneIndex).not.toBeNull();
+  });
+
+  it('maps list preview chart when structuredWorkout is on the list row', () => {
+    const item = mapPlannedListItem({
+      id: 'p-list',
+      title: 'Intervals',
+      structuredWorkout: {
+        steps: [
+          { name: 'A', durationSeconds: 300, power: { value: 70, units: '%FTP' } },
+          { name: 'B', durationSeconds: 300, power: { value: 95, units: '%FTP' } },
+        ],
+      },
+    });
+    expect(item.structureChartBlocks?.length).toBe(2);
+  });
+
+  it('maps list preview chart from intervals-only structuredWorkout', () => {
+    const item = mapPlannedListItem({
+      id: 'p-intervals',
+      title: 'Legacy',
+      structuredWorkout: {
+        intervals: [
+          { name: 'A', durationSeconds: 300, power: { value: 70, units: '%FTP' } },
+          { name: 'B', durationSeconds: 300, power: { value: 95, units: '%FTP' } },
+        ],
+      },
+    });
+    expect(item.structureChartBlocks?.length).toBe(2);
+  });
+
+  it('labels bare fractional power as % FTP not watts', () => {
+    const detail = mapPlannedDetail({
+      id: 'p-frac',
+      title: 'Relative',
+      structuredWorkout: {
+        steps: [{ name: 'Main', durationSeconds: 600, power: { value: 0.88 } }],
+      },
+    });
+    expect(detail.structureSteps[0]?.intensityLabel).toBe('88% FTP');
   });
 
   it('marks strength structure on detail', () => {
@@ -244,6 +309,7 @@ describe('mapPlannedDetail', () => {
     expect(detail.structureIsStrength).toBe(true);
     expect(detail.structureSteps[0]?.name).toBe('Bench');
     expect(detail.structureSteps[0]?.intensityLabel).toBe('3×5');
+    expect(detail.structureChartBlocks).toEqual([]);
   });
 
   it('maps intensity, status, coach cues, and zones when present', () => {
@@ -630,8 +696,10 @@ describe('stepIntensity', () => {
       zoneIndex: 2,
       fraction: expect.any(Number),
     });
+    // Aligned with chart bands: ≤90% → Z3 (index 2), ≤105% → Z4 (index 3)
     expect(stepIntensity({ intensityLabel: '95%' }).zoneIndex).toBe(3);
     expect(stepIntensity({ intensityLabel: '110% FTP' }).zoneIndex).toBe(4);
+    expect(stepIntensity({ intensityLabel: '55% FTP' }).zoneIndex).toBe(0);
   });
 
   it('parses named zones', () => {

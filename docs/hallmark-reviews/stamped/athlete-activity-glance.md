@@ -62,3 +62,13 @@ _None._
 | Minor · `text-[9px]` | Removed with letter footer |
 
 **Post-patch:** 0 critical · 0 major · 0 minor open.
+
+### Chrome pass (2026-07-24, later)
+
+| Finding | Resolution |
+|---------|------------|
+| Major · redundant `ACTIVITY` kicker + segment | Kicker only when tracking off; segment owns mode label when tracking on |
+| Minor · pill segment weight | Text tabs + brand underline (no bordered pill well) |
+| Minor · summary hierarchy | Counts + range use `text-text-muted` metadata line |
+
+**Post-chrome-patch:** 0 critical · 0 major · 0 minor open.

@@ -1,7 +1,9 @@
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { router, type Href } from 'expo-router';
 import { useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
+import { StructureProfile } from '@/src/features/activity/charts/StructureProfile';
 import {
   formatActivityDate,
   formatDuration,
@@ -77,6 +79,7 @@ function ComingUpRow({ item }: { item: PlannedListItem }) {
   ]
     .filter(Boolean)
     .join(' · ');
+  const chartBlocks = item.structureChartBlocks;
 
   return (
     <Pressable
@@ -89,6 +92,9 @@ function ComingUpRow({ item }: { item: PlannedListItem }) {
           {item.title}
         </Text>
         {meta ? <Text className="mt-1 text-sm text-text-muted">{meta}</Text> : null}
+        {chartBlocks && chartBlocks.length >= 2 ? (
+          <StructureProfile blocks={chartBlocks} compact />
+        ) : null}
       </View>
       <Text className="text-text-muted">›</Text>
     </Pressable>
