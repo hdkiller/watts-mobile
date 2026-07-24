@@ -14,6 +14,7 @@ import { Skeleton, SkeletonScreen } from '@/src/components/Skeleton';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 import { GoalsLiteSection } from '@/src/features/goals/GoalsLiteSection';
 import { AthleteProfileOverview } from '@/src/features/profile/AthleteProfileOverview';
+import { canUseAthleteReferralShare } from '@/src/features/referrals/isHostedReferralInstance';
 import {
   athleteProfileWebPath,
   emptyAthleteForm,
@@ -253,6 +254,33 @@ export default function AthleteMetricsScreen() {
                 </Text>
               )}
             </View>
+
+            {canUseAthleteReferralShare(instanceUrl) ? (
+              <View className="mt-10 border-t border-border pt-6">
+                <AnimatedPressable
+                  testID="athlete-invite-friends"
+                  accessibilityRole="button"
+                  accessibilityLabel="Invite friends"
+                  className="flex-row items-center py-1"
+                  hitSlop={8}
+                  onPress={() => {
+                    hapticLight();
+                    router.push(APP_HREFS.invite as Href);
+                  }}
+                >
+                  <View className="mr-3 h-5 w-5 items-center justify-center">
+                    <AppSymbol sf="qrcode" size={18} tintColor={theme.textMuted} fallback="" />
+                  </View>
+                  <View className="min-w-0 flex-1">
+                    <Text className="text-base font-medium text-text-primary">Invite friends</Text>
+                    <Text className="mt-0.5 text-sm text-text-muted">
+                      QR & link so others can join
+                    </Text>
+                  </View>
+                  <AppSymbol sf="chevron.right" size={14} tintColor={theme.textMuted} fallback="›" />
+                </AnimatedPressable>
+              </View>
+            ) : null}
           </ScrollView>
         </View>
       )}

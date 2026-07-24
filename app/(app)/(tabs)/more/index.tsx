@@ -267,7 +267,7 @@ export default function MoreScreen() {
               title="Invite friends"
               detail="QR & link so others can join"
               sf="qrcode"
-              onPress={() => router.push('/(app)/(tabs)/more/invite' as Href)}
+              onPress={() => router.push(APP_HREFS.invite as Href)}
             />
           ) : null}
           <MenuRow

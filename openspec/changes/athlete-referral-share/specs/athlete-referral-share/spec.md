@@ -37,7 +37,12 @@ On hosted Coach Watts and local loopback instances, the mobile app SHALL expose 
 - **WHEN** the athlete taps Invite friends on a supported instance
 - **THEN** the invite screen loads the referral payload and shows a scannable QR for the share URL
 
+#### Scenario: Open invite from Athlete profile
+
+- **WHEN** the athlete opens Athlete (including from the Today greeting name) on a supported instance
+- **THEN** Invite friends appears at the bottom of the Athlete screen and opens the same invite share surface
+
 #### Scenario: Hidden on custom self-hosted
 
 - **WHEN** the configured instance host is not coachwatts.com / www / localhost / 127.0.0.1
-- **THEN** the Invite friends row is not shown
+- **THEN** the Invite friends row is not shown on More or Athlete

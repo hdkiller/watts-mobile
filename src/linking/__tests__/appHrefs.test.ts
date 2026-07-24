@@ -20,6 +20,7 @@ describe('migrateLegacyAppHref', () => {
 
   it('rewrites More-nested athlete / health / sports / goals into the root stack', () => {
     expect(migrateLegacyAppHref('/(app)/(tabs)/more/athlete')).toBe(APP_HREFS.athlete);
+    expect(migrateLegacyAppHref('/(app)/(tabs)/more/invite')).toBe(APP_HREFS.invite);
     expect(migrateLegacyAppHref('/(app)/(tabs)/more/goals')).toBe(APP_HREFS.goalsList);
     expect(migrateLegacyAppHref('/(app)/(tabs)/more/goals/g-1')).toBe(
       APP_HREFS.goalDetail('g-1')

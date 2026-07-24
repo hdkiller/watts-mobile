@@ -201,30 +201,6 @@ function EnterSection({ order, children }: { order: number; children: ReactNode 
   );
 }
 
-/** Secondary fold under the morning decision — omit the kicker when nothing renders. */
-function ContextSection({ children }: { children: ReactNode }) {
-  const [hasContent, setHasContent] = useState(false);
-
-  return (
-    <>
-      {hasContent ? (
-        <Text className="mt-10 text-xs font-semibold uppercase tracking-widest text-text-muted">
-          Context
-        </Text>
-      ) : null}
-      <View
-        collapsable={false}
-        onLayout={(event) => {
-          const next = event.nativeEvent.layout.height > 0;
-          setHasContent((prev) => (prev === next ? prev : next));
-        }}
-      >
-        {children}
-      </View>
-    </>
-  );
-}
-
 export default function TodayScreen() {
   const theme = useThemeColors();
 
@@ -579,6 +555,7 @@ export default function TodayScreen() {
           <View className="min-w-0 flex-1">
             <Text className="text-sm text-text-muted">{dateLabel}</Text>
             <AnimatedPressable
+              testID="today-greeting-name"
               accessibilityRole="button"
               accessibilityLabel={
                 greetingName
@@ -912,8 +889,8 @@ export default function TodayScreen() {
       ) : null}
 
       {!showFinishSetup ? (
-        <ContextSection>
-          {/* Full nutrition glance stays below primary decision CTAs (not above the hero). */}
+        <>
+          {/* Secondary glances — each section owns its own label (no empty "Context" kicker). */}
           <NutritionGlance />
 
           <EnterSection order={5}>
@@ -936,7 +913,7 @@ export default function TodayScreen() {
             <ComingUpStrip excludePlannedId={planned?.id} />
             <RecentlyTeaser />
           </View>
-        </ContextSection>
+        </>
       ) : null}
     </ScrollView>
 

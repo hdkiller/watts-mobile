@@ -28,6 +28,8 @@ export const APP_HREFS = {
   goalDetail: (id: string) =>
     `/(app)/goals/${encodeURIComponent(id)}` as const,
   athlete: '/(app)/athlete',
+  /** Multi-entry: Today name sheet + More — root stack so Back returns to opener. */
+  invite: '/(app)/invite',
   notifications: '/(app)/(tabs)/more/notifications',
   settings: '/(app)/(tabs)/more/settings',
   settingsNotifications: '/(app)/(tabs)/more/settings/notifications',
@@ -81,6 +83,7 @@ export function migrateLegacyAppHref(href: string): string {
     ],
     [/^\/\(app\)\/\(tabs\)\/more\/goals\/?$/, APP_HREFS.goalsList],
     [/^\/\(app\)\/\(tabs\)\/more\/athlete\/?$/, APP_HREFS.athlete],
+    [/^\/\(app\)\/\(tabs\)\/more\/invite\/?$/, APP_HREFS.invite],
     [/^\/\(app\)\/\(tabs\)\/more\/settings\/health\/?$/, APP_HREFS.settingsHealth],
     [
       /^\/\(app\)\/\(tabs\)\/more\/settings\/health-history\/?$/,

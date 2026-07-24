@@ -9,8 +9,9 @@
 
 - [x] 2.1 Referrals API client + hosted/local gate + Vitest
 - [x] 2.2 More → Invite friends screen (QR, copy, Share)
-- [x] 2.3 Maestro scenario + e2e inventory + product-baseline note
-- [x] 2.4 OpenSpec change artifacts
+- [x] 2.3 Athlete profile bottom → Invite friends (Today name opens Athlete directly)
+- [x] 2.4 Maestro scenario + e2e inventory + product-baseline note
+- [x] 2.5 OpenSpec change artifacts
 
 ## 3. Verification
 

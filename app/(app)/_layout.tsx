@@ -57,6 +57,7 @@ export default function AppLayout() {
           }}
         />
         <Stack.Screen name="athlete" options={{ headerShown: true, title: 'Athlete' }} />
+        <Stack.Screen name="invite" options={{ headerShown: false, title: 'Invite friends' }} />
         <Stack.Screen name="activity/index" options={{ headerShown: true, title: 'Recent activity' }} />
         <Stack.Screen name="activity/[id]" options={{ headerShown: true, title: 'Activity' }} />
         <Stack.Screen name="planned/[id]" options={{ headerShown: true, title: 'Workout' }} />

@@ -10,6 +10,8 @@ tags:
 - runFlow: subflows/reset-to-today.yaml
 - runFlow: scenarios/today-recommendation.yaml
 - runFlow: subflows/reset-to-today.yaml
+- runFlow: scenarios/today-invite.yaml
+- runFlow: subflows/reset-to-today.yaml
 - runFlow: scenarios/log-checkin-open.yaml
 - runFlow: subflows/reset-to-today.yaml
 - runFlow: scenarios/log-meal-open.yaml

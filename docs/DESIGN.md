@@ -128,7 +128,7 @@ To avoid keyboards layout overlap or blocking inputs:
 
 ## Don'ts
 
-- No raw neutral palette values in components (`bg-zinc-900`, `#09090b`, `text-white`) — semantic tokens only, so both themes stay correct.
+- No raw neutral palette values in components (`bg-zinc-900`, `#09090b`, `text-white`) — semantic tokens only, so both themes stay correct. **Exception:** QR code modules may use pure `#000000` / `#ffffff` for scanner reliability; wrap the pad in semantic `bg-card` chrome.
 - No white text on brand green.
 - No new one-off button styles — extend `Button` with a variant instead.
 - No full-screen `ActivityIndicator` for initial loads.

@@ -95,7 +95,9 @@ Keep this table honest when you add or remove IDs.
 | `more-screen` | More tab | shell, more hubs |
 | `more-athlete-profile` / `more-settings` / `more-health-sync` | More / Settings hubs | `flow-more-hubs` |
 | `more-invite-friends` | More → Invite friends (hosted/local) | `more-invite` |
-| `invite-screen` / `invite-qr` / `invite-code` / `invite-share` | Invite friends share surface | `more-invite` |
+| `today-greeting-name` | Today greeting → Athlete | `today-invite`, `flow-more-hubs` |
+| `athlete-invite-friends` | Athlete profile → Invite friends (hosted/local) | `today-invite` |
+| `invite-screen` / `invite-qr` / `invite-code` / `invite-share` | Invite friends share surface | `more-invite`, `today-invite` |
 | `athlete-screen` / `settings-screen` | Stack screens | `flow-more-hubs` |
 | `finish-setup-card` | Activation card on Today | (reserved; incomplete-activation fixture) |
 
@@ -389,6 +391,7 @@ OpenSpec: `openspec/changes/e2e-deeplink-login/`.
 | `maestro/scenarios/log-meal-open.yaml` | Meal sheet open (nutrition on) | On | Scenario |
 | `maestro/scenarios/coach-compose.yaml` | Coach composer + send | On | Scenario |
 | `maestro/scenarios/more-hubs.yaml` | More → profile / Settings → Health Sync | On | Scenario |
+| `maestro/scenarios/today-invite.yaml` | Today name → Athlete → Invite friends | On | Scenario |
 | `maestro/scenarios/more-invite.yaml` | More → Invite friends QR / share | On | Scenario |
 | `maestro/scenarios/deeplink-*.yaml` | Scheme deep links | On | Scenario |
 | `maestro/flow-wellness-save.yaml` | Wellness save (mutation; reset after) | On | Isolated wipe |
