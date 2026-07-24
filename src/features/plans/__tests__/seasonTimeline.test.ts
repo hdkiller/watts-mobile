@@ -59,7 +59,8 @@ describe('seasonTodayPercent', () => {
     expect(pct).toBeCloseTo((0.5 / 5) * 100, 5);
   });
 
-  it('clamps after the plan ends', () => {
-    expect(seasonTodayPercent(blocks, weeks, '2026-09-01')).toBe(100);
+  it('hides the needle when today is outside the plan', () => {
+    expect(seasonTodayPercent(blocks, weeks, '2026-09-01')).toBeNull();
+    expect(seasonTodayPercent(blocks, weeks, '2026-06-01')).toBeNull();
   });
 });

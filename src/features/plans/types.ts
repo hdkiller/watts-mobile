@@ -1,11 +1,26 @@
 export type VolumePreference = 'LOW' | 'MID' | 'HIGH';
 
+export type PlanStrategy =
+  | 'LINEAR'
+  | 'UNDULATING'
+  | 'BLOCK'
+  | 'POLARIZED'
+  | 'REVERSE'
+  | 'MAINTENANCE';
+
+export type StartingPhase = 'BASE' | 'BUILD' | 'PEAK';
+
 export type PlanInitializeInput = {
   goalId: string;
   startDate: string;
   volumePreference: VolumePreference;
   preferredActivityTypes: string[];
   volumeHours?: number;
+  endDate?: string;
+  strategy?: PlanStrategy;
+  customInstructions?: string;
+  recoveryRhythm?: number;
+  startingPhase?: StartingPhase;
 };
 
 export type PlannedWorkoutPreview = {

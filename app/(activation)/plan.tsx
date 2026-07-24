@@ -18,8 +18,8 @@ export default function ActivationPlanScreen() {
       <ScrollView contentContainerClassName="px-6 pb-10 pt-2">
         <Text className="text-2xl font-semibold text-text-primary">Build a starter plan</Text>
         <Text className="mt-2 mb-6 text-base text-text-muted">
-          Tell us when you can train. We’ll generate a draft week you can activate — keep refining
-          anytime on the Plan tab.
+          Build a plan you can activate. We’ll preview the first week — keep refining anytime on
+          the Plan tab.
         </Text>
         <PlanGeneratorPanel
           goalId={goalId}

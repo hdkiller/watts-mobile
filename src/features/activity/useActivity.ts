@@ -82,11 +82,16 @@ export function useUpcomingPlannedQuery() {
   });
 }
 
-export function useActivityGlanceWorkoutsQuery(start: Date, end: Date) {
+export function useActivityGlanceWorkoutsQuery(
+  start: Date,
+  end: Date,
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: [...ACTIVITY_GLANCE_WORKOUTS_KEY, start.toISOString(), end.toISOString()] as const,
     queryFn: () => fetchWorkoutsForActivityGlance(start, end),
     staleTime: 60_000,
+    enabled: options?.enabled ?? true,
   });
 }
 

@@ -12,6 +12,7 @@ import {
   fetchActivePlan,
   generateAiWeek,
   generateTrainingBlock,
+  generateWeekStructures,
   generateWorkoutStructure,
   movePlannedWorkout,
   patchPlanBlock,
@@ -139,6 +140,23 @@ export function useGenerateStructureMutation() {
     mutationFn: (plannedWorkoutId: string) => generateWorkoutStructure(plannedWorkoutId),
     onSuccess: async (_data, id) => {
       await invalidatePlanCaches(queryClient, { plannedId: id });
+    },
+  });
+}
+
+export function useGenerateWeekStructuresMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      ids,
+      onProgress,
+    }: {
+      ids: string[];
+      onProgress?: (done: number, total: number) => void;
+    }) => generateWeekStructures(ids, onProgress),
+    // Partial batch success still needs a refresh even when the mutation throws.
+    onSettled: async () => {
+      await invalidatePlanCaches(queryClient);
     },
   });
 }

@@ -20,7 +20,7 @@ export default function PlanCreateScreen() {
       <Stack.Screen options={{ title: 'Create plan', headerShown: true }} />
       <ScrollView className="flex-1 bg-surface" contentContainerClassName="px-6 pb-12 pt-4">
         <Text className="mb-4 text-sm text-text-muted">
-          Choose availability and volume, preview the first week, then activate.
+          Build a plan you can activate. We’ll preview the first week before it goes live.
         </Text>
         <PlanGeneratorPanel
           goalId={goalId}

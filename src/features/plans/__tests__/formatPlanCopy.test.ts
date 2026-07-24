@@ -11,6 +11,7 @@ import {
   humanizeMealStatus,
   humanizePlanStrategy,
   shortBlockLabel,
+  timelineBlockLabels,
   upcomingLocalDateKeys,
 } from '../formatPlanCopy';
 
@@ -70,5 +71,18 @@ describe('blockTypeAccent / shortBlockLabel', () => {
     expect(blockTypeAccent('RACE')).toBe(Colors.planBlocks.RACE);
     expect(blockTypeAccent('unknown')).toBe(Colors.brand);
     expect(shortBlockLabel('Race Week')).toBe('Race');
+  });
+});
+
+describe('timelineBlockLabels', () => {
+  it('numbers colliding short names', () => {
+    const labels = timelineBlockLabels([
+      { id: 'a', name: 'Base A' },
+      { id: 'b', name: 'Base B' },
+      { id: 'c', name: 'Build' },
+    ]);
+    expect(labels.get('a')).toBe('Base 1');
+    expect(labels.get('b')).toBe('Base 2');
+    expect(labels.get('c')).toBe('Build');
   });
 });

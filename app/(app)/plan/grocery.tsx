@@ -1,13 +1,15 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useMemo } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
+import { Button } from '@/src/components/Button';
 import { ListSkeleton } from '@/src/components/Skeleton';
 import { useNutritionGroceryQuery } from '@/src/features/nutrition/useNutrition';
 import { formatWeekRangeLabel } from '@/src/features/plans/formatPlanCopy';
 import { mapGroceryItems, weekRangeFromOffset } from '@/src/features/plans/mapNutritionPlan';
+import { APP_HREFS } from '@/src/linking/appHrefs';
 
 export default function PlanGroceryScreen() {
   const params = useLocalSearchParams<{ start?: string; end?: string }>();
@@ -48,9 +50,15 @@ export default function PlanGroceryScreen() {
               </Pressable>
             </View>
           ) : items.length === 0 ? (
-            <Text className="text-sm text-text-muted">
-              No grocery items yet. Generate a meal plan and lock meals first.
-            </Text>
+            <View className="gap-3" testID="plan-grocery-empty">
+              <Text className="text-sm text-text-muted">
+                No grocery items yet. Generate a meal plan on the Nutrition tab, then come back.
+              </Text>
+              <Button
+                label="Back to Plan"
+                onPress={() => router.replace(APP_HREFS.plan as never)}
+              />
+            </View>
           ) : (
             items.map((item, i) => (
               <View

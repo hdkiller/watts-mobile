@@ -2,19 +2,12 @@
  * pre-emit critique: P4 H4 E4 S4 R5 V4 — empty week = one CTA, not seven hollow cards
  */
 import { router, type Href } from 'expo-router';
-import { useMemo, useState, type ReactNode } from 'react';
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import { useMemo, useState } from 'react';
+import { Text, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
 import { AnimatedPressable } from '@/src/components/AnimatedPressable';
+import { BottomSheet } from '@/src/components/BottomSheet';
 import { Button } from '@/src/components/Button';
 import { Skeleton } from '@/src/components/Skeleton';
 import {
@@ -157,23 +150,37 @@ export function PlanNutritionSegment() {
             disabled={Boolean(busy)}
             testID="plan-nutrition-generate"
           />
-          <Button label="Grocery list" variant="secondary" onPress={openGrocery} disabled={Boolean(busy)} />
+          <AnimatedPressable
+            hitSlop={8}
+            disabled={Boolean(busy)}
+            onPress={openGrocery}
+            accessibilityRole="button"
+            accessibilityLabel="Grocery list"
+            className="self-start py-1"
+          >
+            <Text className="text-sm font-semibold text-brand">Grocery list</Text>
+          </AnimatedPressable>
         </View>
       ) : (
         <>
-          <View className="gap-2">
+          <View className="flex-row items-center justify-between gap-3">
             <Button
+              className="flex-1"
               label="Regenerate draft"
               variant="secondary"
               disabled={Boolean(busy)}
               onPress={generateDraft}
             />
-            <Button
-              label="Grocery list"
-              variant="secondary"
+            <AnimatedPressable
+              hitSlop={8}
               disabled={Boolean(busy)}
               onPress={openGrocery}
-            />
+              accessibilityRole="button"
+              accessibilityLabel="Grocery list"
+              className="py-1"
+            >
+              <Text className="text-sm font-semibold text-brand">Grocery</Text>
+            </AnimatedPressable>
           </View>
           <View>
             {days.map((day) => (
@@ -200,7 +207,11 @@ export function PlanNutritionSegment() {
         </>
       )}
 
-      <SheetModal visible={Boolean(selectedDateKey)} onClose={() => setSelectedDateKey(null)}>
+      <BottomSheet
+        visible={Boolean(selectedDateKey)}
+        onClose={() => setSelectedDateKey(null)}
+        testID="plan-nutrition-day-sheet"
+      >
         <Text className="mb-3 text-lg font-semibold text-text-primary">
           {selectedDay?.weekdayLabel}
         </Text>
@@ -234,34 +245,8 @@ export function PlanNutritionSegment() {
         <View className="mt-4">
           <Button label="Close" variant="secondary" onPress={() => setSelectedDateKey(null)} />
         </View>
-      </SheetModal>
+      </BottomSheet>
     </View>
-  );
-}
-
-function SheetModal({
-  visible,
-  onClose,
-  children,
-}: {
-  visible: boolean;
-  onClose: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <KeyboardAvoidingView
-        className="flex-1 justify-end bg-black/50"
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <Pressable className="flex-1" onPress={onClose} accessibilityRole="button" />
-        <View className="max-h-[85%] rounded-t-2xl bg-surface px-6 pb-10 pt-5">
-          <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-            {children}
-          </ScrollView>
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
   );
 }
 

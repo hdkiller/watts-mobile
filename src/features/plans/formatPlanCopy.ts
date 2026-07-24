@@ -73,6 +73,30 @@ export function shortBlockLabel(name: string): string {
   return trimmed.split(/\s+/)[0] ?? trimmed;
 }
 
+/** Disambiguate colliding short labels (e.g. two “Base” → “Base 1”, “Base 2”). */
+export function timelineBlockLabels(
+  blocks: Array<{ id: string; name: string }>
+): Map<string, string> {
+  const shorts = blocks.map((b) => ({ id: b.id, short: shortBlockLabel(b.name) }));
+  const counts = new Map<string, number>();
+  for (const row of shorts) {
+    counts.set(row.short, (counts.get(row.short) ?? 0) + 1);
+  }
+  const seen = new Map<string, number>();
+  const labels = new Map<string, string>();
+  for (const row of shorts) {
+    const total = counts.get(row.short) ?? 1;
+    if (total <= 1) {
+      labels.set(row.id, row.short);
+      continue;
+    }
+    const n = (seen.get(row.short) ?? 0) + 1;
+    seen.set(row.short, n);
+    labels.set(row.id, `${row.short} ${n}`);
+  }
+  return labels;
+}
+
 /** "Jul 22–28" or "Jul 28 – Aug 3" from YYYY-MM-DD keys. */
 export function formatWeekRangeLabel(
   startKey: string | null | undefined,

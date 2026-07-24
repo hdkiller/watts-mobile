@@ -4,13 +4,12 @@ import { useState } from 'react';
 import { Alert, ScrollView, Text, TextInput, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
-import { useAuth } from '@/src/auth/AuthContext';
+import { showActionSheet } from '@/src/components/ActionSheet';
 import { AnimatedPressable } from '@/src/components/AnimatedPressable';
+import { BottomSheet } from '@/src/components/BottomSheet';
 import { Button } from '@/src/components/Button';
 import { ListSkeleton } from '@/src/components/Skeleton';
-import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 import { humanizeBlockType } from '@/src/features/plans/formatPlanCopy';
-import { OpenWebLink } from '@/src/features/plans/OpenWebLink';
 import { useActivePlanQuery, useBlockMutations } from '@/src/features/plans/usePlans';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { APP_HREFS } from '@/src/linking/appHrefs';
@@ -26,7 +25,6 @@ const BLOCK_TYPES = [
 
 export default function PlanBlocksScreen() {
   const theme = useThemeColors();
-  const { instanceUrl } = useAuth();
   const plan = useActivePlanQuery();
   const shell = plan.data?.shell;
   const { create, patch, remove, reorder } = useBlockMutations();
@@ -35,6 +33,8 @@ export default function PlanBlocksScreen() {
   const [type, setType] = useState('BUILD');
   const [weeks, setWeeks] = useState('3');
   const [busy, setBusy] = useState(false);
+  const [renameTarget, setRenameTarget] = useState<{ id: string; name: string } | null>(null);
+  const [renameValue, setRenameValue] = useState('');
 
   const blocks = shell?.blocks ?? [];
 
@@ -50,6 +50,111 @@ export default function PlanBlocksScreen() {
     } finally {
       setBusy(false);
     }
+  };
+
+  const openBlockActions = (index: number) => {
+    if (!shell || busy) return;
+    const b = blocks[index];
+    if (!b) return;
+    hapticLight();
+
+    const options = [
+      {
+        label: 'Rename',
+        onPress: () => {
+          setRenameTarget({ id: b.id, name: b.name });
+          setRenameValue(b.name);
+        },
+      },
+      ...(index > 0
+        ? [
+            {
+              label: 'Move up',
+              onPress: () => {
+                const next = [...blocks];
+                const tmp = next[index - 1]!;
+                next[index - 1] = next[index]!;
+                next[index] = tmp;
+                void run(() =>
+                  reorder.mutateAsync({
+                    planId: shell.id,
+                    blocks: next.map((x, i) => ({ id: x.id, order: i })),
+                  })
+                );
+              },
+            },
+          ]
+        : []),
+      ...(index < blocks.length - 1
+        ? [
+            {
+              label: 'Move down',
+              onPress: () => {
+                const next = [...blocks];
+                const tmp = next[index + 1]!;
+                next[index + 1] = next[index]!;
+                next[index] = tmp;
+                void run(() =>
+                  reorder.mutateAsync({
+                    planId: shell.id,
+                    blocks: next.map((x, i) => ({ id: x.id, order: i })),
+                  })
+                );
+              },
+            },
+          ]
+        : []),
+      {
+        label: '+1 week',
+        onPress: () =>
+          void run(() =>
+            patch.mutateAsync({
+              planId: shell.id,
+              blockId: b.id,
+              input: { durationWeeks: b.durationWeeks + 1 },
+            })
+          ),
+      },
+      ...(b.durationWeeks > 1
+        ? [
+            {
+              label: '−1 week',
+              onPress: () =>
+                void run(() =>
+                  patch.mutateAsync({
+                    planId: shell.id,
+                    blockId: b.id,
+                    input: { durationWeeks: Math.max(1, b.durationWeeks - 1) },
+                  })
+                ),
+            },
+          ]
+        : []),
+      ...(blocks.length > 1
+        ? [
+            {
+              label: 'Delete',
+              style: 'destructive' as const,
+              onPress: () => {
+                Alert.alert('Delete block?', b.name, [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: () =>
+                      void run(() =>
+                        remove.mutateAsync({ planId: shell.id, blockId: b.id })
+                      ),
+                  },
+                ]);
+              },
+            },
+          ]
+        : []),
+      { label: 'Cancel', style: 'cancel' as const },
+    ];
+
+    showActionSheet({ title: b.name, options });
   };
 
   return (
@@ -75,91 +180,25 @@ export default function PlanBlocksScreen() {
                 </View>
               ) : null}
 
+              <Text className="mb-2 text-sm text-text-muted">Tap a phase to reorder or edit.</Text>
               <View>
                 {blocks.map((b, index) => (
-                  <View key={b.id} className="border-b border-border/80 py-3">
+                  <AnimatedPressable
+                    key={b.id}
+                    hitSlop={8}
+                    disabled={busy}
+                    onPress={() => openBlockActions(index)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${b.name}, ${humanizeBlockType(b.type)}`}
+                    className="border-b border-border/80 py-3"
+                  >
                     <Text className="text-base font-medium text-text-primary">{b.name}</Text>
                     <Text className="mt-1 text-sm text-text-muted">
                       {[humanizeBlockType(b.type), `${b.durationWeeks} weeks`, b.primaryFocus]
                         .filter(Boolean)
                         .join(' · ')}
                     </Text>
-                    <View className="mt-2 flex-row flex-wrap gap-4">
-                      <AnimatedPressable
-                        hitSlop={8}
-                        disabled={index === 0 || busy}
-                        onPress={() => {
-                          hapticLight();
-                          const next = [...blocks];
-                          const tmp = next[index - 1]!;
-                          next[index - 1] = next[index]!;
-                          next[index] = tmp;
-                          void run(() =>
-                            reorder.mutateAsync({
-                              planId: shell.id,
-                              blocks: next.map((x, i) => ({ id: x.id, order: i })),
-                            })
-                          );
-                        }}
-                      >
-                        <Text className="text-sm font-semibold text-brand">Up</Text>
-                      </AnimatedPressable>
-                      <AnimatedPressable
-                        hitSlop={8}
-                        disabled={index >= blocks.length - 1 || busy}
-                        onPress={() => {
-                          hapticLight();
-                          const next = [...blocks];
-                          const tmp = next[index + 1]!;
-                          next[index + 1] = next[index]!;
-                          next[index] = tmp;
-                          void run(() =>
-                            reorder.mutateAsync({
-                              planId: shell.id,
-                              blocks: next.map((x, i) => ({ id: x.id, order: i })),
-                            })
-                          );
-                        }}
-                      >
-                        <Text className="text-sm font-semibold text-brand">Down</Text>
-                      </AnimatedPressable>
-                      <AnimatedPressable
-                        hitSlop={8}
-                        disabled={busy}
-                        onPress={() => {
-                          hapticLight();
-                          void run(() =>
-                            patch.mutateAsync({
-                              planId: shell.id,
-                              blockId: b.id,
-                              input: { durationWeeks: b.durationWeeks + 1 },
-                            })
-                          );
-                        }}
-                      >
-                        <Text className="text-sm font-semibold text-brand">+1 week</Text>
-                      </AnimatedPressable>
-                      <AnimatedPressable
-                        hitSlop={8}
-                        disabled={busy || blocks.length <= 1}
-                        onPress={() => {
-                          Alert.alert('Delete block?', b.name, [
-                            { text: 'Cancel', style: 'cancel' },
-                            {
-                              text: 'Delete',
-                              style: 'destructive',
-                              onPress: () =>
-                                void run(() =>
-                                  remove.mutateAsync({ planId: shell.id, blockId: b.id })
-                                ),
-                            },
-                          ]);
-                        }}
-                      >
-                        <Text className="text-sm font-semibold text-danger">Delete</Text>
-                      </AnimatedPressable>
-                    </View>
-                  </View>
+                  </AnimatedPressable>
                 ))}
               </View>
 
@@ -223,16 +262,47 @@ export default function PlanBlocksScreen() {
                   });
                 }}
               />
-              <View className="mt-6">
-                <OpenWebLink
-                  label="Open on web"
-                  onPress={() => void openInstanceWeb(instanceUrl, '/plan')}
-                />
-              </View>
             </>
           )}
         </ScrollView>
       )}
+
+      <BottomSheet
+        visible={Boolean(renameTarget)}
+        onClose={() => setRenameTarget(null)}
+        keyboard
+        testID="plan-block-rename-sheet"
+      >
+        <Text className="mb-3 text-lg font-semibold text-text-primary">Rename block</Text>
+        <TextInput
+          className="mb-4 rounded-xl border border-border-strong bg-card px-3 py-2.5 text-text-primary"
+          value={renameValue}
+          onChangeText={setRenameValue}
+          placeholder="Name"
+          placeholderTextColor={theme.textMuted}
+          autoFocus
+        />
+        <Button
+          label="Save"
+          loading={busy}
+          disabled={busy || !renameValue.trim() || !shell || !renameTarget}
+          onPress={() => {
+            if (!shell || !renameTarget) return;
+            const nextName = renameValue.trim();
+            void run(async () => {
+              await patch.mutateAsync({
+                planId: shell.id,
+                blockId: renameTarget.id,
+                input: { name: nextName, primaryFocus: nextName },
+              });
+              setRenameTarget(null);
+            });
+          }}
+        />
+        <View className="mt-3">
+          <Button label="Cancel" variant="secondary" onPress={() => setRenameTarget(null)} />
+        </View>
+      </BottomSheet>
     </>
   );
 }

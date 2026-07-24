@@ -166,13 +166,34 @@ export default function UpcomingPlannedScreen() {
             />
           }
           ListHeaderComponent={
-            <OfflineBanner visible={showCachedOffline} lastUpdatedLabel={lastUpdatedLabel} />
+            <View>
+              <OfflineBanner visible={showCachedOffline} lastUpdatedLabel={lastUpdatedLabel} />
+              <Text className="mb-2 text-sm text-text-muted">
+                Next two weeks. Full season and adjust live on Plan.
+              </Text>
+              <Pressable
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="Open Plan tab"
+                onPress={() => router.push(APP_HREFS.plan as Href)}
+                className="mb-2 self-start py-1"
+              >
+                <Text className="text-sm font-semibold text-brand">Open Plan</Text>
+              </Pressable>
+            </View>
           }
           ListEmptyComponent={
             <View className="pt-8">
               <Text className="text-base text-text-muted">
                 No upcoming planned workouts in the next two weeks.
               </Text>
+              <Pressable
+                className="mt-3"
+                hitSlop={8}
+                onPress={() => router.push(APP_HREFS.plan as Href)}
+              >
+                <Text className="text-sm font-semibold text-brand">Open Plan</Text>
+              </Pressable>
             </View>
           }
           renderSectionHeader={({ section }) => (

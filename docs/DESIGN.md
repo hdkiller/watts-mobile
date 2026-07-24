@@ -100,6 +100,9 @@ All in [`src/components/`](../src/components):
 - **`Button`** — the only way to render a full-width action button. Variants: `primary` (brand-action fill, dark label), `secondary` (border-strong outline), `danger` (border-strong fill, red label). Handles loading spinner, disabled dimming (`opacity-50`), press feedback, and accessibility props. Pass margins via `className`.
 - **`AppSymbol`** — cross-platform glyph wrapper (`SF Symbol` on iOS, Material Symbol on Android). Prefer this over raw `SymbolView` + emoji branching. Add new SF→MD pairs in `src/components/AppSymbol.tsx`.
 - **`SportIcon`** — circular sport glyph derived from the workout `type` string. Sizes in use: 18 (detail/hero), 14 (list rows), 13 (Today teasers). Built on `AppSymbol`. Add new sport mappings there, not inline.
+- **`BottomSheet`** — bottom-anchored modal for forms / detail panes (grabber + scrim dismiss). Do not hand-roll `Modal` + top-pinned flex.
+- **Sectioned choice menus** (e.g. Plan Adjust with This week + Season) — one `BottomSheet` with eyebrow sections and hairline action rows. Do **not** nest `ActionSheetIOS` / `Alert` menus for multi-group choices.
+- **`showActionSheet` / `ActionSheetPortal`** — short, single-level choice menus only (≤ ~5 options, one group). Mount `ActionSheetPortal` once at the root. Keep `Alert.alert` for true confirms (destructive / irreversible) only.
 - **`Skeleton` / `ListSkeleton` / `DetailSkeleton`** — loading placeholders. New screens get a skeleton that roughly matches their loaded layout.
 
 Inline text links (Retry, See all, Check in…): `text-sm font-semibold text-brand` on a Pressable with **`hitSlop={8}`** — every tappable target must reach ~44pt.

@@ -1,31 +1,27 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app
- * pre-emit critique: P5 H4 E4 S4 R5 V4 — week first; season secondary; stats as metadata
+ * pre-emit critique: P5 H4 E5 S4 R5 V4 — title → note → season → Adjust → week → sessions
  */
 import { router, type Href } from 'expo-router';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
-import { useAuth } from '@/src/auth/AuthContext';
+import { showActionSheet } from '@/src/components/ActionSheet';
 import { AnimatedPressable } from '@/src/components/AnimatedPressable';
 import { AppSymbol } from '@/src/components/AppSymbol';
+import { BottomSheet } from '@/src/components/BottomSheet';
 import { Button } from '@/src/components/Button';
 import { Skeleton } from '@/src/components/Skeleton';
 import { SportIcon } from '@/src/components/SportIcon';
 import { StructureProfile } from '@/src/features/activity/charts/StructureProfile';
+import { buildComplianceIndex, type ComplianceMark } from '@/src/features/activity/compliance';
+import { ComplianceMarkView } from '@/src/features/activity/ComplianceMark';
 import { formatDuration } from '@/src/features/activity/mapActivity';
 import type { PlannedListItem } from '@/src/features/activity/types';
-import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
+import { useActivityGlanceWorkoutsQuery } from '@/src/features/activity/useActivity';
+import { useNutritionPlanQuery } from '@/src/features/nutrition/useNutrition';
+import { isNutritionTrackingEnabled } from '@/src/features/profile/mapProfile';
+import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { humanizeWorkoutType } from '@/src/lib/humanizeWorkoutType';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { APP_HREFS } from '@/src/linking/appHrefs';
@@ -38,15 +34,20 @@ import {
   humanizePlanStrategy,
 } from './formatPlanCopy';
 import { filterPlannedToWeek, seasonTodayPercent, weekDateKeys } from './mapActivePlan';
-import { OpenWebLink } from './OpenWebLink';
+import {
+  mapNutritionPlanDays,
+  weekHasSelectedMeals,
+} from './mapNutritionPlan';
+import { PlanAdjustSheet } from './PlanAdjustSheet';
 import { SeasonTimeline, WeekTargetStats } from './SeasonTimeline';
-import type { ActivePlanShell, PlanWeekShell } from './types';
+import type { ActivePlanShell, NutritionPlanApi, PlanWeekShell } from './types';
 import {
   useAbandonPlanMutation,
   useAdaptPlanMutation,
   useGenerateAiWeekMutation,
   useGenerateBlockMutation,
   useGenerateStructureMutation,
+  useGenerateWeekStructuresMutation,
   useMovePlannedMutation,
   usePatchWeekMutation,
   usePlanWeekSessionsQuery,
@@ -59,7 +60,20 @@ type Props = {
   error: unknown;
   onRetry: () => void;
   hasUsableData?: boolean;
+  onOpenNutrition?: () => void;
 };
+
+type MoveUndo = {
+  id: string;
+  title: string;
+  previousDate: string;
+};
+
+function weekContainsTodaySafe(weekMeta: PlanWeekShell | null | undefined): boolean {
+  const today = localDateKey(new Date()) ?? '';
+  if (!weekMeta?.startDateKey || !today) return false;
+  return today >= weekMeta.startDateKey && today <= (weekMeta.endDateKey ?? weekMeta.startDateKey);
+}
 
 export function PlanTrainingSegment({
   shell,
@@ -67,8 +81,8 @@ export function PlanTrainingSegment({
   error,
   onRetry,
   hasUsableData,
+  onOpenNutrition,
 }: Props) {
-  const { instanceUrl } = useAuth();
   const theme = useThemeColors();
   const weeks = shell?.weeks ?? [];
   const [weekIndex, setWeekIndex] = useState(0);
@@ -90,31 +104,104 @@ export function PlanTrainingSegment({
   const patchWeek = usePatchWeekMutation();
   const movePlanned = useMovePlannedMutation();
   const genStructure = useGenerateStructureMutation();
+  const genWeekStructures = useGenerateWeekStructuresMutation();
   const genWeek = useGenerateAiWeekMutation();
   const genBlock = useGenerateBlockMutation();
+  const profile = useAthleteProfileQuery();
+  const trackingOn = isNutritionTrackingEnabled(profile.data);
+  const nutritionRange = useMemo(
+    () => ({
+      start: weekMeta?.startDateKey ?? '',
+      end: weekMeta?.endDateKey ?? weekMeta?.startDateKey ?? '',
+    }),
+    [weekMeta?.startDateKey, weekMeta?.endDateKey]
+  );
+  const weekActivityRange = useMemo(() => {
+    if (!nutritionRange.start) return null;
+    const start = new Date(`${nutritionRange.start}T00:00:00`);
+    const end = new Date(`${nutritionRange.end || nutritionRange.start}T23:59:59.999`);
+    return { start, end };
+  }, [nutritionRange.start, nutritionRange.end]);
+  const weekActivitiesQuery = useActivityGlanceWorkoutsQuery(
+    weekActivityRange?.start ?? new Date(0),
+    weekActivityRange?.end ?? new Date(0),
+    { enabled: Boolean(weekActivityRange) }
+  );
+  const todayKey = localDateKey(new Date()) ?? '';
+  const weekContainsToday = weekContainsTodaySafe(weekMeta);
+  const nutritionQuery = useNutritionPlanQuery(nutritionRange.start, nutritionRange.end, {
+    enabled: trackingOn && Boolean(nutritionRange.start) && weekContainsToday,
+  });
 
   const [busyMsg, setBusyMsg] = useState<string | null>(null);
+  const [busyElapsedSec, setBusyElapsedSec] = useState(0);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [adjustOpen, setAdjustOpen] = useState(false);
   const [weekTuneOpen, setWeekTuneOpen] = useState(false);
   const [aiWeekOpen, setAiWeekOpen] = useState(false);
   const [aiInstructions, setAiInstructions] = useState('');
   const [moveTarget, setMoveTarget] = useState<PlannedListItem | null>(null);
   const [moveDate, setMoveDate] = useState('');
+  const [moveUndo, setMoveUndo] = useState<MoveUndo | null>(null);
+  const swipeStartX = useRef<number | null>(null);
 
   const weekSessions = useMemo(() => {
     const items = weekSessionsQuery.data ?? [];
     return filterPlannedToWeek(items, weekMeta);
   }, [weekSessionsQuery.data, weekMeta]);
 
-  const todayKey = localDateKey(new Date()) ?? '';
-  const weekContainsToday = Boolean(
-    weekMeta?.startDateKey &&
-      todayKey >= weekMeta.startDateKey &&
-      todayKey <= (weekMeta.endDateKey ?? weekMeta.startDateKey)
+  const compliance = useMemo(
+    () =>
+      buildComplianceIndex(
+        weekActivityRange ? weekActivitiesQuery.data : undefined,
+        weekSessions
+      ),
+    [weekActivityRange, weekActivitiesQuery.data, weekSessions]
   );
+
+  const needsStructureIds = useMemo(
+    () =>
+      weekSessions
+        .filter((s) => !s.structureChartBlocks || s.structureChartBlocks.length < 2)
+        .map((s) => s.id),
+    [weekSessions]
+  );
+
+  const nutritionDays = useMemo(
+    () =>
+      mapNutritionPlanDays(
+        (nutritionQuery.data as NutritionPlanApi | null | undefined) ?? null,
+        nutritionRange
+      ),
+    [nutritionQuery.data, nutritionRange]
+  );
+  const nutritionEmpty =
+    trackingOn &&
+    weekContainsToday &&
+    !nutritionQuery.isLoading &&
+    !nutritionQuery.isError &&
+    !weekHasSelectedMeals(nutritionDays);
+
+  const currentWeekIndex = useMemo(() => {
+    if (!shell) return -1;
+    return shell.weeks.findIndex((w) => w.id === shell.currentWeek?.id);
+  }, [shell]);
   const weekIsPast = Boolean(
     weekMeta?.endDateKey && weekMeta.endDateKey < todayKey && !weekContainsToday
   );
+  const browsingAway = currentWeekIndex >= 0 && weekIndex !== currentWeekIndex;
+
+  useEffect(() => {
+    if (!busyMsg) {
+      setBusyElapsedSec(0);
+      return;
+    }
+    const started = Date.now();
+    const id = setInterval(() => {
+      setBusyElapsedSec(Math.floor((Date.now() - started) / 1000));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [busyMsg]);
 
   const [volumeMins, setVolumeMins] = useState('');
   const [tss, setTss] = useState('');
@@ -138,6 +225,12 @@ export function PlanTrainingSegment({
     setWeekTuneOpen(true);
   };
 
+  const jumpToCurrentWeek = () => {
+    if (currentWeekIndex < 0) return;
+    hapticLight();
+    setWeekIndex(currentWeekIndex);
+  };
+
   const runBusy = async (label: string, fn: () => Promise<unknown>) => {
     setActionError(null);
     setBusyMsg(label);
@@ -150,6 +243,25 @@ export function PlanTrainingSegment({
     } finally {
       setBusyMsg(null);
     }
+  };
+
+  const generateMissingStructures = () => {
+    if (needsStructureIds.length === 0) return;
+    void runBusy('Generating structures', () =>
+      genWeekStructures.mutateAsync({
+        ids: needsStructureIds,
+        onProgress: (done, total) => {
+          setBusyMsg(`Generating structures (${done}/${total})`);
+        },
+      })
+    );
+  };
+
+  const onWeekSwipe = (dx: number) => {
+    if (Math.abs(dx) < 56 || weeks.length <= 1 || busyMsg) return;
+    hapticLight();
+    if (dx < 0) setWeekIndex((i) => Math.min(weeks.length - 1, i + 1));
+    else setWeekIndex((i) => Math.max(0, i - 1));
   };
 
   if (loading && !shell) {
@@ -184,10 +296,6 @@ export function PlanTrainingSegment({
           onPress={() => router.push(APP_HREFS.planCreate as Href)}
           testID="plan-create-cta"
         />
-        <OpenWebLink
-          label="Open on web"
-          onPress={() => void openInstanceWeb(instanceUrl, '/plan')}
-        />
       </View>
     );
   }
@@ -214,134 +322,151 @@ export function PlanTrainingSegment({
     ]);
   };
 
-  const showThisWeekMenu = () => {
-    Alert.alert('This week', undefined, [
-      { text: 'Tune this week', onPress: openWeekTune },
-      { text: 'Generate week', onPress: () => setAiWeekOpen(true) },
-      {
-        text: 'Generate phase workouts',
-        onPress: () => {
-          const blockId = weekMeta?.blockId;
-          if (!blockId) return;
-          void runBusy('Generating phase workouts', () => genBlock.mutateAsync(blockId));
-        },
-      },
-      {
-        text: 'Recalculate remaining week',
-        onPress: () =>
-          confirmAdapt(
-            'Recalculate remaining week?',
-            'Upcoming sessions this week may be replaced.',
-            'RECALCULATE_WEEK',
-            'Recalculating week'
-          ),
-      },
-      {
-        text: 'Push schedule forward 1 day',
-        onPress: () =>
-          confirmAdapt(
-            'Push schedule forward?',
-            'Planned sessions move one day later.',
-            'PUSH_FORWARD',
-            'Pushing schedule'
-          ),
-      },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
-  };
-
-  const showSeasonMenu = () => {
-    Alert.alert('Season', undefined, [
-      {
-        text: 'Edit blocks',
-        onPress: () => router.push(APP_HREFS.planBlocks as Href),
-      },
-      {
-        text: 'Replan structure',
-        onPress: () => {
-          Alert.alert(
-            'Replan structure?',
-            'Phase structure will be sent to the server as currently listed.',
-            [
-              { text: 'Cancel', style: 'cancel' },
-              {
-                text: 'Replan',
-                onPress: () => {
-                  const blocks = shell.blocks.map((b, i) => ({
-                    id: b.id,
-                    name: b.name,
-                    type: b.type,
-                    primaryFocus: b.primaryFocus ?? b.name,
-                    durationWeeks: b.durationWeeks,
-                    order: b.order ?? i,
-                  }));
-                  void runBusy('Replanning structure', () =>
-                    replan.mutateAsync({ planId: shell.id, blocks })
-                  );
-                },
-              },
-            ]
-          );
-        },
-      },
-      {
-        text: 'Start new plan',
-        style: 'destructive',
-        onPress: () => {
-          Alert.alert(
-            'Start new plan?',
-            'This abandons the current plan and opens the generator.',
-            [
-              { text: 'Cancel', style: 'cancel' },
-              {
-                text: 'Abandon & create',
-                style: 'destructive',
-                onPress: () =>
-                  void runBusy('Abandoning plan', async () => {
-                    await abandon.mutateAsync(shell.id);
-                    router.push(APP_HREFS.planCreate as Href);
-                  }),
-              },
-            ]
-          );
-        },
-      },
-      {
-        text: 'Abandon plan',
-        style: 'destructive',
-        onPress: () => {
-          Alert.alert('Abandon plan?', 'Future AI workouts will be cleared.', [
-            { text: 'Cancel', style: 'cancel' },
-            {
-              text: 'Abandon',
-              style: 'destructive',
-              onPress: () =>
-                void runBusy('Abandoning plan', () => abandon.mutateAsync(shell.id)),
-            },
-          ]);
-        },
-      },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
-  };
-
   const showAdjustMenu = () => {
     if (busyMsg) return;
     hapticLight();
-    Alert.alert('Adjust plan', undefined, [
-      { text: 'This week…', onPress: showThisWeekMenu },
-      { text: 'Season…', onPress: showSeasonMenu },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
+    setAdjustOpen(true);
   };
+
+  const thisWeekActions = [
+    {
+      id: 'tune',
+      label: 'Tune this week',
+      hint: 'Focus, volume, TSS, recovery',
+      onPress: openWeekTune,
+    },
+    {
+      id: 'gen-week',
+      label: 'Generate week',
+      hint: 'Optional instructions for AI workouts',
+      onPress: () => setAiWeekOpen(true),
+    },
+    {
+      id: 'gen-structures',
+      label: 'Generate structures for week',
+      hint:
+        needsStructureIds.length > 0
+          ? `${needsStructureIds.length} without intervals`
+          : 'All sessions already have structure',
+      disabled: needsStructureIds.length === 0,
+      onPress: generateMissingStructures,
+    },
+    {
+      id: 'gen-phase',
+      label: 'Generate phase workouts',
+      hint: 'Fill the current block',
+      disabled: !weekMeta?.blockId,
+      onPress: () => {
+        const blockId = weekMeta?.blockId;
+        if (!blockId) return;
+        void runBusy('Generating phase workouts', () => genBlock.mutateAsync(blockId));
+      },
+    },
+    {
+      id: 'recalc',
+      label: 'Recalculate remaining week',
+      hint: 'May replace upcoming sessions',
+      onPress: () =>
+        confirmAdapt(
+          'Recalculate remaining week?',
+          'Upcoming sessions this week may be replaced.',
+          'RECALCULATE_WEEK',
+          'Recalculating week'
+        ),
+    },
+    {
+      id: 'push',
+      label: 'Push schedule forward 1 day',
+      onPress: () =>
+        confirmAdapt(
+          'Push schedule forward?',
+          'Planned sessions move one day later.',
+          'PUSH_FORWARD',
+          'Pushing schedule'
+        ),
+    },
+  ];
+
+  const seasonActions = [
+    {
+      id: 'edit-blocks',
+      label: 'Edit blocks',
+      hint: 'Reorder phases and durations',
+      onPress: () => router.push(APP_HREFS.planBlocks as Href),
+    },
+    {
+      id: 'replan',
+      label: 'Replan structure',
+      onPress: () => {
+        Alert.alert(
+          'Replan structure?',
+          'Phase structure will be sent to the server as currently listed.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Replan',
+              onPress: () => {
+                const blocks = shell.blocks.map((b, i) => ({
+                  id: b.id,
+                  name: b.name,
+                  type: b.type,
+                  primaryFocus: b.primaryFocus ?? b.name,
+                  durationWeeks: b.durationWeeks,
+                  order: b.order ?? i,
+                }));
+                void runBusy('Replanning structure', () =>
+                  replan.mutateAsync({ planId: shell.id, blocks })
+                );
+              },
+            },
+          ]
+        );
+      },
+    },
+    {
+      id: 'start-new',
+      label: 'Start new plan',
+      hint: 'Abandon current plan, then create',
+      destructive: true,
+      onPress: () => {
+        Alert.alert(
+          'Start new plan?',
+          'This abandons the current plan and opens the generator.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Abandon & create',
+              style: 'destructive',
+              onPress: () =>
+                void runBusy('Abandoning plan', async () => {
+                  await abandon.mutateAsync(shell.id);
+                  router.push(APP_HREFS.planCreate as Href);
+                }),
+            },
+          ]
+        );
+      },
+    },
+    {
+      id: 'abandon',
+      label: 'Abandon plan',
+      destructive: true,
+      onPress: () => {
+        Alert.alert('Abandon plan?', 'Future AI workouts will be cleared.', [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Abandon',
+            style: 'destructive',
+            onPress: () =>
+              void runBusy('Abandoning plan', () => abandon.mutateAsync(shell.id)),
+          },
+        ]);
+      },
+    },
+  ];
 
   return (
     <View testID="plan-training" className="gap-5 px-6 pb-10 pt-4">
-      {busyMsg ? (
-        <Text className="text-sm text-brand" testID="plan-busy">
-          {busyMsg}…
-        </Text>
-      ) : null}
       {actionError ? (
         <View className="rounded-xl border border-danger/40 bg-tint-error p-3">
           <Text className="text-sm text-danger">{actionError}</Text>
@@ -352,10 +477,8 @@ export function PlanTrainingSegment({
         <Text className="text-2xl font-semibold text-text-primary" testID="plan-title">
           {shell.title}
         </Text>
-        {shell.currentPhaseLabel || strategyLabel ? (
-          <Text className="text-sm text-text-muted">
-            {[shell.currentPhaseLabel, strategyLabel].filter(Boolean).join(' · ')}
-          </Text>
+        {strategyLabel ? (
+          <Text className="text-sm text-text-muted">{strategyLabel}</Text>
         ) : null}
         {shell.provisionalHint || hasUsableData === false ? (
           <Text className="mt-1 text-sm text-modify">
@@ -369,7 +492,95 @@ export function PlanTrainingSegment({
         ) : null}
       </View>
 
-      <View>
+      {shell.coachNotes ? (
+        <View className="rounded-xl border border-border bg-card/60 p-3">
+          <Text className="text-xs font-semibold uppercase tracking-widest text-text-muted">
+            Coach note
+          </Text>
+          <Text className="mt-1 text-sm text-text-body">{shell.coachNotes}</Text>
+        </View>
+      ) : null}
+
+      {shell.blocks.length > 0 ? (
+        <SeasonTimeline
+          blocks={shell.blocks}
+          selectedBlockId={weekMeta?.blockId ?? selectedBlock?.id ?? null}
+          todayPercent={todayPct}
+          onSelectBlock={selectBlock}
+        />
+      ) : null}
+
+      <View className="gap-2">
+        <Button
+          label="Adjust plan"
+          variant="secondary"
+          onPress={showAdjustMenu}
+          disabled={Boolean(busyMsg)}
+          testID="plan-adjust"
+        />
+        {weekIsPast && weekIndex >= Math.max(0, weeks.length - 1) ? (
+          <Button
+            label="Create plan"
+            onPress={() => router.push(APP_HREFS.planCreate as Href)}
+            testID="plan-create-from-past"
+          />
+        ) : null}
+        {busyMsg ? (
+          <Text className="text-sm text-brand" testID="plan-busy">
+            {busyMsg}
+            {busyElapsedSec >= 8 ? ` · still working (${busyElapsedSec}s)` : '…'}
+          </Text>
+        ) : null}
+      </View>
+
+      {moveUndo ? (
+        <View className="flex-row items-center justify-between rounded-xl border border-border bg-card/70 px-3 py-2.5">
+          <Text className="mr-3 min-w-0 flex-1 text-sm text-text-muted" numberOfLines={2}>
+            Moved {moveUndo.title}
+          </Text>
+          <AnimatedPressable
+            hitSlop={8}
+            disabled={Boolean(busyMsg)}
+            onPress={() => {
+              const undo = moveUndo;
+              setMoveUndo(null);
+              void runBusy('Undoing move', () =>
+                movePlanned.mutateAsync({ id: undo.id, date: undo.previousDate })
+              );
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Undo move"
+          >
+            <Text className="text-sm font-semibold text-brand">Undo</Text>
+          </AnimatedPressable>
+        </View>
+      ) : null}
+
+      {nutritionEmpty ? (
+        <View className="rounded-xl border border-border bg-card/60 p-3">
+          <Text className="text-sm text-text-muted">No meals planned for this week yet.</Text>
+          <AnimatedPressable
+            hitSlop={8}
+            className="mt-2 self-start"
+            onPress={() => onOpenNutrition?.()}
+            accessibilityRole="button"
+            accessibilityLabel="Open Nutrition plan"
+          >
+            <Text className="text-sm font-semibold text-brand">Fuel this week</Text>
+          </AnimatedPressable>
+        </View>
+      ) : null}
+
+      <View
+        onTouchStart={(e) => {
+          swipeStartX.current = e.nativeEvent.pageX;
+        }}
+        onTouchEnd={(e) => {
+          if (swipeStartX.current == null) return;
+          onWeekSwipe(e.nativeEvent.pageX - swipeStartX.current);
+          swipeStartX.current = null;
+        }}
+      >
         {weeks.length > 1 ? (
           <View className="mb-3 flex-row items-center justify-between">
             <AnimatedPressable
@@ -380,7 +591,7 @@ export function PlanTrainingSegment({
                 setWeekIndex((i) => Math.max(0, i - 1));
               }}
               accessibilityRole="button"
-              accessibilityLabel="Previous week"
+              accessibilityLabel="Previous plan week"
             >
               <Text
                 className={`text-sm font-semibold ${
@@ -390,9 +601,22 @@ export function PlanTrainingSegment({
                 Previous
               </Text>
             </AnimatedPressable>
-            <Text className="text-sm font-semibold text-text-primary">
-              {weekRange ?? 'Week'}
-            </Text>
+            <View className="items-center px-2">
+              <Text className="text-sm font-semibold text-text-primary">
+                {weekRange ?? 'Week'}
+              </Text>
+              {browsingAway ? (
+                <AnimatedPressable
+                  hitSlop={8}
+                  onPress={jumpToCurrentWeek}
+                  accessibilityRole="button"
+                  accessibilityLabel="Jump to this week"
+                  className="mt-1"
+                >
+                  <Text className="text-xs font-semibold text-brand">This week</Text>
+                </AnimatedPressable>
+              ) : null}
+            </View>
             <AnimatedPressable
               hitSlop={8}
               disabled={weekIndex >= weeks.length - 1}
@@ -401,7 +625,7 @@ export function PlanTrainingSegment({
                 setWeekIndex((i) => Math.min(weeks.length - 1, i + 1));
               }}
               accessibilityRole="button"
-              accessibilityLabel="Next week"
+              accessibilityLabel="Next plan week"
             >
               <Text
                 className={`text-sm font-semibold ${
@@ -434,65 +658,84 @@ export function PlanTrainingSegment({
             <Skeleton className="h-16 rounded-xl" />
           </View>
         ) : weekSessions.length === 0 ? (
-          <Text className="text-sm text-text-muted">
-            No sessions in this week yet. Use Adjust plan → This week → Generate week, or browse
-            Upcoming.
-          </Text>
-        ) : (
-          weekSessions.map((item) => (
-            <SessionRow
-              key={item.id}
-              item={item}
-              busy={Boolean(busyMsg)}
-              onOpen={() => {
-                hapticLight();
-                router.push(APP_HREFS.plannedDetail(item.id) as Href);
-              }}
-              onMove={() => {
-                hapticLight();
-                setMoveTarget(item);
-                setMoveDate(localDateKey(item.date) ?? moveDayKeys[0] ?? '');
-              }}
-              onGenerateStructure={
-                !item.structureChartBlocks || item.structureChartBlocks.length < 2
-                  ? () =>
-                      void runBusy('Generating structure', () =>
-                        genStructure.mutateAsync(item.id)
-                      )
-                  : undefined
-              }
+          <View className="gap-3" testID="plan-week-empty">
+            <Text className="text-sm text-text-muted">
+              No sessions in this week yet. Generate a week of workouts, or browse Upcoming.
+            </Text>
+            <Button
+              label="Generate week"
+              disabled={Boolean(busyMsg) || !weekMeta}
+              onPress={() => setAiWeekOpen(true)}
+              testID="plan-generate-week-cta"
             />
-          ))
+            <AnimatedPressable
+              hitSlop={8}
+              onPress={() => router.push(APP_HREFS.upcoming as Href)}
+              accessibilityRole="button"
+              accessibilityLabel="Open Upcoming"
+            >
+              <Text className="text-sm font-semibold text-brand">Open Upcoming</Text>
+            </AnimatedPressable>
+          </View>
+        ) : (
+          <>
+            {needsStructureIds.length > 0 ? (
+              <AnimatedPressable
+                hitSlop={8}
+                disabled={Boolean(busyMsg)}
+                onPress={generateMissingStructures}
+                accessibilityRole="button"
+                accessibilityLabel="Generate structures for week"
+                className="mb-2 self-start py-1"
+              >
+                <Text className="text-sm font-semibold text-brand">
+                  Generate structures ({needsStructureIds.length})
+                </Text>
+              </AnimatedPressable>
+            ) : null}
+            {weekSessions.map((item) => (
+              <SessionRow
+                key={item.id}
+                item={item}
+                busy={Boolean(busyMsg)}
+                todayKey={todayKey}
+                mark={compliance.forPlanned.get(item.id)}
+                onOpen={() => {
+                  hapticLight();
+                  router.push(APP_HREFS.plannedDetail(item.id) as Href);
+                }}
+                onMove={() => {
+                  hapticLight();
+                  setMoveTarget(item);
+                  setMoveDate(localDateKey(item.date) ?? moveDayKeys[0] ?? '');
+                }}
+                onGenerateStructure={
+                  !item.structureChartBlocks || item.structureChartBlocks.length < 2
+                    ? () =>
+                        void runBusy('Generating structure', () =>
+                          genStructure.mutateAsync(item.id)
+                        )
+                    : undefined
+                }
+              />
+            ))}
+          </>
         )}
       </View>
 
-      <Button
-        label="Adjust plan"
-        variant="secondary"
-        onPress={showAdjustMenu}
-        disabled={Boolean(busyMsg)}
-        testID="plan-adjust"
+      <PlanAdjustSheet
+        visible={adjustOpen}
+        onClose={() => setAdjustOpen(false)}
+        thisWeek={thisWeekActions}
+        season={seasonActions}
       />
 
-      {shell.blocks.length > 0 ? (
-        <SeasonTimeline
-          blocks={shell.blocks}
-          selectedBlockId={weekMeta?.blockId ?? selectedBlock?.id ?? null}
-          todayPercent={todayPct}
-          onSelectBlock={selectBlock}
-        />
-      ) : null}
-
-      {shell.coachNotes ? (
-        <Text className="text-sm text-text-body">{shell.coachNotes}</Text>
-      ) : null}
-
-      <OpenWebLink
-        label="Open on web"
-        onPress={() => void openInstanceWeb(instanceUrl, '/plan')}
-      />
-
-      <SheetModal visible={weekTuneOpen} onClose={() => setWeekTuneOpen(false)}>
+      <BottomSheet
+        visible={weekTuneOpen}
+        onClose={() => setWeekTuneOpen(false)}
+        keyboard
+        testID="plan-tune-week-sheet"
+      >
         <Text className="mb-3 text-lg font-semibold text-text-primary">Tune week</Text>
         <Field label="Focus" value={focusLabel} onChangeText={setFocusLabel} />
         <Field
@@ -546,9 +789,14 @@ export function PlanTrainingSegment({
         <View className="mt-3">
           <Button label="Cancel" variant="secondary" onPress={() => setWeekTuneOpen(false)} />
         </View>
-      </SheetModal>
+      </BottomSheet>
 
-      <SheetModal visible={aiWeekOpen} onClose={() => setAiWeekOpen(false)}>
+      <BottomSheet
+        visible={aiWeekOpen}
+        onClose={() => setAiWeekOpen(false)}
+        keyboard
+        testID="plan-generate-week-sheet"
+      >
         <Text className="mb-3 text-lg font-semibold text-text-primary">Generate week</Text>
         <Text className="mb-2 text-sm text-text-muted">
           Optional instructions for this week’s workouts.
@@ -580,9 +828,13 @@ export function PlanTrainingSegment({
         <View className="mt-3">
           <Button label="Cancel" variant="secondary" onPress={() => setAiWeekOpen(false)} />
         </View>
-      </SheetModal>
+      </BottomSheet>
 
-      <SheetModal visible={Boolean(moveTarget)} onClose={() => setMoveTarget(null)}>
+      <BottomSheet
+        visible={Boolean(moveTarget)}
+        onClose={() => setMoveTarget(null)}
+        testID="plan-move-workout-sheet"
+      >
         <Text className="mb-3 text-lg font-semibold text-text-primary">Move workout</Text>
         <Text className="mb-3 text-sm text-text-muted">{moveTarget?.title}</Text>
         <Text className="mb-2 text-sm font-medium text-text-muted">New day</Text>
@@ -621,43 +873,27 @@ export function PlanTrainingSegment({
               hapticError();
               return;
             }
+            const previousDate = localDateKey(moveTarget.date);
+            const target = moveTarget;
+            const nextDate = moveDate;
             void runBusy('Moving workout', async () => {
-              await movePlanned.mutateAsync({ id: moveTarget.id, date: moveDate });
+              await movePlanned.mutateAsync({ id: target.id, date: nextDate });
               setMoveTarget(null);
+              if (previousDate && previousDate !== nextDate) {
+                setMoveUndo({
+                  id: target.id,
+                  title: target.title,
+                  previousDate,
+                });
+              }
             });
           }}
         />
         <View className="mt-3">
           <Button label="Cancel" variant="secondary" onPress={() => setMoveTarget(null)} />
         </View>
-      </SheetModal>
+      </BottomSheet>
     </View>
-  );
-}
-
-function SheetModal({
-  visible,
-  onClose,
-  children,
-}: {
-  visible: boolean;
-  onClose: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <KeyboardAvoidingView
-        className="flex-1 justify-end bg-black/50"
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <Pressable className="flex-1" onPress={onClose} accessibilityRole="button" />
-        <View className="max-h-[85%] rounded-t-2xl bg-surface px-6 pb-10 pt-5">
-          <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-            {children}
-          </ScrollView>
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
   );
 }
 
@@ -704,19 +940,25 @@ function Field({
 function SessionRow({
   item,
   busy,
+  todayKey,
+  mark,
   onOpen,
   onMove,
   onGenerateStructure,
 }: {
   item: PlannedListItem;
   busy: boolean;
+  todayKey: string;
+  mark: ComplianceMark | undefined;
   onOpen: () => void;
   onMove: () => void;
   onGenerateStructure?: () => void;
 }) {
   const dayKey = localDateKey(item.date);
+  const isToday = Boolean(dayKey && dayKey === todayKey);
   const meta = [
     dayKey ? formatDayChipLabel(dayKey) : null,
+    isToday ? 'Today' : null,
     humanizeWorkoutType(item.type),
     formatDuration(item.durationSec),
     item.tss != null ? `TSS ${Math.round(item.tss)}` : null,
@@ -728,50 +970,56 @@ function SessionRow({
   const showMore = () => {
     if (busy) return;
     hapticLight();
-    const buttons: Array<{
-      text: string;
-      style?: 'cancel' | 'destructive';
-      onPress?: () => void;
-    }> = [
-      { text: 'Move', onPress: onMove },
-    ];
-    if (onGenerateStructure) {
-      buttons.push({ text: 'Generate structure', onPress: onGenerateStructure });
-    }
-    buttons.push({ text: 'Cancel', style: 'cancel' });
-    Alert.alert(item.title, undefined, buttons);
+    showActionSheet({
+      title: item.title,
+      options: [
+        { label: 'Move', onPress: onMove },
+        ...(onGenerateStructure
+          ? [{ label: 'Generate structure', onPress: onGenerateStructure }]
+          : []),
+        { label: 'Cancel', style: 'cancel' as const },
+      ],
+    });
   };
 
   return (
     <View className="border-b border-border/80 py-3">
-      <AnimatedPressable
-        onPress={onOpen}
-        hitSlop={8}
-        className="flex-row items-center gap-3"
-        accessibilityRole="button"
-        accessibilityLabel={item.title}
-      >
-        <SportIcon type={item.type} size={14} />
-        <View className="min-w-0 flex-1">
-          <Text className="text-base font-medium text-text-primary" numberOfLines={1}>
-            {item.title}
-          </Text>
-          {meta ? <Text className="mt-1 text-sm text-text-muted">{meta}</Text> : null}
-          {chartBlocks && chartBlocks.length >= 2 ? (
-            <StructureProfile blocks={chartBlocks} compact />
-          ) : null}
-        </View>
-      </AnimatedPressable>
-      <AnimatedPressable
-        hitSlop={8}
-        onPress={showMore}
-        disabled={busy}
-        accessibilityRole="button"
-        accessibilityLabel="Session actions"
-        className="mt-2 self-start"
-      >
-        <Text className="text-sm font-semibold text-brand">More</Text>
-      </AnimatedPressable>
+      <View className="flex-row items-start gap-2">
+        <AnimatedPressable
+          onPress={onOpen}
+          onLongPress={showMore}
+          delayLongPress={320}
+          hitSlop={8}
+          className="min-w-0 flex-1 flex-row items-center gap-3"
+          accessibilityRole="button"
+          accessibilityLabel={item.title}
+          accessibilityHint="Long press for session actions"
+        >
+          <SportIcon type={item.type} size={14} />
+          <View className="min-w-0 flex-1">
+            <View className="flex-row items-center">
+              <Text className="shrink text-base font-medium text-text-primary" numberOfLines={1}>
+                {item.title}
+              </Text>
+              <ComplianceMarkView mark={mark} />
+            </View>
+            {meta ? <Text className="mt-1 text-sm text-text-muted">{meta}</Text> : null}
+            {chartBlocks && chartBlocks.length >= 2 ? (
+              <StructureProfile blocks={chartBlocks} compact />
+            ) : null}
+          </View>
+        </AnimatedPressable>
+        <AnimatedPressable
+          hitSlop={8}
+          onPress={showMore}
+          disabled={busy}
+          accessibilityRole="button"
+          accessibilityLabel="Session actions"
+          className="px-1 py-1"
+        >
+          <Text className="text-lg font-semibold leading-5 text-brand">···</Text>
+        </AnimatedPressable>
+      </View>
     </View>
   );
 }

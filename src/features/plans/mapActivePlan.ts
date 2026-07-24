@@ -179,13 +179,8 @@ export function seasonTodayPercent(
       todayKey >= w.startDateKey &&
       todayKey <= (w.endDateKey ?? w.startDateKey)
   );
-  if (!containing) {
-    const first = weeks[0]?.startDateKey;
-    const last = weeks[weeks.length - 1]?.endDateKey ?? weeks[weeks.length - 1]?.startDateKey;
-    if (first && todayKey < first) return 0;
-    if (last && todayKey > last) return 100;
-    return null;
-  }
+  // Outside the plan: no needle / “Today” legend (clamping to 0/100 looked like a ghost mark).
+  if (!containing) return null;
 
   let elapsed = 0;
   for (const block of blocks) {

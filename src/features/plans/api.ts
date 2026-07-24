@@ -45,11 +45,23 @@ function errorMessage(body: unknown, fallback: string): string {
   return fallback;
 }
 
+export type AvailabilitySlot = {
+  name: string;
+  startTime: string;
+  duration: number;
+  activityTypes: string[];
+  gymAccess?: boolean;
+  bikeAccess?: boolean;
+  indoorOnly?: boolean;
+};
+
 export type AvailabilityDay = {
   dayOfWeek: number;
   morning?: boolean;
   afternoon?: boolean;
   evening?: boolean;
+  /** Required for week gen — empty slots are treated as rest days on the server. */
+  slots?: AvailabilitySlot[];
 };
 
 export async function saveAvailability(days: AvailabilityDay[]): Promise<void> {
@@ -433,6 +445,52 @@ export async function generateWorkoutStructure(
   const jobId = result.jobId ?? result.taskId;
   if (jobId) await waitForPlanJob(jobId);
   return { jobId };
+}
+
+/** Client-side batch (web PlanDashboard pattern) — generate structure for many sessions. */
+export async function generateWeekStructures(
+  plannedWorkoutIds: string[],
+  onProgress?: (done: number, total: number) => void
+): Promise<{ succeeded: number; failed: number }> {
+  const ids = plannedWorkoutIds.filter(Boolean);
+  const total = ids.length;
+  if (total === 0) return { succeeded: 0, failed: 0 };
+  const batchSize = 3;
+  let done = 0;
+  let succeeded = 0;
+  let failed = 0;
+  let firstError: Error | null = null;
+
+  for (let i = 0; i < ids.length; i += batchSize) {
+    const batch = ids.slice(i, i + batchSize);
+    const results = await Promise.allSettled(batch.map((id) => generateWorkoutStructure(id)));
+    for (const result of results) {
+      done += 1;
+      onProgress?.(done, total);
+      if (result.status === 'rejected') {
+        failed += 1;
+        if (!firstError) {
+          firstError =
+            result.reason instanceof Error
+              ? result.reason
+              : new Error('Failed to generate structure');
+        }
+      } else {
+        succeeded += 1;
+      }
+    }
+  }
+
+  // Always finish the batch so partial successes can refresh; surface failure after.
+  if (failed > 0) {
+    if (succeeded === 0 && firstError) throw firstError;
+    throw new Error(
+      `Generated structure for ${succeeded} of ${total} sessions${
+        firstError?.message ? ` — ${firstError.message}` : ''
+      }`
+    );
+  }
+  return { succeeded, failed };
 }
 
 /** Move a planned workout by patching its date (YYYY-MM-DD or ISO). */

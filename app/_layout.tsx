@@ -11,6 +11,7 @@ import 'react-native-reanimated';
 import type { ErrorBoundaryProps } from 'expo-router';
 
 import { AuthProvider, useAuth } from '@/src/auth/AuthContext';
+import { ActionSheetPortal } from '@/src/components/ActionSheet';
 import { ErrorFallback } from '@/src/components/ErrorFallback';
 import { hideDevMenuFab } from '@/src/dev/hideDevMenuFab';
 import { AuthAtmosphere } from '@/src/features/auth/AuthAtmosphere';
@@ -84,6 +85,7 @@ export default function RootLayout() {
     <ThemePreferenceBootstrap>
       <AuthProvider>
         <RootNavigator />
+        <ActionSheetPortal />
       </AuthProvider>
     </ThemePreferenceBootstrap>
   );

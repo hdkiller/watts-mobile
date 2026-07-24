@@ -100,6 +100,10 @@ export default function PlanTabScreen() {
             error={plan.isError ? plan.error : null}
             onRetry={() => void plan.refetch()}
             hasUsableData={hasUsableData}
+            onOpenNutrition={() => {
+              hapticLight();
+              setMode('nutrition');
+            }}
           />
         ) : (
           <PlanNutritionSegment />
