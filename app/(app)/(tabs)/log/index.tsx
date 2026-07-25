@@ -28,7 +28,6 @@ import { useTodayNutritionQuery } from '@/src/features/nutrition/useNutrition';
 import { isNutritionTrackingEnabled, weightUnit } from '@/src/features/profile/mapProfile';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { filterActiveToday } from '@/src/features/recovery/mapRecovery';
-import type { RecoveryContextItem } from '@/src/features/recovery/types';
 import { useRecoveryContextQuery } from '@/src/features/recovery/useRecovery';
 import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
 import { useTabScrollPadding } from '@/src/hooks/useTabScrollPadding';
@@ -148,7 +147,7 @@ export default function LogScreen() {
 
   // Today's Entries Feed Items
   const todayEntries = useMemo(() => {
-    const entries: Array<{
+    const entries: {
       id: string;
       time: string;
       title: string;
@@ -156,7 +155,7 @@ export default function LogScreen() {
       type: 'wellness' | 'meal' | 'hydration' | 'recovery' | 'measurement';
       actionLabel: string;
       onAction: () => void;
-    }> = [];
+    }[] = [];
 
     if (isWellnessDone && todayWellness) {
       entries.push({
@@ -230,7 +229,7 @@ export default function LogScreen() {
         >
           {/* Top Header */}
           <View className="mb-1 flex-row items-baseline justify-between">
-            <Text className="text-2xl font-semibold text-text-primary">Today's Log</Text>
+            <Text className="text-2xl font-semibold text-text-primary">Today’s Log</Text>
             <Text className="text-sm font-semibold text-text-muted">{todayDateStr}</Text>
           </View>
 
@@ -343,12 +342,12 @@ export default function LogScreen() {
                   detail: 'Tailored readiness questions',
                   onPress: () => router.push('/(app)/daily-checkin' as Href),
                 },
-              ] as Array<{
+              ] as ({
                 testID?: string;
                 label: string;
                 detail: string;
                 onPress: () => void;
-              } | null>
+              } | null)[]
             )
               .filter((row): row is NonNullable<typeof row> => row != null)
               .map((row, index, rows) => (
@@ -376,7 +375,7 @@ export default function LogScreen() {
 
           {/* Today's Entries Timeline Feed */}
           <Text className="mt-6 mb-2.5 text-xs font-semibold uppercase tracking-widest text-text-muted">
-            Today's Entries
+            Today’s Entries
           </Text>
 
           {todayEntries.length === 0 ? (

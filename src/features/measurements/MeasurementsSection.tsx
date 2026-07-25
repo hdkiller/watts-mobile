@@ -12,7 +12,6 @@ import {
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
-import { AppSymbol } from '@/src/components/AppSymbol';
 import { weightUnit } from '@/src/features/profile/mapProfile';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
@@ -162,8 +161,6 @@ function LatestCard({
   onDelete: () => void;
   deleting: boolean;
 }) {
-  const theme = useThemeColors();
-
   return (
     <View className="mb-2.5 rounded-xl border border-border bg-card px-4 py-3.5">
       <View className="flex-row items-start justify-between gap-3">

@@ -17,10 +17,10 @@ export type ChartTargetRefs = {
 };
 
 export type ZoneProfileSnapshot = {
-  power?: { ranges?: Array<{ min?: number; max?: number; name?: string }> };
-  heartRate?: { ranges?: Array<{ min?: number; max?: number; name?: string }> };
+  power?: { ranges?: { min?: number; max?: number; name?: string }[] };
+  heartRate?: { ranges?: { min?: number; max?: number; name?: string }[] };
   pace?: {
-    ranges?: Array<{ min?: number; max?: number; name?: string }>;
+    ranges?: { min?: number; max?: number; name?: string }[];
     thresholdMps?: number;
   };
 };

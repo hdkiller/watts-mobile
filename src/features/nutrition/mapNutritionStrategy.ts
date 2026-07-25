@@ -17,13 +17,13 @@ export type NutritionStrategyStanding = {
   todayFuelLabel: string | null;
   todayCarbsTarget: number | null;
   todayIsRest: boolean;
-  matrix: Array<{
+  matrix: {
     dateKey: string;
     state: FuelStateCode;
     label: string;
     carbsTarget: number | null;
     isRest: boolean;
-  }>;
+  }[];
 };
 
 export type EnergyWavePoint = {

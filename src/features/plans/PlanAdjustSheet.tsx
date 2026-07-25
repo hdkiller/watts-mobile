@@ -2,7 +2,7 @@
  * states: default · pressed · disabled · (focus via platform) · loading N/A · error N/A · success N/A
  * pre-emit critique: P5 H5 E5 S4 R5 V4 — This week first; Season collapsed by default
  */
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { AnimatedPressable } from '@/src/components/AnimatedPressable';
@@ -111,10 +111,13 @@ function Section({
 /** Single bottom sheet for Plan Adjust — This week + Season in one thumb-zone surface. */
 export function PlanAdjustSheet({ visible, onClose, thisWeek, season }: Props) {
   const [seasonOpen, setSeasonOpen] = useState(false);
+  const [wasVisible, setWasVisible] = useState(visible);
 
-  useEffect(() => {
+  // Reset Season collapse when the sheet opens (render-time derived state).
+  if (visible !== wasVisible) {
+    setWasVisible(visible);
     if (visible) setSeasonOpen(false);
-  }, [visible]);
+  }
 
   return (
     <BottomSheet visible={visible} onClose={onClose} testID="plan-adjust-sheet">

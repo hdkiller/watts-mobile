@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { clearTokens, loadTokens, saveTokens } from '../tokenStorage';
+
 const store = new Map<string, string>();
 
 vi.mock('@/src/storage/secureStorage', () => ({
@@ -11,8 +13,6 @@ vi.mock('@/src/storage/secureStorage', () => ({
     store.delete(key);
   }),
 }));
-
-import { clearTokens, loadTokens, saveTokens } from '../tokenStorage';
 
 describe('saveTokens', () => {
   beforeEach(() => {

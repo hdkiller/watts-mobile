@@ -67,8 +67,8 @@ function addDaysYmd(ymd: string, days: number): string {
   return `${yy}-${mm}-${dd}`;
 }
 
-function nutritionGlanceChunks(startYmd: string, endYmd: string): Array<{ start: string; end: string }> {
-  const chunks: Array<{ start: string; end: string }> = [];
+function nutritionGlanceChunks(startYmd: string, endYmd: string): { start: string; end: string }[] {
+  const chunks: { start: string; end: string }[] = [];
   let cursor = startYmd;
   while (cursor <= endYmd) {
     const chunkEnd = addDaysYmd(cursor, NUTRITION_GLANCE_CHUNK_DAYS - 1);

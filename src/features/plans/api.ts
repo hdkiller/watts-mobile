@@ -363,7 +363,7 @@ export async function deletePlanBlock(planId: string, blockId: string): Promise<
 
 export async function reorderPlanBlocks(
   planId: string,
-  blocks: Array<{ id: string; order: number }>
+  blocks: { id: string; order: number }[]
 ): Promise<void> {
   const response = await apiFetch(`/api/plans/${encodeURIComponent(planId)}/blocks/reorder`, {
     method: 'PUT',

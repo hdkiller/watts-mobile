@@ -1,5 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { onlineManager } from '@tanstack/react-query';
+
+import { saveWellnessCheckin } from '../api';
+import {
+  clearPendingWellnessCheckin,
+  enqueueWellnessCheckin,
+  flushPendingWellnessCheckin,
+  loadPendingWellnessCheckin,
+} from '../offlineWellnessQueue';
+
 vi.mock('@react-native-async-storage/async-storage', () => {
   const store = new Map<string, string>();
   return {
@@ -31,16 +41,6 @@ vi.mock('@tanstack/react-query', async () => {
 vi.mock('../api', () => ({
   saveWellnessCheckin: vi.fn(async () => undefined),
 }));
-
-import { onlineManager } from '@tanstack/react-query';
-
-import { saveWellnessCheckin } from '../api';
-import {
-  clearPendingWellnessCheckin,
-  enqueueWellnessCheckin,
-  flushPendingWellnessCheckin,
-  loadPendingWellnessCheckin,
-} from '../offlineWellnessQueue';
 
 describe('offlineWellnessQueue', () => {
   beforeEach(async () => {

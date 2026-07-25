@@ -1,8 +1,8 @@
 /* Hallmark · component: date-ymd-field · genre: modern-minimal · design-system: docs/DESIGN.md
  * states: default · press · focus (sheet) · disabled · selected chips · confirm
  */
-import DateTimePicker from '@expo/ui/community/datetime-picker';
-import { useEffect, useMemo, useState } from 'react';
+import { DateTimePicker } from '@expo/ui/community/datetime-picker';
+import { useMemo, useState } from 'react';
 import { Platform, Text, useColorScheme, View } from 'react-native';
 
 import { AnimatedPressable } from '@/src/components/AnimatedPressable';
@@ -64,10 +64,6 @@ export function DateYmdField({
     const fromValue = ymdToLocalDate(value);
     return fromValue ?? minDate;
   }, [draftYmd, value, minDate]);
-
-  useEffect(() => {
-    if (open) setDraftYmd(value);
-  }, [open, value]);
 
   const applyYmd = (ymd: string) => {
     onChange(ymd);

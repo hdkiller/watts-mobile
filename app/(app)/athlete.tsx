@@ -2,7 +2,7 @@
 /* Hallmark · genre: modern-minimal · macrostructure: Workbench · design-system: docs/DESIGN.md · designed-as-app */
 import { useQueryClient } from '@tanstack/react-query';
 import { Stack, router, type Href } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ScrollView, Text, TextInput, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
@@ -48,11 +48,13 @@ export default function AthleteMetricsScreen() {
   const [formError, setFormError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [metricsOpen, setMetricsOpen] = useState(false);
+  const [previousData, setPreviousData] = useState<AthleteProfile | undefined>();
 
-  useEffect(() => {
-    if (!data) return;
+  // Guarded render-time sync from query data (React derived-state pattern).
+  if (data && data !== previousData) {
+    setPreviousData(data);
     setValues(formFromAthleteProfile(data));
-  }, [data]);
+  }
 
   const patch = <K extends keyof AthleteMetricsFormValues>(
     key: K,

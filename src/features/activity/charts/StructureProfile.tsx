@@ -37,8 +37,7 @@ export function StructureProfile({ blocks, height, compact = false }: Props) {
   const flex = Math.max(0, usable - timed.length * MIN_BLOCK_WIDTH);
 
   let currentX = 0;
-  const shapes: Array<
-    | {
+  const shapes: (| {
         kind: 'rect';
         key: string;
         x: number;
@@ -52,8 +51,7 @@ export function StructureProfile({ blocks, height, compact = false }: Props) {
         key: string;
         points: string;
         fill: string;
-      }
-  > = [];
+      })[] = [];
 
   for (const block of timed) {
     const blockWidth = MIN_BLOCK_WIDTH + (block.durationSec / totalDuration) * flex;

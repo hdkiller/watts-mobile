@@ -4,8 +4,6 @@ import { clampSubjectiveScore } from '@/src/features/log/wellnessLabels';
 import { hapticLight } from '@/src/lib/haptics';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
-const SUBJECTIVE_DEFAULT = 5;
-
 interface WellnessScoreCardProps {
   label: string;
   help: string;

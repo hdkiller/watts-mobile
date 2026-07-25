@@ -1,6 +1,6 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Platform,
   Pressable,
@@ -23,7 +23,7 @@ import {
   useAiSettingsLiteQuery,
   useAthleteProfileQuery,
   usePatchCoachIdentity } from '@/src/features/profile/useProfile';
-import type { AiPersona } from '@/src/features/profile/types';
+import type { AiPersona, AiSettingsLite, AthleteProfile } from '@/src/features/profile/types';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
@@ -45,18 +45,20 @@ export default function CoachIdentityScreen() {
   const [requireToolApproval, setRequireToolApproval] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [previousProfile, setPreviousProfile] = useState<AthleteProfile | undefined>();
+  const [previousAi, setPreviousAi] = useState<AiSettingsLite | undefined>();
 
-  useEffect(() => {
-    if (!profileQuery.data) return;
+  // Guarded render-time sync from query data (React derived-state pattern).
+  if (profileQuery.data && profileQuery.data !== previousProfile) {
+    setPreviousProfile(profileQuery.data);
     setNickname(profileQuery.data.nickname ?? '');
     setAiContext(profileQuery.data.aiContext ?? '');
-  }, [profileQuery.data]);
-
-  useEffect(() => {
-    if (!aiQuery.data) return;
+  }
+  if (aiQuery.data && aiQuery.data !== previousAi) {
+    setPreviousAi(aiQuery.data);
     setPersona(aiQuery.data.aiPersona);
     setRequireToolApproval(aiQuery.data.aiRequireToolApproval);
-  }, [aiQuery.data]);
+  }
 
   const openWebAiSettings = async () => {
     await openInstanceWeb(instanceUrl, '/settings/ai');

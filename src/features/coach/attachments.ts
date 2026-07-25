@@ -7,6 +7,7 @@ type ImagePickerModule = typeof import('expo-image-picker');
 function getImagePicker(): ImagePickerModule | null {
   try {
     // Resolves native ExponentImagePicker at require time; missing binary throws.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- graceful missing-binary fallback
     return require('expo-image-picker') as ImagePickerModule;
   } catch {
     return null;

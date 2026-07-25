@@ -107,12 +107,32 @@ export function PlanTrainingSegment({
   const theme = useThemeColors();
   const weeks = shell?.weeks ?? [];
   const [weekIndex, setWeekIndex] = useState(0);
+  const [shellCursor, setShellCursor] = useState<{
+    id: string | undefined;
+    currentWeekId: string | undefined;
+    weekCount: number;
+  }>(() => ({
+    id: shell?.id,
+    currentWeekId: shell?.currentWeek?.id,
+    weekCount: shell?.weeks.length ?? 0,
+  }));
 
-  useEffect(() => {
-    if (!shell) return;
-    const idx = shell.weeks.findIndex((w) => w.id === shell.currentWeek?.id);
-    setWeekIndex(idx >= 0 ? idx : Math.max(0, shell.weeks.length - 1));
-  }, [shell?.id, shell?.currentWeek?.id, shell?.weeks.length]);
+  // Reset week browser when the active plan shell changes (render-time derived state).
+  if (
+    shell?.id !== shellCursor.id ||
+    shell?.currentWeek?.id !== shellCursor.currentWeekId ||
+    (shell?.weeks.length ?? 0) !== shellCursor.weekCount
+  ) {
+    setShellCursor({
+      id: shell?.id,
+      currentWeekId: shell?.currentWeek?.id,
+      weekCount: shell?.weeks.length ?? 0,
+    });
+    if (shell) {
+      const idx = shell.weeks.findIndex((w) => w.id === shell.currentWeek?.id);
+      setWeekIndex(idx >= 0 ? idx : Math.max(0, shell.weeks.length - 1));
+    }
+  }
 
   const weekMeta: PlanWeekShell | null = weeks[weekIndex] ?? shell?.currentWeek ?? null;
   const weekSessionsQuery = usePlanWeekSessionsQuery(
@@ -157,6 +177,7 @@ export function PlanTrainingSegment({
 
   const [busyMsg, setBusyMsg] = useState<string | null>(null);
   const [busyElapsedSec, setBusyElapsedSec] = useState(0);
+  const [busyKey, setBusyKey] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [adjustOpen, setAdjustOpen] = useState(false);
   const [weekTuneOpen, setWeekTuneOpen] = useState(false);
@@ -214,17 +235,21 @@ export function PlanTrainingSegment({
   );
   const browsingAway = currentWeekIndex >= 0 && weekIndex !== currentWeekIndex;
 
+  if (busyMsg !== busyKey) {
+    setBusyKey(busyMsg);
+    setBusyElapsedSec(0);
+  }
+
   useEffect(() => {
-    if (!busyMsg) {
-      setBusyElapsedSec(0);
-      return;
-    }
+    if (!busyMsg) return;
     const started = Date.now();
     const id = setInterval(() => {
       setBusyElapsedSec(Math.floor((Date.now() - started) / 1000));
     }, 1000);
     return () => clearInterval(id);
   }, [busyMsg]);
+
+  const busyElapsedDisplay = busyMsg ? busyElapsedSec : 0;
 
   const [volumeMins, setVolumeMins] = useState('');
   const [tss, setTss] = useState('');
@@ -600,7 +625,7 @@ export function PlanTrainingSegment({
         {busyMsg ? (
           <Text className="text-sm text-brand" testID="plan-busy">
             {busyMsg}
-            {busyElapsedSec >= 8 ? ` · still working (${busyElapsedSec}s)` : '…'}
+            {busyElapsedDisplay >= 8 ? ` · still working (${busyElapsedDisplay}s)` : '…'}
           </Text>
         ) : null}
       </View>

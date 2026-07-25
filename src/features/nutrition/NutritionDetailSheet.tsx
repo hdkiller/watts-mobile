@@ -2,7 +2,6 @@
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { NutritionSection } from '@/src/features/nutrition/NutritionSection';
-import { useThemeColors } from '@/src/theme/useThemeColors';
 
 interface NutritionDetailSheetProps {
   visible: boolean;
@@ -10,8 +9,6 @@ interface NutritionDetailSheetProps {
 }
 
 export function NutritionDetailSheet({ visible, onClose }: NutritionDetailSheetProps) {
-  const theme = useThemeColors();
-
   return (
     <Modal
       visible={visible}

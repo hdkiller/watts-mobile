@@ -1,6 +1,6 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack, router, useLocalSearchParams, type Href } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState, type RefObject } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -19,7 +19,7 @@ import {
   showThresholdPace,
   sportSettingsWebPath,
   toSportThresholdPatch } from '@/src/features/sports/mapSports';
-import type { SportThresholdFormValues } from '@/src/features/sports/types';
+import type { SportProfile, SportThresholdFormValues } from '@/src/features/sports/types';
 import { usePatchSportThresholds, useSportProfilesQuery } from '@/src/features/sports/useSports';
 import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
 import { hapticError, hapticSuccess } from '@/src/lib/haptics';
@@ -32,64 +32,12 @@ export default function SportProfileEditorScreen() {
   const profileId = typeof params.id === 'string' ? decodeURIComponent(params.id) : '';
   const { instanceUrl } = useAuth();
   const { data: profiles, isLoading, isError, error, refetch } = useSportProfilesQuery();
-  const saveMutation = usePatchSportThresholds();
   const { containerRef, overlap } = useKeyboardOverlap();
 
   const profile = useMemo(
     () => profiles?.find((item) => item.id === profileId) ?? null,
     [profiles, profileId]
   );
-  const includePace = profile ? showThresholdPace(profile) : false;
-
-  const [values, setValues] = useState<SportThresholdFormValues>({
-    ftp: '',
-    lthr: '',
-    maxHr: '',
-    thresholdPace: '' });
-  const [formError, setFormError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (profile) setValues(formFromSportProfile(profile));
-  }, [profile]);
-
-  const patch = <K extends keyof SportThresholdFormValues>(
-    key: K,
-    value: SportThresholdFormValues[K]
-  ) => {
-    setFormError(null);
-    setSuccessMessage(null);
-    setValues((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const openWeb = async () => {
-    await openInstanceWeb(instanceUrl, sportSettingsWebPath());
-  };
-
-  const onSave = async () => {
-    if (!profile) return;
-    setFormError(null);
-    setSuccessMessage(null);
-    if (formHasInvalidNumbers(values, includePace)) {
-      hapticError();
-      setFormError('Enter valid numbers for each threshold you want to update.');
-      return;
-    }
-    const body = toSportThresholdPatch(values, includePace);
-    if (!body) {
-      hapticError();
-      setFormError('Enter valid numbers for each threshold you want to update.');
-      return;
-    }
-    try {
-      await saveMutation.mutateAsync({ profile, patch: body });
-      hapticSuccess();
-      setSuccessMessage('Thresholds saved.');
-    } catch (err) {
-      hapticError();
-      setFormError(friendlyError(err, 'Failed to save sport profile'));
-    }
-  };
 
   const title = profile ? displaySportName(profile) : 'Sport profile';
 
@@ -119,80 +67,147 @@ export default function SportProfileEditorScreen() {
           </Pressable>
         </View>
       ) : (
-        <View ref={containerRef} className="flex-1 bg-surface">
-          <ScrollView
-            className="flex-1"
-            contentContainerClassName="px-6 pt-4"
-            contentContainerStyle={{ paddingBottom: 40 + overlap }}
-            keyboardShouldPersistTaps="handled"
-          >
-            <Text className="text-2xl font-semibold text-text-primary">{title}</Text>
-            <Text className="mt-2 text-sm text-text-muted">
-              Edit thresholds for this sport.
-            </Text>
-
-            <Field
-              label="FTP (W)"
-              value={values.ftp}
-              onChangeText={(text) => patch('ftp', text)}
-              keyboardType="number-pad"
-              editable={!saveMutation.isPending}
-            />
-            <Field
-              label="LTHR (bpm)"
-              value={values.lthr}
-              onChangeText={(text) => patch('lthr', text)}
-              keyboardType="number-pad"
-              editable={!saveMutation.isPending}
-            />
-            <Field
-              label="Max HR (bpm)"
-              value={values.maxHr}
-              onChangeText={(text) => patch('maxHr', text)}
-              keyboardType="number-pad"
-              editable={!saveMutation.isPending}
-            />
-            {includePace ? (
-              <Field
-                label="Threshold pace"
-                value={values.thresholdPace}
-                onChangeText={(text) => patch('thresholdPace', text)}
-                keyboardType="decimal-pad"
-                editable={!saveMutation.isPending}
-                placeholder="e.g. 5:15"
-                helperText="Format: mm:ss per km, mile, or 100m (e.g. 5:15 or 1:45)"
-              />
-            ) : null}
-
-            {formError ? <Text className="mt-4 text-sm text-danger">{formError}</Text> : null}
-            {successMessage ? (
-              <Text className="mt-4 text-sm text-success">{successMessage}</Text>
-            ) : null}
-
-            <Button
-              className="mt-6"
-              label="Save thresholds"
-              onPress={() => void onSave()}
-              loading={saveMutation.isPending}
-            />
-
-            <Pressable
-              className="mt-3 items-center rounded-xl border border-border-strong py-3.5 active:opacity-80"
-              onPress={() => void openWeb()}
-            >
-              <Text className="text-base font-semibold text-text-primary">Open Sport Settings</Text>
-            </Pressable>
-
-            <Pressable
-              className="mt-3 items-center rounded-xl border border-border-strong py-3.5 active:opacity-80"
-              onPress={() => router.back()}
-            >
-              <Text className="text-base font-semibold text-text-primary">Cancel</Text>
-            </Pressable>
-          </ScrollView>
-        </View>
+        <SportProfileForm
+          key={profile.id}
+          profile={profile}
+          instanceUrl={instanceUrl}
+          containerRef={containerRef}
+          overlap={overlap}
+        />
       )}
     </>
+  );
+}
+
+function SportProfileForm({
+  profile,
+  instanceUrl,
+  containerRef,
+  overlap,
+}: {
+  profile: SportProfile;
+  instanceUrl: string | null;
+  containerRef: RefObject<View | null>;
+  overlap: number;
+}) {
+  const saveMutation = usePatchSportThresholds();
+  const includePace = showThresholdPace(profile);
+  const [values, setValues] = useState(() => formFromSportProfile(profile));
+  const [formError, setFormError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const patch = <K extends keyof SportThresholdFormValues>(
+    key: K,
+    value: SportThresholdFormValues[K]
+  ) => {
+    setFormError(null);
+    setSuccessMessage(null);
+    setValues((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const openWeb = async () => {
+    await openInstanceWeb(instanceUrl, sportSettingsWebPath());
+  };
+
+  const onSave = async () => {
+    setFormError(null);
+    setSuccessMessage(null);
+    if (formHasInvalidNumbers(values, includePace)) {
+      hapticError();
+      setFormError('Enter valid numbers for each threshold you want to update.');
+      return;
+    }
+    const body = toSportThresholdPatch(values, includePace);
+    if (!body) {
+      hapticError();
+      setFormError('Enter valid numbers for each threshold you want to update.');
+      return;
+    }
+    try {
+      await saveMutation.mutateAsync({ profile, patch: body });
+      hapticSuccess();
+      setSuccessMessage('Thresholds saved.');
+    } catch (err) {
+      hapticError();
+      setFormError(friendlyError(err, 'Failed to save sport profile'));
+    }
+  };
+
+  const title = displaySportName(profile);
+
+  return (
+    <View ref={containerRef} className="flex-1 bg-surface">
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="px-6 pt-4"
+        contentContainerStyle={{ paddingBottom: 40 + overlap }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text className="text-2xl font-semibold text-text-primary">{title}</Text>
+        <Text className="mt-2 text-sm text-text-muted">
+          Edit thresholds for this sport.
+        </Text>
+
+        <Field
+          label="FTP (W)"
+          value={values.ftp}
+          onChangeText={(text) => patch('ftp', text)}
+          keyboardType="number-pad"
+          editable={!saveMutation.isPending}
+        />
+        <Field
+          label="LTHR (bpm)"
+          value={values.lthr}
+          onChangeText={(text) => patch('lthr', text)}
+          keyboardType="number-pad"
+          editable={!saveMutation.isPending}
+        />
+        <Field
+          label="Max HR (bpm)"
+          value={values.maxHr}
+          onChangeText={(text) => patch('maxHr', text)}
+          keyboardType="number-pad"
+          editable={!saveMutation.isPending}
+        />
+        {includePace ? (
+          <Field
+            label="Threshold pace"
+            value={values.thresholdPace}
+            onChangeText={(text) => patch('thresholdPace', text)}
+            keyboardType="decimal-pad"
+            editable={!saveMutation.isPending}
+            placeholder="e.g. 5:15"
+            helperText="Format: mm:ss per km, mile, or 100m (e.g. 5:15 or 1:45)"
+          />
+        ) : null}
+
+        {formError ? <Text className="mt-4 text-sm text-danger">{formError}</Text> : null}
+        {successMessage ? (
+          <Text className="mt-4 text-sm text-success">{successMessage}</Text>
+        ) : null}
+
+        <Button
+          className="mt-6"
+          label="Save thresholds"
+          onPress={() => void onSave()}
+          loading={saveMutation.isPending}
+        />
+
+        <Pressable
+          className="mt-3 items-center rounded-xl border border-border-strong py-3.5 active:opacity-80"
+          onPress={() => void openWeb()}
+        >
+          <Text className="text-base font-semibold text-text-primary">Open Sport Settings</Text>
+        </Pressable>
+
+        <Pressable
+          className="mt-3 items-center rounded-xl border border-border-strong py-3.5 active:opacity-80"
+          onPress={() => router.back()}
+        >
+          <Text className="text-base font-semibold text-text-primary">Cancel</Text>
+        </Pressable>
+      </ScrollView>
+    </View>
   );
 }
 

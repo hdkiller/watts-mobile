@@ -1,6 +1,7 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
+import { useQuery } from '@tanstack/react-query';
 import { Stack, type Href, router } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Platform,
@@ -30,6 +31,8 @@ import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { APP_HREFS } from '@/src/linking/appHrefs';
 import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
+
+const RECENT_WORKOUTS_QUERY_KEY = ['health', 'recent-workouts'] as const;
 
 function statusColor(status: SyncLedgerStatus): string {
   switch (status) {
@@ -64,35 +67,27 @@ function formatWhen(iso: string): string {
 export default function HealthRecentWorkoutsScreen() {
   const theme = useThemeColors();
   const { preferences } = useHealthSyncPreferences();
-  const [rows, setRows] = useState<RecentWorkoutRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [syncingAll, setSyncingAll] = useState(false);
 
+  const workoutsQuery = useQuery({
+    queryKey: RECENT_WORKOUTS_QUERY_KEY,
+    queryFn: () => listRecentPlatformWorkoutsWithStatus(),
+  });
+
+  const rows = useMemo(() => workoutsQuery.data ?? [], [workoutsQuery.data]);
+  const loading = workoutsQuery.isLoading && !workoutsQuery.data;
+  const refreshing = workoutsQuery.isRefetching && !workoutsQuery.isLoading;
+  const loadError =
+    workoutsQuery.isError && !workoutsQuery.data
+      ? workoutsQuery.error instanceof Error
+        ? workoutsQuery.error.message
+        : 'Could not load workouts'
+      : null;
+
   const uploadsEnabled = preferences.syncEnabled && preferences.syncWorkouts;
   const platformLabel = Platform.OS === 'ios' ? 'Apple Health' : 'Health Connect';
-
-  const load = useCallback(async (mode: 'initial' | 'refresh' = 'initial') => {
-    if (mode === 'refresh') setRefreshing(true);
-    else setLoading(true);
-    setLoadError(null);
-    try {
-      const next = await listRecentPlatformWorkoutsWithStatus();
-      setRows(next);
-    } catch (err) {
-      setLoadError(err instanceof Error ? err.message : 'Could not load workouts');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void load('initial');
-  }, [load]);
 
   const unsyncedCount = useMemo(
     () => rows.filter((row) => isUnsyncedRecentStatus(row.status)).length,
@@ -114,12 +109,12 @@ export default function HealthRecentWorkoutsScreen() {
     setActionError(null);
     try {
       await syncWorkoutByPlatformSessionId(row.platformSessionId, { force });
-      await load('refresh');
+      await workoutsQuery.refetch();
       hapticSuccess();
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Sync failed');
       hapticError();
-      await load('refresh');
+      await workoutsQuery.refetch();
     } finally {
       setBusyId(null);
     }
@@ -140,7 +135,7 @@ export default function HealthRecentWorkoutsScreen() {
     setActionError(null);
     try {
       const result = await syncUnsyncedWorkouts();
-      await load('refresh');
+      await workoutsQuery.refetch();
       if (result.failed > 0) {
         setActionError('Some workouts could not be synced');
         hapticError();
@@ -150,7 +145,7 @@ export default function HealthRecentWorkoutsScreen() {
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Sync all failed');
       hapticError();
-      await load('refresh');
+      await workoutsQuery.refetch();
     } finally {
       setSyncingAll(false);
     }
@@ -207,7 +202,7 @@ export default function HealthRecentWorkoutsScreen() {
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
-                onRefresh={() => void load('refresh')}
+                onRefresh={() => void workoutsQuery.refetch()}
                 tintColor={Colors.brand}
               />
             }

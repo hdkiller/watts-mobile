@@ -728,7 +728,8 @@ export function LogMealSheet({
 
     if (options?.saveCapturedToLibrary && photo.uri) {
       try {
-        // @ts-ignore -- optional native dependency
+        // Optional native dependency — missing binary should not break meal capture.
+        // eslint-disable-next-line @typescript-eslint/no-require-imports -- graceful missing-binary fallback
         const MediaLibrary = require('expo-media-library');
         if (MediaLibrary?.requestPermissionsAsync && MediaLibrary?.saveToLibraryAsync) {
           const perm = await MediaLibrary.requestPermissionsAsync();

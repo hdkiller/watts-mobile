@@ -53,9 +53,9 @@ export function displayMessageText(
 
 export function messageImageParts(
   message: CoachUIMessage | StoredChatMessage | null | undefined
-): Array<{ url: string; mediaType?: string; filename?: string }> {
+): { url: string; mediaType?: string; filename?: string }[] {
   const parts = Array.isArray(message?.parts) ? message.parts : [];
-  const images: Array<{ url: string; mediaType?: string; filename?: string }> = [];
+  const images: { url: string; mediaType?: string; filename?: string }[] = [];
   for (const part of parts) {
     if (!part || typeof part !== 'object') continue;
     const typed = part as {

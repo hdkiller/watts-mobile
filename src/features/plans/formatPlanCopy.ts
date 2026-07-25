@@ -75,7 +75,7 @@ export function shortBlockLabel(name: string): string {
 
 /** Disambiguate colliding short labels (e.g. two “Base” → “Base 1”, “Base 2”). */
 export function timelineBlockLabels(
-  blocks: Array<{ id: string; name: string }>
+  blocks: { id: string; name: string }[]
 ): Map<string, string> {
   const shorts = blocks.map((b) => ({ id: b.id, short: shortBlockLabel(b.name) }));
   const counts = new Map<string, number>();

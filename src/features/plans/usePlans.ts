@@ -262,7 +262,7 @@ export function useBlockMutations() {
       blocks,
     }: {
       planId: string;
-      blocks: Array<{ id: string; order: number }>;
+      blocks: { id: string; order: number }[];
     }) => reorderPlanBlocks(planId, blocks),
     onSuccess: invalidate,
   });

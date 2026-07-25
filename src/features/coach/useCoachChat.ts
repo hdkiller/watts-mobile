@@ -173,13 +173,13 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
         api: apiUrl || 'http://127.0.0.1/api/chat/messages',
         fetch: coachChatFetch as unknown as typeof globalThis.fetch,
         body: () => ({
-          roomId: roomIdRef.current,
+          roomId,
         }),
         headers: () => ({
           Accept: 'text/event-stream, application/json',
         }),
       }),
-    [apiUrl]
+    [apiUrl, roomId]
   );
 
   const {
@@ -205,8 +205,13 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
     },
   });
 
-  messagesRef.current = messages;
-  setMessagesRef.current = setMessages;
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  useEffect(() => {
+    setMessagesRef.current = setMessages;
+  }, [setMessages]);
 
   const stopTurnPolling = useCallback(() => {
     if (pollTimer.current) {
@@ -266,7 +271,9 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
     }
   }, [queryClient]);
 
-  loadMessagesRef.current = loadMessages;
+  useEffect(() => {
+    loadMessagesRef.current = loadMessages;
+  }, [loadMessages]);
 
   const restartTurnPolling = useCallback(
     (options?: { forceForMs?: number }) => {
@@ -748,7 +755,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
         setSeedUsed(true);
       }
 
-      const parts: Array<Record<string, unknown>> = [];
+      const parts: Record<string, unknown>[] = [];
       if (outbound) {
         parts.push({ type: 'text', text: outbound });
       }

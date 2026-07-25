@@ -9,6 +9,8 @@ let Polyline: any;
 let Marker: any;
 
 try {
+  // Optional native module — keep require so Metro can still bundle without a rebuild.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- graceful missing-binary fallback
   const MapsModule = require('react-native-maps');
   MapView = MapsModule.default || MapsModule.MapView;
   Polyline = MapsModule.Polyline;

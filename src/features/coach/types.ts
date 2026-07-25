@@ -60,7 +60,7 @@ export type StoredChatMessage = {
   id: string;
   role: 'user' | 'assistant' | 'tool' | 'system' | string;
   content?: string;
-  parts?: Array<{ type: string; text?: string; [key: string]: unknown }>;
+  parts?: { type: string; text?: string; [key: string]: unknown }[];
   createdAt?: string | Date | null;
   updatedAt?: string | Date | null;
   metadata?: ChatMessageMetadata | null;

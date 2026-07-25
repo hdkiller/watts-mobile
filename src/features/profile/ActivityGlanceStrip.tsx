@@ -7,7 +7,6 @@ import {
   View,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
-  type ViewToken,
 } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
@@ -342,13 +341,6 @@ export function ActivityGlanceStrip() {
 
   const effectiveMode: GlanceMode = trackingEnabled ? mode : 'activity';
 
-  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
-    const index = viewableItems[0]?.index;
-    if (typeof index === 'number') setPageIndex(index);
-  }).current;
-
-  const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 60 }).current;
-
   const onScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (width <= 0) return;
     const index = Math.round(e.nativeEvent.contentOffset.x / width);
@@ -393,8 +385,6 @@ export function ActivityGlanceStrip() {
             initialNumToRender={1}
             maxToRenderPerBatch={2}
             onMomentumScrollEnd={onScrollEnd}
-            onViewableItemsChanged={onViewableItemsChanged}
-            viewabilityConfig={viewabilityConfig}
             renderItem={({ item: pageOffset }) =>
               effectiveMode === 'nutrition' ? (
                 <NutritionGlancePage pageOffset={pageOffset} width={width} />

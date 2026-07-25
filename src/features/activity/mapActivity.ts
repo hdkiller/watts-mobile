@@ -1006,7 +1006,7 @@ function flattenSteps(
 }
 
 function summarizeSetRowField(
-  setRows: Array<Record<string, unknown>>,
+  setRows: Record<string, unknown>[],
   field: 'value' | 'loadValue'
 ): string | null {
   const values = setRows
@@ -1032,9 +1032,7 @@ function formatRestLabel(rest: string): string {
  */
 export function strengthPrescriptionLabel(exercise: Record<string, unknown>): string | null {
   const setRows = Array.isArray(exercise.setRows)
-    ? (exercise.setRows.filter((row) => row && typeof row === 'object') as Array<
-        Record<string, unknown>
-      >)
+    ? (exercise.setRows.filter((row) => row && typeof row === 'object') as Record<string, unknown>[])
     : [];
   const setsFromRows = setRows.length;
   const setsFromField = typeof exercise.sets === 'number' && exercise.sets > 0 ? exercise.sets : 0;
@@ -1100,9 +1098,7 @@ function strengthDurationSec(exercise: Record<string, unknown>): number | null {
   if (mode !== 'duration') return null;
 
   const setRows = Array.isArray(exercise.setRows)
-    ? (exercise.setRows.filter((row) => row && typeof row === 'object') as Array<
-        Record<string, unknown>
-      >)
+    ? (exercise.setRows.filter((row) => row && typeof row === 'object') as Record<string, unknown>[])
     : [];
   const valueSummary = summarizeSetRowField(setRows, 'value');
   if (valueSummary && /^\d+$/.test(valueSummary)) {

@@ -29,6 +29,7 @@ const UNAVAILABLE_MESSAGE =
 function getExpoAudio(): ExpoAudioModule | null {
   try {
     // Resolves native ExpoAudio at require time; missing binary throws.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- graceful missing-binary fallback
     return require('expo-audio') as ExpoAudioModule;
   } catch {
     return null;

@@ -1,5 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { Appearance } from 'react-native';
+
+import {
+  _resetThemePreferenceForTests,
+  appearanceSchemeForPreference,
+  loadThemePreference,
+  setThemePreference,
+  themePreferenceLabel,
+} from '../themePreference';
+
 vi.mock('react-native', () => ({
   Appearance: {
     setColorScheme: vi.fn(),
@@ -23,16 +33,6 @@ vi.mock('@react-native-async-storage/async-storage', () => {
     },
   };
 });
-
-import { Appearance } from 'react-native';
-
-import {
-  _resetThemePreferenceForTests,
-  appearanceSchemeForPreference,
-  loadThemePreference,
-  setThemePreference,
-  themePreferenceLabel,
-} from '../themePreference';
 
 describe('themePreference', () => {
   beforeEach(async () => {

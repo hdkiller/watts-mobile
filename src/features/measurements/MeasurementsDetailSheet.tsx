@@ -2,7 +2,6 @@
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { MeasurementsSection } from '@/src/features/measurements/MeasurementsSection';
-import { useThemeColors } from '@/src/theme/useThemeColors';
 
 interface MeasurementsDetailSheetProps {
   visible: boolean;
@@ -10,8 +9,6 @@ interface MeasurementsDetailSheetProps {
 }
 
 export function MeasurementsDetailSheet({ visible, onClose }: MeasurementsDetailSheetProps) {
-  const theme = useThemeColors();
-
   return (
     <Modal
       visible={visible}

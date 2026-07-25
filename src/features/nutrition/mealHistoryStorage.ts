@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { COMMON_FREQUENT_FOODS, type FrequentFoodItem } from './frequentFoods';
+import { COMMON_FREQUENT_FOODS } from './frequentFoods';
 
 export const MEAL_HISTORY_STORAGE_KEY = '@watts_user_meal_history';
 const MAX_HISTORY_ITEMS = 20;

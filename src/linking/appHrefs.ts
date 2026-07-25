@@ -64,7 +64,7 @@ export function logCameraHref(nonce: string = String(Date.now())): string {
 export function migrateLegacyAppHref(href: string): string {
   if (!href.startsWith('/(app)')) return href;
 
-  const rules: Array<[RegExp, string | ((m: RegExpMatchArray) => string)]> = [
+  const rules: [RegExp, string | ((m: RegExpMatchArray) => string)][] = [
     // Today-tab nesting (049) → root multi-entry stack (065–068)
     [
       /^\/\(app\)\/\(tabs\)\/today\/activity\/([^/?#]+)/,

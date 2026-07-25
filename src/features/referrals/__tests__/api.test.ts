@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { fetchMyReferral } from '../api';
+
 const { apiFetch } = vi.hoisted(() => ({ apiFetch: vi.fn() }));
 
 vi.mock('@/src/api/client', () => ({ apiFetch }));
-
-import { fetchMyReferral } from '../api';
 
 describe('fetchMyReferral', () => {
   beforeEach(() => {

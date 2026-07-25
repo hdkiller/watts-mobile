@@ -1,6 +1,6 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -23,7 +23,12 @@ import {
   useAthleteProfileQuery,
   usePatchUnitsLocale,
 } from '@/src/features/profile/useProfile';
-import type { DistanceUnits, TemperatureUnits, WeightUnits } from '@/src/features/profile/types';
+import type {
+  AthleteProfile,
+  DistanceUnits,
+  TemperatureUnits,
+  WeightUnits,
+} from '@/src/features/profile/types';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
@@ -87,6 +92,7 @@ export default function UnitsLocaleScreen() {
   const [timezonePickerOpen, setTimezonePickerOpen] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [previousData, setPreviousData] = useState<AthleteProfile | undefined>();
 
   const allZones = useMemo(() => listTimeZones(), []);
   const filteredZones = useMemo(
@@ -94,13 +100,14 @@ export default function UnitsLocaleScreen() {
     [allZones, timezoneQuery]
   );
 
-  useEffect(() => {
-    if (!data) return;
+  // Guarded render-time sync from query data (React derived-state pattern).
+  if (data && data !== previousData) {
+    setPreviousData(data);
     setDistanceUnits(data.distanceUnits);
     setWeightUnits(data.weightUnits);
     setTemperatureUnits(data.temperatureUnits);
     setTimezone(data.timezone?.trim() || deviceTimeZone());
-  }, [data]);
+  }
 
   const onSave = async () => {
     setFormError(null);

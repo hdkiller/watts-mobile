@@ -2,7 +2,7 @@
  * pre-emit critique: P5 H5 E5 S4 R5 V4 — goal → days → volume → sports → timeline → approach
  */
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Text, TextInput, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
@@ -172,9 +172,18 @@ export function PlanGeneratorPanel({
   const goalsQuery = useGoalsQuery();
   const { refetch: refetchGoals } = goalsQuery;
   const primaryGoal = usePrimaryGoalQuery();
-  const goals = goalsQuery.data ?? [];
+  const goals = useMemo(() => goalsQuery.data ?? [], [goalsQuery.data]);
+  const goalIds = useMemo(() => goals.map((g) => g.id), [goals]);
+  const defaultGoalId = useMemo(
+    () => defaultSelectedGoalId(goalIds, hostPreferredId, primaryGoal.data?.id ?? null),
+    [goalIds, hostPreferredId, primaryGoal.data?.id]
+  );
 
-  const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
+  const [selectedGoalIdOverride, setSelectedGoalIdOverride] = useState<string | null>(null);
+  const selectedGoalId =
+    selectedGoalIdOverride && goalIds.includes(selectedGoalIdOverride)
+      ? selectedGoalIdOverride
+      : defaultGoalId;
   const [days, setDays] = useState<number[]>([1, 3, 5]);
   const [volumeHours, setVolumeHours] = useState(6);
   const [sports, setSports] = useState<string[]>(['Ride']);
@@ -184,7 +193,7 @@ export function PlanGeneratorPanel({
   const [customInstructions, setCustomInstructions] = useState('');
   const [strategyRationale, setStrategyRationale] = useState<string | null>(null);
   const [startYmd, setStartYmd] = useState(() => localDateYmd());
-  const [endMode, setEndMode] = useState<PlanEndMode>('goal');
+  const [preferDurationEnd, setPreferDurationEnd] = useState(false);
   const [durationWeeks, setDurationWeeks] = useState(12);
   const [phase, setPhase] = useState<'form' | 'working' | 'preview'>('form');
   const [formStep, setFormStep] = useState<FormStep>('goal');
@@ -202,26 +211,16 @@ export function PlanGeneratorPanel({
     }, [refetchGoals])
   );
 
-  useEffect(() => {
-    const ids = goals.map((g) => g.id);
-    setSelectedGoalId((prev) => {
-      if (prev && ids.includes(prev)) return prev;
-      return defaultSelectedGoalId(ids, hostPreferredId, primaryGoal.data?.id ?? null);
-    });
-  }, [goals, hostPreferredId, primaryGoal.data?.id]);
-
   const selectedGoal = useMemo(
     () => goals.find((g) => g.id === selectedGoalId) ?? null,
     [goals, selectedGoalId]
   );
 
-  useEffect(() => {
-    if (selectedGoal?.planEndDateKey) {
-      setEndMode((mode) => (mode === 'duration' ? mode : 'goal'));
-    } else {
-      setEndMode('duration');
-    }
-  }, [selectedGoal?.id, selectedGoal?.planEndDateKey]);
+  const endMode: PlanEndMode = selectedGoal?.planEndDateKey
+    ? preferDurationEnd
+      ? 'duration'
+      : 'goal'
+    : 'duration';
 
   const endYmd = useMemo(
     () =>
@@ -405,7 +404,7 @@ export function PlanGeneratorPanel({
                       testID={`plan-generator-goal-${g.id}`}
                       onPress={() => {
                         hapticLight();
-                        setSelectedGoalId(g.id);
+                        setSelectedGoalIdOverride(g.id);
                       }}
                       accessibilityRole="button"
                       accessibilityState={{ selected }}
@@ -679,7 +678,7 @@ export function PlanGeneratorPanel({
                 testID="plan-end-mode-goal"
                 onPress={() => {
                   hapticLight();
-                  setEndMode('goal');
+                  setPreferDurationEnd(false);
                 }}
                 disabled={!selectedGoal?.planEndDateKey}
                 hitSlop={8}
@@ -704,7 +703,7 @@ export function PlanGeneratorPanel({
                 testID="plan-end-mode-duration"
                 onPress={() => {
                   hapticLight();
-                  setEndMode('duration');
+                  setPreferDurationEnd(true);
                 }}
                 hitSlop={8}
                 accessibilityRole="button"
