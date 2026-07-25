@@ -7,12 +7,15 @@ import {
   fetchNutritionPlan,
   fetchTodayNutrition,
   generateNutritionPlanDraft,
+  lockNutritionPlanMeal,
   logNutritionItem,
   patchNutritionItems,
   patchNutritionNotes,
   patchNutritionPlanMeal,
   quickAddHydration,
   regenerateDayFuelingPlan,
+  requestMealRecommendationOptions,
+  type MealRecommendationTrigger,
   type NutritionItemPatchPayload,
   type NutritionMealAction,
 } from './api';
@@ -222,6 +225,30 @@ export function usePatchNutritionPlanMeal() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: NUTRITION_PLAN_KEY });
       await queryClient.invalidateQueries({ queryKey: NUTRITION_GROCERY_KEY });
+      await queryClient.invalidateQueries({ queryKey: ['nutrition'] });
+    },
+  });
+}
+
+export function useMealRecommendations() {
+  return useMutation({
+    mutationFn: (input: MealRecommendationTrigger) => requestMealRecommendationOptions(input),
+  });
+}
+
+export function useLockNutritionPlanMeal() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: {
+      date: string;
+      windowType: string;
+      meal: unknown;
+      slotName?: string;
+    }) => lockNutritionPlanMeal(input),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: NUTRITION_PLAN_KEY });
+      await queryClient.invalidateQueries({ queryKey: NUTRITION_GROCERY_KEY });
+      await queryClient.invalidateQueries({ queryKey: ['nutrition'] });
     },
   });
 }

@@ -1,3 +1,4 @@
+import { ApiError } from '@/src/api/errors';
 import { apiFetch } from '@/src/api/client';
 
 import { localDateYmd, pickNextFuelingWindow, pickTodayNutrition } from './mapNutrition';
@@ -8,6 +9,7 @@ import type {
   NutritionDayTotals,
   NutritionUploadPayload,
 } from './types';
+import type { MealRecommendationOption } from '@/src/features/plans/types';
 
 export type NutritionItemPatchAction = 'add' | 'update' | 'delete';
 
@@ -339,6 +341,149 @@ export async function lockNutritionPlanMeal(input: {
     throw new Error(await readErrorMessage(response, `Failed to lock meal (${response.status})`));
   }
   return response.json();
+}
+
+export type MealRecommendationTrigger = {
+  date: string;
+  windowType: string;
+  targetCarbs?: number;
+  targetProtein?: number;
+  targetKcal?: number;
+  forceLlm?: boolean;
+};
+
+function extractRecommendationOptions(raw: unknown, depth = 0): MealRecommendationOption[] | null {
+  if (raw == null || depth > 6) return null;
+  if (Array.isArray(raw)) {
+    const options = raw.filter(
+      (o) => o && typeof o === 'object' && typeof (o as { title?: unknown }).title === 'string'
+    ) as MealRecommendationOption[];
+    return options.length ? options : null;
+  }
+  if (typeof raw !== 'object') return null;
+  const obj = raw as Record<string, unknown>;
+  if (Array.isArray(obj.recommendations)) {
+    return extractRecommendationOptions(obj.recommendations, depth + 1);
+  }
+  if (Array.isArray(obj.options)) {
+    return extractRecommendationOptions(obj.options, depth + 1);
+  }
+  for (const key of ['output', 'result', 'data', 'payload', 'recommendation', 'resultJson']) {
+    if (obj[key] != null) {
+      const nested = extractRecommendationOptions(obj[key], depth + 1);
+      if (nested) return nested;
+    }
+  }
+  return null;
+}
+
+function isQuotaFailure(raw: unknown): boolean {
+  if (!raw || typeof raw !== 'object') return false;
+  const o = raw as Record<string, unknown>;
+  if (o.reason === 'QUOTA_EXCEEDED') return true;
+  const ctx = o.contextJson;
+  if (ctx && typeof ctx === 'object' && (ctx as { error?: unknown }).error === 'QUOTA_EXCEEDED') {
+    return true;
+  }
+  if (typeof o.message === 'string' && o.message.toLowerCase().includes('quota')) return true;
+  return false;
+}
+
+async function triggerMealRecommendation(
+  input: MealRecommendationTrigger
+): Promise<{ runId?: string; recommendationId?: string }> {
+  const response = await apiFetch('/api/nutrition/recommendations/meal', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+    softUnauthorized: true,
+  });
+  if (!response.ok) {
+    throw new ApiError(
+      await readErrorMessage(response, `Failed to request meal recommendations (${response.status})`),
+      response.status
+    );
+  }
+  const json = (await response.json()) as {
+    runId?: string;
+    recommendationId?: string;
+  };
+  return json;
+}
+
+async function fetchMealRecommendationRecord(recommendationId: string): Promise<unknown> {
+  const response = await apiFetch(
+    `/api/nutrition/recommendations/${encodeURIComponent(recommendationId)}`,
+    { softUnauthorized: true }
+  );
+  if (!response.ok) {
+    throw new ApiError(
+      await readErrorMessage(response, `Failed to load recommendation (${response.status})`),
+      response.status
+    );
+  }
+  return response.json();
+}
+
+const RECOMMENDATION_POLL_MS = 2000;
+const RECOMMENDATION_TIMEOUT_MS = 90_000;
+
+/**
+ * Trigger AI/catalog meal options for a fueling window and poll until ready.
+ * Quota exhaustion surfaces as ApiError status 429 with quota copy.
+ */
+export async function requestMealRecommendationOptions(
+  input: MealRecommendationTrigger
+): Promise<MealRecommendationOption[]> {
+  const triggered = await triggerMealRecommendation(input);
+  const recommendationId = triggered.recommendationId;
+  if (!recommendationId) {
+    throw new Error('Meal recommendation did not return an id');
+  }
+
+  const started = Date.now();
+  while (Date.now() - started < RECOMMENDATION_TIMEOUT_MS) {
+    const payload = await fetchMealRecommendationRecord(recommendationId);
+    const root = payload && typeof payload === 'object' ? (payload as Record<string, unknown>) : {};
+    const rec =
+      root.recommendation && typeof root.recommendation === 'object'
+        ? (root.recommendation as Record<string, unknown>)
+        : root;
+    const status = String(rec.status ?? '').toUpperCase();
+
+    if (status === 'FAILED' || isQuotaFailure(rec) || isQuotaFailure(rec.contextJson)) {
+      if (isQuotaFailure(rec) || isQuotaFailure(rec.contextJson) || isQuotaFailure(rec.resultJson)) {
+        throw new ApiError(
+          'Meal recommendation limit reached — try again later',
+          429,
+          rec
+        );
+      }
+      throw new Error(
+        typeof rec.message === 'string' && rec.message.trim()
+          ? rec.message
+          : 'Could not generate meal recommendations'
+      );
+    }
+
+    if (status === 'COMPLETED' || status === 'READY') {
+      const options =
+        extractRecommendationOptions(rec.resultJson) ?? extractRecommendationOptions(rec);
+      if (options?.length) return options;
+      if (isQuotaFailure(rec.resultJson)) {
+        throw new ApiError(
+          'Meal recommendation limit reached — try again later',
+          429,
+          rec.resultJson
+        );
+      }
+      throw new Error('No meal options returned for this window');
+    }
+
+    await new Promise((r) => setTimeout(r, RECOMMENDATION_POLL_MS));
+  }
+
+  throw new Error('Meal recommendations are taking too long — try again');
 }
 
 export async function fetchNutritionGrocery(start: string, end: string): Promise<unknown> {

@@ -6,6 +6,7 @@ import type {
   NutritionPlanDayView,
   NutritionPlanMealApi,
   NutritionPlanMealView,
+  NutritionPlanWindowView,
 } from './types';
 
 /** True when the plan meal has a catalog/selection payload (not just an empty fueling window). */
@@ -29,25 +30,35 @@ function mealTitle(meal: NutritionPlanMealApi): string {
   return meal.windowType ? String(meal.windowType).replace(/_/g, ' ') : 'Meal';
 }
 
+function asNumber(value: unknown): number {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim()) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+  }
+  return 0;
+}
+
+function scheduledLabelFrom(value: unknown): string | null {
+  if (!value) return null;
+  const d = new Date(value as string | Date);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+}
+
 export function mapNutritionMeal(meal: NutritionPlanMealApi): NutritionPlanMealView | null {
   if (!meal?.id) return null;
   if (!mealHasSelection(meal)) return null;
   const dateKey = localDateKey(meal.date ?? meal.scheduledAt);
   if (!dateKey) return null;
-  let scheduledLabel: string | null = null;
-  if (meal.scheduledAt) {
-    const d = new Date(meal.scheduledAt);
-    if (!Number.isNaN(d.getTime())) {
-      scheduledLabel = d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-    }
-  }
   return {
     id: meal.id,
     dateKey,
     windowType: meal.windowType ? String(meal.windowType) : 'MEAL',
     status: meal.status ? String(meal.status) : 'PLANNED',
     title: mealTitle(meal),
-    scheduledLabel,
+    scheduledLabel: scheduledLabelFrom(meal.scheduledAt),
+    mealPayload: meal.mealJson ?? undefined,
   };
 }
 
@@ -75,43 +86,260 @@ function dateKeysInRange(start: string, end: string): string[] {
   return keys;
 }
 
-function toDayView(dateKey: string, dayMeals: NutritionPlanMealView[]): NutritionPlanDayView {
+function toDailyBaseKey(slotName?: string | null): string {
+  const normalized = (slotName || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-');
+  return normalized ? `DAILY_BASE:${normalized}` : 'DAILY_BASE';
+}
+
+function slotNameFromWindow(window: Record<string, unknown>): string {
+  const slot =
+    (typeof window.slotName === 'string' && window.slotName) ||
+    (typeof window.label === 'string' && window.label) ||
+    '';
+  if (slot) return slot;
+  return String(window.type ?? '') === 'DAILY_BASE' ? 'Meal' : '';
+}
+
+/** Match a plan meal row to a fueling-plan window (web WeeklyPlanDashboard parity). */
+export function matchesMealToWindow(
+  meal: NutritionPlanMealApi,
+  window: Record<string, unknown>
+): boolean {
+  const windowType = String(window.type ?? '');
+  const mealType = String(meal.windowType ?? '');
+  if (!windowType || !mealType) return false;
+  if (windowType !== 'DAILY_BASE') return mealType === windowType;
+  if (mealType === 'DAILY_BASE') return true;
+  if (!mealType.startsWith('DAILY_BASE:')) return false;
+  return mealType === toDailyBaseKey(slotNameFromWindow(window));
+}
+
+function windowOrder(type: string): number {
+  const normalized = String(type || '').toUpperCase();
+  if (normalized.startsWith('DAILY_BASE')) return 10;
+  if (normalized === 'PRE_WORKOUT') return 20;
+  if (normalized === 'INTRA_WORKOUT') return 30;
+  if (normalized === 'POST_WORKOUT') return 40;
+  if (normalized === 'REFILL') return 50;
+  return 60;
+}
+
+function humanizeWindowTypeLabel(type: string, slotName?: string | null): string {
+  if (slotName?.trim()) return slotName.trim();
+  if (type.startsWith('DAILY_BASE:')) {
+    return type
+      .slice('DAILY_BASE:'.length)
+      .replace(/-/g, ' ')
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+  return type
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function targetsFromMeal(meal: NutritionPlanMealApi): {
+  carbs: number;
+  protein: number;
+  kcal: number;
+} {
+  const target =
+    meal.targetJson && typeof meal.targetJson === 'object'
+      ? (meal.targetJson as Record<string, unknown>)
+      : {};
+  const mealJson =
+    meal.mealJson && typeof meal.mealJson === 'object'
+      ? (meal.mealJson as Record<string, unknown>)
+      : {};
+  const totals =
+    mealJson.totals && typeof mealJson.totals === 'object'
+      ? (mealJson.totals as Record<string, unknown>)
+      : {};
+  return {
+    carbs: asNumber(target.carbs ?? totals.carbs),
+    protein: asNumber(target.protein ?? totals.protein),
+    kcal: asNumber(target.kcal ?? totals.kcal ?? totals.calories),
+  };
+}
+
+function mealViewFromApi(
+  meal: NutritionPlanMealApi,
+  dateKey: string
+): NutritionPlanMealView | null {
+  if (!meal?.id || !mealHasSelection(meal)) return null;
+  return {
+    id: meal.id,
+    dateKey,
+    windowType: meal.windowType ? String(meal.windowType) : 'MEAL',
+    status: meal.status ? String(meal.status) : 'PLANNED',
+    title: mealTitle(meal),
+    scheduledLabel: scheduledLabelFrom(meal.scheduledAt),
+    mealPayload: meal.mealJson ?? undefined,
+  };
+}
+
+function summaryDays(plan: NutritionPlanApi | null | undefined): unknown[] {
+  const summary = plan?.summaryJson;
+  if (!summary || typeof summary !== 'object') return [];
+  const days = (summary as { days?: unknown }).days;
+  return Array.isArray(days) ? days : [];
+}
+
+function windowsForDay(
+  dateKey: string,
+  dayMeals: NutritionPlanMealApi[],
+  plan: NutritionPlanApi | null | undefined
+): NutritionPlanWindowView[] {
+  const daySummary = summaryDays(plan).find(
+    (d) => d && typeof d === 'object' && String((d as { date?: unknown }).date ?? '').slice(0, 10) === dateKey
+  ) as { fuelingPlan?: { windows?: unknown } } | undefined;
+
+  const summaryWindowsRaw = daySummary?.fuelingPlan?.windows;
+  const summaryWindows: NutritionPlanWindowView[] = Array.isArray(summaryWindowsRaw)
+    ? summaryWindowsRaw
+        .map((raw, index): NutritionPlanWindowView | null => {
+          if (!raw || typeof raw !== 'object') return null;
+          const window = raw as Record<string, unknown>;
+          const type = String(window.type ?? 'MEAL');
+          const slotName = slotNameFromWindow(window) || null;
+          const matching = dayMeals.find((meal) => matchesMealToWindow(meal, window));
+          const fromMeal = matching ? targetsFromMeal(matching) : null;
+          const targets = {
+            carbs: fromMeal?.carbs || asNumber(window.targetCarbs),
+            protein: fromMeal?.protein || asNumber(window.targetProtein),
+            kcal: fromMeal?.kcal || asNumber(window.targetKcal),
+          };
+          const label =
+            (typeof window.label === 'string' && window.label.trim()) ||
+            humanizeWindowTypeLabel(type, slotName);
+          return {
+            key: `${dateKey}:${type}:${slotName ?? index}`,
+            windowType: matching?.windowType ? String(matching.windowType) : type,
+            label,
+            slotName,
+            scheduledLabel:
+              scheduledLabelFrom(matching?.scheduledAt) ??
+              scheduledLabelFrom(window.startTime),
+            targetCarbs: Math.round(targets.carbs),
+            targetProtein: Math.round(targets.protein),
+            targetKcal: Math.round(targets.kcal),
+            meal: matching ? mealViewFromApi(matching, dateKey) : null,
+          };
+        })
+        .filter((w): w is NutritionPlanWindowView => Boolean(w))
+    : [];
+
+  const fallbackWindows: NutritionPlanWindowView[] = dayMeals.map((meal, index) => {
+    const type = String(meal.windowType ?? 'MEAL');
+    const slotName = type.startsWith('DAILY_BASE:')
+      ? type.slice('DAILY_BASE:'.length).replace(/-/g, ' ')
+      : null;
+    const targets = targetsFromMeal(meal);
+    return {
+      key: `${dateKey}:meal:${meal.id ?? index}`,
+      windowType: type,
+      label: humanizeWindowTypeLabel(type, slotName),
+      slotName,
+      scheduledLabel: scheduledLabelFrom(meal.scheduledAt),
+      targetCarbs: Math.round(targets.carbs),
+      targetProtein: Math.round(targets.protein),
+      targetKcal: Math.round(targets.kcal),
+      meal: mealViewFromApi(meal, dateKey),
+    };
+  });
+
+  const base = summaryWindows.length > 0 ? summaryWindows : fallbackWindows;
+
+  const unmatched = dayMeals.filter(
+    (meal) =>
+      !base.some((window) =>
+        matchesMealToWindow(meal, {
+          type: window.windowType.startsWith('DAILY_BASE')
+            ? 'DAILY_BASE'
+            : window.windowType,
+          slotName: window.slotName,
+          label: window.label,
+        })
+      )
+  );
+
+  const appended: NutritionPlanWindowView[] = unmatched.map((meal, index) => {
+    const type = String(meal.windowType ?? 'MEAL');
+    const slotName = type.startsWith('DAILY_BASE:')
+      ? type.slice('DAILY_BASE:'.length).replace(/-/g, ' ')
+      : null;
+    const targets = targetsFromMeal(meal);
+    return {
+      key: `${dateKey}:extra:${meal.id ?? index}`,
+      windowType: type,
+      label: humanizeWindowTypeLabel(type, slotName),
+      slotName,
+      scheduledLabel: scheduledLabelFrom(meal.scheduledAt),
+      targetCarbs: Math.round(targets.carbs),
+      targetProtein: Math.round(targets.protein),
+      targetKcal: Math.round(targets.kcal),
+      meal: mealViewFromApi(meal, dateKey),
+    };
+  });
+
+  return [...base, ...appended].sort(
+    (a, b) => windowOrder(a.windowType) - windowOrder(b.windowType)
+  );
+}
+
+function toDayView(
+  dateKey: string,
+  dayMeals: NutritionPlanMealApi[],
+  plan: NutritionPlanApi | null | undefined
+): NutritionPlanDayView {
+  const windows = windowsForDay(dateKey, dayMeals, plan);
+  const meals = windows
+    .map((w) => w.meal)
+    .filter((m): m is NutritionPlanMealView => Boolean(m));
   return {
     dateKey,
     weekdayLabel: weekdayLabelForKey(dateKey),
-    meals: dayMeals,
-    plannedCount: dayMeals.filter((x) => x.status === 'PLANNED').length,
-    doneCount: dayMeals.filter((x) => x.status === 'DONE').length,
-    skippedCount: dayMeals.filter((x) => x.status === 'SKIPPED').length,
+    windows,
+    meals,
+    plannedCount: meals.filter((x) => x.status === 'PLANNED').length,
+    doneCount: meals.filter((x) => x.status === 'DONE').length,
+    skippedCount: meals.filter((x) => x.status === 'SKIPPED').length,
   };
 }
 
 /**
- * Group selected meals by day. When `range` is provided, always emit every day in the
- * week (web parity) so empty fueling shows as “No meals selected” instead of hiding days.
+ * Group fueling windows (and their locked meals) by day. When `range` is provided,
+ * emit every day in the week so empty fueling stays visible.
  */
 export function mapNutritionPlanDays(
   plan: NutritionPlanApi | null | undefined,
   range?: { start: string; end: string }
 ): NutritionPlanDayView[] {
-  const meals = (plan?.meals ?? [])
-    .map(mapNutritionMeal)
-    .filter((m): m is NutritionPlanMealView => Boolean(m));
-
-  const byDay = new Map<string, NutritionPlanMealView[]>();
-  for (const meal of meals) {
-    const list = byDay.get(meal.dateKey) ?? [];
+  const apiMeals = plan?.meals ?? [];
+  const byDay = new Map<string, NutritionPlanMealApi[]>();
+  for (const meal of apiMeals) {
+    const dateKey = localDateKey(meal.date ?? meal.scheduledAt);
+    if (!dateKey) continue;
+    const list = byDay.get(dateKey) ?? [];
     list.push(meal);
-    byDay.set(meal.dateKey, list);
+    byDay.set(dateKey, list);
   }
 
   if (range?.start && range?.end) {
     return dateKeysInRange(range.start, range.end).map((dateKey) =>
-      toDayView(dateKey, byDay.get(dateKey) ?? [])
+      toDayView(dateKey, byDay.get(dateKey) ?? [], plan)
     );
   }
 
-  return [...byDay.keys()].sort().map((dateKey) => toDayView(dateKey, byDay.get(dateKey) ?? []));
+  // Without an explicit range, only surface days that already have a locked meal
+  // (week list empty-state parity). Empty windows need a date range to appear.
+  return [...byDay.keys()]
+    .sort()
+    .map((dateKey) => toDayView(dateKey, byDay.get(dateKey) ?? [], plan))
+    .filter((day) => day.meals.length > 0);
 }
 
 export function weekHasSelectedMeals(days: NutritionPlanDayView[]): boolean {

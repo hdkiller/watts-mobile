@@ -21,13 +21,18 @@ import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { APP_HREFS } from '@/src/linking/appHrefs';
 
-import { formatWeekRangeLabel, humanizeMealStatus, humanizeWindowType } from './formatPlanCopy';
+import { formatWeekRangeLabel, humanizeMealStatus } from './formatPlanCopy';
+import { MealRecommendationPickerSheet } from './MealRecommendationPickerSheet';
 import {
   mapNutritionPlanDays,
   weekHasSelectedMeals,
   weekRangeFromOffset,
 } from './mapNutritionPlan';
-import type { NutritionPlanApi, NutritionPlanMealView } from './types';
+import type {
+  NutritionPlanApi,
+  NutritionPlanMealView,
+  NutritionPlanWindowView,
+} from './types';
 
 export function PlanNutritionSegment() {
   const profile = useAthleteProfileQuery();
@@ -39,6 +44,7 @@ export function PlanNutritionSegment() {
   const regenDay = useRegenerateDayFuelingPlan();
   const patchMeal = usePatchNutritionPlanMeal();
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
+  const [pickerWindow, setPickerWindow] = useState<NutritionPlanWindowView | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -198,7 +204,9 @@ export function PlanNutritionSegment() {
                 <Text className="text-base font-medium text-text-primary">{day.weekdayLabel}</Text>
                 <Text className="mt-1 text-sm text-text-muted">
                   {day.meals.length === 0
-                    ? 'No meals selected'
+                    ? day.windows.length > 0
+                      ? `${day.windows.length} windows · no meals locked`
+                      : 'No meals selected'
                     : `${day.meals.length} meals · ${day.doneCount} done · ${day.skippedCount} skipped`}
                 </Text>
               </AnimatedPressable>
@@ -225,19 +233,24 @@ export function PlanNutritionSegment() {
           }}
         />
         <View className="mt-3 gap-2">
-          {(selectedDay?.meals ?? []).length === 0 ? (
-            <Text className="text-sm text-text-muted">No meals selected for this day.</Text>
+          {(selectedDay?.windows ?? []).length === 0 ? (
+            <Text className="text-sm text-text-muted">No fueling windows for this day.</Text>
           ) : (
-            (selectedDay?.meals ?? []).map((meal) => (
-              <MealRow
-                key={meal.id}
-                meal={meal}
+            (selectedDay?.windows ?? []).map((window) => (
+              <WindowRow
+                key={window.key}
+                window={window}
                 busy={Boolean(busy)}
-                onAction={(action) =>
+                onPick={() => {
+                  hapticLight();
+                  setPickerWindow(window);
+                }}
+                onAction={(action) => {
+                  if (!window.meal) return;
                   void run('Updating meal', () =>
-                    patchMeal.mutateAsync({ mealId: meal.id, action })
-                  )
-                }
+                    patchMeal.mutateAsync({ mealId: window.meal!.id, action })
+                  );
+                }}
               />
             ))
           )}
@@ -246,6 +259,13 @@ export function PlanNutritionSegment() {
           <Button label="Close" variant="secondary" onPress={() => setSelectedDateKey(null)} />
         </View>
       </BottomSheet>
+
+      <MealRecommendationPickerSheet
+        visible={pickerWindow != null}
+        dateKey={selectedDateKey ?? ''}
+        window={pickerWindow}
+        onClose={() => setPickerWindow(null)}
+      />
     </View>
   );
 }
@@ -267,28 +287,81 @@ function PlanNutritionSkeleton({ compact = false }: { compact?: boolean } = {}) 
   );
 }
 
-function MealRow({
-  meal,
+function WindowRow({
+  window,
   busy,
+  onPick,
   onAction,
 }: {
-  meal: NutritionPlanMealView;
+  window: NutritionPlanWindowView;
   busy: boolean;
+  onPick: () => void;
   onAction: (action: 'complete' | 'skip' | 'unlock') => void;
 }) {
-  const meta = [
-    humanizeWindowType(meal.windowType),
-    meal.scheduledLabel,
-    humanizeMealStatus(meal.status),
+  const targets = [
+    window.targetCarbs > 0 ? `${window.targetCarbs}g C` : null,
+    window.targetProtein > 0 ? `${window.targetProtein}g P` : null,
+    window.targetKcal > 0 ? `${window.targetKcal} kcal` : null,
   ]
     .filter(Boolean)
     .join(' · ');
 
+  const meta = [window.scheduledLabel, targets].filter(Boolean).join(' · ');
+
+  if (!window.meal) {
+    return (
+      <View
+        className="rounded-xl border border-dashed border-border bg-card px-3 py-3"
+        testID={`plan-nutrition-window-empty-${window.key}`}
+      >
+        <Text className="text-sm font-medium text-text-primary">{window.label}</Text>
+        {meta ? <Text className="mt-0.5 text-xs text-text-muted">{meta}</Text> : null}
+        <Text className="mt-1 text-xs text-text-muted">No meal locked</Text>
+        <AnimatedPressable
+          hitSlop={8}
+          disabled={busy}
+          onPress={onPick}
+          className="mt-2 self-start"
+          testID={`plan-nutrition-pick-${window.key}`}
+          accessibilityRole="button"
+          accessibilityLabel={`Choose meal for ${window.label}`}
+        >
+          <Text className="text-sm font-semibold text-brand">Choose meal</Text>
+        </AnimatedPressable>
+      </View>
+    );
+  }
+
   return (
-    <View className="border-b border-border/80 py-3">
-      <Text className="text-sm font-medium text-text-primary">{meal.title}</Text>
+    <View
+      className="border-b border-border/80 py-3"
+      testID={`plan-nutrition-window-${window.key}`}
+    >
+      <Text className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+        {window.label}
+      </Text>
       {meta ? <Text className="mt-0.5 text-xs text-text-muted">{meta}</Text> : null}
-      <View className="mt-2 flex-row gap-4">
+      <MealActions meal={window.meal} busy={busy} onAction={onAction} onReplace={onPick} />
+    </View>
+  );
+}
+
+function MealActions({
+  meal,
+  busy,
+  onAction,
+  onReplace,
+}: {
+  meal: NutritionPlanMealView;
+  busy: boolean;
+  onAction: (action: 'complete' | 'skip' | 'unlock') => void;
+  onReplace: () => void;
+}) {
+  return (
+    <View className="mt-1">
+      <Text className="text-sm font-medium text-text-primary">{meal.title}</Text>
+      <Text className="mt-0.5 text-xs text-text-muted">{humanizeMealStatus(meal.status)}</Text>
+      <View className="mt-2 flex-row flex-wrap gap-4">
         <AnimatedPressable hitSlop={8} disabled={busy} onPress={() => onAction('complete')}>
           <Text className="text-sm font-semibold text-brand">Done</Text>
         </AnimatedPressable>
@@ -297,6 +370,9 @@ function MealRow({
         </AnimatedPressable>
         <AnimatedPressable hitSlop={8} disabled={busy} onPress={() => onAction('unlock')}>
           <Text className="text-sm font-semibold text-text-muted">Unlock</Text>
+        </AnimatedPressable>
+        <AnimatedPressable hitSlop={8} disabled={busy} onPress={onReplace}>
+          <Text className="text-sm font-semibold text-brand">Replace</Text>
         </AnimatedPressable>
       </View>
     </View>

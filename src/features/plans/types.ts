@@ -211,15 +211,43 @@ export type NutritionPlanMealView = {
   status: string;
   title: string;
   scheduledLabel: string | null;
+  /** Raw mealJson for replace/lock payloads when present. */
+  mealPayload?: unknown;
+};
+
+/** One fueling window for the day sheet — may or may not hold a locked meal. */
+export type NutritionPlanWindowView = {
+  key: string;
+  windowType: string;
+  label: string;
+  slotName: string | null;
+  scheduledLabel: string | null;
+  targetCarbs: number;
+  targetProtein: number;
+  targetKcal: number;
+  meal: NutritionPlanMealView | null;
 };
 
 export type NutritionPlanDayView = {
   dateKey: string;
   weekdayLabel: string;
+  windows: NutritionPlanWindowView[];
+  /** Derived from windows with a locked meal — used by week summary + empty-week hint. */
   meals: NutritionPlanMealView[];
   plannedCount: number;
   doneCount: number;
   skippedCount: number;
+};
+
+export type MealRecommendationOption = {
+  title: string;
+  totals?: {
+    kcal?: number;
+    carbs?: number;
+    protein?: number;
+    fat?: number;
+  };
+  [key: string]: unknown;
 };
 
 export type GroceryItemView = {
