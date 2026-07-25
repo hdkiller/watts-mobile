@@ -494,3 +494,52 @@ export async function fetchNutritionGrocery(start: string, end: string): Promise
   }
   return response.json();
 }
+
+/** Metabolic strategy summary (fuel matrix + hydration standing). Bearer nutrition:read. */
+export async function fetchNutritionStrategy(): Promise<unknown> {
+  const response = await apiFetch('/api/nutrition/strategy');
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, `Failed to load nutrition strategy (${response.status})`)
+    );
+  }
+  return response.json();
+}
+
+/**
+ * Multi-day energy wave. Default daysAhead matches web Strategy (`3`).
+ * Bearer nutrition:read.
+ */
+export async function fetchNutritionExtendedWave(daysAhead = 3): Promise<unknown> {
+  const params = new URLSearchParams({ daysAhead: String(daysAhead) });
+  const response = await apiFetch(`/api/nutrition/extended-wave?${params.toString()}`);
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, `Failed to load energy horizon (${response.status})`)
+    );
+  }
+  return response.json();
+}
+
+/** Active fueling feed (suggestion + recent absorption). Bearer nutrition:read. */
+export async function fetchNutritionActiveFeed(): Promise<unknown> {
+  const response = await apiFetch('/api/nutrition/active-feed');
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, `Failed to load active fueling feed (${response.status})`)
+    );
+  }
+  return response.json();
+}
+
+/** Reset starting fluid deficit for today when the server prompts a flush. Bearer nutrition:write. */
+export async function resetNutritionHydration(): Promise<unknown> {
+  const response = await apiFetch('/api/nutrition/hydration-reset', { method: 'POST' });
+  if (!response.ok) {
+    throw new ApiError(
+      await readErrorMessage(response, `Failed to reset hydration (${response.status})`),
+      response.status
+    );
+  }
+  return response.json();
+}

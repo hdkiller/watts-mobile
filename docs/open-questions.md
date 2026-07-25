@@ -116,5 +116,6 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 2026-07-24 | Plan generator wizard parity (lite) | Shared generator: in-flow goal pick, start/end (goal or duration), activate `startDate`, phase glance + first-week preview. **Deferred:** web anchor-workout multi-select (`anchorWorkoutIds`), rich availability slots — OpenSpec `plan-generator-wizard-parity` |
 | 2026-07-25 | Native EventGoalWizard | Goals create + activation use multi-step EventGoalWizard (type → events → configure) with `eventIds` for EVENT (no stub `eventData`). AI suggest/review + goal edit remain web. Activation cannot deep-link Events create (gate) — non-EVENT types or post-activation race attach. |
 | 2026-07-25 | Plan session edit survives adapt | Content `PATCH` on planned workouts re-tags `managedBy` → `USER` so `RECALCULATE_WEEK` does not delete athlete edits; create/delete use Bearer `workout:write`; hard delete → confirm-only — OpenSpec `plan-session-edit` |
+| 2026-07-25 | Nutrition Strategy on Plan tab | Plan → Nutrition gains Strategy \| Plan; strategy/active-feed/extended-wave/hydration-reset via Bearer; mobile horizon `daysAhead=3` — OpenSpec `nutrition-strategy-segment` |
 
 When a row above is decided, move it here and update [product-baseline.md](./product-baseline.md) / [implementation-plan.md](./implementation-plan.md) if scope changes.

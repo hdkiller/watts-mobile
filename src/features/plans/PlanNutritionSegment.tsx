@@ -10,6 +10,7 @@ import { AnimatedPressable } from '@/src/components/AnimatedPressable';
 import { BottomSheet } from '@/src/components/BottomSheet';
 import { Button } from '@/src/components/Button';
 import { Skeleton } from '@/src/components/Skeleton';
+import { PlanNutritionStrategySegment } from '@/src/features/nutrition/PlanNutritionStrategySegment';
 import {
   useGenerateNutritionPlanDraft,
   useNutritionPlanQuery,
@@ -34,12 +35,61 @@ import type {
   NutritionPlanWindowView,
 } from './types';
 
+type NutritionSubmode = 'strategy' | 'plan';
+
+function NutritionSubmodeSegment({
+  mode,
+  onChange,
+}: {
+  mode: NutritionSubmode;
+  onChange: (mode: NutritionSubmode) => void;
+}) {
+  return (
+    <View testID="plan-nutrition-submode" className="mb-1 flex-row items-center gap-4">
+      {(['strategy', 'plan'] as const).map((value) => {
+        const selected = mode === value;
+        const label = value === 'strategy' ? 'Strategy' : 'Plan';
+        return (
+          <AnimatedPressable
+            key={value}
+            testID={`plan-nutrition-submode-${value}`}
+            accessibilityRole="button"
+            accessibilityState={{ selected }}
+            accessibilityLabel={label}
+            hitSlop={8}
+            onPress={() => {
+              if (value === mode) return;
+              hapticLight();
+              onChange(value);
+            }}
+            className="py-1"
+          >
+            <Text
+              className={`text-sm font-semibold ${
+                selected ? 'text-text-primary' : 'text-text-muted'
+              }`}
+            >
+              {label}
+            </Text>
+            <View
+              className={`mt-1 h-0.5 w-full rounded-full ${selected ? 'bg-brand' : 'bg-transparent'}`}
+            />
+          </AnimatedPressable>
+        );
+      })}
+    </View>
+  );
+}
+
 export function PlanNutritionSegment() {
   const profile = useAthleteProfileQuery();
   const trackingOn = isNutritionTrackingEnabled(profile.data);
+  const [submode, setSubmode] = useState<NutritionSubmode>('strategy');
   const [weekOffset, setWeekOffset] = useState(0);
   const range = useMemo(() => weekRangeFromOffset(weekOffset), [weekOffset]);
-  const planQuery = useNutritionPlanQuery(range.start, range.end, { enabled: trackingOn });
+  const planQuery = useNutritionPlanQuery(range.start, range.end, {
+    enabled: trackingOn && submode === 'plan',
+  });
   const generate = useGenerateNutritionPlanDraft();
   const regenDay = useRegenerateDayFuelingPlan();
   const patchMeal = usePatchNutritionPlanMeal();
@@ -66,7 +116,7 @@ export function PlanNutritionSegment() {
       <View testID="plan-nutrition-tracking-off" className="gap-4 px-6 pt-6">
         <Text className="text-2xl font-semibold text-text-primary">Nutrition tracking is off</Text>
         <Text className="text-sm text-text-muted">
-          Turn on tracking in Settings → Nutrition to plan meals and grocery lists here.
+          Turn on tracking in Settings → Nutrition to see strategy and plan meals here.
         </Text>
         <Button
           label="Open Nutrition settings"
@@ -102,6 +152,14 @@ export function PlanNutritionSegment() {
 
   return (
     <View testID="plan-nutrition" className="gap-4 px-6 pb-10 pt-4">
+      <NutritionSubmodeSegment mode={submode} onChange={setSubmode} />
+
+      {submode === 'strategy' ? (
+        <PlanNutritionStrategySegment enabled={trackingOn && submode === 'strategy'} />
+      ) : null}
+
+      {submode === 'plan' ? (
+        <>
       {busy ? (
         <Text className="text-sm text-brand" testID="plan-nutrition-busy">
           {busy}…
@@ -266,6 +324,8 @@ export function PlanNutritionSegment() {
         window={pickerWindow}
         onClose={() => setPickerWindow(null)}
       />
+        </>
+      ) : null}
     </View>
   );
 }
