@@ -2,6 +2,8 @@ import { mergeIntervalDurationMs } from '@/src/features/log/sleepIntervals';
 
 /** HealthKit asleep category values (core/deep/rem/asleepUnspecified). */
 export const HK_ASLEEP_UNSPECIFIED = 1;
+/** HKCategoryValueSleepAnalysis.awake — in the sleep window but not asleep. */
+export const HK_AWAKE = 2;
 export const HK_STAGE_VALUES = new Set([3, 4, 5]); // core / deep / rem
 export const HK_ALL_ASLEEP = new Set([HK_ASLEEP_UNSPECIFIED, 3, 4, 5]);
 
@@ -39,12 +41,18 @@ export function bucketHealthKitSleep(
   const deep = sleepSecsFromIntervals(accepted.filter((s) => s.value === 4));
   const rem = sleepSecsFromIntervals(accepted.filter((s) => s.value === 5));
   const light = sleepSecsFromIntervals(accepted.filter((s) => s.value === 3));
+  // Awake segments are excluded from time asleep but reported alongside it, so
+  // the iOS payload carries the same stage set Health Connect already sends.
+  const awake = sleepSecsFromIntervals(
+    samples.filter((s) => s.value === HK_AWAKE && s.end > s.start)
+  );
 
   return {
     sleepSecs,
     sleepDeepSecs: deep || undefined,
     sleepRemSecs: rem || undefined,
     sleepLightSecs: light || undefined,
+    sleepAwakeSecs: awake || undefined,
   };
 }
 
@@ -125,11 +133,15 @@ export function dayWindowLocal(dateYmd: string): { start: Date; end: Date } {
   return { start, end };
 }
 
-/** Sleep for a calendar day uses previous evening → next morning window. */
+/**
+ * Sleep for a calendar day uses previous evening → next morning window.
+ * The bounds are exactly 24h apart and abut the neighbouring days' windows, so
+ * an early-afternoon nap belongs to one date instead of being counted twice.
+ */
 export function sleepWindowForDate(dateYmd: string): { start: Date; end: Date } {
   const [y, m, d] = dateYmd.split('-').map(Number);
   // From noon previous day to noon of date (covers overnight sleep attributed to wake day).
   const start = new Date(y, (m ?? 1) - 1, (d ?? 1) - 1, 12, 0, 0, 0);
-  const end = new Date(y, (m ?? 1) - 1, d ?? 1, 14, 0, 0, 0);
+  const end = new Date(y, (m ?? 1) - 1, d ?? 1, 12, 0, 0, 0);
   return { start, end };
 }

@@ -122,13 +122,13 @@ async function registerHealthKitBackgroundDelivery(): Promise<void> {
     // Prefer bulk configure when available; fall back per-type enable.
     try {
       await HK.configureBackgroundTypes(
-        [...HEALTHKIT_BACKGROUND_DELIVERY_TYPES] as never,
+        [...HEALTHKIT_BACKGROUND_DELIVERY_TYPES],
         HK.UpdateFrequency.hourly
       );
     } catch {
       for (const typeId of HEALTHKIT_BACKGROUND_DELIVERY_TYPES) {
         try {
-          await HK.enableBackgroundDelivery(typeId as never, HK.UpdateFrequency.hourly);
+          await HK.enableBackgroundDelivery(typeId, HK.UpdateFrequency.hourly);
         } catch {
           // type unavailable on this OS — skip
         }
@@ -157,7 +157,7 @@ async function registerHealthKitBackgroundDelivery(): Promise<void> {
 
     for (const typeId of HEALTHKIT_BACKGROUND_DELIVERY_TYPES) {
       try {
-        const sub = HK.subscribeToChanges(typeId as never, () => {
+        const sub = HK.subscribeToChanges(typeId, () => {
           schedulePass();
         });
         hkObserverRemovers.push(sub);

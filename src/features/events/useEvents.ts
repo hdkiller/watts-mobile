@@ -42,6 +42,16 @@ export function useUpcomingEventsQuery() {
   });
 }
 
+/** Raw events list for EventGoalWizard selection (no glance mapping). */
+export function useEventsListQuery(options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: EVENTS_QUERY_KEY,
+    queryFn: fetchEvents,
+    enabled: options?.enabled ?? true,
+    staleTime: 60_000,
+  });
+}
+
 export function useEventDetailQuery(id: string | undefined) {
   return useQuery({
     queryKey: eventDetailQueryKey(id ?? ''),

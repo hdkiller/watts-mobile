@@ -1,7 +1,7 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
-import { Modal, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Text, View } from 'react-native';
 
+import { BottomSheet } from '@/src/components/BottomSheet';
 import { Button } from '@/src/components/Button';
 
 import { fuelStateExplanation, type FuelStateCode } from './mapNutritionStrategy';
@@ -22,17 +22,15 @@ export function FuelStateExplainSheet({
   onClose,
 }: Props) {
   const model = fuelStateExplanation({ state, isRest });
-  if (!model) return null;
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
+    <BottomSheet
+      visible={visible && model != null}
+      onClose={onClose}
+      testID="fuel-state-explain-sheet"
     >
-      <SafeAreaView className="flex-1 bg-surface" edges={['top', 'bottom']}>
-        <ScrollView className="flex-1" contentContainerClassName="px-6 pb-8 pt-5">
+      {model ? (
+        <>
           <Text className="text-lg font-semibold text-text-primary">{model.title}</Text>
           {carbsTarget != null ? (
             <Text className="mt-1 text-sm text-text-muted">
@@ -40,19 +38,14 @@ export function FuelStateExplainSheet({
             </Text>
           ) : null}
           <Text className="mt-4 text-base leading-6 text-text-body">{model.meaning}</Text>
-          <Text className="mt-4 text-xs font-semibold uppercase tracking-wide text-text-muted">
-            Guidance
-          </Text>
+          <Text className="mt-4 text-sm font-semibold text-text-primary">Guidance</Text>
           <Text className="mt-1 text-sm leading-5 text-text-body">{model.guidance}</Text>
-          <Text className="mt-4 text-xs font-semibold uppercase tracking-wide text-text-muted">
-            Note
-          </Text>
-          <Text className="mt-1 text-sm leading-5 text-text-muted">{model.note}</Text>
-          <View className="mt-8">
+          <Text className="mt-4 text-sm leading-5 text-text-muted">{model.note}</Text>
+          <View className="mt-6">
             <Button label="Done" onPress={onClose} testID="fuel-state-explain-done" />
           </View>
-        </ScrollView>
-      </SafeAreaView>
-    </Modal>
+        </>
+      ) : null}
+    </BottomSheet>
   );
 }

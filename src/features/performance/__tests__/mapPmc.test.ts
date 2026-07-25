@@ -41,9 +41,16 @@ describe('mapPmcPayload', () => {
 });
 
 describe('formStatusTextClass', () => {
-  it('maps known colors', () => {
-    expect(formStatusTextClass('green')).toContain('emerald');
-    expect(formStatusTextClass('red')).toContain('red');
+  it('maps known colors to theme tokens', () => {
+    expect(formStatusTextClass('green')).toBe('text-success');
+    expect(formStatusTextClass('yellow')).toBe('text-text-muted');
+    expect(formStatusTextClass('blue')).toBe('text-recovery');
+    expect(formStatusTextClass('orange')).toBe('text-modify');
+    expect(formStatusTextClass('red')).toBe('text-danger');
+  });
+
+  it('falls back to muted for unknown colors', () => {
+    expect(formStatusTextClass('chartreuse')).toBe('text-text-muted');
   });
 });
 

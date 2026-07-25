@@ -1,13 +1,17 @@
-/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
+/* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app
+ * pre-emit critique: P4 H4 E5 S4 R5 V4 — sheet form, chip rows, shared create/edit
+ */
 import { useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Text, TextInput, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
+import { AnimatedPressable } from '@/src/components/AnimatedPressable';
 import { BottomSheet } from '@/src/components/BottomSheet';
 import { Button } from '@/src/components/Button';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
+import { formatDayChipLabel } from './formatPlanCopy';
 import {
   useCreatePlannedWorkoutMutation,
   usePatchPlannedWorkoutMutation,
@@ -173,10 +177,12 @@ function EditorBody({
             {weekDays.map((day) => {
               const selected = form.dateKey === day;
               return (
-                <Pressable
+                <AnimatedPressable
                   key={day}
+                  hitSlop={8}
                   accessibilityRole="button"
                   accessibilityState={{ selected }}
+                  accessibilityLabel={formatDayChipLabel(day)}
                   className={`rounded-xl border px-3 py-2 ${
                     selected ? 'border-brand bg-brand/10' : 'border-border bg-card'
                   }`}
@@ -190,9 +196,9 @@ function EditorBody({
                       selected ? 'text-brand' : 'text-text-muted'
                     }`}
                   >
-                    {day.slice(5)}
+                    {formatDayChipLabel(day)}
                   </Text>
-                </Pressable>
+                </AnimatedPressable>
               );
             })}
           </View>
@@ -219,10 +225,12 @@ function EditorBody({
         {SESSION_SPORT_OPTIONS.map((option) => {
           const selected = form.type === option.value;
           return (
-            <Pressable
+            <AnimatedPressable
               key={option.value}
+              hitSlop={8}
               accessibilityRole="button"
               accessibilityState={{ selected }}
+              accessibilityLabel={option.label}
               className={`rounded-xl border px-3 py-2 ${
                 selected ? 'border-brand bg-brand/10' : 'border-border bg-card'
               }`}
@@ -235,7 +243,7 @@ function EditorBody({
               >
                 {option.label}
               </Text>
-            </Pressable>
+            </AnimatedPressable>
           );
         })}
       </View>

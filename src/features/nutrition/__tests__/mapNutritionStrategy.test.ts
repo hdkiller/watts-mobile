@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   fuelStateExplanation,
+  isHorizonLegible,
   mapActiveFuelFeed,
   mapEnergyHorizonPoints,
   mapNutritionStrategy,
@@ -82,5 +83,27 @@ describe('fuelStateExplanation', () => {
   it('explains Performance and Rest', () => {
     expect(fuelStateExplanation({ state: 3 })?.title).toBe('Performance');
     expect(fuelStateExplanation({ state: 1, isRest: true })?.title).toBe('Rest day');
+  });
+});
+
+describe('isHorizonLegible', () => {
+  it('rejects flat and short series', () => {
+    expect(isHorizonLegible([])).toBe(false);
+    expect(
+      isHorizonLegible([
+        { timestampMs: 1, level: 50 },
+        { timestampMs: 2, level: 50.1 },
+        { timestampMs: 3, level: 50.2 },
+        { timestampMs: 4, level: 50.1 },
+      ])
+    ).toBe(false);
+    expect(
+      isHorizonLegible([
+        { timestampMs: 1, level: 40 },
+        { timestampMs: 2, level: 55 },
+        { timestampMs: 3, level: 70 },
+        { timestampMs: 4, level: 60 },
+      ])
+    ).toBe(true);
   });
 });

@@ -11,6 +11,7 @@ import {
   nextMondayYmd,
   planDateIsoNoon,
   planEndDateIso,
+  recommendStrategy,
   resolvePlanEndDateYmd,
   volumePreferenceFromHours,
   weeksBetweenYmd,
@@ -112,6 +113,23 @@ describe('defaultSelectedGoalId', () => {
     expect(defaultSelectedGoalId(['a', 'b'], 'b', 'a')).toBe('b');
     expect(defaultSelectedGoalId(['a', 'b'], null, 'a')).toBe('a');
     expect(defaultSelectedGoalId(['a', 'b'])).toBe('a');
+  });
+});
+
+describe('recommendStrategy', () => {
+  it('matches web PlanWizard heuristics', () => {
+    expect(recommendStrategy({ volumeHours: 12, eventBased: false, weeksToGoal: null }).strategy).toBe(
+      'POLARIZED'
+    );
+    expect(
+      recommendStrategy({ volumeHours: 6, eventBased: true, weeksToGoal: 6 }).strategy
+    ).toBe('BLOCK');
+    expect(
+      recommendStrategy({ volumeHours: 6, eventBased: true, weeksToGoal: 12 }).strategy
+    ).toBe('LINEAR');
+    expect(
+      recommendStrategy({ volumeHours: 6, eventBased: false, weeksToGoal: null }).strategy
+    ).toBe('LINEAR');
   });
 });
 

@@ -1,4 +1,9 @@
 import { Platform } from 'react-native';
+// Type-only: erased at runtime, so this module stays importable without the
+// native HealthKit module (Android / tests). It exists to make a mistyped
+// identifier a compile error instead of a silently-dropped read — the native
+// bridge only warns and skips identifiers it cannot resolve.
+import type { ObjectTypeIdentifier, SampleTypeIdentifier } from '@kingstinct/react-native-healthkit';
 
 /** HealthKit types for wellness + workout sync (read-only). */
 export const HEALTHKIT_SYNC_READ_TYPES = [
@@ -6,7 +11,7 @@ export const HEALTHKIT_SYNC_READ_TYPES = [
   'HKCategoryTypeIdentifierSleepAnalysis',
   'HKQuantityTypeIdentifierRestingHeartRate',
   'HKQuantityTypeIdentifierHeartRate',
-  'HKQuantityTypeIdentifierHeartRateVariabilitySdnn',
+  'HKQuantityTypeIdentifierHeartRateVariabilitySDNN',
   'HKQuantityTypeIdentifierBodyFatPercentage',
   'HKQuantityTypeIdentifierOxygenSaturation',
   'HKQuantityTypeIdentifierRespiratoryRate',
@@ -15,6 +20,9 @@ export const HEALTHKIT_SYNC_READ_TYPES = [
   'HKQuantityTypeIdentifierBasalEnergyBurned',
   'HKQuantityTypeIdentifierActiveEnergyBurned',
   'HKQuantityTypeIdentifierDistanceWalkingRunning',
+  'HKQuantityTypeIdentifierDistanceCycling',
+  'HKQuantityTypeIdentifierDistanceSwimming',
+  'HKQuantityTypeIdentifierDistanceWheelchair',
   'HKQuantityTypeIdentifierAppleExerciseTime',
   'HKQuantityTypeIdentifierFlightsClimbed',
   'HKQuantityTypeIdentifierCyclingPower',
@@ -24,13 +32,13 @@ export const HEALTHKIT_SYNC_READ_TYPES = [
   'HKQuantityTypeIdentifierCyclingSpeed',
   'HKWorkoutTypeIdentifier',
   'HKWorkoutRouteTypeIdentifier',
-] as const;
+] as const satisfies readonly ObjectTypeIdentifier[];
 
 /** Types registered for HealthKit background delivery when sync is on. */
 export const HEALTHKIT_BACKGROUND_DELIVERY_TYPES = [
   'HKQuantityTypeIdentifierHeartRate',
   'HKQuantityTypeIdentifierRestingHeartRate',
-  'HKQuantityTypeIdentifierHeartRateVariabilitySdnn',
+  'HKQuantityTypeIdentifierHeartRateVariabilitySDNN',
   'HKQuantityTypeIdentifierBodyMass',
   'HKQuantityTypeIdentifierBodyFatPercentage',
   'HKQuantityTypeIdentifierOxygenSaturation',
@@ -38,6 +46,9 @@ export const HEALTHKIT_BACKGROUND_DELIVERY_TYPES = [
   'HKQuantityTypeIdentifierVO2Max',
   'HKQuantityTypeIdentifierStepCount',
   'HKQuantityTypeIdentifierDistanceWalkingRunning',
+  'HKQuantityTypeIdentifierDistanceCycling',
+  'HKQuantityTypeIdentifierDistanceSwimming',
+  'HKQuantityTypeIdentifierDistanceWheelchair',
   'HKQuantityTypeIdentifierAppleExerciseTime',
   'HKQuantityTypeIdentifierFlightsClimbed',
   'HKQuantityTypeIdentifierBasalEnergyBurned',
@@ -49,7 +60,7 @@ export const HEALTHKIT_BACKGROUND_DELIVERY_TYPES = [
   'HKQuantityTypeIdentifierCyclingSpeed',
   'HKCategoryTypeIdentifierSleepAnalysis',
   'HKWorkoutTypeIdentifier',
-] as const;
+] as const satisfies readonly SampleTypeIdentifier[];
 
 /** Health Connect record types for wellness + workout sync. */
 export const HEALTH_CONNECT_SYNC_PERMISSIONS = [
@@ -111,9 +122,7 @@ export async function requestHealthSyncPermissions(): Promise<boolean> {
       const HK = await import('@kingstinct/react-native-healthkit');
       const available = await HK.isHealthDataAvailable();
       if (!available) return false;
-      await HK.requestAuthorization({
-        toRead: [...HEALTHKIT_SYNC_READ_TYPES] as never,
-      });
+      await HK.requestAuthorization({ toRead: HEALTHKIT_SYNC_READ_TYPES });
       return true;
     }
 

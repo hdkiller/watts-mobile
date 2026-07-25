@@ -15,7 +15,7 @@ The app SHALL load activation state from the Coach Watts onboarding/activation A
 - **THEN** the app treats the athlete as allowed into companion tabs with Finish-setup affordances until usable data exists
 
 ### Requirement: Activation wizard route gate
-When the athlete is authenticated but not soft-activated (missing consent, primary goal, activated plan, or first insight per server flags), the app SHALL route them into the activation wizard stack and MUST NOT present the four-tab shell as the primary experience.
+When the athlete is authenticated but not soft-activated (missing consent, primary goal, activated plan, or first insight per server flags), the app SHALL route them into the activation wizard stack and MUST NOT present the five-tab shell as the primary experience.
 
 #### Scenario: Incomplete soft activation
 - **WHEN** soft activation is incomplete
@@ -27,7 +27,7 @@ When the athlete is authenticated but not soft-activated (missing consent, prima
 
 #### Scenario: Soft-activated enters tabs
 - **WHEN** soft activation is complete
-- **THEN** the user can access Today, Log, Coach, and More
+- **THEN** the user can access Today, Plan, Log, Coach, and More
 
 ### Requirement: Consent step
 The activation wizard SHALL include a native consent step that collects terms, privacy, and health/biometric consent and submits via Bearer `POST /api/user/consent` with current policy versions before goal/plan steps proceed.
@@ -97,4 +97,11 @@ If activation APIs are missing or reject Bearer auth on an older self-hosted ins
 #### Scenario: Plan initialize unavailable
 - **WHEN** plan lite initialize returns 401/404/not-supported
 - **THEN** the user sees a clear message and an Open web escape without marking plan complete locally
+
+### Requirement: Activation plan step hosts shared generator
+The activation wizard plan step SHALL host the shared `plan-generator` module for inputs → initialize → preview → activate, then continue to first insight on success.
+
+#### Scenario: Plan step completes via shared module
+- **WHEN** the athlete completes the activation plan step successfully
+- **THEN** soft-activation plan criteria can be satisfied and the wizard proceeds to first insight
 

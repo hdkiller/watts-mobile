@@ -235,7 +235,7 @@ export default function PlannedWorkoutDetailScreen() {
             </View>
             <View className="flex-1">
               <Button
-                variant="secondary"
+                variant="danger"
                 label="Delete"
                 testID="planned-detail-delete"
                 onPress={onDelete}
@@ -245,7 +245,7 @@ export default function PlannedWorkoutDetailScreen() {
             </View>
           </View>
           {actionError ? (
-            <Text className="mt-3 text-sm text-red-400" testID="planned-detail-action-error">
+            <Text className="mt-3 text-sm text-danger" testID="planned-detail-action-error">
               {actionError}
             </Text>
           ) : null}

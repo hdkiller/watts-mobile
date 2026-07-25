@@ -37,12 +37,15 @@ import {
   planEndDateIso,
   type PhaseGlance,
   type PlanEndMode,
+  recommendStrategy,
   RECOVERY_RHYTHM_OPTIONS,
   resolvePlanEndDateYmd,
   STARTING_PHASE_OPTIONS,
   VOLUME_HOUR_CHIPS,
   volumePreferenceFromHours,
+  weeksBetweenYmd,
 } from './planGeneratorHelpers';
+import { StrategySparkline } from './StrategySparkline';
 import type {
   PlannedWorkoutPreview,
   PlanStrategy,
@@ -179,7 +182,7 @@ export function PlanGeneratorPanel({
   const [recoveryRhythm, setRecoveryRhythm] = useState(4);
   const [startingPhase, setStartingPhase] = useState<StartingPhase>('BASE');
   const [customInstructions, setCustomInstructions] = useState('');
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [strategyRationale, setStrategyRationale] = useState<string | null>(null);
   const [startYmd, setStartYmd] = useState(() => localDateYmd());
   const [endMode, setEndMode] = useState<PlanEndMode>('goal');
   const [durationWeeks, setDurationWeeks] = useState(12);
@@ -767,7 +770,6 @@ export function PlanGeneratorPanel({
             label="Continue"
             onPress={() => {
               hapticLight();
-              setShowAdvanced(false);
               setFormStep('approach');
             }}
             disabled={!endReady}
@@ -787,6 +789,124 @@ export function PlanGeneratorPanel({
             }}
           />
           <StepMeta step="approach" />
+
+          <View>
+            <View className="mb-2 flex-row items-center justify-between gap-2">
+              <Text className="text-base font-semibold text-text-primary">Training approach</Text>
+              <AnimatedPressable
+                hitSlop={8}
+                onPress={() => {
+                  hapticLight();
+                  const eventBased = endMode === 'goal' && Boolean(selectedGoal?.planEndDateKey);
+                  const weeksToGoal =
+                    eventBased && endYmd ? weeksBetweenYmd(startYmd, endYmd) : null;
+                  const pick = recommendStrategy({
+                    volumeHours,
+                    eventBased,
+                    weeksToGoal,
+                  });
+                  setStrategy(pick.strategy);
+                  setStrategyRationale(pick.rationale);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="Help me choose training approach"
+                testID="plan-strategy-help"
+              >
+                <Text className="text-sm font-semibold text-brand">Help me choose</Text>
+              </AnimatedPressable>
+            </View>
+            <View className="flex-row flex-wrap gap-2">
+              {PLAN_STRATEGY_OPTIONS.map((opt) => {
+                const selected = strategy === opt.id;
+                const accent = selected ? theme.brand : theme.textMuted;
+                return (
+                  <AnimatedPressable
+                    key={opt.id}
+                    testID={`plan-strategy-${opt.id}`}
+                    onPress={() => {
+                      hapticLight();
+                      setStrategy(opt.id);
+                      setStrategyRationale(null);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                    accessibilityHint={opt.description}
+                    className={`w-[48%] rounded-xl border px-3 py-3 ${
+                      selected ? 'border-brand bg-brand/15' : 'border-border bg-card/60'
+                    }`}
+                  >
+                    <Text
+                      className={`mb-1 text-sm font-semibold ${
+                        selected ? 'text-brand' : 'text-text-primary'
+                      }`}
+                    >
+                      {opt.label}
+                    </Text>
+                    <View className="mb-2 opacity-80">
+                      <StrategySparkline strategy={opt.id} color={accent} width={112} height={26} />
+                    </View>
+                    <Text className="text-xs leading-snug text-text-muted">{opt.description}</Text>
+                  </AnimatedPressable>
+                );
+              })}
+            </View>
+            {strategyRationale ? (
+              <View
+                className="mt-3 rounded-xl border border-brand/30 bg-brand/10 px-3 py-2"
+                testID="plan-strategy-rationale"
+              >
+                <Text className="text-xs leading-snug text-brand">{strategyRationale}</Text>
+              </View>
+            ) : null}
+          </View>
+
+          <View>
+            <Text className="mb-1 text-base font-semibold text-text-primary">Recovery cycle</Text>
+            <Text className="mb-3 text-sm text-text-muted">How often do you need a rest week?</Text>
+            <View className="gap-2">
+              {RECOVERY_RHYTHM_OPTIONS.map((opt) => {
+                const selected = recoveryRhythm === opt.id;
+                return (
+                  <AnimatedPressable
+                    key={opt.id}
+                    testID={`plan-recovery-${opt.id}`}
+                    onPress={() => {
+                      hapticLight();
+                      setRecoveryRhythm(opt.id);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                    accessibilityHint={opt.description}
+                    className={`flex-row items-start gap-3 rounded-xl border px-3 py-3 ${
+                      selected ? 'border-brand bg-brand/15' : 'border-border bg-card/60'
+                    }`}
+                  >
+                    <View className="h-11 w-11 items-center justify-center rounded-lg border border-border bg-card">
+                      <Text
+                        className={`text-base font-black ${
+                          selected ? 'text-brand' : 'text-text-primary'
+                        }`}
+                      >
+                        {opt.label}
+                      </Text>
+                    </View>
+                    <View className="min-w-0 flex-1">
+                      <Text
+                        className={`text-sm font-semibold ${
+                          selected ? 'text-brand' : 'text-text-primary'
+                        }`}
+                      >
+                        {opt.title}
+                      </Text>
+                      <Text className="mt-0.5 text-xs leading-snug text-text-muted">
+                        {opt.description}
+                      </Text>
+                    </View>
+                  </AnimatedPressable>
+                );
+              })}
+            </View>
+          </View>
 
           <View>
             <Text className="mb-1 text-base font-semibold text-text-primary">Starting point</Text>
@@ -815,46 +935,6 @@ export function PlanGeneratorPanel({
               testID="plan-generator-instructions"
             />
           </View>
-
-          <AnimatedPressable
-            hitSlop={8}
-            onPress={() => {
-              hapticLight();
-              setShowAdvanced((v) => !v);
-            }}
-            accessibilityRole="button"
-            accessibilityState={{ expanded: showAdvanced }}
-            accessibilityLabel={showAdvanced ? 'Hide more options' : 'Show more options'}
-            className="self-start py-1"
-            testID="plan-generator-more-options"
-          >
-            <Text className="text-sm font-semibold text-brand">
-              {showAdvanced ? 'Hide more options' : 'More options'}
-            </Text>
-          </AnimatedPressable>
-
-          {showAdvanced ? (
-            <View className="gap-4">
-              <View>
-                <Text className="mb-2 text-sm font-medium text-text-muted">Strategy</Text>
-                <ChipRow
-                  options={PLAN_STRATEGY_OPTIONS}
-                  value={strategy}
-                  onChange={setStrategy}
-                  testIDPrefix="plan-strategy"
-                />
-              </View>
-              <View>
-                <Text className="mb-2 text-sm font-medium text-text-muted">Recovery cycle</Text>
-                <ChipRow
-                  options={RECOVERY_RHYTHM_OPTIONS}
-                  value={recoveryRhythm}
-                  onChange={setRecoveryRhythm}
-                  testIDPrefix="plan-recovery"
-                />
-              </View>
-            </View>
-          ) : null}
 
           <Button
             label="Generate plan"

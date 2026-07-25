@@ -1,5 +1,5 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app
- * pre-emit critique: P4 H4 E4 S4 R5 V4 — standing → feed → horizon; Today decides, Strategy explains
+ * pre-emit critique: P5 H5 E4 S4 R5 V4 — one standing hero → feed → horizon
  */
 import { useState } from 'react';
 import { Alert, Text, View } from 'react-native';
@@ -17,6 +17,8 @@ import { FuelStateExplainSheet } from './FuelStateExplainSheet';
 import {
   formatHydrationDebtLiters,
   hydrationStatusLabel,
+  isHorizonLegible,
+  type HydrationRingStatus,
 } from './mapNutritionStrategy';
 import {
   useNutritionActiveFeedQuery,
@@ -52,6 +54,12 @@ function BlockError({
   );
 }
 
+function hydrationStatusClass(status: HydrationRingStatus): string {
+  if (status === 'red') return 'text-danger';
+  if (status === 'yellow') return 'text-modify';
+  return 'text-hydration';
+}
+
 export function PlanNutritionStrategySegment({ enabled }: Props) {
   const { instanceUrl } = useAuth();
   const strategyQuery = useNutritionStrategyQuery({ enabled });
@@ -64,6 +72,7 @@ export function PlanNutritionStrategySegment({ enabled }: Props) {
   const standing = strategyQuery.data;
   const feed = feedQuery.data;
   const wavePoints = waveQuery.data ?? [];
+  const horizonOk = isHorizonLegible(wavePoints);
 
   const confirmReset = () => {
     Alert.alert(
@@ -91,19 +100,14 @@ export function PlanNutritionStrategySegment({ enabled }: Props) {
   };
 
   return (
-    <View testID="plan-nutrition-strategy" className="gap-5">
-      <Text className="text-sm text-text-muted">
-        Where you stand — fuel state, hydration, and energy horizon. Today still owns the next
-        fueling decision.
-      </Text>
-
-      {/* Fuel state */}
-      <View className="gap-2" testID="nutrition-strategy-fuel-state">
-        <Text className="text-xs font-semibold uppercase tracking-widest text-text-muted">
-          Fuel state
-        </Text>
+    <View testID="plan-nutrition-strategy" className="gap-6">
+      {/* Hero standing — fuel first, hydration as secondary measure */}
+      <View testID="nutrition-strategy-fuel-state">
         {strategyQuery.isLoading && !standing ? (
-          <Skeleton className="h-16 rounded-xl" />
+          <View className="gap-2">
+            <Skeleton className="h-8 w-1/2" />
+            <Skeleton className="h-16 rounded-xl" />
+          </View>
         ) : strategyQuery.isError ? (
           <BlockError
             testID="nutrition-strategy-fuel-error"
@@ -111,63 +115,56 @@ export function PlanNutritionStrategySegment({ enabled }: Props) {
             onRetry={() => void strategyQuery.refetch()}
           />
         ) : standing?.todayFuelLabel ? (
-          <AnimatedPressable
-            accessibilityRole="button"
-            accessibilityLabel={`Fuel state ${standing.todayFuelLabel}. Explain.`}
-            hitSlop={8}
-            onPress={() => {
-              hapticLight();
-              setExplainOpen(true);
-            }}
-            className="rounded-xl border border-border bg-card/60 px-4 py-3"
-          >
-            <Text className="text-lg font-semibold text-text-primary">
-              {standing.todayFuelLabel}
-            </Text>
-            {standing.todayCarbsTarget != null ? (
-              <Text className="mt-1 text-sm text-text-muted">
-                Carb target · {Math.round(standing.todayCarbsTarget)}g
+          <>
+            <AnimatedPressable
+              accessibilityRole="button"
+              accessibilityLabel={`Fuel state ${standing.todayFuelLabel}. Explain.`}
+              hitSlop={8}
+              onPress={() => {
+                hapticLight();
+                setExplainOpen(true);
+              }}
+            >
+              <Text className="text-2xl font-semibold text-text-primary">
+                {standing.todayFuelLabel}
               </Text>
+              {standing.todayCarbsTarget != null ? (
+                <Text className="mt-1 text-sm text-text-muted">
+                  Carb target · {Math.round(standing.todayCarbsTarget)}g
+                </Text>
+              ) : null}
+              <Text className="mt-2 text-sm font-semibold text-brand">Why this state</Text>
+            </AnimatedPressable>
+            {standing.summary ? (
+              <Text className="mt-3 text-sm leading-5 text-text-body">{standing.summary}</Text>
             ) : null}
-            <Text className="mt-2 text-sm font-semibold text-brand">Why this state</Text>
-          </AnimatedPressable>
+          </>
         ) : (
           <Text className="text-sm text-text-muted">No fuel state for today yet.</Text>
         )}
-        {standing?.summary ? (
-          <Text className="text-sm leading-5 text-text-body">{standing.summary}</Text>
-        ) : null}
-      </View>
 
-      {/* Hydration */}
-      <View className="gap-2" testID="nutrition-strategy-hydration">
-        <Text className="text-xs font-semibold uppercase tracking-widest text-text-muted">
-          Hydration
-        </Text>
-        {strategyQuery.isLoading && !standing ? (
-          <Skeleton className="h-20 rounded-xl" />
-        ) : strategyQuery.isError ? (
-          <BlockError
-            testID="nutrition-strategy-hydration-error"
-            message={friendlyError(strategyQuery.error, 'Could not load hydration')}
-            onRetry={() => void strategyQuery.refetch()}
-          />
-        ) : standing ? (
-          <>
+        {standing && !strategyQuery.isError ? (
+          <View testID="nutrition-strategy-hydration" className="mt-5">
             <View className="flex-row items-end gap-3">
               <Text className="text-3xl font-semibold text-text-primary">
                 {formatHydrationDebtLiters(standing.hydrationDebtMl)}
               </Text>
-              <Text className="mb-1 text-sm font-semibold text-text-muted">
+              <Text
+                className={`mb-1 text-sm font-semibold ${hydrationStatusClass(
+                  standing.hydrationStatus
+                )}`}
+              >
                 {hydrationStatusLabel(standing.hydrationStatus)}
               </Text>
             </View>
-            <Text className="text-sm text-text-muted">Fluid debt carried into today</Text>
+            <Text className="mt-1 text-sm text-text-muted">Fluid debt into today</Text>
             {standing.hydrationAdvice ? (
-              <Text className="text-sm leading-5 text-text-body">{standing.hydrationAdvice}</Text>
+              <Text className="mt-2 text-sm leading-5 text-text-body">
+                {standing.hydrationAdvice}
+              </Text>
             ) : null}
             {standing.showHydrationFlushPrompt ? (
-              <View className="mt-1 gap-2">
+              <View className="mt-3 gap-2">
                 {standing.hydrationFlushPrompt ? (
                   <Text className="text-sm text-text-body">{standing.hydrationFlushPrompt}</Text>
                 ) : null}
@@ -181,13 +178,13 @@ export function PlanNutritionStrategySegment({ enabled }: Props) {
                 />
               </View>
             ) : null}
-            {resetError ? <Text className="text-sm text-danger">{resetError}</Text> : null}
-          </>
+            {resetError ? <Text className="mt-2 text-sm text-danger">{resetError}</Text> : null}
+          </View>
         ) : null}
       </View>
 
-      {/* Active feed — explain standing; do not mirror Today's next-window CTA */}
-      <View className="gap-2" testID="nutrition-strategy-active-feed">
+      {/* Active feed */}
+      <View testID="nutrition-strategy-active-feed" className="gap-2">
         <Text className="text-xs font-semibold uppercase tracking-widest text-text-muted">
           Fueling now
         </Text>
@@ -222,9 +219,7 @@ export function PlanNutritionStrategySegment({ enabled }: Props) {
 
       {/* Energy horizon */}
       <View className="gap-2">
-        <Text className="text-xs font-semibold uppercase tracking-widest text-text-muted">
-          Energy horizon
-        </Text>
+        <Text className="text-sm font-semibold text-text-primary">Energy horizon</Text>
         {waveQuery.isLoading && wavePoints.length === 0 ? (
           <Skeleton className="h-24 rounded-xl" />
         ) : waveQuery.isError ? (
@@ -233,13 +228,8 @@ export function PlanNutritionStrategySegment({ enabled }: Props) {
             message={friendlyError(waveQuery.error, 'Could not load energy horizon')}
             onRetry={() => void waveQuery.refetch()}
           />
-        ) : wavePoints.length >= 4 ? (
-          <>
-            <EnergyHorizonChart points={wavePoints} />
-            <Text className="text-xs text-text-muted">
-              Glycogen trend across yesterday through the next three days.
-            </Text>
-          </>
+        ) : horizonOk ? (
+          <EnergyHorizonChart points={wavePoints} />
         ) : (
           <View testID="nutrition-strategy-horizon-web" className="gap-2">
             <Text className="text-sm text-text-muted">

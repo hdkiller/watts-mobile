@@ -173,25 +173,146 @@ export function buildAvailabilityDays(
   }));
 }
 
+/** SVG path `d` for web PlanWizard strategy sparklines (viewBox 0 0 100 20). */
+export const STRATEGY_SPARKLINE_PATHS: Record<PlanStrategy, string> = {
+  LINEAR: 'M0 18 L20 15 L40 12 L60 8 L80 4 L100 0',
+  POLARIZED: 'M0 18 L15 18 L20 2 L25 18 L40 18 L45 2 L50 18 L100 18',
+  BLOCK: 'M0 15 L30 15 L30 5 L60 5 L60 15 L90 15 L90 2',
+  UNDULATING: 'M0 10 Q25 0 50 10 T100 10',
+  REVERSE: 'M0 0 L20 4 L40 8 L60 12 L80 15 L100 18',
+  MAINTENANCE: 'M0 10 L100 10',
+};
+
 export const PLAN_STRATEGY_OPTIONS: {
   id: PlanStrategy;
   label: string;
+  /** Short chip hint (legacy). */
   hint: string;
+  /** Web PlanWizard card description. */
+  description: string;
+  sparklinePath: string;
 }[] = [
-  { id: 'LINEAR', label: 'Linear', hint: 'Steady progression' },
-  { id: 'POLARIZED', label: 'Polarized', hint: 'Mostly easy, some hard' },
-  { id: 'BLOCK', label: 'Block', hint: 'Concentrated intensity' },
-  { id: 'UNDULATING', label: 'Undulating', hint: 'Varied daily focus' },
-  { id: 'REVERSE', label: 'Reverse', hint: 'Hard early, long later' },
-  { id: 'MAINTENANCE', label: 'Maintain', hint: 'Stay fit between goals' },
+  {
+    id: 'LINEAR',
+    label: 'Linear',
+    hint: 'Steady progression',
+    description: 'Steady progression. Classic approach.',
+    sparklinePath: STRATEGY_SPARKLINE_PATHS.LINEAR,
+  },
+  {
+    id: 'POLARIZED',
+    label: 'Polarized',
+    hint: 'Mostly easy, some hard',
+    description: '80% Easy, 20% Hard. Max freshness.',
+    sparklinePath: STRATEGY_SPARKLINE_PATHS.POLARIZED,
+  },
+  {
+    id: 'BLOCK',
+    label: 'Block',
+    hint: 'Concentrated intensity',
+    description: 'Concentrated intensity weeks. Advanced.',
+    sparklinePath: STRATEGY_SPARKLINE_PATHS.BLOCK,
+  },
+  {
+    id: 'UNDULATING',
+    label: 'Undulating',
+    hint: 'Varied daily focus',
+    description: 'Varied daily focus. Prevents plateaus.',
+    sparklinePath: STRATEGY_SPARKLINE_PATHS.UNDULATING,
+  },
+  {
+    id: 'REVERSE',
+    label: 'Reverse',
+    hint: 'Hard early, long later',
+    description: 'Intense first, then long. Ideal for Ironman/Ultras.',
+    sparklinePath: STRATEGY_SPARKLINE_PATHS.REVERSE,
+  },
+  {
+    id: 'MAINTENANCE',
+    label: 'Maintenance',
+    hint: 'Stay fit between goals',
+    description: 'Steady load, no peak. Stay fit between goals.',
+    sparklinePath: STRATEGY_SPARKLINE_PATHS.MAINTENANCE,
+  },
 ];
 
-export const RECOVERY_RHYTHM_OPTIONS: { id: number; label: string; hint: string }[] = [
-  { id: 2, label: '1:1', hint: 'Work · recover' },
-  { id: 3, label: '2:1', hint: 'Two on · one off' },
-  { id: 4, label: '3:1', hint: 'Classic load cycle' },
-  { id: 5, label: '4:1', hint: 'Longer load block' },
+export const RECOVERY_RHYTHM_OPTIONS: {
+  id: number;
+  /** Ratio chip, e.g. 3:1 */
+  label: string;
+  /** Short chip hint (legacy). */
+  hint: string;
+  /** Web card title (Return to Play, High Recovery, …). */
+  title: string;
+  /** Web long description (Masters / Pro copy). */
+  description: string;
+}[] = [
+  {
+    id: 2,
+    label: '1:1',
+    hint: 'Work · recover',
+    title: 'Return to Play',
+    description:
+      '1 week build, 1 week recovery. Best for injury recovery or extreme intensity blocks.',
+  },
+  {
+    id: 3,
+    label: '2:1',
+    hint: 'Two on · one off',
+    title: 'High Recovery',
+    description:
+      '2 weeks build, 1 week rest. Ideal for Masters (45+) and high-stress lifestyles.',
+  },
+  {
+    id: 4,
+    label: '3:1',
+    hint: 'Classic load cycle',
+    title: 'Standard Build',
+    description:
+      '3 weeks build, 1 week rest. The classic standard for most healthy athletes.',
+  },
+  {
+    id: 5,
+    label: '4:1',
+    hint: 'Longer load block',
+    title: 'Professional',
+    description:
+      '4 weeks build, 1 week rest. Advanced pattern for high-volume, full-time athletes.',
+  },
 ];
+
+/** Web PlanWizard `recommendStrategy()` heuristics. */
+export function recommendStrategy(input: {
+  volumeHours: number;
+  eventBased: boolean;
+  weeksToGoal: number | null;
+}): { strategy: PlanStrategy; rationale: string } {
+  if (input.volumeHours > 10) {
+    return {
+      strategy: 'POLARIZED',
+      rationale:
+        'With high volume (>10h), Polarized is excellent for avoiding burnout while building huge aerobic capacity.',
+    };
+  }
+  if (input.eventBased && input.weeksToGoal != null) {
+    if (input.weeksToGoal < 8) {
+      return {
+        strategy: 'BLOCK',
+        rationale:
+          'With limited time (<8 weeks), Block periodization can provide a rapid fitness boost.',
+      };
+    }
+    return {
+      strategy: 'LINEAR',
+      rationale:
+        'Linear periodization is the safest and most reliable way to peak for your event.',
+    };
+  }
+  return {
+    strategy: 'LINEAR',
+    rationale: 'Linear periodization is the best starting point for most athletes.',
+  };
+}
 
 export const STARTING_PHASE_OPTIONS: {
   id: StartingPhase;

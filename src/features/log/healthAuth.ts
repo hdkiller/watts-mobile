@@ -47,7 +47,7 @@ async function getHealthKitAuthStatus(): Promise<HealthStatusResult> {
 
     // Full Health Sync read set — same types requested on Connect.
     const requestStatus = await HK.getRequestStatusForAuthorization({
-      toRead: [...HEALTHKIT_SYNC_READ_TYPES] as never,
+      toRead: HEALTHKIT_SYNC_READ_TYPES,
     });
 
     if (requestStatus === AuthorizationRequestStatus.shouldRequest) {

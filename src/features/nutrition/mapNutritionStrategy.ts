@@ -283,3 +283,14 @@ export function hydrationStatusLabel(status: HydrationRingStatus): string {
 
 /** Mobile default matches web Strategy tab (`daysAhead: 3`). */
 export const MOBILE_ENERGY_HORIZON_DAYS_AHEAD = 3;
+
+/** False when the series is too flat or short to read on a phone. */
+export function isHorizonLegible(points: EnergyWavePoint[]): boolean {
+  if (points.length < 4) return false;
+  const levels = points.map((p) => p.level);
+  const min = Math.min(...levels);
+  const max = Math.max(...levels);
+  const span = max - min;
+  const mid = (max + min) / 2 || 1;
+  return span >= 3 || span / Math.abs(mid) >= 0.04;
+}
