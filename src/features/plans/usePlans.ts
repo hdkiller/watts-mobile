@@ -8,7 +8,9 @@ import {
   abandonPlan,
   adaptPlan,
   createPlanBlock,
+  createPlannedWorkout,
   deletePlanBlock,
+  deletePlannedWorkout,
   fetchActivePlan,
   generateAiWeek,
   generateTrainingBlock,
@@ -17,8 +19,11 @@ import {
   movePlannedWorkout,
   patchPlanBlock,
   patchPlanWeek,
+  patchPlannedWorkout,
   reorderPlanBlocks,
   replanStructure,
+  type PlannedWorkoutPatchInput,
+  type PlannedWorkoutWriteInput,
 } from './api';
 import { mapActivePlanShell } from './mapActivePlan';
 import type {
@@ -130,6 +135,42 @@ export function useMovePlannedMutation() {
     mutationFn: ({ id, date }: { id: string; date: string }) => movePlannedWorkout(id, date),
     onSuccess: async (_data, vars) => {
       await invalidatePlanCaches(queryClient, { plannedId: vars.id });
+    },
+  });
+}
+
+export function useCreatePlannedWorkoutMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: PlannedWorkoutWriteInput) => createPlannedWorkout(input),
+    onSuccess: async () => {
+      await invalidatePlanCaches(queryClient);
+    },
+  });
+}
+
+export function usePatchPlannedWorkoutMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      input,
+    }: {
+      id: string;
+      input: PlannedWorkoutPatchInput;
+    }) => patchPlannedWorkout(id, input),
+    onSuccess: async (_data, vars) => {
+      await invalidatePlanCaches(queryClient, { plannedId: vars.id });
+    },
+  });
+}
+
+export function useDeletePlannedWorkoutMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deletePlannedWorkout(id),
+    onSuccess: async (_data, id) => {
+      await invalidatePlanCaches(queryClient, { plannedId: id });
     },
   });
 }

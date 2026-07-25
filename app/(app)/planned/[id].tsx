@@ -29,11 +29,14 @@ import {
 } from '@/src/features/activity/useActivity';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 import { openPlannedSessionDiscuss } from '@/src/features/coach/openSessionDiscuss';
+import { PlanSessionEditorSheet } from '@/src/features/plans/PlanSessionEditorSheet';
+import { useDeletePlannedWorkoutMutation } from '@/src/features/plans/usePlans';
 import { isNutritionTrackingEnabled } from '@/src/features/profile/mapProfile';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { useOfflineCached } from '@/src/hooks/useOfflineCached';
 import { humanizeWorkoutType } from '@/src/lib/humanizeWorkoutType';
 import { APP_HREFS } from '@/src/linking/appHrefs';
+import { localDateKey } from '@/src/features/today/weekGlance';
 import { zoneColor, Colors } from '@/src/theme/colors';
 
 function plannedHeroStats(data: {
@@ -66,6 +69,7 @@ export default function PlannedWorkoutDetailScreen() {
   });
   const completeMutation = useCompletePlannedWorkout(id);
   const skipMutation = useSkipPlannedWorkout(id);
+  const deleteMutation = useDeletePlannedWorkoutMutation();
   const { showCachedOffline, lastUpdatedLabel } = useOfflineCached({
     data,
     isError,
@@ -73,6 +77,7 @@ export default function PlannedWorkoutDetailScreen() {
   });
   const [zonesExpanded, setZonesExpanded] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [editorOpen, setEditorOpen] = useState(false);
 
   const openWeb = async () => {
     const path = id ? plannedWorkoutWebPath(id) : '/';
@@ -83,7 +88,8 @@ export default function PlannedWorkoutDetailScreen() {
     ? [data.completionLabel, data.syncLabel].filter(Boolean).join(' · ')
     : null;
 
-  const busy = completeMutation.isPending || skipMutation.isPending;
+  const busy =
+    completeMutation.isPending || skipMutation.isPending || deleteMutation.isPending;
 
   const athleteRefs = useMemo(
     () =>
@@ -140,6 +146,31 @@ export default function PlannedWorkoutDetailScreen() {
     ]);
   };
 
+  const onDelete = () => {
+    if (!data) return;
+    Alert.alert(
+      'Delete session?',
+      `"${data.title}" will be removed from your plan. This cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            setActionError(null);
+            deleteMutation.mutate(data.id, {
+              onSuccess: () => {
+                if (router.canGoBack()) router.back();
+                else router.replace(APP_HREFS.plan as Href);
+              },
+              onError: (err) => setActionError(friendlyError(err, 'Failed to delete workout')),
+            });
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <>
       <Stack.Screen options={{ title: 'Workout', headerShown: true }} />
@@ -192,7 +223,32 @@ export default function PlannedWorkoutDetailScreen() {
               </View>
             </View>
           ) : null}
-          {actionError ? <Text className="mt-3 text-sm text-red-400">{actionError}</Text> : null}
+          <View className="mt-3 flex-row gap-3">
+            <View className="flex-1">
+              <Button
+                variant="secondary"
+                label="Edit"
+                testID="planned-detail-edit"
+                onPress={() => setEditorOpen(true)}
+                disabled={busy}
+              />
+            </View>
+            <View className="flex-1">
+              <Button
+                variant="secondary"
+                label="Delete"
+                testID="planned-detail-delete"
+                onPress={onDelete}
+                loading={deleteMutation.isPending}
+                disabled={busy}
+              />
+            </View>
+          </View>
+          {actionError ? (
+            <Text className="mt-3 text-sm text-red-400" testID="planned-detail-action-error">
+              {actionError}
+            </Text>
+          ) : null}
 
           {data.linkedCompleted ? (
             <Pressable
@@ -351,6 +407,23 @@ export default function PlannedWorkoutDetailScreen() {
             onPress={() => void openWeb()}
           />
         </ScrollView>
+      ) : null}
+
+      {data ? (
+        <PlanSessionEditorSheet
+          visible={editorOpen}
+          onClose={() => setEditorOpen(false)}
+          context={{
+            mode: 'edit',
+            plannedId: data.id,
+            dateKey: localDateKey(data.date) ?? '',
+            title: data.title,
+            type: data.type,
+            durationSec: data.durationSec,
+            tss: data.tss,
+            description: data.description,
+          }}
+        />
       ) : null}
     </>
   );

@@ -493,21 +493,90 @@ export async function generateWeekStructures(
   return { succeeded, failed };
 }
 
-/** Move a planned workout by patching its date (YYYY-MM-DD or ISO). */
-export async function movePlannedWorkout(plannedWorkoutId: string, date: string): Promise<void> {
-  const response = await apiFetch(`/api/planned-workouts/${encodeURIComponent(plannedWorkoutId)}`, {
-    method: 'PATCH',
+export type PlannedWorkoutWriteInput = {
+  date: string;
+  title: string;
+  type: string;
+  durationSec: number;
+  tss?: number | null;
+  description?: string | null;
+  trainingWeekId?: string;
+};
+
+export type PlannedWorkoutPatchInput = {
+  date?: string;
+  title?: string;
+  type?: string;
+  durationSec?: number;
+  tss?: number | null;
+  description?: string | null;
+};
+
+/** Create a planned workout (Bearer workout:write). Defaults to athlete-managed on server. */
+export async function createPlannedWorkout(input: PlannedWorkoutWriteInput): Promise<unknown> {
+  const response = await apiFetch('/api/planned-workouts', {
+    method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ date }),
+    body: JSON.stringify({
+      date: input.date,
+      title: input.title,
+      type: input.type,
+      durationSec: input.durationSec,
+      ...(input.tss != null ? { tss: input.tss } : {}),
+      ...(input.description != null ? { description: input.description } : {}),
+      ...(input.trainingWeekId ? { trainingWeekId: input.trainingWeekId } : {}),
+    }),
   });
   if (!response.ok) {
     const body = await readErrorBody(response);
     throw new ApiError(
-      errorMessage(body, `Failed to move workout (${response.status})`),
+      errorMessage(body, `Failed to create workout (${response.status})`),
       response.status,
       body
     );
   }
+  return response.json();
+}
+
+/** Patch planned workout fields (content edits re-tag managedBy to USER on server). */
+export async function patchPlannedWorkout(
+  plannedWorkoutId: string,
+  input: PlannedWorkoutPatchInput
+): Promise<unknown> {
+  const response = await apiFetch(`/api/planned-workouts/${encodeURIComponent(plannedWorkoutId)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!response.ok) {
+    const body = await readErrorBody(response);
+    throw new ApiError(
+      errorMessage(body, `Failed to update workout (${response.status})`),
+      response.status,
+      body
+    );
+  }
+  return response.json();
+}
+
+/** Hard-delete a planned workout (not soft-deletable — no honest undo). */
+export async function deletePlannedWorkout(plannedWorkoutId: string): Promise<void> {
+  const response = await apiFetch(`/api/planned-workouts/${encodeURIComponent(plannedWorkoutId)}`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) {
+    const body = await readErrorBody(response);
+    throw new ApiError(
+      errorMessage(body, `Failed to delete workout (${response.status})`),
+      response.status,
+      body
+    );
+  }
+}
+
+/** Move a planned workout by patching its date (YYYY-MM-DD or ISO). */
+export async function movePlannedWorkout(plannedWorkoutId: string, date: string): Promise<void> {
+  await patchPlannedWorkout(plannedWorkoutId, { date });
 }
 
 export async function fetchPlanJobStatus(

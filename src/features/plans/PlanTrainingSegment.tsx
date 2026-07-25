@@ -39,11 +39,13 @@ import {
   weekHasSelectedMeals,
 } from './mapNutritionPlan';
 import { PlanAdjustSheet } from './PlanAdjustSheet';
+import { PlanSessionEditorSheet } from './PlanSessionEditorSheet';
 import { SeasonTimeline, WeekTargetStats } from './SeasonTimeline';
 import type { ActivePlanShell, NutritionPlanApi, PlanWeekShell } from './types';
 import {
   useAbandonPlanMutation,
   useAdaptPlanMutation,
+  useDeletePlannedWorkoutMutation,
   useGenerateAiWeekMutation,
   useGenerateBlockMutation,
   useGenerateStructureMutation,
@@ -53,6 +55,25 @@ import {
   usePlanWeekSessionsQuery,
   useReplanStructureMutation,
 } from './usePlans';
+
+type SessionEditorContext =
+  | {
+      mode: 'create';
+      dateKey: string;
+      weekDayKeys: string[];
+      trainingWeekId?: string;
+    }
+  | {
+      mode: 'edit';
+      plannedId: string;
+      dateKey: string;
+      title: string;
+      type?: string | null;
+      durationSec?: number | null;
+      tss?: number | null;
+      description?: string | null;
+      weekDayKeys?: string[];
+    };
 
 type Props = {
   shell: ActivePlanShell | null;
@@ -103,6 +124,7 @@ export function PlanTrainingSegment({
   const replan = useReplanStructureMutation();
   const patchWeek = usePatchWeekMutation();
   const movePlanned = useMovePlannedMutation();
+  const deletePlanned = useDeletePlannedWorkoutMutation();
   const genStructure = useGenerateStructureMutation();
   const genWeekStructures = useGenerateWeekStructuresMutation();
   const genWeek = useGenerateAiWeekMutation();
@@ -143,6 +165,7 @@ export function PlanTrainingSegment({
   const [moveTarget, setMoveTarget] = useState<PlannedListItem | null>(null);
   const [moveDate, setMoveDate] = useState('');
   const [moveUndo, setMoveUndo] = useState<MoveUndo | null>(null);
+  const [sessionEditor, setSessionEditor] = useState<SessionEditorContext | null>(null);
   const swipeStartX = useRef<number | null>(null);
 
   const weekSessions = useMemo(() => {
@@ -213,6 +236,55 @@ export function PlanTrainingSegment({
     if (weekKeys.length > 0) return weekKeys;
     return [todayKey].filter(Boolean);
   }, [weekMeta, todayKey]);
+
+  const openAddSession = () => {
+    if (!weekMeta || busyMsg) return;
+    hapticLight();
+    const dateKey =
+      (weekContainsToday && todayKey && moveDayKeys.includes(todayKey)
+        ? todayKey
+        : moveDayKeys[0]) ?? todayKey;
+    if (!dateKey) return;
+    setSessionEditor({
+      mode: 'create',
+      dateKey,
+      weekDayKeys: moveDayKeys,
+      trainingWeekId: weekMeta.id,
+    });
+  };
+
+  const openEditSession = (item: PlannedListItem) => {
+    if (busyMsg) return;
+    hapticLight();
+    setSessionEditor({
+      mode: 'edit',
+      plannedId: item.id,
+      dateKey: localDateKey(item.date) ?? moveDayKeys[0] ?? todayKey,
+      title: item.title,
+      type: item.type,
+      durationSec: item.durationSec,
+      tss: item.tss,
+      weekDayKeys: moveDayKeys,
+    });
+  };
+
+  const confirmDeleteSession = (item: PlannedListItem) => {
+    if (busyMsg) return;
+    Alert.alert(
+      'Delete session?',
+      `"${item.title}" will be removed from your plan. This cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            void runBusy('Deleting session', () => deletePlanned.mutateAsync(item.id));
+          },
+        },
+      ]
+    );
+  };
 
   const openWeekTune = () => {
     if (!weekMeta) return;
@@ -660,13 +732,21 @@ export function PlanTrainingSegment({
         ) : weekSessions.length === 0 ? (
           <View className="gap-3" testID="plan-week-empty">
             <Text className="text-sm text-text-muted">
-              No sessions in this week yet. Generate a week of workouts, or browse Upcoming.
+              No sessions in this week yet. Generate a week of workouts, add one, or browse
+              Upcoming.
             </Text>
             <Button
               label="Generate week"
               disabled={Boolean(busyMsg) || !weekMeta}
               onPress={() => setAiWeekOpen(true)}
               testID="plan-generate-week-cta"
+            />
+            <Button
+              label="Add session"
+              variant="secondary"
+              disabled={Boolean(busyMsg) || !weekMeta}
+              onPress={openAddSession}
+              testID="plan-add-session"
             />
             <AnimatedPressable
               hitSlop={8}
@@ -679,20 +759,33 @@ export function PlanTrainingSegment({
           </View>
         ) : (
           <>
-            {needsStructureIds.length > 0 ? (
+            <View className="mb-2 flex-row flex-wrap items-center gap-x-4 gap-y-1">
               <AnimatedPressable
                 hitSlop={8}
-                disabled={Boolean(busyMsg)}
-                onPress={generateMissingStructures}
+                disabled={Boolean(busyMsg) || !weekMeta}
+                onPress={openAddSession}
                 accessibilityRole="button"
-                accessibilityLabel="Generate structures for week"
-                className="mb-2 self-start py-1"
+                accessibilityLabel="Add session"
+                className="self-start py-1"
+                testID="plan-add-session"
               >
-                <Text className="text-sm font-semibold text-brand">
-                  Generate structures ({needsStructureIds.length})
-                </Text>
+                <Text className="text-sm font-semibold text-brand">Add session</Text>
               </AnimatedPressable>
-            ) : null}
+              {needsStructureIds.length > 0 ? (
+                <AnimatedPressable
+                  hitSlop={8}
+                  disabled={Boolean(busyMsg)}
+                  onPress={generateMissingStructures}
+                  accessibilityRole="button"
+                  accessibilityLabel="Generate structures for week"
+                  className="self-start py-1"
+                >
+                  <Text className="text-sm font-semibold text-brand">
+                    Generate structures ({needsStructureIds.length})
+                  </Text>
+                </AnimatedPressable>
+              ) : null}
+            </View>
             {weekSessions.map((item) => (
               <SessionRow
                 key={item.id}
@@ -704,6 +797,8 @@ export function PlanTrainingSegment({
                   hapticLight();
                   router.push(APP_HREFS.plannedDetail(item.id) as Href);
                 }}
+                onEdit={() => openEditSession(item)}
+                onDelete={() => confirmDeleteSession(item)}
                 onMove={() => {
                   hapticLight();
                   setMoveTarget(item);
@@ -830,6 +925,12 @@ export function PlanTrainingSegment({
         </View>
       </BottomSheet>
 
+      <PlanSessionEditorSheet
+        visible={sessionEditor != null}
+        context={sessionEditor}
+        onClose={() => setSessionEditor(null)}
+      />
+
       <BottomSheet
         visible={Boolean(moveTarget)}
         onClose={() => setMoveTarget(null)}
@@ -943,6 +1044,8 @@ function SessionRow({
   todayKey,
   mark,
   onOpen,
+  onEdit,
+  onDelete,
   onMove,
   onGenerateStructure,
 }: {
@@ -951,6 +1054,8 @@ function SessionRow({
   todayKey: string;
   mark: ComplianceMark | undefined;
   onOpen: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
   onMove: () => void;
   onGenerateStructure?: () => void;
 }) {
@@ -973,10 +1078,12 @@ function SessionRow({
     showActionSheet({
       title: item.title,
       options: [
+        { label: 'Edit', onPress: onEdit },
         { label: 'Move', onPress: onMove },
         ...(onGenerateStructure
           ? [{ label: 'Generate structure', onPress: onGenerateStructure }]
           : []),
+        { label: 'Delete', style: 'destructive' as const, onPress: onDelete },
         { label: 'Cancel', style: 'cancel' as const },
       ],
     });
