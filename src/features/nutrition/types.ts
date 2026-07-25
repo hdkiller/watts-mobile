@@ -39,6 +39,23 @@ export type FuelingPlanAnalysis = {
   windows: FuelingPlanWindow[];
 };
 
+/** API meal bucket keys used by PATCH /api/nutrition/{id}/items. */
+export type ApiMealType = 'breakfast' | 'lunch' | 'dinner' | 'snacks';
+
+/** One logged food item from a nutrition day row (breakfast/lunch/dinner/snacks). */
+export type NutritionLoggedItem = {
+  id: string | null;
+  name: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  mealType: ApiMealType;
+  amount?: number;
+  unit?: string;
+  loggedAt: string | null;
+};
+
 export type NutritionDayTotals = {
   id: string | null;
   date: string;
@@ -48,6 +65,10 @@ export type NutritionDayTotals = {
   fat: number;
   waterMl: number;
   isEmpty: boolean;
+  /** Individual logged items for the day (flattened meal buckets). */
+  items: NutritionLoggedItem[];
+  /** Free-text day note from the nutrition row. */
+  notes: string | null;
   /** Canonical fueling-plan targets from GET /api/nutrition; null when no plan for the day. */
   caloriesGoal: number | null;
   proteinGoal: number | null;

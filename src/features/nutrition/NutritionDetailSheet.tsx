@@ -39,7 +39,7 @@ export function NutritionDetailSheet({ visible, onClose }: NutritionDetailSheetP
           </View>
 
           <ScrollView keyboardShouldPersistTaps="handled">
-            <NutritionSection />
+            <NutritionSection entriesMode="full" />
           </ScrollView>
         </Pressable>
       </Pressable>

@@ -2,11 +2,31 @@ import { apiFetch } from '@/src/api/client';
 
 import { localDateYmd, pickNextFuelingWindow, pickTodayNutrition } from './mapNutrition';
 import type {
+  ApiMealType,
   HydrationQuickAddPayload,
   NextFuelingWindow,
   NutritionDayTotals,
   NutritionUploadPayload,
 } from './types';
+
+export type NutritionItemPatchAction = 'add' | 'update' | 'delete';
+
+export type NutritionItemPatchPayload = {
+  action: NutritionItemPatchAction;
+  mealType: ApiMealType;
+  item?: {
+    id?: string;
+    name: string;
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    amount?: number;
+    unit?: string;
+    logged_at?: string;
+  };
+  itemId?: string;
+};
 
 async function readErrorMessage(response: Response, fallback: string): Promise<string> {
   try {
@@ -130,6 +150,45 @@ export async function logNutritionItem(payload: NutritionUploadPayload): Promise
   });
   if (!response.ok) {
     throw new Error(await readErrorMessage(response, `Failed to log nutrition (${response.status})`));
+  }
+}
+
+/**
+ * PATCH a single item on a nutrition day row (id or YYYY-MM-DD). Requires nutrition:write.
+ * softUnauthorized: older coach-wattz builds still gate this route on cookie session only;
+ * a Bearer 401 must not clear the mobile session (see apiFetch).
+ */
+export async function patchNutritionItems(
+  nutritionId: string,
+  payload: NutritionItemPatchPayload
+): Promise<void> {
+  const response = await apiFetch(`/api/nutrition/${encodeURIComponent(nutritionId)}/items`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+    softUnauthorized: true,
+  });
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, `Failed to update nutrition item (${response.status})`)
+    );
+  }
+}
+
+/** PATCH day notes on a nutrition day row (id or YYYY-MM-DD). Requires nutrition:write. */
+export async function patchNutritionNotes(
+  nutritionId: string,
+  notes: string | null
+): Promise<void> {
+  const response = await apiFetch(`/api/nutrition/${encodeURIComponent(nutritionId)}/notes`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ notes }),
+  });
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, `Failed to save nutrition notes (${response.status})`)
+    );
   }
 }
 

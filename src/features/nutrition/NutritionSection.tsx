@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   Text,
   TextInput,
@@ -11,17 +12,20 @@ import {
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
+import { showActionSheet } from '@/src/components/ActionSheet';
 import { Button } from '@/src/components/Button';
 import { AppSymbol } from '@/src/components/AppSymbol';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
-import { hapticLight, hapticSuccess } from '@/src/lib/haptics';
+import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
 import { NutritionAccents } from '@/src/theme/nutritionAccents';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
+import { EditNutritionItemSheet } from './EditNutritionItemSheet';
 import { NutritionMacroExplainSheet } from './NutritionMacroExplainSheet';
 import {
+  apiMealTypeLabel,
   canExplainMetric,
   emptyQuickLogForm,
   formatMacroGrams,
@@ -32,7 +36,9 @@ import {
   toNutritionUploadPayload,
 } from './mapNutrition';
 import {
+  useDeleteNutritionItem,
   useLogNutritionItem,
+  usePatchNutritionNotes,
   useQuickAddHydration,
   useTodayNutritionQuery,
 } from './useNutrition';
@@ -40,8 +46,75 @@ import {
   MEAL_OPTIONS,
   type MacroExplainLabel,
   type MealSlot,
+  type NutritionLoggedItem,
   type NutritionQuickLogForm,
 } from './types';
+
+const COLLAPSED_ENTRIES = 3;
+
+function DayNotesEditor({
+  nutritionId,
+  serverNotes,
+}: {
+  nutritionId: string;
+  serverNotes: string | null;
+}) {
+  const theme = useThemeColors();
+  const patchNotes = usePatchNutritionNotes();
+  const [notesDraft, setNotesDraft] = useState(serverNotes ?? '');
+  const [notesError, setNotesError] = useState<string | null>(null);
+  const [notesSaved, setNotesSaved] = useState(false);
+
+  const onSaveNotes = async () => {
+    setNotesError(null);
+    setNotesSaved(false);
+    try {
+      await patchNotes.mutateAsync({
+        nutritionId,
+        notes: notesDraft.trim() ? notesDraft : null,
+      });
+      hapticSuccess();
+      setNotesSaved(true);
+    } catch (err) {
+      hapticError();
+      setNotesError(friendlyError(err, 'Could not save notes'));
+    }
+  };
+
+  return (
+    <View className="mt-6 rounded-xl border border-border bg-card p-4" testID="nutrition-day-notes">
+      <Text className="text-sm font-semibold text-text-primary">Day notes</Text>
+      <TextInput
+        testID="nutrition-day-notes-input"
+        className="mt-2 min-h-[72px] rounded-xl border border-border-strong bg-surface px-3 py-2.5 text-base text-text-primary"
+        placeholderTextColor={theme.textMuted}
+        placeholder="Optional note for this day"
+        multiline
+        value={notesDraft}
+        onChangeText={(text) => {
+          setNotesDraft(text);
+          setNotesSaved(false);
+          setNotesError(null);
+        }}
+      />
+      {notesError ? (
+        <Text className="mt-2 text-xs text-danger" testID="nutrition-day-notes-error">
+          {notesError}
+        </Text>
+      ) : null}
+      {notesSaved ? (
+        <Text className="mt-2 text-xs font-semibold text-brand">Notes saved.</Text>
+      ) : null}
+      <Button
+        className="mt-3"
+        label="Save notes"
+        testID="nutrition-day-notes-save"
+        loading={patchNotes.isPending}
+        onPress={() => void onSaveNotes()}
+      />
+    </View>
+  );
+}
 
 const HYDRATION_BUTTONS = [
   { ml: 250, label: '+250ml Glass', icon: 'cup.and.saucer' },
@@ -156,7 +229,12 @@ function MacroField({
   );
 }
 
-export function NutritionSection() {
+type NutritionSectionProps = {
+  /** Collapsed shows the last few entries; full shows every logged item. */
+  entriesMode?: 'collapsed' | 'full';
+};
+
+export function NutritionSection({ entriesMode = 'full' }: NutritionSectionProps) {
   const theme = useThemeColors();
 
   const router = useRouter();
@@ -182,6 +260,7 @@ export function NutritionSection() {
   } = useTodayNutritionQuery(selectedDate);
   const logMutation = useLogNutritionItem();
   const hydrationMutation = useQuickAddHydration();
+  const deleteItem = useDeleteNutritionItem();
 
   const [form, setForm] = useState<NutritionQuickLogForm>(emptyQuickLogForm());
   const [formError, setFormError] = useState<string | null>(null);
@@ -189,6 +268,18 @@ export function NutritionSection() {
   const [hydrationError, setHydrationError] = useState<string | null>(null);
   const [hydrationSaved, setHydrationSaved] = useState<string | null>(null);
   const [explainLabel, setExplainLabel] = useState<MacroExplainLabel | null>(null);
+  const [editingItem, setEditingItem] = useState<NutritionLoggedItem | null>(null);
+  const [entriesExpanded, setEntriesExpanded] = useState(entriesMode === 'full');
+
+  const allItems = today?.items ?? [];
+  const visibleItems =
+    entriesMode === 'collapsed' && !entriesExpanded
+      ? allItems.slice(-COLLAPSED_ENTRIES)
+      : allItems;
+  const hiddenCount =
+    entriesMode === 'collapsed' && !entriesExpanded
+      ? Math.max(0, allItems.length - COLLAPSED_ENTRIES)
+      : 0;
 
   const openExplain = (label: MacroExplainLabel) => {
     if (!today || !canExplainMetric(today, label)) return;
@@ -243,6 +334,62 @@ export function NutritionSection() {
 
   const openWeb = async () => {
     await openInstanceWeb(instanceUrl, nutritionWebPath());
+  };
+
+  const nutritionPatchId = today?.id ?? selectedDate;
+
+  const confirmDeleteItem = (item: NutritionLoggedItem) => {
+    if (!item.id) return;
+    Alert.alert(
+      'Delete this item?',
+      `"${item.name}" will be removed from this day's log.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            void (async () => {
+              try {
+                await deleteItem.mutateAsync({
+                  nutritionId: nutritionPatchId,
+                  mealType: item.mealType,
+                  itemId: item.id!,
+                  date: selectedDate,
+                });
+                hapticSuccess();
+              } catch (err) {
+                hapticError();
+                Alert.alert(
+                  'Delete failed',
+                  friendlyError(err, 'Could not delete this item')
+                );
+              }
+            })();
+          },
+        },
+      ]
+    );
+  };
+
+  const onEntryPress = (item: NutritionLoggedItem) => {
+    if (!item.id) return;
+    hapticLight();
+    showActionSheet({
+      title: item.name,
+      options: [
+        {
+          label: 'Edit',
+          onPress: () => setEditingItem(item),
+        },
+        {
+          label: 'Delete',
+          style: 'destructive',
+          onPress: () => confirmDeleteItem(item),
+        },
+        { label: 'Cancel', style: 'cancel' },
+      ],
+    });
   };
 
   return (
@@ -440,6 +587,105 @@ export function NutritionSection() {
         day={today ?? null}
         weightKg={profileQuery.data?.weightKg ?? null}
         onClose={() => setExplainLabel(null)}
+      />
+
+      {/* Day entries — correctable logged items */}
+      {!isError ? (
+        <View className="mt-6" testID="nutrition-entries-list">
+          <Text className="text-sm font-semibold text-text-primary">Logged items</Text>
+          <Text className="mt-1 text-xs text-text-muted">
+            Tap an item to edit or delete.
+          </Text>
+
+          {allItems.length === 0 ? (
+            <View className="mt-3 rounded-xl border border-border bg-card px-4 py-4">
+              <Text className="text-sm text-text-muted" testID="nutrition-entries-empty">
+                No meals logged yet.
+              </Text>
+            </View>
+          ) : (
+            <View className="mt-3 gap-2">
+              {visibleItems.map((item, index) => {
+                const key = item.id ?? `${item.mealType}-${index}-${item.name}`;
+                const canAct = Boolean(item.id);
+                return (
+                  <Pressable
+                    key={key}
+                    testID={
+                      item.id
+                        ? `nutrition-entry-${item.id}`
+                        : `nutrition-entry-noid-${index}`
+                    }
+                    accessibilityRole={canAct ? 'button' : undefined}
+                    accessibilityLabel={
+                      canAct
+                        ? `${item.name}, ${apiMealTypeLabel(item.mealType)}`
+                        : undefined
+                    }
+                    disabled={!canAct}
+                    className={`rounded-xl border border-border bg-card px-3 py-3 ${
+                      canAct ? 'active:opacity-80' : 'opacity-80'
+                    }`}
+                    onPress={() => onEntryPress(item)}
+                  >
+                    <View className="flex-row items-start justify-between gap-2">
+                      <View className="flex-1">
+                        <Text className="text-sm font-semibold text-text-primary" numberOfLines={2}>
+                          {item.name}
+                        </Text>
+                        <Text className="mt-0.5 text-xs text-text-muted">
+                          {apiMealTypeLabel(item.mealType)}
+                          {item.amount != null && item.unit
+                            ? ` · ${item.amount}${item.unit}`
+                            : ''}
+                        </Text>
+                      </View>
+                      <Text className="text-xs font-semibold text-text-secondary">
+                        {item.calories} kcal
+                      </Text>
+                    </View>
+                    <Text className="mt-1.5 text-[11px] text-text-muted">
+                      C {formatMacroGrams(item.carbs)}g · P {formatMacroGrams(item.protein)}g · F{' '}
+                      {formatMacroGrams(item.fat)}g
+                    </Text>
+                  </Pressable>
+                );
+              })}
+              {hiddenCount > 0 ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Show ${hiddenCount} more items`}
+                  className="py-2 active:opacity-70"
+                  onPress={() => {
+                    hapticLight();
+                    setEntriesExpanded(true);
+                  }}
+                >
+                  <Text className="text-center text-xs font-semibold text-brand">
+                    Show {hiddenCount} more
+                  </Text>
+                </Pressable>
+              ) : null}
+            </View>
+          )}
+        </View>
+      ) : null}
+
+      {/* Day notes — remount when day or server notes change so draft stays in sync */}
+      {!isError ? (
+        <DayNotesEditor
+          key={`${selectedDate}:${today?.notes ?? ''}`}
+          nutritionId={nutritionPatchId}
+          serverNotes={today?.notes ?? null}
+        />
+      ) : null}
+
+      <EditNutritionItemSheet
+        visible={editingItem != null}
+        nutritionId={nutritionPatchId}
+        date={selectedDate}
+        item={editingItem}
+        onClose={() => setEditingItem(null)}
       />
 
       {/* Hydration Quick-Add Widget */}

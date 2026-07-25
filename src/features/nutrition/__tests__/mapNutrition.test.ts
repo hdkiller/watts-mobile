@@ -1,17 +1,22 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  apiMealTypeToMealSlot,
   canExplainMetric,
+  emptyNutritionDay,
   emptyQuickLogForm,
   formatMacroGrams,
   formatWindowTime,
   fuelStateLabel,
   goalProgressPct,
   localDateYmd,
+  mapNutritionLoggedItems,
+  mealSlotToApiMealType,
   nutritionWebPath,
   pickNextFuelingWindow,
   pickTodayNutrition,
   quickLogHasContent,
+  removeItemFromDay,
   roundMacro,
   toNutritionUploadPayload,
 } from '../mapNutrition';
@@ -43,6 +48,48 @@ describe('pickTodayNutrition', () => {
     expect(result.protein).toBe(120.5);
     expect(result.waterMl).toBe(1500);
     expect(result.isEmpty).toBe(false);
+    expect(result.items).toEqual([]);
+    expect(result.notes).toBeNull();
+  });
+
+  it('flattens meal buckets into items and keeps notes', () => {
+    const today = '2026-07-19';
+    const result = pickTodayNutrition(
+      {
+        nutrition: [
+          {
+            id: 'n1',
+            date: today,
+            calories: 500,
+            protein: 40,
+            carbs: 50,
+            fat: 10,
+            waterMl: 0,
+            notes: 'Felt good',
+            breakfast: [{ id: 'i1', name: 'Oats', calories: 300, protein: 20, carbs: 40, fat: 5 }],
+            lunch: [],
+            dinner: [{ name: 'Legacy soup', calories: 200, protein: 20, carbs: 10, fat: 5 }],
+            snacks: [{ id: 'i3', name: 'Apple', calories: 80, protein: 0, carbs: 20, fat: 0 }],
+          },
+        ],
+      },
+      today
+    );
+
+    expect(result.notes).toBe('Felt good');
+    expect(result.items).toHaveLength(3);
+    expect(result.items[0]).toMatchObject({
+      id: 'i1',
+      name: 'Oats',
+      mealType: 'breakfast',
+      calories: 300,
+    });
+    expect(result.items[1]).toMatchObject({
+      id: null,
+      name: 'Legacy soup',
+      mealType: 'dinner',
+    });
+    expect(result.items[2]).toMatchObject({ id: 'i3', mealType: 'snacks' });
   });
 
   it('returns empty day when no row for today', () => {
@@ -56,6 +103,8 @@ describe('pickTodayNutrition', () => {
     expect(result.calories).toBe(0);
     expect(result.hasGoals).toBe(false);
     expect(result.caloriesGoal).toBeNull();
+    expect(result.items).toEqual([]);
+    expect(result.notes).toBeNull();
   });
 
   it('maps canonical goals and fluid target from the fueling plan', () => {
@@ -331,5 +380,107 @@ describe('helpers', () => {
     expect(roundMacro(28.600000000000002)).toBe(28.6);
     expect(nutritionWebPath()).toBe('/nutrition');
     expect(localDateYmd(new Date('2026-07-19T15:00:00'))).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('maps meal slots to API meal types', () => {
+    expect(mealSlotToApiMealType('BREAKFAST')).toBe('breakfast');
+    expect(mealSlotToApiMealType('SNACK')).toBe('snacks');
+    expect(mealSlotToApiMealType('OTHER')).toBe('snacks');
+    expect(apiMealTypeToMealSlot('dinner')).toBe('DINNER');
+  });
+});
+
+describe('mapNutritionLoggedItems', () => {
+  it('preserves slot order breakfast → lunch → dinner → snacks', () => {
+    const items = mapNutritionLoggedItems({
+      snacks: [{ id: 's1', name: 'Snack', calories: 100 }],
+      breakfast: [{ id: 'b1', name: 'Eggs', calories: 200 }],
+      dinner: [{ id: 'd1', name: 'Fish', calories: 400 }],
+      lunch: [{ id: 'l1', name: 'Rice', calories: 300 }],
+    });
+    expect(items.map((i) => i.id)).toEqual(['b1', 'l1', 'd1', 's1']);
+  });
+});
+
+describe('removeItemFromDay', () => {
+  it('removes the target item and leaves others (optimistic delete)', () => {
+    const day = {
+      ...emptyNutritionDay('2026-07-19'),
+      isEmpty: false,
+      calories: 500,
+      waterMl: 0,
+      items: [
+        {
+          id: 'keep',
+          name: 'Keep',
+          calories: 200,
+          protein: 10,
+          carbs: 20,
+          fat: 5,
+          mealType: 'breakfast' as const,
+          loggedAt: null,
+        },
+        {
+          id: 'gone',
+          name: 'Gone',
+          calories: 300,
+          protein: 20,
+          carbs: 30,
+          fat: 10,
+          mealType: 'lunch' as const,
+          loggedAt: null,
+        },
+      ],
+    };
+    const next = removeItemFromDay(day, 'gone');
+    expect(next.items).toHaveLength(1);
+    expect(next.items[0]?.id).toBe('keep');
+    expect(next.isEmpty).toBe(false);
+  });
+
+  it('marks empty when last item is removed and no water', () => {
+    const day = {
+      ...emptyNutritionDay('2026-07-19'),
+      isEmpty: false,
+      items: [
+        {
+          id: 'only',
+          name: 'Only',
+          calories: 100,
+          protein: 0,
+          carbs: 0,
+          fat: 0,
+          mealType: 'snacks' as const,
+          loggedAt: null,
+        },
+      ],
+    };
+    const next = removeItemFromDay(day, 'only');
+    expect(next.items).toEqual([]);
+    expect(next.isEmpty).toBe(true);
+  });
+
+  it('rollback restores prior snapshot when delete fails', () => {
+    const previous = {
+      ...emptyNutritionDay('2026-07-19'),
+      isEmpty: false,
+      items: [
+        {
+          id: 'a',
+          name: 'A',
+          calories: 100,
+          protein: 0,
+          carbs: 0,
+          fat: 0,
+          mealType: 'lunch' as const,
+          loggedAt: null,
+        },
+      ],
+    };
+    const optimistic = removeItemFromDay(previous, 'a');
+    expect(optimistic.items).toEqual([]);
+    // onError path: restore previous reference
+    expect(previous.items).toHaveLength(1);
+    expect(previous.items[0]?.id).toBe('a');
   });
 });

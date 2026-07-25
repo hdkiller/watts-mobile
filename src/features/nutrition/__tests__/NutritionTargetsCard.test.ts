@@ -14,6 +14,8 @@ describe('NutritionTargetsCard data mapping and math', () => {
       fat: 6,
       waterMl: 400,
       isEmpty: false,
+      items: [],
+      notes: null,
       caloriesGoal: 2624,
       proteinGoal: 153,
       carbsGoal: 287,

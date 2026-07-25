@@ -1,4 +1,5 @@
 import type {
+  ApiMealType,
   FuelingPlanAnalysis,
   FuelingPlanDailyTotals,
   FuelingPlanWindow,
@@ -8,9 +9,102 @@ import type {
   NextFuelingWindow,
   NutritionDayTotals,
   NutritionItemPayload,
+  NutritionLoggedItem,
   NutritionQuickLogForm,
   NutritionUploadPayload,
 } from './types';
+
+const API_MEAL_TYPES: ApiMealType[] = ['breakfast', 'lunch', 'dinner', 'snacks'];
+
+export function mealSlotToApiMealType(slot: MealSlot): ApiMealType {
+  switch (slot) {
+    case 'BREAKFAST':
+      return 'breakfast';
+    case 'LUNCH':
+      return 'lunch';
+    case 'DINNER':
+      return 'dinner';
+    case 'SNACK':
+    case 'OTHER':
+    default:
+      return 'snacks';
+  }
+}
+
+export function apiMealTypeToMealSlot(mealType: ApiMealType): MealSlot {
+  switch (mealType) {
+    case 'breakfast':
+      return 'BREAKFAST';
+    case 'lunch':
+      return 'LUNCH';
+    case 'dinner':
+      return 'DINNER';
+    case 'snacks':
+      return 'SNACK';
+  }
+}
+
+export function apiMealTypeLabel(mealType: ApiMealType): string {
+  switch (mealType) {
+    case 'breakfast':
+      return 'Breakfast';
+    case 'lunch':
+      return 'Lunch';
+    case 'dinner':
+      return 'Dinner';
+    case 'snacks':
+      return 'Snack';
+  }
+}
+
+function mapLoggedItem(raw: unknown, mealType: ApiMealType): NutritionLoggedItem | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const name =
+    typeof r.name === 'string' && r.name.trim()
+      ? r.name.trim()
+      : 'Untitled item';
+  return {
+    id: typeof r.id === 'string' && r.id.trim() ? r.id.trim() : null,
+    name,
+    calories: Math.round(asNumber(r.calories)),
+    protein: roundMacro(asNumber(r.protein)),
+    carbs: roundMacro(asNumber(r.carbs)),
+    fat: roundMacro(asNumber(r.fat)),
+    mealType,
+    amount: r.amount != null && Number.isFinite(asNumber(r.amount)) ? asNumber(r.amount) : undefined,
+    unit: typeof r.unit === 'string' && r.unit.trim() ? r.unit.trim() : undefined,
+    loggedAt:
+      typeof r.logged_at === 'string' && r.logged_at.trim()
+        ? r.logged_at.trim()
+        : typeof r.loggedAt === 'string' && r.loggedAt.trim()
+          ? r.loggedAt.trim()
+          : null,
+  };
+}
+
+/** Flatten breakfast/lunch/dinner/snacks arrays from a nutrition day row. */
+export function mapNutritionLoggedItems(row: Record<string, unknown>): NutritionLoggedItem[] {
+  const items: NutritionLoggedItem[] = [];
+  for (const mealType of API_MEAL_TYPES) {
+    const bucket = row[mealType];
+    if (!Array.isArray(bucket)) continue;
+    for (const raw of bucket) {
+      const item = mapLoggedItem(raw, mealType);
+      if (item) items.push(item);
+    }
+  }
+  return items;
+}
+
+/** Optimistic helper: remove one item by id from a day totals snapshot. */
+export function removeItemFromDay(
+  day: NutritionDayTotals,
+  itemId: string
+): NutritionDayTotals {
+  const items = day.items.filter((item) => item.id !== itemId);
+  return { ...day, items, isEmpty: items.length === 0 && day.waterMl === 0 };
+}
 
 export function localDateYmd(date = new Date()): string {
   const y = date.getFullYear();
@@ -29,6 +123,8 @@ export function emptyNutritionDay(date = localDateYmd()): NutritionDayTotals {
     fat: 0,
     waterMl: 0,
     isEmpty: true,
+    items: [],
+    notes: null,
     caloriesGoal: null,
     proteinGoal: null,
     carbsGoal: null,
@@ -196,6 +292,9 @@ export function pickTodayNutrition(payload: unknown, today = localDateYmd()): Nu
         : null;
 
     const fuelingPlan = mapFuelingPlanAnalysis(r.fuelingPlan);
+    const items = mapNutritionLoggedItems(r);
+    const notes =
+      typeof r.notes === 'string' ? r.notes : r.notes == null ? null : String(r.notes);
 
     return {
       id: r.id != null ? String(r.id) : null,
@@ -206,6 +305,8 @@ export function pickTodayNutrition(payload: unknown, today = localDateYmd()): Nu
       fat,
       waterMl,
       isEmpty,
+      items,
+      notes,
       caloriesGoal,
       proteinGoal,
       carbsGoal,

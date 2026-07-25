@@ -8,13 +8,20 @@ import {
   fetchTodayNutrition,
   generateNutritionPlanDraft,
   logNutritionItem,
+  patchNutritionItems,
+  patchNutritionNotes,
   patchNutritionPlanMeal,
   quickAddHydration,
   regenerateDayFuelingPlan,
+  type NutritionItemPatchPayload,
   type NutritionMealAction,
 } from './api';
-import { localDateYmd } from './mapNutrition';
-import type { HydrationQuickAddPayload, NutritionUploadPayload } from './types';
+import { localDateYmd, removeItemFromDay } from './mapNutrition';
+import type {
+  HydrationQuickAddPayload,
+  NutritionDayTotals,
+  NutritionUploadPayload,
+} from './types';
 
 export const TODAY_NUTRITION_KEY = ['nutrition', 'today'] as const;
 export const NEXT_FUELING_WINDOW_KEY = ['nutrition', 'next-window'] as const;
@@ -39,6 +46,83 @@ export function useLogNutritionItem() {
     mutationFn: (payload: NutritionUploadPayload) => logNutritionItem(payload),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['nutrition'] });
+    },
+  });
+}
+
+async function invalidateNutritionQueries(
+  queryClient: ReturnType<typeof useQueryClient>
+) {
+  await queryClient.invalidateQueries({ queryKey: ['nutrition'] });
+}
+
+export function usePatchNutritionItem() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      nutritionId,
+      payload,
+    }: {
+      nutritionId: string;
+      payload: NutritionItemPatchPayload;
+      date: string;
+    }) => patchNutritionItems(nutritionId, payload),
+    onSuccess: async () => {
+      await invalidateNutritionQueries(queryClient);
+    },
+  });
+}
+
+export function useDeleteNutritionItem() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      nutritionId,
+      mealType,
+      itemId,
+    }: {
+      nutritionId: string;
+      mealType: NutritionItemPatchPayload['mealType'];
+      itemId: string;
+      date: string;
+    }) =>
+      patchNutritionItems(nutritionId, {
+        action: 'delete',
+        mealType,
+        itemId,
+      }),
+    onMutate: async ({ date, itemId }) => {
+      const key = ['nutrition', 'day', date] as const;
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData<NutritionDayTotals>(key);
+      if (previous) {
+        queryClient.setQueryData(key, removeItemFromDay(previous, itemId));
+      }
+      return { previous, key };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(context.key, context.previous);
+      }
+    },
+    onSettled: async () => {
+      await invalidateNutritionQueries(queryClient);
+    },
+  });
+}
+
+export function usePatchNutritionNotes() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      nutritionId,
+      notes,
+    }: {
+      nutritionId: string;
+      notes: string | null;
+    }) => patchNutritionNotes(nutritionId, notes),
+    onSuccess: async () => {
+      await invalidateNutritionQueries(queryClient);
     },
   });
 }
