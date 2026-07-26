@@ -1,18 +1,11 @@
-# Maestro e2e smoke gate — see docs/e2e.md
+# Manual Maestro e2e smoke — see docs/e2e.md
 #
-# validate-flows: cheap PR check (no simulator).
-# ios-smoke: manual workflow_dispatch — builds a sim app and runs smoke-unauth;
-#            smoke-shell when run_shell is true and E2E_ACCESS_TOKEN secret is set.
-name: E2E smoke
+# CI validates flow definitions without launching Maestro. This workflow is an
+# explicit, operator-triggered simulator run: smoke-unauth, plus smoke-shell
+# when run_shell is true and E2E_ACCESS_TOKEN is configured.
+name: E2E smoke (manual)
 
 on:
-  pull_request:
-    paths:
-      - 'maestro/**'
-      - 'docs/e2e.md'
-      - 'scripts/validate-maestro-flows.mjs'
-      - '.github/workflows/e2e-smoke.yml'
-      - 'src/auth/e2eAuth.ts'
   workflow_dispatch:
     inputs:
       run_shell:
@@ -21,8 +14,11 @@ on:
         default: false
 
 concurrency:
-  group: e2e-smoke-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: e2e-smoke-manual
+  cancel-in-progress: false
+
+permissions:
+  contents: read
 
 jobs:
   validate-flows:
@@ -49,7 +45,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 9.13.0
 
       - uses: actions/setup-node@v4
         with:

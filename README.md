@@ -109,7 +109,7 @@ Push, universal links, Health prefill, and the home-screen widget are unavailabl
 | `pnpm test:e2e` | All Maestro flows under `maestro/` |
 | `pnpm test:e2e:unauth` | Unauthenticated cold-start smoke |
 | `pnpm test:e2e:shell` | Authenticated tab-shell smoke |
-| `pnpm test:e2e:smoke` | CI gate: unauth + shell |
+| `pnpm test:e2e:smoke` | Manual Maestro smoke: unauth + shell |
 | `pnpm test:e2e:validate` | Assert required Maestro flow files parse |
 | `pnpm release` / `release:patch\|minor\|major` | release-it: bump version, CHANGELOG, tag, GitHub notes |
 | `pnpm release:android:github` | EAS preview APK → GitHub Release `vX.Y.Z` |
