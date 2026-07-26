@@ -31,14 +31,30 @@ export function isRevenueCatAvailable(): boolean {
   return (Platform.OS === 'ios' || Platform.OS === 'android') && Boolean(platformKey());
 }
 
+let logHandlerRegistered = false;
+
+function setupLogLevel(): void {
+  if (__DEV__ && !logHandlerRegistered) {
+    logHandlerRegistered = true;
+    Purchases.setLogLevel(LOG_LEVEL.WARN);
+    Purchases.setLogHandler((logLevel, message) => {
+      if (logLevel === LOG_LEVEL.ERROR) {
+        console.error('[RevenueCat]', message);
+      } else if (logLevel === LOG_LEVEL.WARN) {
+        console.warn('[RevenueCat]', message);
+      }
+    });
+  }
+}
+
 export function synchronizeRevenueCatIdentity(userId: string | null): Promise<void> {
   identityOperation = identityOperation
     .then(async () => {
       if (!isRevenueCatAvailable()) return;
+      setupLogLevel();
       const configured = await Purchases.isConfigured();
       if (userId) {
         if (!configured) {
-          if (__DEV__) Purchases.setLogLevel(LOG_LEVEL.DEBUG);
           Purchases.configure({ apiKey: platformKey(), appUserID: userId });
         } else if (configuredUserId !== userId) {
           if (configuredUserId) await Purchases.logOut();
@@ -55,6 +71,7 @@ export function synchronizeRevenueCatIdentity(userId: string | null): Promise<vo
     });
   return identityOperation;
 }
+
 
 export function mapStorePackages(packages: readonly PurchasesPackage[]): StorePackage[] {
   return packages.flatMap((item) => {
@@ -114,8 +131,9 @@ export async function fetchStorePackages(): Promise<StorePackage[]> {
   if (!configured) {
     const key = platformKey();
     if (key) {
-      if (__DEV__) Purchases.setLogLevel(LOG_LEVEL.DEBUG);
+      setupLogLevel();
       Purchases.configure({ apiKey: key });
+
     } else {
       return [];
     }
