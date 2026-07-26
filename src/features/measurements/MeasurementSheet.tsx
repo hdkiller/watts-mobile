@@ -1,7 +1,9 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useMemo, useState } from 'react';
 import {
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -124,194 +126,206 @@ export function MeasurementSheet({ visible, onClose }: MeasurementSheetProps) {
       transparent
       onRequestClose={onClose}
     >
-      <Pressable className="flex-1 bg-black/60 justify-end" onPress={onClose}>
-        <Pressable className="rounded-t-3xl bg-surface px-6 pt-4 pb-10" style={{ maxHeight: '85%' }}>
-          <View className="mb-4 h-1 w-10 self-center rounded-full bg-border-strong" />
+      {/* KeyboardAvoidingView takes a plain style, never className: NativeWind registers it
+          with remapProps and RN composes its own paddingBottom in, so classes never resolve. */}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}
+      >
+        <Pressable className="flex-1 bg-black/60 justify-end" onPress={onClose}>
+          <Pressable
+            className="rounded-t-3xl bg-surface px-6 pt-4 pb-10"
+            style={{ maxHeight: '85%', minHeight: 0 }}
+          >
+            <View className="mb-4 h-1 w-10 self-center rounded-full bg-border-strong" />
 
-          <View className="flex-row items-center justify-between mb-3">
-            <Text className="text-xl font-bold text-text-primary">Add Measurement</Text>
-            <Pressable hitSlop={8} onPress={onClose} className="p-1 active:opacity-70">
-              <Text className="text-base font-semibold text-text-muted">Cancel</Text>
-            </Pressable>
-          </View>
-
-          <ScrollView keyboardShouldPersistTaps="handled">
-            {/* Category Selector */}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-3 flex-row">
-              <View className="flex-row gap-2">
-                {METRIC_CATEGORIES.map((cat) => {
-                  const active = activeCategory === cat.id;
-                  return (
-                    <Pressable
-                      key={cat.id}
-                      className="rounded-full px-3 py-1.5 active:opacity-80"
-                      style={{
-                        backgroundColor: active ? theme.borderStrong : theme.border,
-                      }}
-                      onPress={() => {
-                        hapticLight();
-                        setActiveCategory(cat.id);
-                      }}
-                    >
-                      <Text
-                        className={`text-xs font-semibold ${
-                          active ? 'text-text-primary' : 'text-text-muted'
-                        }`}
-                      >
-                        {cat.label}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </ScrollView>
-
-            {/* Metric Option Grid */}
-            <View className="flex-row flex-wrap gap-2 mb-4">
-              {filteredMetrics.map((metric) => {
-                const active = form.metricKey === metric.key;
-                return (
-                  <Pressable
-                    key={metric.key}
-                    className="rounded-full border px-3 py-2 active:opacity-80"
-                    style={
-                      active
-                        ? {
-                            borderColor: Colors.brand,
-                            backgroundColor: 'rgba(0, 220, 130, 0.1)',
-                          }
-                        : {
-                            borderColor: theme.borderStrong,
-                            backgroundColor: theme.card,
-                          }
-                    }
-                    onPress={() => {
-                      hapticLight();
-                      touch();
-                      setForm((prev) => ({
-                        ...emptyMeasurementForm(metric.key),
-                        notes: prev.notes,
-                      }));
-                    }}
-                  >
-                    <Text
-                      className={`text-xs font-semibold ${
-                        active ? 'text-brand' : 'text-text-primary'
-                      }`}
-                    >
-                      {metric.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
+            <View className="flex-row items-center justify-between mb-3">
+              <Text className="text-xl font-bold text-text-primary">Add Measurement</Text>
+              <Pressable hitSlop={8} onPress={onClose} className="p-1 active:opacity-70">
+                <Text className="text-base font-semibold text-text-muted">Cancel</Text>
+              </Pressable>
             </View>
 
-            {/* Custom Metric Form */}
-            {form.metricKey === 'custom' ? (
-              <View className="mb-4">
-                <Text className="mb-1 text-xs text-text-muted">Custom Metric Name</Text>
-                <TextInput
-                  className="rounded-xl border border-border-strong bg-card px-4 py-3 text-base text-text-primary mb-3"
-                  placeholderTextColor={theme.textMuted}
-                  placeholder="e.g. Left bicep flexed"
-                  value={form.customName}
-                  onChangeText={(text) => {
-                    touch();
-                    setForm((prev) => ({ ...prev, customName: text }));
-                  }}
-                />
-
-                <Text className="mb-2 text-xs text-text-muted">Unit Type</Text>
-                <View className="flex-row flex-wrap gap-2">
-                  {CUSTOM_UNIT_OPTIONS.map((option) => {
-                    const active = form.customUnit === option.value;
+            {/* flexShrink lets the scroll area compress when maxHeight caps the sheet
+                (default flexShrink is 0 in Yoga, which would overflow instead). */}
+            <ScrollView keyboardShouldPersistTaps="handled" style={{ flexShrink: 1 }}>
+              {/* Category Selector */}
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-3 flex-row">
+                <View className="flex-row gap-2">
+                  {METRIC_CATEGORIES.map((cat) => {
+                    const active = activeCategory === cat.id;
                     return (
                       <Pressable
-                        key={option.value}
-                        className="rounded-full border px-3 py-1.5"
-                        style={
-                          active
-                            ? {
-                                borderColor: Colors.brand,
-                                backgroundColor: 'rgba(0, 220, 130, 0.1)',
-                              }
-                            : { borderColor: theme.borderStrong }
-                        }
+                        key={cat.id}
+                        className="rounded-full px-3 py-1.5 active:opacity-80"
+                        style={{
+                          backgroundColor: active ? theme.borderStrong : theme.border,
+                        }}
                         onPress={() => {
-                          touch();
-                          setForm((prev) => ({ ...prev, customUnit: option.value }));
+                          hapticLight();
+                          setActiveCategory(cat.id);
                         }}
                       >
                         <Text
                           className={`text-xs font-semibold ${
-                            active ? 'text-brand' : 'text-text-primary'
+                            active ? 'text-text-primary' : 'text-text-muted'
                           }`}
                         >
-                          {option.label}
+                          {cat.label}
                         </Text>
                       </Pressable>
                     );
                   })}
                 </View>
+              </ScrollView>
+
+              {/* Metric Option Grid */}
+              <View className="flex-row flex-wrap gap-2 mb-4">
+                {filteredMetrics.map((metric) => {
+                  const active = form.metricKey === metric.key;
+                  return (
+                    <Pressable
+                      key={metric.key}
+                      className="rounded-full border px-3 py-2 active:opacity-80"
+                      style={
+                        active
+                          ? {
+                              borderColor: Colors.brand,
+                              backgroundColor: 'rgba(0, 220, 130, 0.1)',
+                            }
+                          : {
+                              borderColor: theme.borderStrong,
+                              backgroundColor: theme.card,
+                            }
+                      }
+                      onPress={() => {
+                        hapticLight();
+                        touch();
+                        setForm((prev) => ({
+                          ...emptyMeasurementForm(metric.key),
+                          notes: prev.notes,
+                        }));
+                      }}
+                    >
+                      <Text
+                        className={`text-xs font-semibold ${
+                          active ? 'text-brand' : 'text-text-primary'
+                        }`}
+                      >
+                        {metric.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
               </View>
-            ) : null}
 
-            {/* Value Input */}
-            <View className="mb-4">
-              <Text className="mb-1 text-xs font-semibold text-text-muted">
-                Value ({unitLabel})
-              </Text>
-              <TextInput
-                className="rounded-xl border border-border-strong bg-card px-4 py-3 text-base font-semibold text-text-primary"
-                placeholderTextColor={theme.textMuted}
-                placeholder={
-                  form.metricKey === 'weight'
-                    ? prefersImperialMass(weightUnits)
-                      ? '165'
-                      : '75'
-                    : '0'
-                }
-                value={form.value}
-                onChangeText={(text) => {
-                  touch();
-                  setForm((prev) => ({ ...prev, value: text }));
-                }}
-                keyboardType="decimal-pad"
-              />
-              {form.metricKey === 'weight' ? (
-                <Text className="mt-1 text-xs text-text-muted">
-                  Using profile unit ({weightUnit(profile)}).
-                </Text>
+              {/* Custom Metric Form */}
+              {form.metricKey === 'custom' ? (
+                <View className="mb-4">
+                  <Text className="mb-1 text-xs text-text-muted">Custom Metric Name</Text>
+                  <TextInput
+                    className="rounded-xl border border-border-strong bg-card px-4 py-3 text-base text-text-primary mb-3"
+                    placeholderTextColor={theme.textMuted}
+                    placeholder="e.g. Left bicep flexed"
+                    value={form.customName}
+                    onChangeText={(text) => {
+                      touch();
+                      setForm((prev) => ({ ...prev, customName: text }));
+                    }}
+                  />
+
+                  <Text className="mb-2 text-xs text-text-muted">Unit Type</Text>
+                  <View className="flex-row flex-wrap gap-2">
+                    {CUSTOM_UNIT_OPTIONS.map((option) => {
+                      const active = form.customUnit === option.value;
+                      return (
+                        <Pressable
+                          key={option.value}
+                          className="rounded-full border px-3 py-1.5"
+                          style={
+                            active
+                              ? {
+                                  borderColor: Colors.brand,
+                                  backgroundColor: 'rgba(0, 220, 130, 0.1)',
+                                }
+                              : { borderColor: theme.borderStrong }
+                          }
+                          onPress={() => {
+                            touch();
+                            setForm((prev) => ({ ...prev, customUnit: option.value }));
+                          }}
+                        >
+                          <Text
+                            className={`text-xs font-semibold ${
+                              active ? 'text-brand' : 'text-text-primary'
+                            }`}
+                          >
+                            {option.label}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
               ) : null}
-            </View>
 
-            {/* Notes */}
-            <View className="mb-4">
-              <Text className="mb-1 text-xs font-semibold text-text-muted">Notes (optional)</Text>
-              <TextInput
-                className="rounded-xl border border-border-strong bg-card px-4 py-3 text-base text-text-primary"
-                placeholderTextColor={theme.textMuted}
-                placeholder="Morning, post-ride, fasting…"
-                value={form.notes}
-                onChangeText={(text) => {
-                  touch();
-                  setForm((prev) => ({ ...prev, notes: text }));
-                }}
+              {/* Value Input */}
+              <View className="mb-4">
+                <Text className="mb-1 text-xs font-semibold text-text-muted">
+                  Value ({unitLabel})
+                </Text>
+                <TextInput
+                  className="rounded-xl border border-border-strong bg-card px-4 py-3 text-base font-semibold text-text-primary"
+                  placeholderTextColor={theme.textMuted}
+                  placeholder={
+                    form.metricKey === 'weight'
+                      ? prefersImperialMass(weightUnits)
+                        ? '165'
+                        : '75'
+                      : '0'
+                  }
+                  value={form.value}
+                  onChangeText={(text) => {
+                    touch();
+                    setForm((prev) => ({ ...prev, value: text }));
+                  }}
+                  keyboardType="decimal-pad"
+                />
+                {form.metricKey === 'weight' ? (
+                  <Text className="mt-1 text-xs text-text-muted">
+                    Using profile unit ({weightUnit(profile)}).
+                  </Text>
+                ) : null}
+              </View>
+
+              {/* Notes */}
+              <View className="mb-4">
+                <Text className="mb-1 text-xs font-semibold text-text-muted">Notes (optional)</Text>
+                <TextInput
+                  className="rounded-xl border border-border-strong bg-card px-4 py-3 text-base text-text-primary"
+                  placeholderTextColor={theme.textMuted}
+                  placeholder="Morning, post-ride, fasting…"
+                  value={form.notes}
+                  onChangeText={(text) => {
+                    touch();
+                    setForm((prev) => ({ ...prev, notes: text }));
+                  }}
+                />
+              </View>
+
+              {error ? <Text className="mb-3 text-xs text-red-400">{error}</Text> : null}
+
+              <Button
+                className="mt-2"
+                label="Save Measurement"
+                loading={createMutation.isPending}
+                disabled={!measurementFormHasContent(form)}
+                onPress={() => void onSave()}
               />
-            </View>
-
-            {error ? <Text className="mb-3 text-xs text-red-400">{error}</Text> : null}
-
-            <Button
-              className="mt-2"
-              label="Save Measurement"
-              loading={createMutation.isPending}
-              disabled={!measurementFormHasContent(form)}
-              onPress={() => void onSave()}
-            />
-          </ScrollView>
+            </ScrollView>
+          </Pressable>
         </Pressable>
-      </Pressable>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

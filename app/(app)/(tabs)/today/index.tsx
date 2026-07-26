@@ -209,13 +209,12 @@ export default function TodayScreen() {
   const greetingPhrase = greetingPhraseForNow();
   const queryClient = useQueryClient();
   const tabBottomPad = useTabScrollPadding();
-  const { data, isLoading, isError, error, refetch, isRefetching, dataUpdatedAt } = useTodayQuery();
+  const { data, isLoading, isError, error, refetch, dataUpdatedAt } = useTodayQuery();
   const {
     data: activeRecovery,
     isError: recoveryError,
     error: recoveryErr,
     refetch: refetchRecovery,
-    isRefetching: recoveryRefetching,
   } = useActiveRecoveryQuery();
   const upcomingQuery = useUpcomingPlannedQuery();
   const recentQuery = useRecentActivityQuery();
@@ -451,19 +450,28 @@ export default function TodayScreen() {
     await openInstanceWeb(instanceUrl, '/');
   };
 
-  const onRefresh = () => {
-    void refetch();
-    void refetchRecovery();
-    void upcomingQuery.refetch();
-    void recentQuery.refetch();
-    void profileQuery.refetch();
-    void dailyCheckinQuery.refetch();
-    void queryClient.invalidateQueries({ queryKey: DASHBOARD_PROFILE_KEY });
-    void queryClient.invalidateQueries({ queryKey: ['wellness'] });
-    void queryClient.invalidateQueries({ queryKey: pmcQueryKey(90) });
-    void queryClient.invalidateQueries({ queryKey: monthlyComparisonQueryKey('all') });
-    void queryClient.invalidateQueries({ queryKey: ['stats', 'monthly-comparison'] });
-    if (nutritionEnabled) void nutritionQuery.refetch();
+  const [manualRefreshing, setManualRefreshing] = useState(false);
+
+  const onRefresh = async () => {
+    setManualRefreshing(true);
+    try {
+      await Promise.all([
+        refetch(),
+        refetchRecovery(),
+        upcomingQuery.refetch(),
+        recentQuery.refetch(),
+        profileQuery.refetch(),
+        dailyCheckinQuery.refetch(),
+        queryClient.invalidateQueries({ queryKey: DASHBOARD_PROFILE_KEY }),
+        queryClient.invalidateQueries({ queryKey: ['wellness'] }),
+        queryClient.invalidateQueries({ queryKey: pmcQueryKey(90) }),
+        queryClient.invalidateQueries({ queryKey: monthlyComparisonQueryKey('all') }),
+        queryClient.invalidateQueries({ queryKey: ['stats', 'monthly-comparison'] }),
+        ...(nutritionEnabled ? [nutritionQuery.refetch()] : []),
+      ]);
+    } finally {
+      setManualRefreshing(false);
+    }
   };
 
   if (isLoading && !data) {
@@ -536,16 +544,8 @@ export default function TodayScreen() {
       contentContainerStyle={{ paddingBottom: tabBottomPad }}
       refreshControl={
         <RefreshControl
-          refreshing={
-            isRefetching ||
-            recoveryRefetching ||
-            upcomingQuery.isRefetching ||
-            recentQuery.isRefetching ||
-            profileQuery.isRefetching ||
-            dailyCheckinQuery.isRefetching ||
-            nutritionQuery.isRefetching
-          }
-          onRefresh={onRefresh}
+          refreshing={manualRefreshing}
+          onRefresh={() => void onRefresh()}
           tintColor={Colors.brand}
         />
       }

@@ -23,6 +23,12 @@ try {
   ExpoCameraModule = null;
 }
 
+const useCameraPermissionsHook =
+  ExpoCameraModule?.useCameraPermissions ??
+  function useFallbackPermissions(): [any, () => Promise<any>] {
+    return [null, async () => ({ granted: false, status: 'denied' })];
+  };
+
 export interface BarcodeScannerModalProps {
   visible: boolean;
   onClose: () => void;
@@ -38,9 +44,7 @@ function NativeScannerContent({
 }) {
   const theme = useThemeColors();
 
-  // Call hook only when module exists
-  const usePermissions = ExpoCameraModule?.useCameraPermissions;
-  const [permission, requestPermission] = usePermissions ? usePermissions() : [null, async () => ({ granted: false, status: 'denied' })];
+  const [permission, requestPermission] = useCameraPermissionsHook();
 
   const [isSearching, setIsSearching] = useState(false);
   const [notFoundBarcode, setNotFoundBarcode] = useState<string | null>(null);
@@ -136,8 +140,8 @@ function NativeScannerContent({
           {/* Header overlay */}
           <View className="pt-14 px-6 pb-4 flex-row items-center justify-between bg-black/50">
             <View className="flex-1 pr-3">
-              <Text className="text-lg font-bold text-white">Scan Barcode</Text>
-              <Text className="text-xs text-white/70">
+              <Text className="text-lg font-bold" style={{ color: '#ffffff' }}>Scan Barcode</Text>
+              <Text className="text-xs" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                 Align the food barcode inside the frame
               </Text>
             </View>
@@ -168,7 +172,7 @@ function NativeScannerContent({
             {isSearching ? (
               <View className="mt-6 flex-row items-center gap-2 rounded-xl bg-black/80 px-4 py-2.5">
                 <ActivityIndicator size="small" color={theme.brand} />
-                <Text className="text-sm font-medium text-white">Looking up barcode...</Text>
+                <Text className="text-sm font-medium" style={{ color: '#ffffff' }}>Looking up barcode...</Text>
               </View>
             ) : notFoundBarcode ? (
               <View className="mt-6 w-full max-w-xs rounded-xl bg-card border border-danger/40 p-4 items-center">
@@ -194,7 +198,7 @@ function NativeScannerContent({
                 />
               </View>
             ) : (
-              <Text className="mt-6 text-center text-xs text-white/80 font-medium bg-black/60 px-4 py-2 rounded-full">
+              <Text className="mt-6 text-center text-xs font-medium bg-black/60 px-4 py-2 rounded-full" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
                 Position camera over product barcode
               </Text>
             )}
@@ -207,7 +211,7 @@ function NativeScannerContent({
               onPress={onClose}
               className="py-2 px-4 rounded-full bg-white/20 active:opacity-70"
             >
-              <Text className="text-sm font-semibold text-white">Cancel & Search Manually</Text>
+              <Text className="text-sm font-semibold" style={{ color: '#ffffff' }}>Cancel & Search Manually</Text>
             </Pressable>
           </View>
         </CameraView>
@@ -243,7 +247,7 @@ export function BarcodeScannerModal({
             Rebuild Dev Client Required
           </Text>
           <Text className="mt-2 max-w-xs text-center text-sm leading-5 text-text-muted">
-            The native module 'ExpoCamera' is not linked in your running dev client binary. Run <Text className="font-mono text-brand">pnpm ios</Text> or <Text className="font-mono text-brand">pnpm android</Text> to compile camera support into the app.
+            The native module &apos;ExpoCamera&apos; is not linked in your running dev client binary. Run <Text className="font-mono text-brand">pnpm ios</Text> or <Text className="font-mono text-brand">pnpm android</Text> to compile camera support into the app.
           </Text>
 
           <View className="mt-8 w-full max-w-xs">

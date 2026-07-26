@@ -1,6 +1,6 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
@@ -20,6 +20,16 @@ export default function PlanGroceryScreen() {
   const items = useMemo(() => mapGroceryItems(grocery.data), [grocery.data]);
   const rangeLabel = formatWeekRangeLabel(start, end) ?? `${start} – ${end}`;
 
+  const [manualRefreshing, setManualRefreshing] = useState(false);
+  const handleRefresh = async () => {
+    setManualRefreshing(true);
+    try {
+      await grocery.refetch();
+    } finally {
+      setManualRefreshing(false);
+    }
+  };
+
   return (
     <>
       <Stack.Screen options={{ title: 'Grocery list', headerShown: true }} />
@@ -31,8 +41,8 @@ export default function PlanGroceryScreen() {
           contentContainerClassName="px-6 pb-12 pt-4"
           refreshControl={
             <RefreshControl
-              refreshing={grocery.isRefetching}
-              onRefresh={() => void grocery.refetch()}
+              refreshing={manualRefreshing}
+              onRefresh={() => void handleRefresh()}
             />
           }
         >

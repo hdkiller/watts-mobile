@@ -1,3 +1,4 @@
+import { apiFetch } from '@/src/api/client';
 import { describe, expect, it, vi } from 'vitest';
 import {
   lookupFoodBarcode,
@@ -8,8 +9,6 @@ import {
 vi.mock('@/src/api/client', () => ({
   apiFetch: vi.fn(),
 }));
-
-import { apiFetch } from '@/src/api/client';
 
 const mockApiFetch = vi.mocked(apiFetch);
 

@@ -1,6 +1,6 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { router, Stack, type Href } from 'expo-router';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   FlatList,
   Platform,
@@ -103,7 +103,7 @@ function ActivityRow({
 
 export default function RecentActivityScreen() {
   const theme = useThemeColors();
-  const { data, isLoading, isError, error, refetch, isRefetching, dataUpdatedAt } =
+  const { data, isLoading, isError, error, refetch, dataUpdatedAt } =
     useRecentActivityQuery();
   const upcoming = useUpcomingPlannedQuery();
   const { showCachedOffline, lastUpdatedLabel } = useOfflineCached({
@@ -115,6 +115,16 @@ export default function RecentActivityScreen() {
     () => buildComplianceIndex(data, upcoming.data),
     [data, upcoming.data]
   );
+
+  const [manualRefreshing, setManualRefreshing] = useState(false);
+  const handleRefresh = async () => {
+    setManualRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setManualRefreshing(false);
+    }
+  };
 
   return (
     <>
@@ -167,8 +177,8 @@ export default function RecentActivityScreen() {
           keyExtractor={(item) => item.id}
           refreshControl={
             <RefreshControl
-              refreshing={isRefetching}
-              onRefresh={() => void refetch()}
+              refreshing={manualRefreshing}
+              onRefresh={() => void handleRefresh()}
               tintColor={Colors.brand}
             />
           }

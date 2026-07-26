@@ -5,6 +5,7 @@ import {
   Alert,
   Image,
   InteractionManager,
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -60,6 +61,7 @@ import { useLogNutritionItem, useTodayNutritionQuery } from '@/src/features/nutr
 import { usePhotoMealSettings } from '@/src/features/nutrition/usePhotoMealSettings';
 import { NutritionTargetsCard } from '@/src/features/nutrition/NutritionTargetsCard';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
+import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
 import { useReduceMotion } from '@/src/hooks/useReduceMotion';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
@@ -504,6 +506,9 @@ export function LogMealSheet({
   const theme = useThemeColors();
   const logMutation = useLogNutritionItem();
   const { sourceMode, saveToLibrary } = usePhotoMealSettings();
+  // Screen presentation is a native-stack route: KeyboardAvoidingView collapses the
+  // ScrollView under the header there, so use the overlap hook instead (see the hook's docs).
+  const { containerRef: screenContainerRef, overlap: keyboardOverlap } = useKeyboardOverlap();
 
   const [mode, setMode] = useState<LogMealSheetMode>('compose');
   const [selectedDateYmd, setSelectedDateYmd] = useState(localDateYmd());
@@ -545,15 +550,17 @@ export function LogMealSheet({
     if (composeTab !== 'search') return;
     const trimmed = searchQuery.trim();
     if (trimmed.length < 2) {
-      setSearchResults([]);
-      setIsSearchingFood(false);
-      setSearchError(null);
-      return;
+      const resetTimer = setTimeout(() => {
+        setSearchResults([]);
+        setIsSearchingFood(false);
+        setSearchError(null);
+      }, 0);
+      return () => clearTimeout(resetTimer);
     }
 
-    setIsSearchingFood(true);
-    setSearchError(null);
     const timer = setTimeout(async () => {
+      setIsSearchingFood(true);
+      setSearchError(null);
       try {
         const results = await searchFoodDatabase(trimmed);
         setSearchResults(results);
@@ -565,7 +572,7 @@ export function LogMealSheet({
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchQuery, composeTab]);
+  }, [composeTab, searchQuery]);
 
   const resetSheetState = () => {
     setMode('compose');
@@ -589,6 +596,7 @@ export function LogMealSheet({
   };
 
   const handleClose = () => {
+    Keyboard.dismiss();
     resetSheetState();
     onClose();
   };
@@ -977,7 +985,7 @@ export function LogMealSheet({
         key={mode}
         style={presentation === 'screen' ? { flex: 1 } : { flexShrink: 1 }}
         contentContainerStyle={{
-          paddingBottom: presentation === 'screen' ? 32 : 8,
+          paddingBottom: presentation === 'screen' ? 32 + keyboardOverlap : 8,
           // Keep compose/analyzing content laid out after camera/library modals dismiss.
           ...(presentation === 'screen' ? { flexGrow: 1 } : null),
         }}
@@ -1277,7 +1285,7 @@ export function LogMealSheet({
                       <View className="py-8 items-center justify-center rounded-xl border border-border bg-card p-4">
                         <Text className="text-sm font-semibold text-text-primary">No foods found</Text>
                         <Text className="mt-1 text-center text-xs text-text-muted">
-                          No results for "{searchQuery}". Try searching by a different name or scan the product barcode.
+                          No results for &quot;{searchQuery}&quot;. Try searching by a different name or scan the product barcode.
                         </Text>
                         <Button
                           label="Scan Product Barcode"
@@ -1464,12 +1472,9 @@ export function LogMealSheet({
     return (
       <>
         <SafeAreaView className="flex-1 bg-surface" edges={['top', 'bottom']}>
-          <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          >
-            <View className="flex-1 bg-surface px-6 pt-3">{content}</View>
-          </KeyboardAvoidingView>
+          <View ref={screenContainerRef} className="flex-1 bg-surface px-6 pt-3">
+            {content}
+          </View>
         </SafeAreaView>
 
         <BarcodeScannerModal

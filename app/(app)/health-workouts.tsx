@@ -78,7 +78,15 @@ export default function HealthRecentWorkoutsScreen() {
 
   const rows = useMemo(() => workoutsQuery.data ?? [], [workoutsQuery.data]);
   const loading = workoutsQuery.isLoading && !workoutsQuery.data;
-  const refreshing = workoutsQuery.isRefetching && !workoutsQuery.isLoading;
+  const [manualRefreshing, setManualRefreshing] = useState(false);
+  const handleRefresh = async () => {
+    setManualRefreshing(true);
+    try {
+      await workoutsQuery.refetch();
+    } finally {
+      setManualRefreshing(false);
+    }
+  };
   const loadError =
     workoutsQuery.isError && !workoutsQuery.data
       ? workoutsQuery.error instanceof Error
@@ -193,7 +201,7 @@ export default function HealthRecentWorkoutsScreen() {
           ) : null}
         </View>
 
-        {loading && !refreshing ? (
+        {loading ? (
           <ListSkeleton />
         ) : (
           <ScrollView
@@ -201,8 +209,8 @@ export default function HealthRecentWorkoutsScreen() {
             contentContainerClassName="px-6 pb-12 pt-2"
             refreshControl={
               <RefreshControl
-                refreshing={refreshing}
-                onRefresh={() => void workoutsQuery.refetch()}
+                refreshing={manualRefreshing}
+                onRefresh={() => void handleRefresh()}
                 tintColor={Colors.brand}
               />
             }

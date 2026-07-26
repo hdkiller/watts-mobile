@@ -1,6 +1,7 @@
 /* Hallmark · genre: modern-minimal · macrostructure: Workbench · design-system: docs/DESIGN.md · designed-as-app
  * Events hub — date-tile list fingerprint (Goals use type-code tile).
  */
+import { useState } from 'react';
 import { router, Stack, type Href } from 'expo-router';
 import { RefreshControl, ScrollView, Text, View } from 'react-native';
 
@@ -21,13 +22,23 @@ import { useThemeColors } from '@/src/theme/useThemeColors';
 
 export default function UpcomingEventsListScreen() {
   const { instanceUrl } = useAuth();
-  const { data, isLoading, isError, error, refetch, isRefetching, dataUpdatedAt } =
+  const { data, isLoading, isError, error, refetch, dataUpdatedAt } =
     useUpcomingEventsQuery();
   const { showCachedOffline, lastUpdatedLabel } = useOfflineCached({
     data,
     isError,
     dataUpdatedAt,
   });
+
+  const [manualRefreshing, setManualRefreshing] = useState(false);
+  const handleRefresh = async () => {
+    setManualRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setManualRefreshing(false);
+    }
+  };
 
   const openWeb = async () => {
     hapticLight();
@@ -75,8 +86,8 @@ export default function UpcomingEventsListScreen() {
           contentContainerClassName="px-6 pb-10 pt-4"
           refreshControl={
             <RefreshControl
-              refreshing={isRefetching}
-              onRefresh={() => void refetch()}
+              refreshing={manualRefreshing}
+              onRefresh={() => void handleRefresh()}
               tintColor={Colors.brand}
             />
           }

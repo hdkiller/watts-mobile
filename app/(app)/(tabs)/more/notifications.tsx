@@ -1,9 +1,8 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack, type Href, router } from 'expo-router';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   FlatList,
-  Platform,
   Pressable,
   RefreshControl,
   Text,
@@ -85,9 +84,19 @@ function NotificationRow({
 
 export default function NotificationsScreen() {
   const theme = useThemeColors();
-  const { data, isLoading, isError, error, refetch, isRefetching } = useNotificationsQuery();
+  const { data, isLoading, isError, error, refetch } = useNotificationsQuery();
   const markOne = useMarkNotificationRead();
   const markAll = useMarkAllNotificationsRead();
+
+  const [manualRefreshing, setManualRefreshing] = useState(false);
+  const handleRefresh = async () => {
+    setManualRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setManualRefreshing(false);
+    }
+  };
 
   const unreadCount = data?.unreadCount ?? 0;
   const rows = useMemo(
@@ -119,38 +128,36 @@ export default function NotificationsScreen() {
                 minHeight: 44,
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginLeft: Platform.OS === 'ios' ? -6 : 0,
+                marginLeft: -4,
               }}
             >
               <AppSymbol
                 sf="chevron.left"
-                size={22}
+                size={20}
                 tintColor={theme.textPrimary}
-                fallback="←"
+                fallback="‹"
               />
             </Pressable>
           ),
-          headerRight:
-            unreadCount > 0
-              ? () => (
-                  <Pressable
-                    onPress={() => markAll.mutate()}
-                    disabled={markAll.isPending}
-                    className="px-1 active:opacity-70"
-                  >
-                    <Text className="text-sm font-medium text-brand">
-                      {markAll.isPending ? '…' : 'Mark all'}
-                    </Text>
-                  </Pressable>
-                )
-              : undefined,
+          headerRight: () =>
+            unreadCount > 0 ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Mark all as read"
+                hitSlop={8}
+                disabled={markAll.isPending}
+                onPress={() => markAll.mutate()}
+              >
+                <Text className="text-sm font-medium text-brand">Mark all read</Text>
+              </Pressable>
+            ) : null,
         }}
       />
       {isLoading && !data ? (
-        <ListSkeleton />
-      ) : isError ? (
+        <ListSkeleton rows={8} />
+      ) : isError && !data ? (
         <View className="flex-1 bg-surface px-6 pt-6">
-          <View className="rounded-xl border border-danger/40 bg-tint-error p-4">
+          <View className="rounded-2xl border border-danger/40 bg-tint-error p-4">
             <Text className="text-base text-danger">
               {friendlyError(error, 'Failed to load notifications')}
             </Text>
@@ -167,8 +174,8 @@ export default function NotificationsScreen() {
           keyExtractor={(item) => item.id}
           refreshControl={
             <RefreshControl
-              refreshing={isRefetching}
-              onRefresh={() => void refetch()}
+              refreshing={manualRefreshing}
+              onRefresh={() => void handleRefresh()}
               tintColor={Colors.brand}
             />
           }

@@ -7,6 +7,7 @@ import {
   Pressable,
   Text,
   TextInput,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -41,44 +42,49 @@ export default function InstanceScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-surface">
+      {/* NativeWind registers KeyboardAvoidingView with remapProps, not cssInterop, and RN
+          composes its own paddingBottom into `style` — so `className` never resolves here.
+          Keep the layout classes on a View and give the KAV a plain style. */}
       <KeyboardAvoidingView
-        className="flex-1 justify-center px-6"
+        style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Text className="text-3xl font-semibold text-text-primary">Coach Watts</Text>
-        <Text className="mt-2 text-base text-text-muted">
-          Enter your Coach Watts instance URL. Use the hosted app or your self-hosted base URL.
-        </Text>
+        <View className="flex-1 justify-center px-6">
+          <Text className="text-3xl font-semibold text-text-primary">Coach Watts</Text>
+          <Text className="mt-2 text-base text-text-muted">
+            Enter your Coach Watts instance URL. Use the hosted app or your self-hosted base URL.
+          </Text>
 
-        <Text className="mt-8 mb-2 text-sm text-text-muted">Instance URL</Text>
-        <TextInput
-          className="rounded-xl border border-border-strong bg-card px-4 py-3 text-base text-text-primary"
-          autoCapitalize="none"
-          autoCorrect={false}
-          keyboardType="url"
-          placeholder="https://coachwatts.com"
-          placeholderTextColor={theme.textMuted}
-          value={url}
-          onChangeText={setUrl}
-          editable={!busy}
-        />
+          <Text className="mt-8 mb-2 text-sm text-text-muted">Instance URL</Text>
+          <TextInput
+            className="rounded-xl border border-border-strong bg-card px-4 py-3 text-base text-text-primary"
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="url"
+            placeholder="https://coachwatts.com"
+            placeholderTextColor={theme.textMuted}
+            value={url}
+            onChangeText={setUrl}
+            editable={!busy}
+          />
 
-        {message ? <Text className="mt-3 text-sm text-danger">{message}</Text> : null}
+          {message ? <Text className="mt-3 text-sm text-danger">{message}</Text> : null}
 
-        <Button
-          className="mt-6"
-          label="Continue"
-          loading={busy}
-          onPress={() => void onContinue()}
-        />
+          <Button
+            className="mt-6"
+            label="Continue"
+            loading={busy}
+            onPress={() => void onContinue()}
+          />
 
-        <Pressable
-          className="mt-3 items-center py-3 active:opacity-80"
-          onPress={() => router.replace('/(auth)/login')}
-          disabled={busy}
-        >
-          <Text className="text-sm font-semibold text-text-muted">Cancel</Text>
-        </Pressable>
+          <Pressable
+            className="mt-3 items-center py-3 active:opacity-80"
+            onPress={() => router.replace('/(auth)/login')}
+            disabled={busy}
+          >
+            <Text className="text-sm font-semibold text-text-muted">Cancel</Text>
+          </Pressable>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

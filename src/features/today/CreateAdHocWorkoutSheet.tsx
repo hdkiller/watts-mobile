@@ -1,6 +1,15 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
-import { useState } from 'react';
-import { Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useRef, useState } from 'react';
+import {
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/src/components/Button';
@@ -78,6 +87,7 @@ export function CreateAdHocWorkoutSheet({
   onSubmit: (payload: AdHocWorkoutRequest) => void;
 }) {
   const theme = useThemeColors();
+  const scrollRef = useRef<ScrollView>(null);
   const [form, setForm] = useState<AdHocWorkoutRequest>(DEFAULT_FORM);
   const [durationText, setDurationText] = useState('60');
   const [formError, setFormError] = useState<string | null>(null);
@@ -115,76 +125,92 @@ export function CreateAdHocWorkoutSheet({
       onRequestClose={onClose}
     >
       <SafeAreaView className="flex-1 bg-surface" edges={['top', 'bottom']}>
-        <View className="flex-row items-start justify-between border-b border-border px-5 py-4">
-          <View className="min-w-0 flex-1 pr-3">
-            <Text className="text-xl font-semibold text-text-primary">Generate Ad-Hoc Workout</Text>
-            <Text className="mt-1 text-sm leading-5 text-text-muted">
-              Create a custom workout for today instantly.
-            </Text>
+        {/* The notes field sits at the end of the scroll content and the footer is pinned, so
+            both are covered by the keyboard without this. KeyboardAvoidingView takes a plain
+            style, never className (NativeWind registers it with remapProps). */}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{ flex: 1 }}
+        >
+          <View className="flex-row items-start justify-between border-b border-border px-5 py-4">
+            <View className="min-w-0 flex-1 pr-3">
+              <Text className="text-xl font-semibold text-text-primary">Generate Ad-Hoc Workout</Text>
+              <Text className="mt-1 text-sm leading-5 text-text-muted">
+                Create a custom workout for today instantly.
+              </Text>
+            </View>
+            <Pressable onPress={onClose} className="active:opacity-70" hitSlop={8} disabled={submitting}>
+              <Text className="text-sm font-semibold text-brand">Cancel</Text>
+            </Pressable>
           </View>
-          <Pressable onPress={onClose} className="active:opacity-70" hitSlop={8} disabled={submitting}>
-            <Text className="text-sm font-semibold text-brand">Cancel</Text>
-          </Pressable>
-        </View>
 
-        <ScrollView className="flex-1" contentContainerClassName="px-5 pb-10 pt-5">
-          <Text className="text-xs font-semibold uppercase tracking-wide text-text-muted">
-            Activity Type
-          </Text>
-          <Text className="mt-1 text-sm text-text-muted">What kind of session is this?</Text>
-          <ChipRow
-            options={ACTIVITY_OPTIONS.map((o) => o.value)}
-            value={form.type}
-            onChange={(type) => setForm((prev) => ({ ...prev, type }))}
-            labelFor={(value) => ACTIVITY_OPTIONS.find((o) => o.value === value)?.label ?? value}
-          />
+          <ScrollView
+            ref={scrollRef}
+            className="flex-1"
+            contentContainerClassName="px-5 pb-10 pt-5"
+            keyboardShouldPersistTaps="handled"
+          >
+            <Text className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+              Activity Type
+            </Text>
+            <Text className="mt-1 text-sm text-text-muted">What kind of session is this?</Text>
+            <ChipRow
+              options={ACTIVITY_OPTIONS.map((o) => o.value)}
+              value={form.type}
+              onChange={(type) => setForm((prev) => ({ ...prev, type }))}
+              labelFor={(value) => ACTIVITY_OPTIONS.find((o) => o.value === value)?.label ?? value}
+            />
 
-          <Text className="mt-5 text-xs font-semibold uppercase tracking-wide text-text-muted">
-            Duration
-          </Text>
-          <Text className="mt-1 text-sm text-text-muted">Target time in minutes</Text>
-          <TextInput
-            className="mt-2 rounded-xl border border-border-strong bg-card px-3 py-3 text-base text-text-primary"
-            keyboardType="number-pad"
-            value={durationText}
-            onChangeText={setDurationText}
-            editable={!submitting}
-            placeholder="60"
-            placeholderTextColor={theme.textMuted}
-          />
+            <Text className="mt-5 text-xs font-semibold uppercase tracking-wide text-text-muted">
+              Duration
+            </Text>
+            <Text className="mt-1 text-sm text-text-muted">Target time in minutes</Text>
+            <TextInput
+              className="mt-2 rounded-xl border border-border-strong bg-card px-3 py-3 text-base text-text-primary"
+              keyboardType="number-pad"
+              value={durationText}
+              onChangeText={setDurationText}
+              editable={!submitting}
+              placeholder="60"
+              placeholderTextColor={theme.textMuted}
+            />
 
-          <Text className="mt-5 text-xs font-semibold uppercase tracking-wide text-text-muted">
-            Intensity
-          </Text>
-          <Text className="mt-1 text-sm text-text-muted">Effort level for the session</Text>
-          <ChipRow
-            options={INTENSITY_OPTIONS}
-            value={form.intensity}
-            onChange={(intensity) => setForm((prev) => ({ ...prev, intensity }))}
-          />
+            <Text className="mt-5 text-xs font-semibold uppercase tracking-wide text-text-muted">
+              Intensity
+            </Text>
+            <Text className="mt-1 text-sm text-text-muted">Effort level for the session</Text>
+            <ChipRow
+              options={INTENSITY_OPTIONS}
+              value={form.intensity}
+              onChange={(intensity) => setForm((prev) => ({ ...prev, intensity }))}
+            />
 
-          <Text className="mt-5 text-xs font-semibold uppercase tracking-wide text-text-muted">
-            Instructions / Focus
-          </Text>
-          <Text className="mt-1 text-sm text-text-muted">Any specific intervals or goals?</Text>
-          <TextInput
-            className="mt-2 min-h-[100px] rounded-xl border border-border-strong bg-card px-3 py-3 text-base text-text-primary"
-            multiline
-            textAlignVertical="top"
-            value={form.notes}
-            onChangeText={(notes) => setForm((prev) => ({ ...prev, notes }))}
-            editable={!submitting}
-            placeholder="e.g. 'Focus on high cadence', 'Hill repeats', 'Upper body focus'"
-            placeholderTextColor={theme.textMuted}
-          />
+            <Text className="mt-5 text-xs font-semibold uppercase tracking-wide text-text-muted">
+              Instructions / Focus
+            </Text>
+            <Text className="mt-1 text-sm text-text-muted">Any specific intervals or goals?</Text>
+            <TextInput
+              className="mt-2 min-h-[100px] rounded-xl border border-border-strong bg-card px-3 py-3 text-base text-text-primary"
+              multiline
+              textAlignVertical="top"
+              value={form.notes}
+              onChangeText={(notes) => setForm((prev) => ({ ...prev, notes }))}
+              // KeyboardAvoidingView shrinks the scroll area but does not scroll the focused
+              // field into view; this is the last field, so pin it to the end.
+              onFocus={() => requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }))}
+              editable={!submitting}
+              placeholder="e.g. 'Focus on high cadence', 'Hill repeats', 'Upper body focus'"
+              placeholderTextColor={theme.textMuted}
+            />
 
-          {formError ? <Text className="mt-3 text-sm text-red-400">{formError}</Text> : null}
-        </ScrollView>
+            {formError ? <Text className="mt-3 text-sm text-red-400">{formError}</Text> : null}
+          </ScrollView>
 
-        <View className="gap-3 border-t border-border px-5 py-4">
-          <Button label="Generate Workout" onPress={submit} loading={submitting} />
-          <Button variant="secondary" label="Cancel" onPress={onClose} disabled={submitting} />
-        </View>
+          <View className="gap-3 border-t border-border px-5 py-4">
+            <Button label="Generate Workout" onPress={submit} loading={submitting} />
+            <Button variant="secondary" label="Cancel" onPress={onClose} disabled={submitting} />
+          </View>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </Modal>
   );

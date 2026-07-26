@@ -11,7 +11,6 @@ import {
   View,
 } from 'react-native';
 
-import { AppSymbol } from '@/src/components/AppSymbol';
 import { Button } from '@/src/components/Button';
 import type { FoodItemResult } from './api';
 import type { NutritionQuickLogForm } from './types';

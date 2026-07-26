@@ -1,7 +1,7 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { router, type Href } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Keyboard, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
@@ -318,7 +318,10 @@ export default function DailyCheckinScreen() {
         accessibilityRole="button"
         accessibilityLabel="Dismiss daily check-in"
         className="absolute inset-0 bg-black/60"
-        onPress={() => router.back()}
+        onPress={() => {
+          Keyboard.dismiss();
+          router.back();
+        }}
       />
       <View
         ref={containerRef}

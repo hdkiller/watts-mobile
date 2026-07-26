@@ -1,6 +1,7 @@
 /* Hallmark · genre: modern-minimal · macrostructure: Workbench · design-system: docs/DESIGN.md · designed-as-app
  * Goals hub — type-code list fingerprint (Events keep date tile).
  */
+import { useState } from 'react';
 import { router, Stack, type Href } from 'expo-router';
 import { RefreshControl, ScrollView, Text, View } from 'react-native';
 
@@ -22,12 +23,22 @@ import { useThemeColors } from '@/src/theme/useThemeColors';
 
 export default function GoalsListScreen() {
   const { instanceUrl } = useAuth();
-  const { data, isLoading, isError, error, refetch, isRefetching, dataUpdatedAt } = useGoalsQuery();
+  const { data, isLoading, isError, error, refetch, dataUpdatedAt } = useGoalsQuery();
   const { showCachedOffline, lastUpdatedLabel } = useOfflineCached({
     data,
     isError,
     dataUpdatedAt,
   });
+
+  const [manualRefreshing, setManualRefreshing] = useState(false);
+  const handleRefresh = async () => {
+    setManualRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setManualRefreshing(false);
+    }
+  };
 
   const openWeb = async () => {
     hapticLight();
@@ -43,7 +54,7 @@ export default function GoalsListScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Goals',
+          title: 'Target Goals',
           headerShown: true,
           headerRight: () => (
             <AnimatedPressable
@@ -73,8 +84,8 @@ export default function GoalsListScreen() {
           contentContainerClassName="px-6 pb-10 pt-4"
           refreshControl={
             <RefreshControl
-              refreshing={isRefetching}
-              onRefresh={() => void refetch()}
+              refreshing={manualRefreshing}
+              onRefresh={() => void handleRefresh()}
               tintColor={Colors.brand}
             />
           }
