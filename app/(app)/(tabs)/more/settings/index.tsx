@@ -184,12 +184,12 @@ export default function SettingsScreen() {
 
   const handleDeleteAccount = () => {
     Alert.alert(
-      'Delete account',
-      'You’ll finish account deletion in Coach Watts. You may need to sign in again in the browser.',
+      'Delete Coach Watts account?',
+      'This action will permanently delete your profile, workout history, AI coaching recommendations, and health sync integrations.\n\nYou will be handed off directly to your authenticated Coach Watts account page to confirm final deletion.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Open Coach Watts',
+          text: 'Continue to Account Deletion',
           style: 'destructive',
           onPress: () => void openWebPath(dangerZoneWebPath()),
         },
@@ -297,17 +297,16 @@ export default function SettingsScreen() {
 
           <Section title="Account Management">
             <MenuRow
+              title="Open Profile Settings"
+              sf="globe"
+              onPress={() => void openWebPath(profileSettingsWebPath())}
+            />
+            <MenuRow
               title="Export my data"
               sf="square.and.arrow.up"
               onPress={() => void openWebPath(dangerZoneWebPath())}
             />
-            <MenuRow title="Delete account" sf="trash" onPress={handleDeleteAccount} />
-            <MenuRow
-              title="Open Profile Settings"
-              sf="globe"
-              onPress={() => void openWebPath(profileSettingsWebPath())}
-              isLast
-            />
+            <MenuRow title="Delete account" sf="trash" onPress={handleDeleteAccount} isLast />
           </Section>
         </ScrollView>
       </SafeAreaView>

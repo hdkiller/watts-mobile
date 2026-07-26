@@ -7,7 +7,9 @@ import {
   hasActiveTurn,
   humanizeToolName,
   hydrateCoachMessages,
+  isActionToolName,
   mergeLoadedMessages,
+  messageCompletedAction,
   messageImageParts,
   messageText,
   nutritionToolSummaries,
@@ -321,5 +323,83 @@ describe('mapMessages', () => {
     expect(approvalPreviewLine({ date: '2026-07-21' })).toBe('2026-07-21');
     expect(approvalPreviewLine({ sport: 'bike' })).toBeNull();
     expect(approvalPreviewLine(null)).toBeNull();
+  });
+
+  it('treats write verbs as actions and reads as non-actions', () => {
+    for (const name of [
+      'log_nutrition_meal',
+      'create_planned_workout',
+      'update_wellness_event',
+      'delete_hydration',
+      'patch_nutrition_items',
+      'record_wellness_event',
+      'reschedule_planned_workout',
+      'recommend_workout',
+      'tool-log_hydration_intake',
+    ]) {
+      expect(isActionToolName(name)).toBe(true);
+    }
+
+    for (const name of [
+      'get_nutrition_log',
+      'get_planned_workouts',
+      'list_pending_recommendations',
+      'search_workouts',
+      'some_unknown_tool',
+    ]) {
+      expect(isActionToolName(name)).toBe(false);
+    }
+  });
+
+  it('flags only messages whose write tool succeeded', () => {
+    const base: CoachUIMessage = {
+      id: 'a1',
+      role: 'assistant',
+      parts: [],
+      content: '',
+      createdAt: new Date(),
+    };
+
+    const withPart = (part: unknown): CoachUIMessage => ({
+      ...base,
+      parts: [part as CoachUIMessage['parts'][number]],
+    });
+
+    expect(
+      messageCompletedAction(
+        withPart({
+          type: 'tool-log_nutrition_meal',
+          state: 'output-available',
+          toolCallId: 'c1',
+          output: { id: 'm-1' },
+        }),
+      ),
+    ).toBe(true);
+
+    // Read-only lookup succeeded — no reward.
+    expect(
+      messageCompletedAction(
+        withPart({
+          type: 'tool-get_planned_workouts',
+          state: 'output-available',
+          toolCallId: 'c2',
+          output: { items: [] },
+        }),
+      ),
+    ).toBe(false);
+
+    // Write tool that errored — no reward.
+    expect(
+      messageCompletedAction(
+        withPart({
+          type: 'tool-create_planned_workout',
+          state: 'output-error',
+          toolCallId: 'c3',
+          errorText: 'nope',
+        }),
+      ),
+    ).toBe(false);
+
+    expect(messageCompletedAction(base)).toBe(false);
   });
 });

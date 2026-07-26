@@ -191,9 +191,8 @@ export default function SubscriptionScreen() {
           {acquisitionEnabled && !summary.data?.acquisitionSuppressed ? (
             <View className="mt-8">
               <Text className="text-2xl font-semibold text-text-primary">Choose a plan</Text>
-              <Text className="mt-2 text-sm leading-5 text-text-muted">
-                Payment is charged to your store account. Subscriptions renew automatically unless
-                canceled in store settings before renewal.
+              <Text className="mt-1 text-sm text-text-muted">
+                Supporter and Pro grant access across Coach Watts devices.
               </Text>
               {offerings.isLoading ? (
                 <View className="mt-6 gap-3">
@@ -212,7 +211,7 @@ export default function SubscriptionScreen() {
                         {item.tier === 'PRO' ? 'Pro' : 'Supporter'}
                       </Text>
                       <Text className="mt-1 text-sm text-text-muted">
-                        {item.period === 'ANNUAL' ? 'Annual' : 'Monthly'} subscription
+                        {item.period === 'ANNUAL' ? 'Annual' : 'Monthly'} auto-renewable subscription
                       </Text>
                     </View>
                     <Text className="text-lg font-semibold text-brand">{item.price}</Text>
@@ -231,6 +230,27 @@ export default function SubscriptionScreen() {
                   No store packages are available for this app build.
                 </Text>
               ) : null}
+
+              <View className="mt-6 rounded-xl border border-border bg-card/60 p-4">
+                <Text className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+                  Subscription & Auto-Renewal Terms
+                </Text>
+                <Text className="mt-2 text-xs leading-5 text-text-muted">
+                  • Payment is charged to your store account at confirmation of purchase.
+                </Text>
+                <Text className="mt-1.5 text-xs leading-5 text-text-muted">
+                  • Subscription automatically renews unless auto-renew is turned off in store settings
+                  at least 24 hours before the end of the current period.
+                </Text>
+                <Text className="mt-1.5 text-xs leading-5 text-text-muted">
+                  • Account will be charged for renewal within 24 hours prior to the end of the current
+                  period at the rate of the selected plan.
+                </Text>
+                <Text className="mt-1.5 text-xs leading-5 text-text-muted">
+                  • You can manage your subscription or turn off auto-renewal anytime in your store
+                  Account Settings after purchase.
+                </Text>
+              </View>
             </View>
           ) : null}
 

@@ -118,3 +118,14 @@ export async function isAiSettingsBearerAvailable(): Promise<boolean> {
     return false;
   }
 }
+
+export async function deleteAthleteAccount(): Promise<void> {
+  const response = await apiFetch('/api/profile', {
+    method: 'DELETE',
+  });
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, `Failed to delete account (${response.status})`),
+    );
+  }
+}
