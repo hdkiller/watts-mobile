@@ -2,9 +2,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import type { QueryClient } from '@tanstack/react-query';
 
-import { ATHLETE_PROFILE_KEY } from '@/src/features/profile/useProfile';
 import type { AthleteProfile } from '@/src/features/profile/types';
-import { TODAY_QUERY_KEY } from '@/src/features/today/useToday';
+import { ATHLETE_PROFILE_KEY } from '@/src/features/profile/useProfile';
+import { TODAY_QUERY_KEY } from '@/src/features/today/types';
+
+
 
 import {
   completePlannedWorkout,

@@ -1,4 +1,7 @@
+export const TODAY_QUERY_KEY = ['today'] as const;
+
 export type RecommendationAction = 'proceed' | 'modify' | 'reduce_intensity' | 'rest' | string;
+
 
 export type TodayPlannedWorkout = {
   id: string;
