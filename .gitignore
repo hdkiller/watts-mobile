@@ -49,3 +49,6 @@ yarn-error.*
 # Local scratch screenshots
 /tmp/
 .secrets/
+
+# Graphify generated knowledge graph
+/graphify-out/

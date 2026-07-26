@@ -12,6 +12,8 @@
     "ios:free-team:device:release": "IOS_FREE_TEAM=1 SENTRY_DISABLE_AUTO_UPLOAD=true expo run:ios --device --configuration Release",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
+    "typecheck:ci": "pnpm typecheck:prepare && pnpm typecheck",
+    "typecheck:prepare": "expo customize tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "node scripts/run-maestro-e2e.mjs maestro",

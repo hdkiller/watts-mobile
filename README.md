@@ -101,7 +101,8 @@ Push, universal links, Health prefill, and the home-screen widget are unavailabl
 | `pnpm start` | Expo / Metro dev server |
 | `pnpm ios` / `pnpm android` | Build & run the dev client |
 | `pnpm ios:free-team:*` | Capability-stripped Personal Team device builds |
-| `pnpm typecheck` | TypeScript (`tsc --noEmit`) |
+| `pnpm typecheck` | Incremental TypeScript (`tsc --noEmit`) |
+| `pnpm typecheck:ci` | Regenerate Expo route types, then typecheck (used by CI) |
 | `pnpm lint` | Expo ESLint + theme-token check |
 | `pnpm lint:theme` | Theme-token check only |
 | `pnpm test` | Unit tests (Vitest, once) |
