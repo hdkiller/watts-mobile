@@ -417,11 +417,14 @@ These stay manual or store-sandbox. Unauth smoke already proves login chrome; do
 
 ## CI / store gate
 
-GitHub Actions workflow: [`.github/workflows/e2e-smoke.yml`](../.github/workflows/e2e-smoke.yml).
+GitHub Actions workflows: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) for
+static validation and [`.github/workflows/e2e-smoke.yml`](../.github/workflows/e2e-smoke.yml)
+for manual simulator smoke.
 
 | Job | When | What |
 |-----|------|------|
-| `validate-flows` | PRs touching Maestro / e2e docs / workflow | YAML parse + required flow files present |
+| `CI / Quality gates` | PRs into `develop` / `master`, pushes to `develop` | YAML parse + required flow files present; does **not** launch Maestro |
+| `validate-flows` | `workflow_dispatch` (manual) | Validate the flow definitions before the simulator build |
 | `ios-smoke` | `workflow_dispatch` (manual) | Build sim app → `smoke-unauth`; optionally `smoke-shell` when secrets + reachable e2e API are set |
 
 Secrets / vars for authenticated CI smoke (optional):
@@ -431,4 +434,4 @@ Secrets / vars for authenticated CI smoke (optional):
 | `E2E_ACCESS_TOKEN` | Fixture Bearer (minted from coach-wattz `__e2e/token`) |
 | `E2E_INSTANCE_URL` | Default `http://localhost:3199` (or tunneled host) |
 
-Never bake fixture tokens into store / preview artifacts. Full companion suite stays local until flaky rate is near zero; CI gate is **smoke-unauth + smoke-shell** only.
+Never bake fixture tokens into store / preview artifacts. Maestro execution is manual; the regular CI gate only validates the checked-in flow definitions. Full companion suites remain local until the flaky rate is near zero.
