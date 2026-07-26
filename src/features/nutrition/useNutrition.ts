@@ -255,6 +255,7 @@ export function useLockNutritionPlanMeal() {
     mutationFn: (input: {
       date: string;
       windowType: string;
+      windowKey?: string;
       meal: unknown;
       slotName?: string;
     }) => lockNutritionPlanMeal(input),

@@ -218,9 +218,17 @@ export type NutritionPlanMealView = {
 /** One fueling window for the day sheet — may or may not hold a locked meal. */
 export type NutritionPlanWindowView = {
   key: string;
+  /** Semantic type used for catalog bucketing and labels, e.g. `PRE_WORKOUT`. */
   windowType: string;
+  /**
+   * Stable per-day identity, e.g. `PRE_WORKOUT#2` or `DAILY_BASE:breakfast`. A day can hold
+   * several windows of the same type, so the type alone cannot address one of them.
+   */
+  windowKey: string;
   label: string;
   slotName: string | null;
+  /** ISO start of the window, used to order the day chronologically. */
+  startTime: string | null;
   scheduledLabel: string | null;
   targetCarbs: number;
   targetProtein: number;

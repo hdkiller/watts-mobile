@@ -8,9 +8,11 @@
 
 Prove the release AAB is reviewable on Android (same bar as TestFlight smoke).
 
+How to add yourself / others as Internal testers and use the opt-in link: [../play-internal-testing.md](../play-internal-testing.md).
+
 ## Smoke script
 
-1. [ ] Install from Internal testing link; cold start → branded splash/icon.
+1. [ ] Install from Internal testing (opted in via [play-internal-testing.md](../play-internal-testing.md)); cold start → branded splash/icon.
 2. [ ] Sign in via PKCE against `https://coachwatts.com` (Chrome Custom Tabs / system browser).
 3. [ ] Today / Log / Coach / More core paths (seeded account — share demo with iOS [008](./008-reviewer-demo-account.md) or create Android-specific if needed).
 4. [ ] Health Connect: deny still usable; grant path prefills sleep/weight only when implemented.

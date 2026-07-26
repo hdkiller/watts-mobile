@@ -69,7 +69,7 @@ function PickerBody({
     void recommend
       .mutateAsync({
         date: dateKey,
-        windowType: window.windowType,
+        windowType: window.windowKey || window.windowType,
         targetCarbs: window.targetCarbs || undefined,
         targetProtein: window.targetProtein || undefined,
         targetKcal: window.targetKcal || undefined,
@@ -119,6 +119,7 @@ function PickerBody({
         await lockMeal.mutateAsync({
           date: dateKey,
           windowType: window.windowType,
+          windowKey: window.windowKey,
           slotName: window.slotName ?? undefined,
           meal,
         });

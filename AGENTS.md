@@ -18,6 +18,7 @@ This app **activates new athletes on device** (consent → goal → plan lite �
 | [docs/deep-links.md](docs/deep-links.md) | Scheme / universal link path map + host association |
 | [docs/native-modules.md](docs/native-modules.md) | When adding Expo native deps: rebuild the dev client |
 | [docs/distribution.md](docs/distribution.md) | App Store / Play hub, release-it versioning, GitHub Android APK → `docs/distribution/` tasks + log |
+| [docs/distribution/play-internal-testing.md](docs/distribution/play-internal-testing.md) | Play Internal track: upload script, add testers, opt-in link, license testers |
 | [docs/store-checklist.md](docs/store-checklist.md) | Brand chrome, About links, Sentry env for store builds |
 | [docs/store-privacy-checklist.md](docs/store-privacy-checklist.md) | App Privacy / Data safety questionnaire copy |
 | coach-wattz `docs/06-plans/mobile-companion-app.md` | Full living baseline (PR [#239](https://github.com/hdkiller/coach/pull/239); merge pending) |

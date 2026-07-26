@@ -39,6 +39,12 @@ function asNumber(value: unknown): number {
   return 0;
 }
 
+function isoOrNull(value: unknown): string | null {
+  if (!value) return null;
+  const d = new Date(value as string | Date);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
 function scheduledLabelFrom(value: unknown): string | null {
   if (!value) return null;
   const d = new Date(value as string | Date);
@@ -103,6 +109,29 @@ function slotNameFromWindow(window: Record<string, unknown>): string {
   return String(window.type ?? '') === 'DAILY_BASE' ? 'Meal' : '';
 }
 
+/**
+ * Stable per-day identity for a fueling window.
+ *
+ * The API stamps every window with a `windowKey`, because a day can hold more than one window of
+ * the same type (two sessions produce two PRE_WORKOUT windows). Older payloads carry no key, in
+ * which case the bare type addresses the first window of that type.
+ */
+export function resolveWindowKey(window: Record<string, unknown>): string {
+  const explicit = typeof window.windowKey === 'string' ? window.windowKey.trim() : '';
+  if (explicit) return explicit;
+
+  const type = String(window.type ?? '');
+  if (!type) return '';
+  if (type === 'DAILY_BASE') return toDailyBaseKey(slotNameFromWindow(window));
+  return `${type}#1`;
+}
+
+/** Strips the per-day ordinal from a window key: `PRE_WORKOUT#2` -> `PRE_WORKOUT`. */
+function baseWindowType(value: string): string {
+  const hash = value.indexOf('#');
+  return hash >= 0 ? value.slice(0, hash) : value;
+}
+
 /** Match a plan meal row to a fueling-plan window (web WeeklyPlanDashboard parity). */
 export function matchesMealToWindow(
   meal: NutritionPlanMealApi,
@@ -111,20 +140,42 @@ export function matchesMealToWindow(
   const windowType = String(window.type ?? '');
   const mealType = String(meal.windowType ?? '');
   if (!windowType || !mealType) return false;
-  if (windowType !== 'DAILY_BASE') return mealType === windowType;
-  if (mealType === 'DAILY_BASE') return true;
-  if (!mealType.startsWith('DAILY_BASE:')) return false;
-  return mealType === toDailyBaseKey(slotNameFromWindow(window));
+
+  const key = resolveWindowKey(window);
+  if (mealType === key) return true;
+
+  // Meals locked before windows had stable keys stored the bare type. Those can only have referred
+  // to the first window of that type on the day, so match them there and nowhere else.
+  if (mealType === windowType && key === `${windowType}#1`) return true;
+  if (windowType === 'DAILY_BASE' && mealType === 'DAILY_BASE') return true;
+
+  return false;
 }
 
 function windowOrder(type: string): number {
-  const normalized = String(type || '').toUpperCase();
+  const normalized = baseWindowType(String(type || '')).toUpperCase();
   if (normalized.startsWith('DAILY_BASE')) return 10;
   if (normalized === 'PRE_WORKOUT') return 20;
   if (normalized === 'INTRA_WORKOUT') return 30;
   if (normalized === 'POST_WORKOUT') return 40;
   if (normalized === 'REFILL') return 50;
   return 60;
+}
+
+function startTimeMs(window: NutritionPlanWindowView): number {
+  if (!window.startTime) return Number.MAX_SAFE_INTEGER;
+  const parsed = Date.parse(window.startTime);
+  return Number.isFinite(parsed) ? parsed : Number.MAX_SAFE_INTEGER;
+}
+
+/**
+ * Orders a day the way it is eaten. Ordering by type instead rendered a two-session day as
+ * meals, then every pre-workout, then every intra — which reads nothing like the actual day.
+ */
+function compareWindows(a: NutritionPlanWindowView, b: NutritionPlanWindowView): number {
+  const byTime = startTimeMs(a) - startTimeMs(b);
+  if (byTime !== 0) return byTime;
+  return windowOrder(a.windowType) - windowOrder(b.windowType);
 }
 
 function humanizeWindowTypeLabel(type: string, slotName?: string | null): string {
@@ -215,11 +266,18 @@ function windowsForDay(
           const label =
             (typeof window.label === 'string' && window.label.trim()) ||
             humanizeWindowTypeLabel(type, slotName);
+          const windowKey = resolveWindowKey(window) || `${type}#${index + 1}`;
+          const startTime =
+            typeof window.startTime === 'string' && window.startTime.trim()
+              ? window.startTime
+              : null;
           return {
-            key: `${dateKey}:${type}:${slotName ?? index}`,
-            windowType: matching?.windowType ? String(matching.windowType) : type,
+            key: `${dateKey}:${windowKey}`,
+            windowType: baseWindowType(type),
+            windowKey,
             label,
             slotName,
+            startTime,
             scheduledLabel:
               scheduledLabelFrom(matching?.scheduledAt) ??
               scheduledLabelFrom(window.startTime),
@@ -240,9 +298,11 @@ function windowsForDay(
     const targets = targetsFromMeal(meal);
     return {
       key: `${dateKey}:meal:${meal.id ?? index}`,
-      windowType: type,
+      windowType: baseWindowType(type),
+      windowKey: type,
       label: humanizeWindowTypeLabel(type, slotName),
       slotName,
+      startTime: isoOrNull(meal.scheduledAt),
       scheduledLabel: scheduledLabelFrom(meal.scheduledAt),
       targetCarbs: Math.round(targets.carbs),
       targetProtein: Math.round(targets.protein),
@@ -260,6 +320,8 @@ function windowsForDay(
           type: window.windowType.startsWith('DAILY_BASE')
             ? 'DAILY_BASE'
             : window.windowType,
+          // Without the key a keyed meal matches nothing here and gets appended a second time.
+          windowKey: window.windowKey,
           slotName: window.slotName,
           label: window.label,
         })
@@ -274,9 +336,11 @@ function windowsForDay(
     const targets = targetsFromMeal(meal);
     return {
       key: `${dateKey}:extra:${meal.id ?? index}`,
-      windowType: type,
+      windowType: baseWindowType(type),
+      windowKey: type,
       label: humanizeWindowTypeLabel(type, slotName),
       slotName,
+      startTime: isoOrNull(meal.scheduledAt),
       scheduledLabel: scheduledLabelFrom(meal.scheduledAt),
       targetCarbs: Math.round(targets.carbs),
       targetProtein: Math.round(targets.protein),
@@ -285,9 +349,7 @@ function windowsForDay(
     };
   });
 
-  return [...base, ...appended].sort(
-    (a, b) => windowOrder(a.windowType) - windowOrder(b.windowType)
-  );
+  return [...base, ...appended].sort(compareWindows);
 }
 
 function toDayView(

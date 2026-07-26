@@ -14,6 +14,23 @@ Format:
 
 ---
 
+## 2026-07-25 — Play Internal testing runbook (testers)
+
+- Added [play-internal-testing.md](./play-internal-testing.md): Internal track process, `release:android:internal --upload-internal`, how to add testers (email list + opt-in link), license testers for IAP, and promote-to-prod note. Linked from hub / tasks 015–016 / docs README.
+
+## 2026-07-25 — Play Internal auto-upload (SA + script)
+
+- Created GCP SA `play-internal-uploader@coach-watts.iam.gserviceaccount.com` (project `coach-watts`); enabled `androidpublisher.googleapis.com`; JSON at gitignored `credentials/android/play-service-account.json`.
+- Invited SA in Play Console Users and permissions (Active): View app information + Release apps to testing tracks.
+- Extended `pnpm release:android:internal` with `--upload-internal` / `--aab` (googleapis Android Publisher API → Internal track rollout).
+- Uploaded existing Mini-built AAB **0.1.1 / versionCode 2** to Internal testing via API (`Play Internal rollout committed`).
+
+## 2026-07-25 — Local Android Internal AAB script + Mini build vc2
+
+- Added `pnpm release:android:internal` (`scripts/android-internal-release.mjs`): sets `expo.android.versionCode`, guards against `EXPO_PUBLIC_E2E_*`, parks `.env.local`, runs `expo prebuild` + `gradlew bundleRelease`, copies AAB to `dist/android-internal/`.
+- Set `expo.android.versionCode` to **2** in `app.json` (Play already has vc1).
+- Built on Mac Mini (`lszls-mac-mini`): `coach-watts-0.1.1-vc2.aab` (~87 MiB).
+
 ## 2026-07-23 — Maestro companion e2e suite + CI smoke gate
 
 - Expanded [e2e.md](../e2e.md) for coach-wattz e2e stack (`:3199` + `POST /api/__e2e/token`), selector convention, companion flows, mutation/`e2e:reset` notes, and manual/sandbox matrix.

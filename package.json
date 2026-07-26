@@ -28,7 +28,8 @@
     "release:minor": "release-it minor",
     "release:major": "release-it major",
     "release:android:github": "node scripts/publish-android-github-release.mjs",
-    "release:android:github:local": "node scripts/publish-android-github-release.mjs --local"
+    "release:android:github:local": "node scripts/publish-android-github-release.mjs --local",
+    "release:android:internal": "node scripts/android-internal-release.mjs"
   },
   "dependencies": {
     "@ai-sdk/react": "^4.0.18",
@@ -93,6 +94,7 @@
     "babel-preset-expo": "~57.0.3",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~57.0.0",
+    "googleapis": "^173.0.0",
     "release-it": "^19.2.2",
     "release-it-pnpm": "^4.6.6",
     "typescript": "~6.0.3",

@@ -6,33 +6,29 @@
 
 ## Preference
 
-Build the Play AAB **locally**: `expo prebuild -p android` → configure upload signing → `./gradlew bundleRelease` → upload in Play Console. Do **not** use `eas build -p android` / `eas submit -p android` for the Internal / production path.
+Build the Play AAB **locally** (script wraps prebuild + `bundleRelease`), then upload to **Internal testing** via Play API or Console. Do **not** use `eas build -p android` / `eas submit -p android` for the Internal / production path.
 
-Sideload GitHub APKs: prefer `pnpm release:android:github -- --local` or `-- --apk path/to/app.apk` over cloud EAS ([../../distribution.md](../../distribution.md)#version-releases-release-it).
+Tester lists, opt-in links, and license testers: [../play-internal-testing.md](../play-internal-testing.md).  
+Sideload GitHub APKs: prefer `pnpm release:android:github -- --local` over cloud EAS.
 
 ## Goal
 
-Produce a signed Play AAB and land it on an internal/closed testing track.
+Produce a signed Play AAB and land it on Internal testing so listed testers can install from Play.
 
 ## Steps
 
-1. [ ] Bump user-facing version if needed (`pnpm release:patch` / etc.; `app.json` `version` is currently `0.1.1`).
-2. [ ] Bump Android **versionCode** for every new Play upload (Play rejects reuse). Set `expo.android.versionCode` in `app.json` (integer) before prebuild, **or** bump `versionCode` in Gradle after prebuild. Log the next code in [log.md](../log.md).
-3. [ ] Confirm production `.env` (Sentry + Maps; no `EXPO_PUBLIC_E2E_*`) — see [014](./014-eas-android-credentials.md).
-4. [ ] Generate native project:
+1. [ ] Bump user-facing version if needed (`pnpm release:patch` / etc.).
+2. [ ] Bump Android **versionCode** for every new Play upload (Play rejects reuse). Log in [log.md](../log.md).
+3. [ ] Confirm production `.env` (Sentry + Maps; no `EXPO_PUBLIC_E2E_*`) — [014](./014-eas-android-credentials.md).
+4. [x] Preferred one-shot (Mac / Mini):
    ```bash
-   npx expo prebuild -p android --clean
+   pnpm release:android:internal -- --version-code <n> --upload-internal
    ```
-5. [ ] Wire upload-keystore signing (Android Studio signed bundle, or gitignored `keystore.properties` / signingConfigs) — [014](./014-eas-android-credentials.md).
-6. [ ] Build the release AAB:
-   ```bash
-   cd android && ./gradlew bundleRelease
-   ```
-   Artifact: `android/app/build/outputs/bundle/release/app-release.aab` (path may vary slightly by Expo template).
-7. [ ] Play Console → Coach Watts → **Internal testing** → create/update release → upload AAB → roll out to internal testers.
-8. [ ] Log `versionName` + `versionCode` (and optional AAB path/date) in [log.md](../log.md) — no EAS URL required.
-9. [ ] Verify adaptive icon + splash on a physical device ([../../store-checklist.md](../../store-checklist.md)); notification accent `#00DC82` after notifications plugin rebuild.
+   Or build only, then Console upload / `--upload-internal --aab …`. Manual Gradle path still OK: `expo prebuild -p android --clean` → `./gradlew bundleRelease` — signing via [014](./014-eas-android-credentials.md).
+5. [ ] Ensure Internal **testers** exist and have the opt-in link — [../play-internal-testing.md](../play-internal-testing.md).
+6. [ ] Log `versionName` + `versionCode` in [log.md](../log.md).
+7. [ ] Smoke on device — [016](./016-play-internal-test-smoke.md); branded icon/splash ([../../store-checklist.md](../../store-checklist.md)).
 
 ## Done when
 
-- AAB is on Internal testing and installable by testers.
+- AAB is on Internal testing and installable by at least one opted-in tester.

@@ -15,6 +15,7 @@ Implementation docs for the native companion app. Product narrative originally d
 | [store-checklist.md](./store-checklist.md) | Icons, splash, Sentry, listing chrome |
 | [store-privacy-checklist.md](./store-privacy-checklist.md) | Privacy / health questionnaire strings |
 | [distribution.md](./distribution.md) | App Store / Play hub + release-it / GitHub Android APK |
+| [distribution/play-internal-testing.md](./distribution/play-internal-testing.md) | Play Internal: upload flow, add testers, opt-in link |
 | [distribution/tasks.md](./distribution/tasks.md) | Outstanding distribution tasks |
 | [distribution/log.md](./distribution/log.md) | Distribution progress history (append-only) |
 | [distribution/play-console-signup.md](./distribution/play-console-signup.md) | Google Play Organization signup walkthrough |

@@ -24,7 +24,7 @@ A Watt Mind **upload keystore** exists outside git, local production env is set,
    - Hosted OAuth fallbacks via `app.json` `extra` (or explicit `EXPO_PUBLIC_*`)
    - **No** `EXPO_PUBLIC_E2E_*` ([../../e2e.md](../../e2e.md))
 4. [x] Release signing wired via Gradle + Expo plugin `./plugins/withAndroidReleaseSigning` (reads `credentials/android/keystore.properties`). Survives `expo prebuild -p android --clean` when credentials file is present.
-5. [ ] Optional: Play Console API service account JSON for automation later — store outside git. Not required for manual Internal testing uploads.
+5. [x] Play Console API service account for Internal upload automation (2026-07-25): `play-internal-uploader@coach-watts.iam.gserviceaccount.com`; JSON at gitignored `credentials/android/play-service-account.json`; Play user Active with release-to-testing perms. Used by `pnpm release:android:internal -- --upload-internal`.
 6. [ ] Document secret *names* (not values) in [log.md](../log.md) when the local release env + keystore location are confirmed. Store upload-cert SHA-256 after first accepted Play upload.
 
 ## Done when

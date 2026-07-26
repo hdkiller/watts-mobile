@@ -329,6 +329,11 @@ export async function patchNutritionPlanMeal(
 export async function lockNutritionPlanMeal(input: {
   date: string;
   windowType: string;
+  /**
+   * Stable identity of the window being locked, e.g. `PRE_WORKOUT#2`. Without it the API falls
+   * back to the first window of that type, so on a two-session day the wrong one gets the meal.
+   */
+  windowKey?: string;
   meal: unknown;
   slotName?: string;
 }): Promise<unknown> {

@@ -31,6 +31,7 @@ Hub for shipping Coach Watts to **App Store** and **Play Console**, including th
 | [distribution/tasks/](./distribution/tasks/) | Per-task detail (status, steps, blockers) |
 | [distribution/log.md](./distribution/log.md) | Append-only history of decisions and progress |
 | [distribution/play-console-signup.md](./distribution/play-console-signup.md) | Step-by-step Google Play Organization signup |
+| [distribution/play-internal-testing.md](./distribution/play-internal-testing.md) | Play Internal track: build/upload, **add testers**, opt-in link, license testers |
 | [store-checklist.md](./store-checklist.md) | Brand chrome, About links, Sentry env |
 | [store-privacy-checklist.md](./store-privacy-checklist.md) | App Privacy / Data safety paste-ready copy |
 | [oauth-setup.md](./oauth-setup.md) | Official Mobile App client + redirects |
@@ -72,6 +73,7 @@ Same legal entity for **both** stores. Account enrollments are independent and c
 | Play app ID | `4976128188579826786` |
 | Dashboard | [Coach Watts](https://play.google.com/console/u/0/developers/7883910200930974301/app/4976128188579826786/app-dashboard) |
 | Android build path | **Local Gradle** (preferred). Not EAS cloud for Play Internal / production. |
+| Internal testers | Email list + opt-in link — [play-internal-testing.md](./distribution/play-internal-testing.md) |
 
 ## Sequencing
 
@@ -128,6 +130,13 @@ pnpm release:android:github -- --local   # build APK on this machine
 pnpm release:android:github -- --apk path/to/app.apk
 pnpm release:android:github -- --dry-run
 # Avoid default cloud EAS unless intentionally using CI/fallback
+
+# Play Internal testing AAB (local Gradle):
+pnpm release:android:internal -- --version-code <n>
+pnpm release:android:internal -- --version-code <n> --upload-internal
+pnpm release:android:internal -- --upload-internal --aab dist/android-internal/foo.aab
+# Needs credentials/android/play-service-account.json (Play “Release apps to testing tracks”)
+# Testers / opt-in link: [play-internal-testing.md](./distribution/play-internal-testing.md)
 ```
 
 | EAS profile | Use |
