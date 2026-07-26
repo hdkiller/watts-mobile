@@ -390,12 +390,20 @@ export default function SubscriptionScreen() {
 
               {offerings.isError ? (
                 <View className="mt-4 rounded-xl border border-danger/40 bg-tint-error p-4">
-                  <Text className="text-sm text-red-400">Could not load available store plans.</Text>
-                  <Pressable className="mt-2" hitSlop={8} onPress={() => void offerings.refetch()}>
+                  <Text className="text-sm font-semibold text-red-400">
+                    Could not load available store plans.
+                  </Text>
+                  <Text className="mt-1 text-xs text-red-300">
+                    {!rcAvailable
+                      ? 'RevenueCat API key is missing from environment config.'
+                      : friendlyError(offerings.error, 'Store service unavailable or unconfigured.')}
+                  </Text>
+                  <Pressable className="mt-3" hitSlop={8} onPress={() => void offerings.refetch()}>
                     <Text className="text-sm font-semibold text-brand">Retry loading plans</Text>
                   </Pressable>
                 </View>
               ) : null}
+
 
               {offerings.data?.map((item) => {
                 const isCurrentPlan = currentTier === item.tier;

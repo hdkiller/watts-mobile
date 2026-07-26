@@ -110,9 +110,20 @@ export function mapStorePackages(packages: readonly PurchasesPackage[]): StorePa
 
 export async function fetchStorePackages(): Promise<StorePackage[]> {
   if (!isRevenueCatAvailable()) return [];
+  const configured = await Purchases.isConfigured();
+  if (!configured) {
+    const key = platformKey();
+    if (key) {
+      if (__DEV__) Purchases.setLogLevel(LOG_LEVEL.DEBUG);
+      Purchases.configure({ apiKey: key });
+    } else {
+      return [];
+    }
+  }
   const offerings = await Purchases.getOfferings();
   return mapStorePackages(offerings.current?.availablePackages ?? []);
 }
+
 
 export type PurchaseOutcome = 'purchased' | 'cancelled' | 'pending';
 
