@@ -38,14 +38,13 @@ function setupLogLevel(): void {
     logHandlerRegistered = true;
     Purchases.setLogLevel(LOG_LEVEL.WARN);
     Purchases.setLogHandler((logLevel, message) => {
-      if (logLevel === LOG_LEVEL.ERROR) {
-        console.error('[RevenueCat]', message);
-      } else if (logLevel === LOG_LEVEL.WARN) {
+      if (logLevel === LOG_LEVEL.ERROR || logLevel === LOG_LEVEL.WARN) {
         console.warn('[RevenueCat]', message);
       }
     });
   }
 }
+
 
 export function synchronizeRevenueCatIdentity(userId: string | null): Promise<void> {
   identityOperation = identityOperation
