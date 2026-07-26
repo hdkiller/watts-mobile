@@ -22,7 +22,7 @@ export function sleepSecsFromIntervals(intervals: { start: number; end: number }
 
 /** Prefer stage samples when present so watch stages + phone "asleep" don't double-count. */
 export function filterHealthKitSleepSamples(
-  samples: { value: number; start: number; end: number }[]
+  samples: { value: number; start: number; end: number }[],
 ): { value: number; start: number; end: number }[] {
   const parsed = samples.filter((s) => HK_ALL_ASLEEP.has(s.value) && s.end > s.start);
   const hasStages = parsed.some((s) => HK_STAGE_VALUES.has(s.value));
@@ -30,7 +30,7 @@ export function filterHealthKitSleepSamples(
 }
 
 export function bucketHealthKitSleep(
-  samples: { value: number; start: number; end: number }[]
+  samples: { value: number; start: number; end: number }[],
 ): SleepStageBucket | null {
   const accepted = filterHealthKitSleepSamples(samples);
   if (!accepted.length) return null;
@@ -44,7 +44,7 @@ export function bucketHealthKitSleep(
   // Awake segments are excluded from time asleep but reported alongside it, so
   // the iOS payload carries the same stage set Health Connect already sends.
   const awake = sleepSecsFromIntervals(
-    samples.filter((s) => s.value === HK_AWAKE && s.end > s.start)
+    samples.filter((s) => s.value === HK_AWAKE && s.end > s.start),
   );
 
   return {
@@ -64,12 +64,7 @@ export const HC_STAGE_DEEP = 5;
 export const HC_STAGE_REM = 6;
 
 /** Stages counting toward time asleep. AWAKE / OUT_OF_BED / AWAKE_IN_BED are excluded. */
-const HC_ASLEEP_STAGES = new Set([
-  HC_STAGE_SLEEPING,
-  HC_STAGE_LIGHT,
-  HC_STAGE_DEEP,
-  HC_STAGE_REM,
-]);
+const HC_ASLEEP_STAGES = new Set([HC_STAGE_SLEEPING, HC_STAGE_LIGHT, HC_STAGE_DEEP, HC_STAGE_REM]);
 
 export type HcSleepSession = {
   start: number;

@@ -25,7 +25,9 @@ export function isTerminalTurnStatus(status: string | null | undefined): boolean
   return TERMINAL_TURN_STATUSES.includes(status as (typeof TERMINAL_TURN_STATUSES)[number]);
 }
 
-export function messageText(message: CoachUIMessage | StoredChatMessage | null | undefined): string {
+export function messageText(
+  message: CoachUIMessage | StoredChatMessage | null | undefined,
+): string {
   if (!message) return '';
   if (typeof message.content === 'string' && message.content.trim()) {
     return message.content;
@@ -44,7 +46,7 @@ export function messageText(message: CoachUIMessage | StoredChatMessage | null |
 
 /** Athlete-facing text: strips chat seed context from user bubbles. */
 export function displayMessageText(
-  message: CoachUIMessage | StoredChatMessage | null | undefined
+  message: CoachUIMessage | StoredChatMessage | null | undefined,
 ): string {
   const raw = messageText(message);
   if (!message || message.role !== 'user') return raw;
@@ -52,7 +54,7 @@ export function displayMessageText(
 }
 
 export function messageImageParts(
-  message: CoachUIMessage | StoredChatMessage | null | undefined
+  message: CoachUIMessage | StoredChatMessage | null | undefined,
 ): { url: string; mediaType?: string; filename?: string }[] {
   const parts = Array.isArray(message?.parts) ? message.parts : [];
   const images: { url: string; mediaType?: string; filename?: string }[] = [];
@@ -79,7 +81,7 @@ export function messageImageParts(
 
 function synthesizeApprovalParts(
   existingParts: CoachUIMessage['parts'],
-  pendingApprovals: PendingChatApproval[] | undefined
+  pendingApprovals: PendingChatApproval[] | undefined,
 ): CoachUIMessage['parts'] {
   if (!pendingApprovals?.length) return existingParts;
   const parts = Array.isArray(existingParts) ? [...existingParts] : [];
@@ -104,7 +106,7 @@ function synthesizeApprovalParts(
         }
         return null;
       })
-      .filter(Boolean)
+      .filter(Boolean),
   );
 
   for (const approval of pendingApprovals) {
@@ -148,7 +150,7 @@ export function transformStoredMessage(msg: StoredChatMessage): CoachUIMessage {
 
   const parts = synthesizeApprovalParts(
     keptParts,
-    msg.metadata?.pendingApprovals as PendingChatApproval[] | undefined
+    msg.metadata?.pendingApprovals as PendingChatApproval[] | undefined,
   );
 
   const role: CoachUIMessage['role'] =
@@ -174,7 +176,7 @@ export function hydrateCoachMessages(stored: StoredChatMessage[]): CoachUIMessag
 
 export function getLatestAssistantMessage(
   messages: CoachUIMessage[],
-  options: { includeHidden?: boolean } = {}
+  options: { includeHidden?: boolean } = {},
 ): CoachUIMessage | undefined {
   return [...messages]
     .reverse()
@@ -182,7 +184,7 @@ export function getLatestAssistantMessage(
       (message) =>
         message?.role === 'assistant' &&
         !message?.metadata?.syntheticTyping &&
-        (options.includeHidden !== false || !shouldHideAssistantBubble(message))
+        (options.includeHidden !== false || !shouldHideAssistantBubble(message)),
     );
 }
 
@@ -207,7 +209,7 @@ export function shouldHideAssistantBubble(message: CoachUIMessage): boolean {
 
 export function hasActiveTurn(messages: CoachUIMessage[]): boolean {
   return isActiveTurnStatus(
-    getLatestAssistantMessage(messages, { includeHidden: true })?.metadata?.turnStatus
+    getLatestAssistantMessage(messages, { includeHidden: true })?.metadata?.turnStatus,
   );
 }
 
@@ -286,10 +288,7 @@ export function approvalPreviewLine(args: unknown): string | null {
   return null;
 }
 
-function resolveToolPartName(part: {
-  type?: string;
-  toolName?: string;
-}): string | null {
+function resolveToolPartName(part: { type?: string; toolName?: string }): string | null {
   if (typeof part.toolName === 'string' && part.toolName.trim()) return part.toolName;
   if (typeof part.type === 'string' && part.type.startsWith('tool-')) {
     const name = part.type.slice('tool-'.length);
@@ -467,16 +466,13 @@ export function toolInProgressSummaries(message: CoachUIMessage): ToolInProgress
 /** @deprecated Prefer `toolOutcomeSummaries` — kept for nutrition-only call sites/tests. */
 export function nutritionToolSummaries(message: CoachUIMessage): string[] {
   return toolOutcomeSummaries(message)
-    .filter(
-      (outcome) =>
-        outcome.status === 'success' && NUTRITION_TOOL_NAMES.has(outcome.toolName)
-    )
+    .filter((outcome) => outcome.status === 'success' && NUTRITION_TOOL_NAMES.has(outcome.toolName))
     .map((outcome) => outcome.message);
 }
 
 export function mergeRealtimeMessage(
   existingMessage: CoachUIMessage,
-  incomingMessage: CoachUIMessage
+  incomingMessage: CoachUIMessage,
 ): CoachUIMessage {
   const existingStatus = existingMessage?.metadata?.turnStatus;
   const incomingStatus = incomingMessage?.metadata?.turnStatus;
@@ -527,8 +523,7 @@ export function mergeRealtimeMessage(
 
   const existingText =
     typeof existingMessage?.content === 'string' ? existingMessage.content.trim() : '';
-  const incomingText =
-    typeof nextIncoming?.content === 'string' ? nextIncoming.content.trim() : '';
+  const incomingText = typeof nextIncoming?.content === 'string' ? nextIncoming.content.trim() : '';
   const existingIsStreaming =
     isActiveTurnStatus(String(existingStatus || '')) ||
     Boolean(existingMessage?.metadata?.isRealtimeDraft);
@@ -559,7 +554,7 @@ export function mergeRealtimeMessage(
 
 export function mergeLoadedMessages(
   existingMessages: CoachUIMessage[],
-  loadedMessages: CoachUIMessage[]
+  loadedMessages: CoachUIMessage[],
 ): CoachUIMessage[] {
   const existingById = new Map(existingMessages.map((message) => [message?.id, message]));
 
@@ -577,7 +572,7 @@ export function applyAssistantTextDelta(
     turnId: string;
     textDelta: string;
     status?: string;
-  }
+  },
 ): CoachUIMessage[] {
   if (!event.textDelta) return messages;
 
@@ -622,7 +617,7 @@ export function applyAssistantTextDelta(
 
 export function upsertChatMessage(
   messages: CoachUIMessage[],
-  message: StoredChatMessage
+  message: StoredChatMessage,
 ): CoachUIMessage[] {
   if (message.role !== 'user' && message.role !== 'assistant') {
     return messages;
@@ -638,7 +633,7 @@ export function upsertChatMessage(
 
   return [...messages, transformed].sort(
     (left, right) =>
-      new Date(left.createdAt || 0).getTime() - new Date(right.createdAt || 0).getTime()
+      new Date(left.createdAt || 0).getTime() - new Date(right.createdAt || 0).getTime(),
   );
 }
 

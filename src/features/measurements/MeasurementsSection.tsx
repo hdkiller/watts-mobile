@@ -47,17 +47,19 @@ import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 const METRIC_CATEGORIES = [
   { id: 'all', label: 'All Metrics' },
   { id: 'body', label: 'Body Composition', keys: ['weight', 'body_fat_pct', 'muscle_mass_kg'] },
-  { id: 'vitals', label: 'Vitals & Cardiac', keys: ['resting_hr', 'hrv_sdnn_ms', 'blood_pressure_sys', 'blood_glucose_mg_dl', 'spo2_pct'] },
-  { id: 'dimensions', label: 'Dimensions', keys: ['waist_cm', 'chest_cm', 'thigh_cm', 'arm_cm', 'hips_cm'] },
+  {
+    id: 'vitals',
+    label: 'Vitals & Cardiac',
+    keys: ['resting_hr', 'hrv_sdnn_ms', 'blood_pressure_sys', 'blood_glucose_mg_dl', 'spo2_pct'],
+  },
+  {
+    id: 'dimensions',
+    label: 'Dimensions',
+    keys: ['waist_cm', 'chest_cm', 'thigh_cm', 'arm_cm', 'hips_cm'],
+  },
 ];
 
-function MetricPicker({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (next: string) => void;
-}) {
+function MetricPicker({ value, onChange }: { value: string; onChange: (next: string) => void }) {
   const theme = useThemeColors();
   const [activeCategory, setActiveCategory] = useState('all');
 
@@ -134,9 +136,7 @@ function MetricPicker({
               }}
             >
               <Text
-                className={`text-xs font-semibold ${
-                  active ? 'text-brand' : 'text-text-primary'
-                }`}
+                className={`text-xs font-semibold ${active ? 'text-brand' : 'text-text-primary'}`}
               >
                 {metric.label}
               </Text>
@@ -198,9 +198,7 @@ function LatestCard({
             hitSlop={8}
             onPress={onDelete}
           >
-            <Text className="text-xs font-semibold text-red-400">
-              {deleting ? '…' : 'Delete'}
-            </Text>
+            <Text className="text-xs font-semibold text-red-400">{deleting ? '…' : 'Delete'}</Text>
           </Pressable>
         ) : null}
       </View>
@@ -215,18 +213,13 @@ export function MeasurementsSection() {
   const { data: profile } = useAthleteProfileQuery();
   const weightUnits = profile?.weightUnits ?? 'Kilograms';
   const distanceUnits = profile?.distanceUnits ?? 'Kilometers';
-  const unitOpts = useMemo(
-    () => ({ weightUnits, distanceUnits }),
-    [weightUnits, distanceUnits]
-  );
+  const unitOpts = useMemo(() => ({ weightUnits, distanceUnits }), [weightUnits, distanceUnits]);
 
   const { data, isLoading, isError, error, refetch } = useBodyMeasurementsQuery();
   const createMutation = useCreateBodyMeasurement();
   const deleteMutation = useSoftDeleteBodyMeasurement();
 
-  const [form, setForm] = useState<MeasurementFormValues>(
-    emptyMeasurementForm(DEFAULT_METRIC_KEY)
-  );
+  const [form, setForm] = useState<MeasurementFormValues>(emptyMeasurementForm(DEFAULT_METRIC_KEY));
   const [formError, setFormError] = useState<string | null>(null);
   const [justSaved, setJustSaved] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -237,7 +230,7 @@ export function MeasurementsSection() {
   const unitLabel = displayUnitLabel(
     form.metricKey === 'custom' ? `custom:${form.customName || 'x'}` : form.metricKey,
     canonicalUnit,
-    unitOpts
+    unitOpts,
   );
 
   const touch = () => {
@@ -251,7 +244,7 @@ export function MeasurementsSection() {
       setFormError(
         form.metricKey === 'custom'
           ? 'Enter a custom name and value.'
-          : 'Enter a value before saving.'
+          : 'Enter a value before saving.',
       );
       return;
     }
@@ -297,7 +290,7 @@ export function MeasurementsSection() {
             })();
           },
         },
-      ]
+      ],
     );
   };
 
@@ -327,9 +320,7 @@ export function MeasurementsSection() {
         </Pressable>
       </View>
 
-      {isLoading && !data ? (
-        <ActivityIndicator className="mt-4" color={Colors.brand} />
-      ) : null}
+      {isLoading && !data ? <ActivityIndicator className="mt-4" color={Colors.brand} /> : null}
 
       {isError ? (
         <View className="mt-3 rounded-xl border border-danger/40 bg-tint-error p-3">
@@ -347,8 +338,10 @@ export function MeasurementsSection() {
         Latest Recorded Metrics
       </Text>
       {data && data.latestByMetric.length === 0 ? (
-        <View className="rounded-xl border border-border bg-card p-3.5 mb-4">
-          <Text className="text-xs text-text-muted">No measurements logged yet. Add your first below.</Text>
+        <View className="mb-4 rounded-xl border border-border bg-card p-3.5">
+          <Text className="text-xs text-text-muted">
+            No measurements logged yet. Add your first below.
+          </Text>
         </View>
       ) : null}
       {data?.latestByMetric.map((entry) => (
@@ -430,18 +423,12 @@ export function MeasurementsSection() {
         ) : null}
 
         <View className="mt-2">
-          <Text className="mb-1 text-xs font-medium text-text-muted">
-            Value ({unitLabel})
-          </Text>
+          <Text className="mb-1 text-xs font-medium text-text-muted">Value ({unitLabel})</Text>
           <TextInput
             className="rounded-xl border border-border-strong bg-surface px-4 py-3 text-base font-semibold text-text-primary"
             placeholderTextColor={theme.textMuted}
             placeholder={
-              form.metricKey === 'weight'
-                ? prefersImperialMass(weightUnits)
-                  ? '165'
-                  : '75'
-                : '0'
+              form.metricKey === 'weight' ? (prefersImperialMass(weightUnits) ? '165' : '75') : '0'
             }
             value={form.value}
             onChangeText={(text) => {

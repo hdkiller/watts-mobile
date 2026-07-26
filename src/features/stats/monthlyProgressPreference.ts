@@ -4,13 +4,7 @@ import type { MonthlyMetric } from './types';
 
 const STORAGE_KEY = 'watts.stats.monthlyProgress.metric.v1';
 
-const METRICS: readonly MonthlyMetric[] = [
-  'tss',
-  'duration',
-  'distance',
-  'elevation',
-  'count',
-];
+const METRICS: readonly MonthlyMetric[] = ['tss', 'duration', 'distance', 'elevation', 'count'];
 
 let memoryMetric: MonthlyMetric = 'tss';
 let hydrated = false;

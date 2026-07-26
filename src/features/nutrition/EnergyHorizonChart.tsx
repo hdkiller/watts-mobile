@@ -35,8 +35,7 @@ export function EnergyHorizonChart({ points, height = 96 }: Props) {
   const usableH = Math.max(height - padY * 2, 1);
   // Wave window is yesterday → +3 days; "now" sits ~1/4 along that span.
   const nowIndex = Math.round((points.length - 1) * 0.25);
-  const nowX =
-    points.length === 1 ? 0 : (nowIndex / (points.length - 1)) * Math.max(width, 1);
+  const nowX = points.length === 1 ? 0 : (nowIndex / (points.length - 1)) * Math.max(width, 1);
 
   let d = '';
   points.forEach((p, i) => {

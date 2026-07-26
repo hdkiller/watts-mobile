@@ -51,7 +51,7 @@ function normalizeType(type: string | null | undefined): string {
  */
 function pairQuality(
   activity: ActivityListItem,
-  planned: PlannedListItem
+  planned: PlannedListItem,
 ): 'done' | 'modified' | null {
   const aKey = localDateKey(activity.date);
   const pKey = localDateKey(planned.date);
@@ -83,13 +83,13 @@ export type ComplianceIndex = {
 export function buildComplianceIndex(
   activities: ActivityListItem[] | undefined,
   planned: PlannedListItem[] | undefined,
-  now = new Date()
+  now = new Date(),
 ): ComplianceIndex {
   const forActivity = new Map<string, ComplianceMark>();
   const forPlanned = new Map<string, ComplianceMark>();
 
   const acts = [...(activities ?? [])].sort((a, b) =>
-    String(a.date ?? '').localeCompare(String(b.date ?? ''))
+    String(a.date ?? '').localeCompare(String(b.date ?? '')),
   );
   const plans = [...(planned ?? [])];
   const usedPlans = new Set<string>();

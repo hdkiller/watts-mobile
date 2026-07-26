@@ -17,7 +17,7 @@ function delay(ms: number, signal?: AbortSignal): Promise<void> {
         clearTimeout(timer);
         reject(new DOMException('Aborted', 'AbortError'));
       },
-      { once: true }
+      { once: true },
     );
   });
 }
@@ -28,7 +28,7 @@ function delay(ms: number, signal?: AbortSignal): Promise<void> {
  */
 export async function pollUntilDone<T>(
   check: () => Promise<{ done: boolean; value?: T }>,
-  options: JobPollOptions = {}
+  options: JobPollOptions = {},
 ): Promise<T | undefined> {
   const timeoutMs = options.timeoutMs ?? 180_000;
   const pollMs = options.pollMs ?? 2_000;

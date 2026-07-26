@@ -16,7 +16,7 @@ export type ResolvedPickerPhoto = {
  */
 export async function resolvePickerPhoto(
   asset: PickerPhotoAsset,
-  readBase64: (uri: string) => Promise<string> = defaultReadBase64
+  readBase64: (uri: string) => Promise<string> = defaultReadBase64,
 ): Promise<ResolvedPickerPhoto | null> {
   const uri = asset.uri?.trim();
   if (!uri) return null;

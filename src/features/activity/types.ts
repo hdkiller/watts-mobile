@@ -3,12 +3,7 @@ import type { StructureChartBlock } from './structureIntensity';
 export type { StructureChartBlock };
 
 export type WorkoutAnalysisStatus =
-  | 'NOT_STARTED'
-  | 'PENDING'
-  | 'PROCESSING'
-  | 'COMPLETED'
-  | 'FAILED'
-  | string;
+  'NOT_STARTED' | 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | string;
 
 /** Raw workout row from `GET /api/workouts`. */
 export type WorkoutListItemApi = {
@@ -151,13 +146,7 @@ export type SummaryMetric = {
   value: string;
 };
 
-export type AnalysisPhase =
-  | 'ready'
-  | 'analyzing'
-  | 'failed'
-  | 'quota'
-  | 'not_started'
-  | 'unknown';
+export type AnalysisPhase = 'ready' | 'analyzing' | 'failed' | 'quota' | 'not_started' | 'unknown';
 
 export type AnalysisScore = {
   key: string;

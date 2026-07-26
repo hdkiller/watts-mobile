@@ -20,7 +20,7 @@ export function useHealthSyncPreferences() {
   const prefs = useSyncExternalStore(
     subscribeHealthSyncPreferences,
     getHealthSyncPreferencesSync,
-    getHealthSyncPreferencesSync
+    getHealthSyncPreferencesSync,
   );
 
   useEffect(() => {

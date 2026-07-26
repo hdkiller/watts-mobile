@@ -45,9 +45,7 @@ export function ActivityCharts({ workoutId }: Props) {
     return (
       <View className="mt-6">
         <Text className="text-xs uppercase tracking-wide text-text-muted">Charts</Text>
-        <Text className="mt-2 text-sm text-text-muted">
-          Charts unavailable for this workout.
-        </Text>
+        <Text className="mt-2 text-sm text-text-muted">Charts unavailable for this workout.</Text>
       </View>
     );
   }

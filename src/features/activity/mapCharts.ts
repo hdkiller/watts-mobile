@@ -20,7 +20,7 @@ function isFiniteNumber(value: unknown): value is number {
 export function downsamplePoints(
   xs: number[],
   ys: number[],
-  maxPoints: number = CHART_DISPLAY_MAX_POINTS
+  maxPoints: number = CHART_DISPLAY_MAX_POINTS,
 ): ChartPoint[] {
   const n = Math.min(xs.length, ys.length);
   if (n <= 0) return [];
@@ -57,7 +57,7 @@ function mapSeries(
   unit: string,
   color: string,
   time: number[] | null | undefined,
-  values: number[] | null | undefined
+  values: number[] | null | undefined,
 ): StreamSeries | null {
   if (!Array.isArray(values) || values.length === 0) return null;
   const usable = values.filter(isFiniteNumber);
@@ -72,7 +72,7 @@ function mapSeries(
 export function mapZoneBars(
   times: number[] | null | undefined,
   zones: StreamZoneDef[] | null | undefined,
-  unitSuffix: string
+  unitSuffix: string,
 ): ZoneBar[] {
   if (!Array.isArray(times) || times.length === 0) return [];
   const total = times.reduce((sum, n) => sum + (isFiniteNumber(n) && n > 0 ? n : 0), 0);
@@ -84,9 +84,7 @@ export function mapZoneBars(
     if (!isFiniteNumber(count) || count <= 0) continue;
     const zone = Array.isArray(zones) ? zones[i] : undefined;
     const name =
-      zone && typeof zone.name === 'string' && zone.name.trim()
-        ? zone.name.trim()
-        : `Z${i + 1}`;
+      zone && typeof zone.name === 'string' && zone.name.trim() ? zone.name.trim() : `Z${i + 1}`;
     const detail =
       zone && isFiniteNumber(zone.min) && isFiniteNumber(zone.max)
         ? `${Math.round(zone.min)}–${Math.round(zone.max)} ${unitSuffix}`
@@ -113,7 +111,7 @@ export function mapActivityStreamCharts(raw: WorkoutStreamsApi): ActivityStreamC
     'bpm',
     '#38bdf8',
     raw.time,
-    raw.heartrate ?? null
+    raw.heartrate ?? null,
   );
   if (hr) series.push(hr);
 

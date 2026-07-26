@@ -88,8 +88,7 @@ export default function PlannedWorkoutDetailScreen() {
     ? [data.completionLabel, data.syncLabel].filter(Boolean).join(' · ')
     : null;
 
-  const busy =
-    completeMutation.isPending || skipMutation.isPending || deleteMutation.isPending;
+  const busy = completeMutation.isPending || skipMutation.isPending || deleteMutation.isPending;
 
   const athleteRefs = useMemo(
     () =>
@@ -98,7 +97,7 @@ export default function PlannedWorkoutDetailScreen() {
         lthr: profileQuery.data?.lthr,
         maxHr: profileQuery.data?.maxHr,
       }),
-    [profileQuery.data?.ftp, profileQuery.data?.lthr, profileQuery.data?.maxHr]
+    [profileQuery.data?.ftp, profileQuery.data?.lthr, profileQuery.data?.maxHr],
   );
 
   const chartBlocks = useMemo(() => {
@@ -167,7 +166,7 @@ export default function PlannedWorkoutDetailScreen() {
             });
           },
         },
-      ]
+      ],
     );
   };
 
@@ -189,13 +188,12 @@ export default function PlannedWorkoutDetailScreen() {
         </View>
       ) : data ? (
         <ScrollView className="flex-1 bg-surface" contentContainerClassName="px-6 pb-10 pt-4">
-          <OfflineBanner
-            visible={showCachedOffline}
-            lastUpdatedLabel={lastUpdatedLabel}
-          />
+          <OfflineBanner visible={showCachedOffline} lastUpdatedLabel={lastUpdatedLabel} />
           <View className="flex-row items-center gap-3">
             <SportIcon type={data.type} size={18} />
-            <Text className="min-w-0 flex-1 text-2xl font-semibold text-text-primary">{data.title}</Text>
+            <Text className="min-w-0 flex-1 text-2xl font-semibold text-text-primary">
+              {data.title}
+            </Text>
           </View>
           <Text className="mt-2 text-sm text-text-muted">
             {[formatActivityDate(data.date), humanizeWorkoutType(data.type)]
@@ -203,14 +201,17 @@ export default function PlannedWorkoutDetailScreen() {
               .join(' · ')}
           </Text>
           <HeroStatTiles stats={plannedHeroStats(data)} />
-          {statusLine ? (
-            <Text className="mt-3 text-sm text-text-muted">{statusLine}</Text>
-          ) : null}
+          {statusLine ? <Text className="mt-3 text-sm text-text-muted">{statusLine}</Text> : null}
 
           {data.complianceActionable ? (
             <View className="mt-4 flex-row gap-3">
               <View className="flex-1">
-                <Button label="Complete" onPress={onComplete} loading={completeMutation.isPending} disabled={busy} />
+                <Button
+                  label="Complete"
+                  onPress={onComplete}
+                  loading={completeMutation.isPending}
+                  disabled={busy}
+                />
               </View>
               <View className="flex-1">
                 <Button
@@ -259,7 +260,9 @@ export default function PlannedWorkoutDetailScreen() {
                 router.push(APP_HREFS.activityDetail(data.linkedCompleted!.id) as Href)
               }
             >
-              <Text className="text-xs uppercase tracking-wide text-text-muted">Completed activity</Text>
+              <Text className="text-xs uppercase tracking-wide text-text-muted">
+                Completed activity
+              </Text>
               <Text className="mt-1 text-base font-medium text-text-body">
                 {data.linkedCompleted.title}
               </Text>
@@ -270,7 +273,9 @@ export default function PlannedWorkoutDetailScreen() {
           {data.coachInstructions ? (
             <View className="mt-6">
               <Text className="text-xs uppercase tracking-wide text-text-muted">Coach cues</Text>
-              <Text className="mt-2 text-base leading-6 text-text-body">{data.coachInstructions}</Text>
+              <Text className="mt-2 text-base leading-6 text-text-body">
+                {data.coachInstructions}
+              </Text>
             </View>
           ) : null}
 
@@ -292,12 +297,14 @@ export default function PlannedWorkoutDetailScreen() {
                   ))}
               </View>
               {fuelingQuery.data.note ? (
-                <Text className="mt-1 text-sm leading-5 text-text-muted">{fuelingQuery.data.note}</Text>
+                <Text className="mt-1 text-sm leading-5 text-text-muted">
+                  {fuelingQuery.data.note}
+                </Text>
               ) : null}
             </View>
           ) : null}
 
-              {structureSteps.length > 0 ? (
+          {structureSteps.length > 0 ? (
             <View className="mt-6">
               <Text className="text-xs uppercase tracking-wide text-text-muted">
                 {data.structureIsStrength ? 'Exercises' : 'Structure'}
@@ -309,8 +316,7 @@ export default function PlannedWorkoutDetailScreen() {
                   .join(' · ');
                 const intensity = stepIntensity(step);
                 const zoneIndex = step.zoneIndex ?? intensity.zoneIndex;
-                const color =
-                  zoneIndex != null ? zoneColor(zoneIndex) : Colors.zoneNeutral;
+                const color = zoneIndex != null ? zoneColor(zoneIndex) : Colors.zoneNeutral;
                 const isSectionCue = Boolean(step.isSection);
                 return (
                   <View
@@ -318,10 +324,7 @@ export default function PlannedWorkoutDetailScreen() {
                     className="mt-3 flex-row items-stretch gap-3 border-b border-border pb-3"
                   >
                     {!isSectionCue ? (
-                      <View
-                        className="w-1 rounded-full"
-                        style={{ backgroundColor: color }}
-                      />
+                      <View className="w-1 rounded-full" style={{ backgroundColor: color }} />
                     ) : null}
                     <View className="flex-1">
                       <Text

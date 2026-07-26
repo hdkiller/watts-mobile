@@ -143,8 +143,7 @@ export function AthleteReportSheet({
   onOpenWeb: () => void;
 }) {
   const fitness = report?.sections.find((section) => section.kind === 'fitness') ?? null;
-  const secondary =
-    report?.sections.filter((section) => section.kind !== 'fitness') ?? [];
+  const secondary = report?.sections.filter((section) => section.kind !== 'fitness') ?? [];
 
   return (
     <Modal

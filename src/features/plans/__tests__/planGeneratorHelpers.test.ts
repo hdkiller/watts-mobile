@@ -67,7 +67,7 @@ describe('plan calendar helpers', () => {
         startYmd: '2026-07-24',
         goalEndYmd: '2026-10-15',
         durationWeeks: 12,
-      })
+      }),
     ).toBe('2026-10-15');
     expect(
       resolvePlanEndDateYmd({
@@ -75,7 +75,7 @@ describe('plan calendar helpers', () => {
         startYmd: '2026-07-24',
         goalEndYmd: null,
         durationWeeks: 12,
-      })
+      }),
     ).toBeNull();
     expect(
       resolvePlanEndDateYmd({
@@ -83,7 +83,7 @@ describe('plan calendar helpers', () => {
         startYmd: '2026-07-24',
         goalEndYmd: null,
         durationWeeks: 12,
-      })
+      }),
     ).toBe('2026-10-16');
   });
 
@@ -118,17 +118,17 @@ describe('defaultSelectedGoalId', () => {
 
 describe('recommendStrategy', () => {
   it('matches web PlanWizard heuristics', () => {
-    expect(recommendStrategy({ volumeHours: 12, eventBased: false, weeksToGoal: null }).strategy).toBe(
-      'POLARIZED'
+    expect(
+      recommendStrategy({ volumeHours: 12, eventBased: false, weeksToGoal: null }).strategy,
+    ).toBe('POLARIZED');
+    expect(recommendStrategy({ volumeHours: 6, eventBased: true, weeksToGoal: 6 }).strategy).toBe(
+      'BLOCK',
+    );
+    expect(recommendStrategy({ volumeHours: 6, eventBased: true, weeksToGoal: 12 }).strategy).toBe(
+      'LINEAR',
     );
     expect(
-      recommendStrategy({ volumeHours: 6, eventBased: true, weeksToGoal: 6 }).strategy
-    ).toBe('BLOCK');
-    expect(
-      recommendStrategy({ volumeHours: 6, eventBased: true, weeksToGoal: 12 }).strategy
-    ).toBe('LINEAR');
-    expect(
-      recommendStrategy({ volumeHours: 6, eventBased: false, weeksToGoal: null }).strategy
+      recommendStrategy({ volumeHours: 6, eventBased: false, weeksToGoal: null }).strategy,
     ).toBe('LINEAR');
   });
 });

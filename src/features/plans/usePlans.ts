@@ -39,7 +39,7 @@ export const PLAN_WEEK_SESSIONS_QUERY_KEY = ['plans', 'week-sessions'] as const;
 
 export async function invalidatePlanCaches(
   queryClient: QueryClient,
-  options: { plannedId?: string } = {}
+  options: { plannedId?: string } = {},
 ) {
   await Promise.all([
     queryClient.invalidateQueries({ queryKey: ACTIVE_PLAN_QUERY_KEY }),
@@ -55,7 +55,7 @@ export async function invalidatePlanCaches(
 /** Planned sessions for a plan week range (past or future) — not Today’s upcoming window. */
 export function usePlanWeekSessionsQuery(
   startDateKey: string | null | undefined,
-  endDateKey: string | null | undefined
+  endDateKey: string | null | undefined,
 ) {
   const startKey = startDateKey ?? null;
   const endKey = endDateKey ?? startKey;
@@ -152,13 +152,8 @@ export function useCreatePlannedWorkoutMutation() {
 export function usePatchPlannedWorkoutMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      id,
-      input,
-    }: {
-      id: string;
-      input: PlannedWorkoutPatchInput;
-    }) => patchPlannedWorkout(id, input),
+    mutationFn: ({ id, input }: { id: string; input: PlannedWorkoutPatchInput }) =>
+      patchPlannedWorkout(id, input),
     onSuccess: async (_data, vars) => {
       await invalidatePlanCaches(queryClient, { plannedId: vars.id });
     },
@@ -257,13 +252,8 @@ export function useBlockMutations() {
     onSuccess: invalidate,
   });
   const reorder = useMutation({
-    mutationFn: ({
-      planId,
-      blocks,
-    }: {
-      planId: string;
-      blocks: { id: string; order: number }[];
-    }) => reorderPlanBlocks(planId, blocks),
+    mutationFn: ({ planId, blocks }: { planId: string; blocks: { id: string; order: number }[] }) =>
+      reorderPlanBlocks(planId, blocks),
     onSuccess: invalidate,
   });
 

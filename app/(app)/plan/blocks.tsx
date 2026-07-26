@@ -79,7 +79,7 @@ export default function PlanBlocksScreen() {
                   reorder.mutateAsync({
                     planId: shell.id,
                     blocks: next.map((x, i) => ({ id: x.id, order: i })),
-                  })
+                  }),
                 );
               },
             },
@@ -98,7 +98,7 @@ export default function PlanBlocksScreen() {
                   reorder.mutateAsync({
                     planId: shell.id,
                     blocks: next.map((x, i) => ({ id: x.id, order: i })),
-                  })
+                  }),
                 );
               },
             },
@@ -112,7 +112,7 @@ export default function PlanBlocksScreen() {
               planId: shell.id,
               blockId: b.id,
               input: { durationWeeks: b.durationWeeks + 1 },
-            })
+            }),
           ),
       },
       ...(b.durationWeeks > 1
@@ -125,7 +125,7 @@ export default function PlanBlocksScreen() {
                     planId: shell.id,
                     blockId: b.id,
                     input: { durationWeeks: Math.max(1, b.durationWeeks - 1) },
-                  })
+                  }),
                 ),
             },
           ]
@@ -142,9 +142,7 @@ export default function PlanBlocksScreen() {
                     text: 'Delete',
                     style: 'destructive',
                     onPress: () =>
-                      void run(() =>
-                        remove.mutateAsync({ planId: shell.id, blockId: b.id })
-                      ),
+                      void run(() => remove.mutateAsync({ planId: shell.id, blockId: b.id })),
                   },
                 ]);
               },

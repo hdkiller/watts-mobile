@@ -55,7 +55,7 @@ export function PushNotificationsBootstrap() {
     const receivedSub = Notifications.addNotificationReceivedListener((notification) => {
       void invalidateQueriesForPush(
         queryClient,
-        notification.request.content.data as Record<string, unknown> | undefined
+        notification.request.content.data as Record<string, unknown> | undefined,
       );
     });
 

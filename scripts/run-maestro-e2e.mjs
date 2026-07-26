@@ -73,7 +73,7 @@ if (maestroArgs.length === 0) {
 
 if (!(await healthy('127.0.0.1'))) {
   console.error(
-    `run-maestro-e2e: 127.0.0.1:${PORT}/api/health failed — start coach-wattz e2e first`
+    `run-maestro-e2e: 127.0.0.1:${PORT}/api/health failed — start coach-wattz e2e first`,
   );
   process.exit(1);
 }
@@ -104,10 +104,9 @@ const e2eLoginUrl =
 console.log(`run-maestro-e2e: instance ${instanceUrl}`);
 console.log(`run-maestro-e2e: ${e2eLoginUrl}`);
 
-const child = spawn(
-  'maestro',
-  ['test', '-e', `E2E_LOGIN_URL=${e2eLoginUrl}`, ...maestroArgs],
-  { stdio: 'inherit', env: process.env }
-);
+const child = spawn('maestro', ['test', '-e', `E2E_LOGIN_URL=${e2eLoginUrl}`, ...maestroArgs], {
+  stdio: 'inherit',
+  env: process.env,
+});
 
 child.on('exit', (code) => process.exit(code ?? 1));

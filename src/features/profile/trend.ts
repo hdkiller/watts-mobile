@@ -4,13 +4,11 @@
  */
 export function calculateTrend(
   current: number | null | undefined,
-  history: (number | null | undefined)[]
+  history: (number | null | undefined)[],
 ): number | null {
   if (current == null || !Number.isFinite(current)) return null;
 
-  const validHistory = history.filter(
-    (val): val is number => val != null && Number.isFinite(val)
-  );
+  const validHistory = history.filter((val): val is number => val != null && Number.isFinite(val));
 
   if (validHistory.length === 0) return null;
 

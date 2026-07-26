@@ -12,10 +12,7 @@ export function HeroStatTiles({ stats }: { stats: HeroStat[] }) {
   return (
     <View className="mt-4 flex-row gap-2">
       {stats.map((stat) => (
-        <View
-          key={stat.label}
-          className="min-w-0 flex-1 rounded-lg border border-border px-3 py-3"
-        >
+        <View key={stat.label} className="min-w-0 flex-1 rounded-lg border border-border px-3 py-3">
           <Text className="text-[10px] uppercase text-text-muted">{stat.label}</Text>
           <Text className="mt-1 text-lg font-semibold text-text-primary" numberOfLines={1}>
             {stat.value}

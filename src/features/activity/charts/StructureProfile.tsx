@@ -3,10 +3,7 @@ import { useState } from 'react';
 import { View } from 'react-native';
 import Svg, { Polygon, Rect } from 'react-native-svg';
 
-import {
-  heightFractionFromIntensity,
-  type StructureChartBlock,
-} from '../structureIntensity';
+import { heightFractionFromIntensity, type StructureChartBlock } from '../structureIntensity';
 import { Colors, zoneColor } from '@/src/theme/colors';
 
 const PROFILE_HEIGHT = 56;
@@ -37,7 +34,8 @@ export function StructureProfile({ blocks, height, compact = false }: Props) {
   const flex = Math.max(0, usable - timed.length * MIN_BLOCK_WIDTH);
 
   let currentX = 0;
-  const shapes: (| {
+  const shapes: (
+    | {
         kind: 'rect';
         key: string;
         x: number;
@@ -51,16 +49,22 @@ export function StructureProfile({ blocks, height, compact = false }: Props) {
         key: string;
         points: string;
         fill: string;
-      })[] = [];
+      }
+  )[] = [];
 
   for (const block of timed) {
     const blockWidth = MIN_BLOCK_WIDTH + (block.durationSec / totalDuration) * flex;
-    const color =
-      block.zoneIndex != null ? zoneColor(block.zoneIndex) : Colors.zoneNeutral;
+    const color = block.zoneIndex != null ? zoneColor(block.zoneIndex) : Colors.zoneNeutral;
 
     if (block.ramp && block.intensity != null) {
-      const startH = Math.max(heightFractionFromIntensity(block.ramp.start) * chartHeight, chartHeight * 0.1);
-      const endH = Math.max(heightFractionFromIntensity(block.ramp.end) * chartHeight, chartHeight * 0.1);
+      const startH = Math.max(
+        heightFractionFromIntensity(block.ramp.start) * chartHeight,
+        chartHeight * 0.1,
+      );
+      const endH = Math.max(
+        heightFractionFromIntensity(block.ramp.end) * chartHeight,
+        chartHeight * 0.1,
+      );
       const x0 = currentX;
       const x1 = currentX + blockWidth;
       const yBase = chartHeight;
@@ -110,7 +114,7 @@ export function StructureProfile({ blocks, height, compact = false }: Props) {
                 fill={s.fill}
                 rx={1}
               />
-            )
+            ),
           )}
         </Svg>
       ) : null}

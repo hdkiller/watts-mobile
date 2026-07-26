@@ -30,11 +30,7 @@ import {
   mapEnergyHorizonPoints,
   mapNutritionStrategy,
 } from './mapNutritionStrategy';
-import type {
-  HydrationQuickAddPayload,
-  NutritionDayTotals,
-  NutritionUploadPayload,
-} from './types';
+import type { HydrationQuickAddPayload, NutritionDayTotals, NutritionUploadPayload } from './types';
 
 export const TODAY_NUTRITION_KEY = ['nutrition', 'today'] as const;
 export const NEXT_FUELING_WINDOW_KEY = ['nutrition', 'next-window'] as const;
@@ -45,7 +41,7 @@ export const NUTRITION_ACTIVE_FEED_KEY = ['nutrition', 'active-feed'] as const;
 
 export function useTodayNutritionQuery(
   dateOrOptions?: string | { enabled?: boolean },
-  options?: { enabled?: boolean }
+  options?: { enabled?: boolean },
 ) {
   const date = typeof dateOrOptions === 'string' ? dateOrOptions : localDateYmd();
   const opts = typeof dateOrOptions === 'object' ? dateOrOptions : options;
@@ -66,9 +62,7 @@ export function useLogNutritionItem() {
   });
 }
 
-async function invalidateNutritionQueries(
-  queryClient: ReturnType<typeof useQueryClient>
-) {
+async function invalidateNutritionQueries(queryClient: ReturnType<typeof useQueryClient>) {
   await queryClient.invalidateQueries({ queryKey: ['nutrition'] });
 }
 
@@ -130,13 +124,8 @@ export function useDeleteNutritionItem() {
 export function usePatchNutritionNotes() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      nutritionId,
-      notes,
-    }: {
-      nutritionId: string;
-      notes: string | null;
-    }) => patchNutritionNotes(nutritionId, notes),
+    mutationFn: ({ nutritionId, notes }: { nutritionId: string; notes: string | null }) =>
+      patchNutritionNotes(nutritionId, notes),
     onSuccess: async () => {
       await invalidateNutritionQueries(queryClient);
     },
@@ -164,7 +153,7 @@ export function useQuickAddHydration() {
 export function useNutritionGlanceLoggedDaysQuery(
   startYmd: string,
   endYmd: string,
-  options?: { enabled?: boolean }
+  options?: { enabled?: boolean },
 ) {
   return useQuery({
     queryKey: [...NUTRITION_GLANCE_KEY, startYmd, endYmd] as const,
@@ -177,11 +166,7 @@ export function useNutritionGlanceLoggedDaysQuery(
 export const NUTRITION_PLAN_KEY = ['nutrition', 'plan'] as const;
 export const NUTRITION_GROCERY_KEY = ['nutrition', 'grocery'] as const;
 
-export function useNutritionPlanQuery(
-  start: string,
-  end: string,
-  options?: { enabled?: boolean }
-) {
+export function useNutritionPlanQuery(start: string, end: string, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: [...NUTRITION_PLAN_KEY, start, end] as const,
     queryFn: () => fetchNutritionPlan(start, end),
@@ -192,7 +177,7 @@ export function useNutritionPlanQuery(
 export function useNutritionGroceryQuery(
   start: string,
   end: string,
-  options?: { enabled?: boolean }
+  options?: { enabled?: boolean },
 ) {
   return useQuery({
     queryKey: [...NUTRITION_GROCERY_KEY, start, end] as const,

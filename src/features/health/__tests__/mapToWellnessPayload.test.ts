@@ -61,7 +61,7 @@ describe('mapToWellnessPayload', () => {
         date: '2026-07-20',
         platform: 'healthkit',
         distanceMeters: 100,
-      })
+      }),
     ).toBe(true);
   });
 

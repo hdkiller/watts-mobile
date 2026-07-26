@@ -1,14 +1,7 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack, type Href, router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  AppState,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, AppState, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { useAuth } from '@/src/auth/AuthContext';
@@ -49,11 +42,7 @@ function actionLabel(state: ProviderRowState): string {
 
 function StatusDot({ state }: { state: ProviderRowState }) {
   const color =
-    state === 'connected'
-      ? 'bg-success'
-      : state === 'error'
-        ? 'bg-modify'
-        : 'bg-text-muted';
+    state === 'connected' ? 'bg-success' : state === 'error' ? 'bg-modify' : 'bg-text-muted';
   return <View className={`mr-1.5 h-1.5 w-1.5 rounded-full ${color}`} />;
 }
 
@@ -77,9 +66,7 @@ function ProviderRow({
 
   return (
     <View
-      className={`flex-row items-center px-4 py-3.5 ${
-        isLast ? '' : 'border-b border-border/80'
-      }`}
+      className={`flex-row items-center px-4 py-3.5 ${isLast ? '' : 'border-b border-border/80'}`}
     >
       <View className="min-w-0 flex-1 pr-3">
         <Text className="text-base font-medium text-text-primary">{row.label}</Text>
@@ -96,9 +83,7 @@ function ProviderRow({
         className="rounded-lg border border-border-strong px-3 py-2 active:opacity-70"
         onPress={onAction}
       >
-        <Text className="text-sm font-semibold text-text-primary">
-          {actionLabel(row.state)} ↗
-        </Text>
+        <Text className="text-sm font-semibold text-text-primary">{actionLabel(row.state)} ↗</Text>
       </Pressable>
     </View>
   );
@@ -146,18 +131,12 @@ export default function ConnectedAppsLiteScreen() {
   return (
     <>
       <Stack.Screen options={{ title: 'Connected Apps' }} />
-      <SafeAreaView
-        edges={{ bottom: true }}
-        style={{ flex: 1, backgroundColor: theme.surface }}
-      >
-        <ScrollView
-          className="flex-1 bg-surface"
-          contentContainerClassName="px-6 pb-12 pt-4"
-        >
+      <SafeAreaView edges={{ bottom: true }} style={{ flex: 1, backgroundColor: theme.surface }}>
+        <ScrollView className="flex-1 bg-surface" contentContainerClassName="px-6 pb-12 pt-4">
           <Text className="text-sm text-text-muted">
-            Phone health and Coach Watts Connected Apps are different pipes. Connect
-            wearables here so Coach Watts can sync them on the server; use Health Sync for
-            data already on this phone.
+            Phone health and Coach Watts Connected Apps are different pipes. Connect wearables here
+            so Coach Watts can sync them on the server; use Health Sync for data already on this
+            phone.
           </Text>
 
           <Text className="mb-2 mt-8 text-xs font-semibold uppercase tracking-widest text-text-muted">
@@ -210,11 +189,7 @@ export default function ConnectedAppsLiteScreen() {
               </Text>
               <View className="mt-4 gap-3">
                 <Button label="Open Connected Apps on web" onPress={openAppsWeb} />
-                <Button
-                  variant="secondary"
-                  label="Try again"
-                  onPress={() => void refetch()}
-                />
+                <Button variant="secondary" label="Try again" onPress={() => void refetch()} />
               </View>
             </View>
           ) : (
@@ -236,9 +211,7 @@ export default function ConnectedAppsLiteScreen() {
             className="mt-6 items-center py-3 active:opacity-70"
             onPress={openAppsWeb}
           >
-            <Text className="text-sm font-semibold text-brand">
-              Manage all Connected Apps
-            </Text>
+            <Text className="text-sm font-semibold text-brand">Manage all Connected Apps</Text>
             <Text className="mt-1 text-center text-xs text-text-muted">
               Opens Coach Watts in the browser
             </Text>

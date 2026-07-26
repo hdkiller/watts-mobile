@@ -109,12 +109,16 @@ function parseOptionalFloat(value: string): number | null | undefined {
 
 export function formHasInvalidNumbers(
   values: SportThresholdFormValues,
-  includePace: boolean
+  includePace: boolean,
 ): boolean {
   if (values.ftp.trim() && parseOptionalInt(values.ftp) === undefined) return true;
   if (values.lthr.trim() && parseOptionalInt(values.lthr) === undefined) return true;
   if (values.maxHr.trim() && parseOptionalInt(values.maxHr) === undefined) return true;
-  if (includePace && values.thresholdPace.trim() && parseOptionalFloat(values.thresholdPace) === undefined) {
+  if (
+    includePace &&
+    values.thresholdPace.trim() &&
+    parseOptionalFloat(values.thresholdPace) === undefined
+  ) {
     return true;
   }
   return false;
@@ -122,7 +126,7 @@ export function formHasInvalidNumbers(
 
 export function toSportThresholdPatch(
   values: SportThresholdFormValues,
-  includePace: boolean
+  includePace: boolean,
 ): SportThresholdPatch | null {
   const patch: SportThresholdPatch = {};
   const ftp = parseOptionalInt(values.ftp);
@@ -143,7 +147,7 @@ export function toSportThresholdPatch(
 /** Build a single-profile upsert row: original API object + lite field overrides. */
 export function buildSportSettingsUpsertPayload(
   profile: SportProfile,
-  patch: SportThresholdPatch
+  patch: SportThresholdPatch,
 ): Record<string, unknown>[] {
   return [
     {

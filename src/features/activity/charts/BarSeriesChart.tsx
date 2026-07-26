@@ -58,9 +58,7 @@ export function zoneBarsToItems(bars: ZoneBar[]): BarItem[] {
   }));
 }
 
-export function powerCurveToItems(
-  points: { label: string; power: number }[]
-): BarItem[] {
+export function powerCurveToItems(points: { label: string; power: number }[]): BarItem[] {
   const max = Math.max(...points.map((p) => p.power), 1);
   return points.map((p) => ({
     key: p.label,

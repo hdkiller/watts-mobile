@@ -11,7 +11,7 @@ function normalizeWindow(window?: HealthReadWindow | number): HealthReadWindow {
 }
 
 export async function readPlatformWellness(
-  window?: HealthReadWindow | number
+  window?: HealthReadWindow | number,
 ): Promise<DailyWellnessSample[]> {
   const opts = normalizeWindow(window);
   if (Platform.OS === 'ios') return readHealthKitWellness(opts);
@@ -20,7 +20,7 @@ export async function readPlatformWellness(
 }
 
 export async function readPlatformWorkouts(
-  window?: HealthReadWindow | number
+  window?: HealthReadWindow | number,
 ): Promise<PlatformWorkoutSession[]> {
   const opts = normalizeWindow(window);
   if (Platform.OS === 'ios') return readHealthKitWorkouts(opts);

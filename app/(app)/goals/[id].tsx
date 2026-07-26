@@ -54,8 +54,7 @@ export default function GoalDetailScreen() {
 
   const showSkeleton = Boolean(goalId) && (isPending || isFetching) && !data && !isError;
   const showMissing =
-    !goalId ||
-    (Boolean(goalId) && isFetched && !isFetching && !isPending && !isError && !data);
+    !goalId || (Boolean(goalId) && isFetched && !isFetching && !isPending && !isError && !data);
 
   return (
     <>

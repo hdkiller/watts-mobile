@@ -93,7 +93,9 @@ describe('resolveDeepLinkPath', () => {
     });
     if (scanMeal.kind === 'app') {
       expect(scanMeal.href).toMatch(
-        new RegExp(`^${APP_HREFS.log.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\?action=camera&t=\\d+$`)
+        new RegExp(
+          `^${APP_HREFS.log.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\?action=camera&t=\\d+$`,
+        ),
       );
     }
     const camera = resolveDeepLinkPath('/camera');
@@ -103,7 +105,9 @@ describe('resolveDeepLinkPath', () => {
     });
     if (camera.kind === 'app') {
       expect(camera.href).toMatch(
-        new RegExp(`^${APP_HREFS.log.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\?action=camera&t=\\d+$`)
+        new RegExp(
+          `^${APP_HREFS.log.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\?action=camera&t=\\d+$`,
+        ),
       );
     }
   });
@@ -127,7 +131,7 @@ describe('resolveDeepLink + native intent', () => {
 
   it('rewrites system paths for native intent', () => {
     expect(redirectSystemPathForNativeIntent('coachwatts://activities/123')).toBe(
-      APP_HREFS.activityDetail('123')
+      APP_HREFS.activityDetail('123'),
     );
   });
 });
@@ -165,11 +169,8 @@ describe('resolvePushNavigation', () => {
   });
 
   it('migrates Today-tab Expo Router hrefs from server push payloads', () => {
-    expect(
-      resolvePushNavigation({ path: '/(app)/(tabs)/today/activity/123' })
-    ).toMatchObject({
+    expect(resolvePushNavigation({ path: '/(app)/(tabs)/today/activity/123' })).toMatchObject({
       href: APP_HREFS.activityDetail('123'),
     });
   });
 });
-

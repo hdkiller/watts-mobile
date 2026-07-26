@@ -26,7 +26,11 @@ import {
   weightUnitLabel,
 } from '@/src/features/profile/mapProfile';
 import type { AthleteMetricsFormValues, AthleteProfile } from '@/src/features/profile/types';
-import { ATHLETE_PROFILE_KEY, useAthleteProfileQuery, usePatchAthleteMetrics } from '@/src/features/profile/useProfile';
+import {
+  ATHLETE_PROFILE_KEY,
+  useAthleteProfileQuery,
+  usePatchAthleteMetrics,
+} from '@/src/features/profile/useProfile';
 import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { APP_HREFS } from '@/src/linking/appHrefs';
@@ -58,7 +62,7 @@ export default function AthleteMetricsScreen() {
 
   const patch = <K extends keyof AthleteMetricsFormValues>(
     key: K,
-    value: AthleteMetricsFormValues[K]
+    value: AthleteMetricsFormValues[K],
   ) => {
     setFormError(null);
     setSuccessMessage(null);
@@ -279,7 +283,12 @@ export default function AthleteMetricsScreen() {
                       QR & link so others can join
                     </Text>
                   </View>
-                  <AppSymbol sf="chevron.right" size={14} tintColor={theme.textMuted} fallback="›" />
+                  <AppSymbol
+                    sf="chevron.right"
+                    size={14}
+                    tintColor={theme.textMuted}
+                    fallback="›"
+                  />
                 </AnimatedPressable>
               </View>
             ) : null}

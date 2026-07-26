@@ -24,7 +24,7 @@ function rowState(row: IntegrationStatusRow): ProviderRowState {
 
 /** Merge API status onto the curated catalog; ignore OAuth-app consent rows. */
 export function mapCuratedProviderRows(
-  response: IntegrationsStatusResponse | undefined
+  response: IntegrationsStatusResponse | undefined,
 ): CuratedProviderRow[] {
   const byProvider = new Map<string, IntegrationStatusRow>();
   for (const row of response?.integrations ?? []) {
@@ -66,7 +66,7 @@ export function countConnectedCurated(rows: CuratedProviderRow[]): number {
 
 export function connectedAppsHubDetail(
   rows: CuratedProviderRow[] | undefined,
-  opts: { isLoading: boolean; isError: boolean }
+  opts: { isLoading: boolean; isError: boolean },
 ): string {
   if (opts.isLoading && !rows) return '—';
   if (opts.isError && !rows) return '—';

@@ -12,12 +12,7 @@ import type {
 /** Matches coach-wattz `LBS_TO_KG`. */
 export const LBS_TO_KG = 0.45359237;
 
-const AI_PERSONAS: AiPersona[] = [
-  'Analytical',
-  'Supportive',
-  'Drill Sergeant',
-  'Motivational',
-];
+const AI_PERSONAS: AiPersona[] = ['Analytical', 'Supportive', 'Drill Sergeant', 'Motivational'];
 
 export function profileSettingsWebPath(): string {
   return '/profile/settings';
@@ -107,7 +102,7 @@ export function temperatureUnitLabel(units: TemperatureUnits): string {
 
 /** Display unit for weight fields; falls back to kg when profile is missing. */
 export function weightUnit(
-  profile: Pick<AthleteProfile, 'weightUnits'> | null | undefined
+  profile: Pick<AthleteProfile, 'weightUnits'> | null | undefined,
 ): string {
   return weightUnitLabel(profile?.weightUnits ?? 'Kilograms');
 }
@@ -172,7 +167,7 @@ export function aiPersonaOptions(): { value: AiPersona; label: string }[] {
 
 /** Same gate as coach-wattz dashboard / nav. */
 export function isNutritionTrackingEnabled(
-  profile: Pick<AthleteProfile, 'nutritionTrackingEnabled'> | null | undefined
+  profile: Pick<AthleteProfile, 'nutritionTrackingEnabled'> | null | undefined,
 ): boolean {
   return profile?.nutritionTrackingEnabled !== false;
 }
@@ -224,7 +219,7 @@ export function formHasInvalidNumbers(values: AthleteMetricsFormValues): boolean
  */
 export function toAthleteMetricsPatch(
   values: AthleteMetricsFormValues,
-  weightUnits: WeightUnits
+  weightUnits: WeightUnits,
 ): AthleteMetricsPatch {
   const patch: AthleteMetricsPatch = {};
 

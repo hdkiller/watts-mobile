@@ -50,7 +50,7 @@ export function defineHealthSyncBackgroundTask(): void {
       } catch (err) {
         console.warn(
           '[HealthSync] background task failed',
-          err instanceof Error ? err.message : 'error'
+          err instanceof Error ? err.message : 'error',
         );
         return BackgroundTask.BackgroundTaskResult.Failed;
       }
@@ -100,14 +100,9 @@ async function drainHealthConnectChanges(): Promise<boolean> {
     if (result.changesTokenExpired) {
       await AsyncStorage.removeItem(HC_CHANGES_TOKEN_KEY);
     }
-    return (
-      (result.upsertionChanges?.length ?? 0) > 0 || (result.deletionChanges?.length ?? 0) > 0
-    );
+    return (result.upsertionChanges?.length ?? 0) > 0 || (result.deletionChanges?.length ?? 0) > 0;
   } catch (err) {
-    console.warn(
-      '[HealthSync] HC getChanges failed',
-      err instanceof Error ? err.message : 'error'
-    );
+    console.warn('[HealthSync] HC getChanges failed', err instanceof Error ? err.message : 'error');
     return false;
   }
 }
@@ -123,7 +118,7 @@ async function registerHealthKitBackgroundDelivery(): Promise<void> {
     try {
       await HK.configureBackgroundTypes(
         [...HEALTHKIT_BACKGROUND_DELIVERY_TYPES],
-        HK.UpdateFrequency.hourly
+        HK.UpdateFrequency.hourly,
       );
     } catch {
       for (const typeId of HEALTHKIT_BACKGROUND_DELIVERY_TYPES) {
@@ -168,7 +163,7 @@ async function registerHealthKitBackgroundDelivery(): Promise<void> {
   } catch (err) {
     console.warn(
       '[HealthSync] HK background delivery unavailable — foreground sync still works',
-      err instanceof Error ? err.message : 'error'
+      err instanceof Error ? err.message : 'error',
     );
   }
 }
@@ -202,17 +197,20 @@ async function registerHealthConnectChangePolling(): Promise<void> {
   await drainHealthConnectChanges();
   if (hcChangesPollTimer) clearInterval(hcChangesPollTimer);
   // Foreground coalesce while app is open (WorkManager / BG task covers background).
-  hcChangesPollTimer = setInterval(() => {
-    void (async () => {
-      const changed = await drainHealthConnectChanges();
-      if (!changed) return;
-      const { loadHealthSyncPreferences } = await import('./syncPreferences');
-      const prefs = await loadHealthSyncPreferences();
-      if (!prefs.syncEnabled) return;
-      const { runHealthSyncPass } = await import('./orchestrator');
-      await runHealthSyncPass();
-    })();
-  }, 15 * 60 * 1000);
+  hcChangesPollTimer = setInterval(
+    () => {
+      void (async () => {
+        const changed = await drainHealthConnectChanges();
+        if (!changed) return;
+        const { loadHealthSyncPreferences } = await import('./syncPreferences');
+        const prefs = await loadHealthSyncPreferences();
+        if (!prefs.syncEnabled) return;
+        const { runHealthSyncPass } = await import('./orchestrator');
+        await runHealthSyncPass();
+      })();
+    },
+    15 * 60 * 1000,
+  );
 }
 
 async function unregisterHealthConnectChangePolling(): Promise<void> {
@@ -246,7 +244,7 @@ export async function registerHealthSyncBackgroundTask(): Promise<void> {
   } catch (err) {
     console.warn(
       '[HealthSync] background register failed — degrading to foreground-only',
-      err instanceof Error ? err.message : 'error'
+      err instanceof Error ? err.message : 'error',
     );
   }
 
@@ -260,7 +258,7 @@ export async function registerHealthSyncBackgroundTask(): Promise<void> {
   } catch (err) {
     console.warn(
       '[HealthSync] change-driven register failed',
-      err instanceof Error ? err.message : 'error'
+      err instanceof Error ? err.message : 'error',
     );
   }
 }
@@ -285,7 +283,7 @@ export async function unregisterHealthSyncBackgroundTask(): Promise<void> {
   } catch (err) {
     console.warn(
       '[HealthSync] background unregister failed',
-      err instanceof Error ? err.message : 'error'
+      err instanceof Error ? err.message : 'error',
     );
   }
 }

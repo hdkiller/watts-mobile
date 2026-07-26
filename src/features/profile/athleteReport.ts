@@ -1,9 +1,6 @@
 import { apiFetch } from '@/src/api/client';
 
-import {
-  mapAthleteProfileReport,
-  type AthleteProfileReport,
-} from './mapAthleteReport';
+import { mapAthleteProfileReport, type AthleteProfileReport } from './mapAthleteReport';
 
 export type { AthleteProfileReport, AthleteScoreChip } from './mapAthleteReport';
 export { mapAthleteProfileReport } from './mapAthleteReport';
@@ -26,7 +23,9 @@ async function readErrorMessage(response: Response, fallback: string): Promise<s
 export async function fetchLatestAthleteProfileReport(): Promise<AthleteProfileReport | null> {
   const response = await apiFetch('/api/reports?type=ATHLETE_PROFILE&limit=1');
   if (response.status === 401 || response.status === 403) {
-    const err = new Error('Athlete profile reports require sign-in with profile access') as Error & {
+    const err = new Error(
+      'Athlete profile reports require sign-in with profile access',
+    ) as Error & {
       status?: number;
     };
     err.status = response.status;
@@ -45,14 +44,14 @@ export async function generateAthleteProfile(): Promise<{ reportId: string }> {
   const response = await apiFetch('/api/profile/generate', { method: 'POST' });
   if (response.status === 429) {
     const err = new Error(
-      await readErrorMessage(response, 'Quota exceeded for athlete profile generation.')
+      await readErrorMessage(response, 'Quota exceeded for athlete profile generation.'),
     ) as Error & { status?: number };
     err.status = 429;
     throw err;
   }
   if (!response.ok) {
     const err = new Error(
-      await readErrorMessage(response, `Failed to start profile sync (${response.status})`)
+      await readErrorMessage(response, `Failed to start profile sync (${response.status})`),
     ) as Error & { status?: number };
     err.status = response.status;
     throw err;
@@ -65,7 +64,7 @@ export async function generateAthleteProfile(): Promise<{ reportId: string }> {
 }
 
 export async function pollAthleteProfileReport(
-  opts: { timeoutMs?: number; intervalMs?: number } = {}
+  opts: { timeoutMs?: number; intervalMs?: number } = {},
 ): Promise<AthleteProfileReport | null> {
   const timeoutMs = opts.timeoutMs ?? 120_000;
   const intervalMs = opts.intervalMs ?? 3_000;

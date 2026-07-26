@@ -124,9 +124,7 @@ export function DateYmdField({
               } ${disabled ? 'opacity-50' : ''}`}
             >
               <Text
-                className={`text-sm font-semibold ${
-                  selected ? 'text-brand' : 'text-text-primary'
-                }`}
+                className={`text-sm font-semibold ${selected ? 'text-brand' : 'text-text-primary'}`}
               >
                 {preset.label}
               </Text>
@@ -169,7 +167,12 @@ export function DateYmdField({
               if (selected) setDraftYmd(localDateYmd(selected));
             }}
           />
-          <Button className="mt-4" label="Done" onPress={confirmDraft} testID={testID ? `${testID}-done` : undefined} />
+          <Button
+            className="mt-4"
+            label="Done"
+            onPress={confirmDraft}
+            testID={testID ? `${testID}-done` : undefined}
+          />
         </BottomSheet>
       ) : null}
     </View>

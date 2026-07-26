@@ -16,7 +16,7 @@ function errorMessage(body: unknown, fallback: string): string {
     return String(
       (body as { message?: string; statusMessage?: string }).message ||
         (body as { statusMessage?: string }).statusMessage ||
-        fallback
+        fallback,
     );
   }
   return fallback;
@@ -48,7 +48,11 @@ export async function createEvent(input: CreateEventInput): Promise<EventApi> {
   });
   if (!response.ok) {
     const body = await readErrorBody(response);
-    throw new ApiError(errorMessage(body, `Failed to create event (${response.status})`), response.status, body);
+    throw new ApiError(
+      errorMessage(body, `Failed to create event (${response.status})`),
+      response.status,
+      body,
+    );
   }
   const json = (await response.json()) as { event?: EventApi } & EventApi;
   return json.event ?? (json as EventApi);

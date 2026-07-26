@@ -2,7 +2,7 @@ import type { QueryClient } from '@tanstack/react-query';
 
 /** Extract a workout id from push `path`/`url` or explicit extra fields. */
 export function workoutIdFromPushData(
-  data: Record<string, unknown> | undefined | null
+  data: Record<string, unknown> | undefined | null,
 ): string | null {
   if (!data) return null;
 
@@ -39,7 +39,7 @@ export function workoutIdFromPushData(
  */
 export async function invalidateQueriesForPush(
   queryClient: QueryClient,
-  data: Record<string, unknown> | undefined | null
+  data: Record<string, unknown> | undefined | null,
 ): Promise<void> {
   await queryClient.invalidateQueries({ queryKey: ['notifications', 'inbox'] });
 

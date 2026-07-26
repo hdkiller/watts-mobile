@@ -33,7 +33,7 @@ export function resolvePushOpen(data: PushNavigationData | null | undefined): Re
 }
 
 export function pushDataFromNotificationContent(
-  data: Record<string, unknown> | undefined | null
+  data: Record<string, unknown> | undefined | null,
 ): PushNavigationData {
   if (!data) return {};
   return {

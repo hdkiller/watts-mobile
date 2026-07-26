@@ -21,8 +21,10 @@ export default function ActivationGoalScreen() {
           contentContainerStyle={{ paddingBottom: 40 + overlap }}
           keyboardShouldPersistTaps="handled"
         >
-          <Text className="text-2xl font-semibold text-text-primary">What are you training for?</Text>
-          <Text className="mt-2 mb-6 text-base text-text-muted">
+          <Text className="text-2xl font-semibold text-text-primary">
+            What are you training for?
+          </Text>
+          <Text className="mb-6 mt-2 text-base text-text-muted">
             Pick a primary goal. You can refine it later on Goals.
           </Text>
           <EventGoalWizard

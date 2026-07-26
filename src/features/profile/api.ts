@@ -29,7 +29,9 @@ async function readErrorMessage(response: Response, fallback: string): Promise<s
 export async function fetchAthleteProfile(): Promise<AthleteProfile> {
   const response = await apiFetch('/api/profile');
   if (!response.ok) {
-    throw new Error(await readErrorMessage(response, `Failed to load profile (${response.status})`));
+    throw new Error(
+      await readErrorMessage(response, `Failed to load profile (${response.status})`),
+    );
   }
   const json = await response.json();
   return parseAthleteProfile(json);
@@ -42,7 +44,9 @@ export async function patchAthleteMetrics(patch: AthleteMetricsPatch): Promise<A
     body: JSON.stringify(patch),
   });
   if (!response.ok) {
-    throw new Error(await readErrorMessage(response, `Failed to save profile (${response.status})`));
+    throw new Error(
+      await readErrorMessage(response, `Failed to save profile (${response.status})`),
+    );
   }
   const json = await response.json();
   // PATCH returns `{ success, profile }`; GET returns `{ connected, profile }`.
@@ -63,7 +67,7 @@ export async function patchUnitsLocale(patch: UnitsLocalePatch): Promise<Athlete
 }
 
 export async function patchCoachIdentityProfile(
-  patch: CoachIdentityProfilePatch
+  patch: CoachIdentityProfilePatch,
 ): Promise<AthleteProfile> {
   const response = await apiFetch('/api/profile', {
     method: 'PATCH',
@@ -72,7 +76,7 @@ export async function patchCoachIdentityProfile(
   });
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, `Failed to save coach identity (${response.status})`)
+      await readErrorMessage(response, `Failed to save coach identity (${response.status})`),
     );
   }
   const json = await response.json();
@@ -83,7 +87,7 @@ export async function fetchAiSettingsLite(): Promise<AiSettingsLite> {
   const response = await apiFetch('/api/settings/ai');
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, `Failed to load AI settings (${response.status})`)
+      await readErrorMessage(response, `Failed to load AI settings (${response.status})`),
     );
   }
   const json = await response.json();
@@ -98,7 +102,7 @@ export async function patchAiSettingsLite(patch: AiSettingsLitePatch): Promise<A
   });
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, `Failed to save AI settings (${response.status})`)
+      await readErrorMessage(response, `Failed to save AI settings (${response.status})`),
     );
   }
   const json = (await response.json()) as { settings?: unknown };

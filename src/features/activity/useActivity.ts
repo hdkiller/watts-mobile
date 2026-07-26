@@ -54,9 +54,7 @@ async function invalidatePlannedCaches(queryClient: QueryClient, id?: string) {
     queryClient.invalidateQueries({ queryKey: RECENT_ACTIVITY_QUERY_KEY }),
     queryClient.invalidateQueries({ queryKey: ACTIVITY_GLANCE_WORKOUTS_KEY }),
     queryClient.invalidateQueries({ queryKey: ACTIVITY_GLANCE_PLANNED_KEY }),
-    id
-      ? queryClient.invalidateQueries({ queryKey: plannedDetailQueryKey(id) })
-      : Promise.resolve(),
+    id ? queryClient.invalidateQueries({ queryKey: plannedDetailQueryKey(id) }) : Promise.resolve(),
   ]);
 }
 
@@ -85,7 +83,7 @@ export function useUpcomingPlannedQuery() {
 export function useActivityGlanceWorkoutsQuery(
   start: Date,
   end: Date,
-  options?: { enabled?: boolean }
+  options?: { enabled?: boolean },
 ) {
   return useQuery({
     queryKey: [...ACTIVITY_GLANCE_WORKOUTS_KEY, start.toISOString(), end.toISOString()] as const,
@@ -181,7 +179,7 @@ export function useSkipPlannedWorkout(id: string | undefined) {
 
 export function usePlannedFuelingQuery(
   id: string | undefined,
-  options: { strategy?: string | null; enabled?: boolean } = {}
+  options: { strategy?: string | null; enabled?: boolean } = {},
 ) {
   return useQuery({
     queryKey: [...plannedFuelingQueryKey(id ?? ''), options.strategy ?? null],

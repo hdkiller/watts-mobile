@@ -24,8 +24,7 @@ export const en = {
   'more.signOut': 'Sign out',
 
   'notifications.title': 'Notifications',
-  'notifications.stubBody':
-    'When a recommendation or analysis is ready, it will show up here.',
+  'notifications.stubBody': 'When a recommendation or analysis is ready, it will show up here.',
   'notifications.openSystemSettings': 'Open system settings',
   'notifications.manageOnWeb': 'Manage in Coach Watts',
 } as const;

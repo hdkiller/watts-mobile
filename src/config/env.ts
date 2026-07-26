@@ -30,7 +30,10 @@ function envCsv(value: string | undefined): string[] {
 
 function envCsvPreserveCase(value: string | undefined): string[] {
   if (!value?.trim()) return [];
-  return value.split(',').map((part) => part.trim()).filter(Boolean);
+  return value
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
 }
 
 /**
@@ -53,8 +56,7 @@ export const E2E_ALLOWED_HOSTS = envCsv(process.env.EXPO_PUBLIC_E2E_ALLOWED_HOST
 /** Escape hatch for hosted staging e2e — prefer ALLOWED_HOSTS instead. */
 export const E2E_ALLOW_ANY_HOST = envFlag(process.env.EXPO_PUBLIC_E2E_ALLOW_ANY_HOST);
 
-export const SENTRY_DSN =
-  process.env.EXPO_PUBLIC_SENTRY_DSN ?? (extraString('sentryDsn') || '');
+export const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN ?? (extraString('sentryDsn') || '');
 
 /** Optional release name for Sentry (EAS can set via EXPO_PUBLIC_SENTRY_RELEASE). */
 export const SENTRY_RELEASE =
@@ -63,9 +65,7 @@ export const SENTRY_RELEASE =
 export const SENTRY_DIST =
   process.env.EXPO_PUBLIC_SENTRY_DIST ?? (extraString('sentryDist') || undefined);
 
-const isDev =
-  (typeof __DEV__ !== 'undefined' && __DEV__) ||
-  process.env.NODE_ENV === 'development';
+const isDev = (typeof __DEV__ !== 'undefined' && __DEV__) || process.env.NODE_ENV === 'development';
 
 export const SENTRY_ENVIRONMENT =
   process.env.EXPO_PUBLIC_SENTRY_ENVIRONMENT ??
@@ -76,15 +76,16 @@ export const APP_SCHEME = 'coachwatts';
 export const APP_VERSION = Constants.expoConfig?.version ?? '0.1.0';
 
 export const NATIVE_SUBSCRIPTIONS_ENABLED = envFlag(
-  process.env.EXPO_PUBLIC_NATIVE_SUBSCRIPTIONS_ENABLED
+  process.env.EXPO_PUBLIC_NATIVE_SUBSCRIPTIONS_ENABLED,
 );
 export const REVENUECAT_IOS_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY?.trim() ?? '';
-export const REVENUECAT_ANDROID_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY?.trim() ?? '';
+export const REVENUECAT_ANDROID_API_KEY =
+  process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY?.trim() ?? '';
 export const SUBSCRIPTION_SUPPORTER_PRODUCT_IDS = envCsvPreserveCase(
-  process.env.EXPO_PUBLIC_SUBSCRIPTION_SUPPORTER_PRODUCT_IDS
+  process.env.EXPO_PUBLIC_SUBSCRIPTION_SUPPORTER_PRODUCT_IDS,
 );
 export const SUBSCRIPTION_PRO_PRODUCT_IDS = envCsvPreserveCase(
-  process.env.EXPO_PUBLIC_SUBSCRIPTION_PRO_PRODUCT_IDS
+  process.env.EXPO_PUBLIC_SUBSCRIPTION_PRO_PRODUCT_IDS,
 );
 
 /**
@@ -97,8 +98,6 @@ export const GOOGLE_MAPS_API_KEY =
   process.env.GOOGLE_MAPS_API_KEY?.trim() ||
   extraString('googleMapsApiKey') ||
   (
-    Constants.expoConfig?.android?.config as
-      | { googleMaps?: { apiKey?: string } }
-      | undefined
+    Constants.expoConfig?.android?.config as { googleMaps?: { apiKey?: string } } | undefined
   )?.googleMaps?.apiKey?.trim() ||
   '';

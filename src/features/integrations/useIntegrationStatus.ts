@@ -36,7 +36,7 @@ export function useIntegrationStatus() {
   useFocusEffect(
     useCallback(() => {
       void refetch();
-    }, [refetch])
+    }, [refetch]),
   );
 
   useEffect(() => {

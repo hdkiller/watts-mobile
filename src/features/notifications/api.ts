@@ -2,10 +2,7 @@ import { apiFetch } from '@/src/api/client';
 import { getItemAsync, setItemAsync } from '@/src/storage/secureStorage';
 
 import { mapNotificationsList } from './mapNotifications';
-import {
-  DEFAULT_NOTIFICATION_PREFERENCES,
-  normalizeNotificationPreferences,
-} from './preferences';
+import { DEFAULT_NOTIFICATION_PREFERENCES, normalizeNotificationPreferences } from './preferences';
 import type { NotificationsInbox, NotificationPreferences, RegisterDeviceBody } from './types';
 
 const PREFS_STORAGE_KEY = 'watts.push.preferences';
@@ -34,7 +31,7 @@ async function readCachedPreferences(): Promise<NotificationPreferences | null> 
 }
 
 export async function fetchNotifications(
-  options: { limit?: number; page?: number } = {}
+  options: { limit?: number; page?: number } = {},
 ): Promise<NotificationsInbox> {
   const limit = Math.min(Math.max(options.limit ?? 50, 1), 100);
   const page = Math.max(options.page ?? 1, 1);
@@ -45,7 +42,7 @@ export async function fetchNotifications(
   const response = await apiFetch(`/api/notifications?${params.toString()}`);
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, `Failed to load notifications (${response.status})`)
+      await readErrorMessage(response, `Failed to load notifications (${response.status})`),
     );
   }
   return mapNotificationsList(await response.json());
@@ -59,7 +56,7 @@ export async function markNotificationRead(id: string): Promise<void> {
   });
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, `Failed to mark notification read (${response.status})`)
+      await readErrorMessage(response, `Failed to mark notification read (${response.status})`),
     );
   }
 }
@@ -72,7 +69,10 @@ export async function markAllNotificationsRead(): Promise<void> {
   });
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, `Failed to mark all notifications read (${response.status})`)
+      await readErrorMessage(
+        response,
+        `Failed to mark all notifications read (${response.status})`,
+      ),
     );
   }
 }
@@ -83,7 +83,7 @@ export type DeviceRegistrationResult =
   | { ok: false; unavailable: false; error: string };
 
 export async function registerMobileDevice(
-  body: RegisterDeviceBody
+  body: RegisterDeviceBody,
 ): Promise<DeviceRegistrationResult> {
   const response = await apiFetch('/api/mobile/devices', {
     method: 'POST',
@@ -150,7 +150,7 @@ export async function fetchNotificationPreferences(): Promise<NotificationPrefer
  * On 404 (prefs API missing), saves locally only for old instances.
  */
 export async function updateNotificationPreferences(
-  preferences: NotificationPreferences
+  preferences: NotificationPreferences,
 ): Promise<NotificationPreferences> {
   const next = normalizeNotificationPreferences(preferences);
 
@@ -173,6 +173,9 @@ export async function updateNotificationPreferences(
   }
 
   throw new Error(
-    await readErrorMessage(response, `Failed to save notification preferences (${response.status})`)
+    await readErrorMessage(
+      response,
+      `Failed to save notification preferences (${response.status})`,
+    ),
   );
 }

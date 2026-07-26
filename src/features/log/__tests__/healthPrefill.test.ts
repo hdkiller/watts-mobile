@@ -34,7 +34,7 @@ describe('applyHealthPrefill', () => {
     const next = applyHealthPrefill(
       emptyLogForm(),
       { weightKg: '70', source: 'health_connect' },
-      { weightUnit: 'lb' }
+      { weightUnit: 'lb' },
     );
     expect(Number(next.weight)).toBeCloseTo(154.3, 0);
   });

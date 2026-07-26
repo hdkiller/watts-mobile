@@ -29,7 +29,9 @@ export function ErrorFallback({ error, retry }: ErrorBoundaryProps) {
   return (
     <View className="flex-1 bg-surface px-6" style={{ backgroundColor: theme.surface }}>
       <View className="flex-1 justify-center">
-        <Text className="text-sm font-semibold uppercase tracking-widest text-brand">Coach Watts</Text>
+        <Text className="text-sm font-semibold uppercase tracking-widest text-brand">
+          Coach Watts
+        </Text>
         <Text className="mt-3 text-2xl font-semibold text-text-primary">Something went wrong</Text>
         <Text className="mt-3 text-base leading-6 text-text-muted">
           We hit an unexpected error. Your data is safe — try again, or reopen the app if it keeps

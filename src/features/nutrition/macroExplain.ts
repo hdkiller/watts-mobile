@@ -54,7 +54,7 @@ const WORKOUT_WINDOW_TYPES = [
 function sumWindowMacro(
   windows: FuelingPlanWindow[],
   macroKey: 'targetCarbs' | 'targetProtein' | 'targetFat',
-  types?: readonly string[]
+  types?: readonly string[],
 ): number {
   return windows
     .filter((win) => !types || types.includes(win.type))
@@ -63,7 +63,7 @@ function sumWindowMacro(
 
 function metricActualTarget(
   day: NutritionDayTotals,
-  label: MacroExplainLabel
+  label: MacroExplainLabel,
 ): { actual: number; target: number; unit: string } {
   switch (label) {
     case 'Calories':
@@ -96,7 +96,7 @@ function metricActualTarget(
 function buildCaloriesRows(
   plan: FuelingPlanAnalysis | null,
   target: number,
-  settings?: MacroExplainSettings | null
+  settings?: MacroExplainSettings | null,
 ): MacroExplainRow[] {
   const items: MacroExplainRow[] = [];
   const fp = plan?.dailyTotals;
@@ -189,7 +189,7 @@ function buildMacroRows(
   actual: number,
   fuelState: number,
   weightKg: number | null,
-  settings?: MacroExplainSettings | null
+  settings?: MacroExplainSettings | null,
 ): MacroExplainRow[] {
   const items: MacroExplainRow[] = [];
   const windows = plan?.windows ?? [];
@@ -325,7 +325,7 @@ export function buildCoachTip(
   label: MacroExplainLabel,
   actual: number,
   target: number,
-  fuelState: number
+  fuelState: number,
 ): string {
   if (label === 'Carbs') {
     if (actual >= target && target > 0) {

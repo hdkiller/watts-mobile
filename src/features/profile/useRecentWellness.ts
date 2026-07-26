@@ -49,31 +49,23 @@ export function useRecentWellness() {
   // Filter out latest day's wellness from history to get prior baseline
   const priorHistory = trendData.filter((d) => d.date !== latestDateKey);
 
-  const recentSleep = isPlausibleSleepHours(profile?.recentSleep)
-    ? profile!.recentSleep
-    : null;
+  const recentSleep = isPlausibleSleepHours(profile?.recentSleep) ? profile!.recentSleep : null;
   const restingHr = isPlausibleRestingHr(profile?.restingHr) ? profile!.restingHr : null;
   const recentHRV = profile?.recentHRV ?? null;
 
   const sleepTrend =
     recentSleep != null
-      ? calculateTrend(
-          recentSleep,
-          plausibleSleepHistory(priorHistory.map((h) => h.hoursSlept))
-        )
+      ? calculateTrend(recentSleep, plausibleSleepHistory(priorHistory.map((h) => h.hoursSlept)))
       : null;
 
   const hrvTrend = calculateTrend(
     recentHRV,
-    priorHistory.map((h) => h.hrv)
+    priorHistory.map((h) => h.hrv),
   );
 
   const rhrTrend =
     restingHr != null
-      ? calculateTrend(
-          restingHr,
-          plausibleRestingHrHistory(priorHistory.map((h) => h.restingHr))
-        )
+      ? calculateTrend(restingHr, plausibleRestingHrHistory(priorHistory.map((h) => h.restingHr)))
       : null;
 
   const isLoading = profileQuery.isLoading || trendQuery.isLoading;

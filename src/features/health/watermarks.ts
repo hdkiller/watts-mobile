@@ -55,7 +55,7 @@ async function persist(): Promise<void> {
 
 export async function getWatermark(
   kind: SyncLedgerKind,
-  source: HealthPlatform = currentPlatform() ?? 'healthkit'
+  source: HealthPlatform = currentPlatform() ?? 'healthkit',
 ): Promise<SyncWatermark | undefined> {
   await ensureHydrated();
   return memory[key(source, kind)];
@@ -64,7 +64,7 @@ export async function getWatermark(
 export async function setWatermark(
   kind: SyncLedgerKind,
   lastReadThrough: string,
-  source: HealthPlatform = currentPlatform() ?? 'healthkit'
+  source: HealthPlatform = currentPlatform() ?? 'healthkit',
 ): Promise<void> {
   await ensureHydrated();
   memory[key(source, kind)] = { source, kind, lastReadThrough };
@@ -83,7 +83,7 @@ export async function clearWatermarks(): Promise<void> {
  */
 export async function resolveReadWindow(
   kind: SyncLedgerKind,
-  options: { fullResync?: boolean; lookbackDays?: number } = {}
+  options: { fullResync?: boolean; lookbackDays?: number } = {},
 ): Promise<HealthReadWindow> {
   const lookbackDays = options.lookbackDays ?? LOOKBACK_DAYS;
   if (options.fullResync) {

@@ -85,7 +85,7 @@ describe('eventGoalWizard', () => {
           subType: 'Time Trial',
         },
       ],
-      ['e1']
+      ['e1'],
     );
     expect(next.title).toBe('Local TT');
     expect(next.targetDate).toBe('2026-09-01');

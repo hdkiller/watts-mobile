@@ -28,16 +28,9 @@ import { APP_HREFS } from '@/src/linking/appHrefs';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 import { localDateKey } from '@/src/features/today/weekGlance';
 
-import {
-  formatDayChipLabel,
-  formatWeekRangeLabel,
-  humanizePlanStrategy,
-} from './formatPlanCopy';
+import { formatDayChipLabel, formatWeekRangeLabel, humanizePlanStrategy } from './formatPlanCopy';
 import { filterPlannedToWeek, seasonTodayPercent, weekDateKeys } from './mapActivePlan';
-import {
-  mapNutritionPlanDays,
-  weekHasSelectedMeals,
-} from './mapNutritionPlan';
+import { mapNutritionPlanDays, weekHasSelectedMeals } from './mapNutritionPlan';
 import { PlanAdjustSheet } from './PlanAdjustSheet';
 import { PlanSessionEditorSheet } from './PlanSessionEditorSheet';
 import { SeasonTimeline, WeekTargetStats } from './SeasonTimeline';
@@ -135,10 +128,7 @@ export function PlanTrainingSegment({
   }
 
   const weekMeta: PlanWeekShell | null = weeks[weekIndex] ?? shell?.currentWeek ?? null;
-  const weekSessionsQuery = usePlanWeekSessionsQuery(
-    weekMeta?.startDateKey,
-    weekMeta?.endDateKey
-  );
+  const weekSessionsQuery = usePlanWeekSessionsQuery(weekMeta?.startDateKey, weekMeta?.endDateKey);
   const adapt = useAdaptPlanMutation();
   const abandon = useAbandonPlanMutation();
   const replan = useReplanStructureMutation();
@@ -156,7 +146,7 @@ export function PlanTrainingSegment({
       start: weekMeta?.startDateKey ?? '',
       end: weekMeta?.endDateKey ?? weekMeta?.startDateKey ?? '',
     }),
-    [weekMeta?.startDateKey, weekMeta?.endDateKey]
+    [weekMeta?.startDateKey, weekMeta?.endDateKey],
   );
   const weekActivityRange = useMemo(() => {
     if (!nutritionRange.start) return null;
@@ -167,7 +157,7 @@ export function PlanTrainingSegment({
   const weekActivitiesQuery = useActivityGlanceWorkoutsQuery(
     weekActivityRange?.start ?? new Date(0),
     weekActivityRange?.end ?? new Date(0),
-    { enabled: Boolean(weekActivityRange) }
+    { enabled: Boolean(weekActivityRange) },
   );
   const todayKey = localDateKey(new Date()) ?? '';
   const weekContainsToday = weekContainsTodaySafe(weekMeta);
@@ -196,11 +186,8 @@ export function PlanTrainingSegment({
 
   const compliance = useMemo(
     () =>
-      buildComplianceIndex(
-        weekActivityRange ? weekActivitiesQuery.data : undefined,
-        weekSessions
-      ),
-    [weekActivityRange, weekActivitiesQuery.data, weekSessions]
+      buildComplianceIndex(weekActivityRange ? weekActivitiesQuery.data : undefined, weekSessions),
+    [weekActivityRange, weekActivitiesQuery.data, weekSessions],
   );
 
   const needsStructureIds = useMemo(
@@ -208,16 +195,16 @@ export function PlanTrainingSegment({
       weekSessions
         .filter((s) => !s.structureChartBlocks || s.structureChartBlocks.length < 2)
         .map((s) => s.id),
-    [weekSessions]
+    [weekSessions],
   );
 
   const nutritionDays = useMemo(
     () =>
       mapNutritionPlanDays(
         (nutritionQuery.data as NutritionPlanApi | null | undefined) ?? null,
-        nutritionRange
+        nutritionRange,
       ),
-    [nutritionQuery.data, nutritionRange]
+    [nutritionQuery.data, nutritionRange],
   );
   const nutritionEmpty =
     trackingOn &&
@@ -231,7 +218,7 @@ export function PlanTrainingSegment({
     return shell.weeks.findIndex((w) => w.id === shell.currentWeek?.id);
   }, [shell]);
   const weekIsPast = Boolean(
-    weekMeta?.endDateKey && weekMeta.endDateKey < todayKey && !weekContainsToday
+    weekMeta?.endDateKey && weekMeta.endDateKey < todayKey && !weekContainsToday,
   );
   const browsingAway = currentWeekIndex >= 0 && weekIndex !== currentWeekIndex;
 
@@ -307,15 +294,13 @@ export function PlanTrainingSegment({
             void runBusy('Deleting session', () => deletePlanned.mutateAsync(item.id));
           },
         },
-      ]
+      ],
     );
   };
 
   const openWeekTune = () => {
     if (!weekMeta) return;
-    setVolumeMins(
-      weekMeta.volumeTargetMinutes != null ? String(weekMeta.volumeTargetMinutes) : ''
-    );
+    setVolumeMins(weekMeta.volumeTargetMinutes != null ? String(weekMeta.volumeTargetMinutes) : '');
     setTss(weekMeta.tssTarget != null ? String(weekMeta.tssTarget) : '');
     setFocusLabel(weekMeta.focusLabel ?? '');
     setIsRecovery(weekMeta.isRecovery);
@@ -350,7 +335,7 @@ export function PlanTrainingSegment({
         onProgress: (done, total) => {
           setBusyMsg(`Generating structures (${done}/${total})`);
         },
-      })
+      }),
     );
   };
 
@@ -408,7 +393,12 @@ export function PlanTrainingSegment({
     if (idx >= 0) setWeekIndex(idx);
   };
 
-  const confirmAdapt = (title: string, message: string, adaptationType: 'RECALCULATE_WEEK' | 'PUSH_FORWARD', busy: string) => {
+  const confirmAdapt = (
+    title: string,
+    message: string,
+    adaptationType: 'RECALCULATE_WEEK' | 'PUSH_FORWARD',
+    busy: string,
+  ) => {
     Alert.alert(title, message, [
       { text: 'Cancel', style: 'cancel' },
       {
@@ -468,7 +458,7 @@ export function PlanTrainingSegment({
           'Recalculate remaining week?',
           'Upcoming sessions this week may be replaced.',
           'RECALCULATE_WEEK',
-          'Recalculating week'
+          'Recalculating week',
         ),
     },
     {
@@ -479,7 +469,7 @@ export function PlanTrainingSegment({
           'Push schedule forward?',
           'Planned sessions move one day later.',
           'PUSH_FORWARD',
-          'Pushing schedule'
+          'Pushing schedule',
         ),
     },
   ];
@@ -512,11 +502,11 @@ export function PlanTrainingSegment({
                   order: b.order ?? i,
                 }));
                 void runBusy('Replanning structure', () =>
-                  replan.mutateAsync({ planId: shell.id, blocks })
+                  replan.mutateAsync({ planId: shell.id, blocks }),
                 );
               },
             },
-          ]
+          ],
         );
       },
     },
@@ -526,22 +516,18 @@ export function PlanTrainingSegment({
       hint: 'Abandon current plan, then create',
       destructive: true,
       onPress: () => {
-        Alert.alert(
-          'Start new plan?',
-          'This abandons the current plan and opens the generator.',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            {
-              text: 'Abandon & create',
-              style: 'destructive',
-              onPress: () =>
-                void runBusy('Abandoning plan', async () => {
-                  await abandon.mutateAsync(shell.id);
-                  router.push(APP_HREFS.planCreate as Href);
-                }),
-            },
-          ]
-        );
+        Alert.alert('Start new plan?', 'This abandons the current plan and opens the generator.', [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Abandon & create',
+            style: 'destructive',
+            onPress: () =>
+              void runBusy('Abandoning plan', async () => {
+                await abandon.mutateAsync(shell.id);
+                router.push(APP_HREFS.planCreate as Href);
+              }),
+          },
+        ]);
       },
     },
     {
@@ -554,8 +540,7 @@ export function PlanTrainingSegment({
           {
             text: 'Abandon',
             style: 'destructive',
-            onPress: () =>
-              void runBusy('Abandoning plan', () => abandon.mutateAsync(shell.id)),
+            onPress: () => void runBusy('Abandoning plan', () => abandon.mutateAsync(shell.id)),
           },
         ]);
       },
@@ -574,9 +559,7 @@ export function PlanTrainingSegment({
         <Text className="text-2xl font-semibold text-text-primary" testID="plan-title">
           {shell.title}
         </Text>
-        {strategyLabel ? (
-          <Text className="text-sm text-text-muted">{strategyLabel}</Text>
-        ) : null}
+        {strategyLabel ? <Text className="text-sm text-text-muted">{strategyLabel}</Text> : null}
         {shell.provisionalHint || hasUsableData === false ? (
           <Text className="mt-1 text-sm text-modify">
             Provisional — coaching improves after Health Sync or a connected app.
@@ -642,7 +625,7 @@ export function PlanTrainingSegment({
               const undo = moveUndo;
               setMoveUndo(null);
               void runBusy('Undoing move', () =>
-                movePlanned.mutateAsync({ id: undo.id, date: undo.previousDate })
+                movePlanned.mutateAsync({ id: undo.id, date: undo.previousDate }),
               );
             }}
             accessibilityRole="button"
@@ -699,9 +682,7 @@ export function PlanTrainingSegment({
               </Text>
             </AnimatedPressable>
             <View className="items-center px-2">
-              <Text className="text-sm font-semibold text-text-primary">
-                {weekRange ?? 'Week'}
-              </Text>
+              <Text className="text-sm font-semibold text-text-primary">{weekRange ?? 'Week'}</Text>
               {browsingAway ? (
                 <AnimatedPressable
                   hitSlop={8}
@@ -833,7 +814,7 @@ export function PlanTrainingSegment({
                   !item.structureChartBlocks || item.structureChartBlocks.length < 2
                     ? () =>
                         void runBusy('Generating structure', () =>
-                          genStructure.mutateAsync(item.id)
+                          genStructure.mutateAsync(item.id),
                         )
                     : undefined
                 }

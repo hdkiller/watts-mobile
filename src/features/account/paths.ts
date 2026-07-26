@@ -22,4 +22,3 @@ export const TERMS_OF_SERVICE_URL = 'https://coachwatts.com/terms';
 export const HELP_CENTER_URL = 'https://coachwatts.com/help-center';
 /** Opens via Linking when mailto:; web URLs open via expo-web-browser. */
 export const SUPPORT_URL = 'mailto:support@coachwatts.com';
-

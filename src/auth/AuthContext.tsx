@@ -37,9 +37,7 @@ wireQueryConnectivity();
 
 async function clearHealthSyncForIdentityTransition(): Promise<void> {
   try {
-    const { clearHealthSyncOnSignOut } = await import(
-      '@/src/features/health/clearOnSignOut'
-    );
+    const { clearHealthSyncOnSignOut } = await import('@/src/features/health/clearOnSignOut');
     await clearHealthSyncOnSignOut();
   } catch (error) {
     console.warn('Failed to clear health sync state during account transition', error);
@@ -108,7 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setError(
             err instanceof Error
               ? `E2E userinfo: ${err.message}`
-              : 'E2E auth seed failed — check token and instance URL'
+              : 'E2E auth seed failed — check token and instance URL',
           );
           setStatus('needs_login');
         }
@@ -197,33 +195,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setStatus((current) => (current === 'needs_instance' ? current : 'needs_login'));
       void queryClient.clear();
       void clearHealthSyncForIdentityTransition();
-      void import('@/src/features/activation/connectLater').then(({ clearConnectLater }) =>
-        clearConnectLater()
-      ).catch(() => {
-        /* best-effort */
-      });
+      void import('@/src/features/activation/connectLater')
+        .then(({ clearConnectLater }) => clearConnectLater())
+        .catch(() => {
+          /* best-effort */
+        });
     });
     return () => setAuthFailureHandler(null);
   }, []);
 
-  const saveInstance = useCallback(async (url: string) => {
-    setError(null);
-    await validateInstanceReachability(url);
-    const previous = instanceUrl ?? (await getInstanceUrl());
-    const normalized = normalizeInstanceUrl(url);
-    if (previous && previous !== normalized) {
-      await clearHealthSyncForIdentityTransition();
-      const { clearConnectLater } = await import('@/src/features/activation/connectLater');
-      await clearConnectLater();
-      await clearTokens();
-      setUser(null);
-      queryClient.clear();
-      await clearPersistedQueryCache();
-    }
-    await setInstanceUrl(normalized);
-    setInstanceUrlState(normalized);
-    setStatus('needs_login');
-  }, [instanceUrl]);
+  const saveInstance = useCallback(
+    async (url: string) => {
+      setError(null);
+      await validateInstanceReachability(url);
+      const previous = instanceUrl ?? (await getInstanceUrl());
+      const normalized = normalizeInstanceUrl(url);
+      if (previous && previous !== normalized) {
+        await clearHealthSyncForIdentityTransition();
+        const { clearConnectLater } = await import('@/src/features/activation/connectLater');
+        await clearConnectLater();
+        await clearTokens();
+        setUser(null);
+        queryClient.clear();
+        await clearPersistedQueryCache();
+      }
+      await setInstanceUrl(normalized);
+      setInstanceUrlState(normalized);
+      setStatus('needs_login');
+    },
+    [instanceUrl],
+  );
 
   const signIn = useCallback(async () => {
     setError(null);
@@ -242,9 +243,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     try {
-      const { clearPushRegistrationOnSignOut } = await import(
-        '@/src/features/notifications/pushRegistration'
-      );
+      const { clearPushRegistrationOnSignOut } =
+        await import('@/src/features/notifications/pushRegistration');
       await clearPushRegistrationOnSignOut();
     } catch (error) {
       console.warn('Failed to clear push registration on sign-out', error);
@@ -280,7 +280,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       clearError: () => setError(null),
       refreshUser,
     }),
-    [status, instanceUrl, user, error, saveInstance, signIn, signOut, refreshUser]
+    [status, instanceUrl, user, error, saveInstance, signIn, signOut, refreshUser],
   );
 
   return (

@@ -12,8 +12,8 @@ describe('resolvePickerPhoto', () => {
           base64: 'abc123',
           mimeType: 'image/jpeg',
         },
-        readBase64
-      )
+        readBase64,
+      ),
     ).resolves.toEqual({
       uri: 'file:///tmp/meal.jpg',
       base64: 'abc123',
@@ -31,8 +31,8 @@ describe('resolvePickerPhoto', () => {
           base64: null,
           mimeType: 'image/png',
         },
-        readBase64
-      )
+        readBase64,
+      ),
     ).resolves.toEqual({
       uri: 'file:///tmp/meal.jpg',
       base64: 'from-file',
@@ -42,24 +42,19 @@ describe('resolvePickerPhoto', () => {
   });
 
   it('returns null when uri is missing', async () => {
-    await expect(
-      resolvePickerPhoto({ uri: '', base64: 'abc' }, vi.fn())
-    ).resolves.toBeNull();
+    await expect(resolvePickerPhoto({ uri: '', base64: 'abc' }, vi.fn())).resolves.toBeNull();
   });
 
   it('returns null when file read fails and base64 is absent', async () => {
     const readBase64 = vi.fn().mockRejectedValue(new Error('missing'));
     await expect(
-      resolvePickerPhoto({ uri: 'file:///tmp/gone.jpg', base64: null }, readBase64)
+      resolvePickerPhoto({ uri: 'file:///tmp/gone.jpg', base64: null }, readBase64),
     ).resolves.toBeNull();
   });
 
   it('defaults mime type to image/jpeg', async () => {
     await expect(
-      resolvePickerPhoto(
-        { uri: 'file:///tmp/meal.jpg', base64: 'abc' },
-        vi.fn()
-      )
+      resolvePickerPhoto({ uri: 'file:///tmp/meal.jpg', base64: 'abc' }, vi.fn()),
     ).resolves.toMatchObject({ mimeType: 'image/jpeg' });
   });
 });

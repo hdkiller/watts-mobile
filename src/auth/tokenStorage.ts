@@ -45,9 +45,7 @@ export async function saveTokens(tokens: {
   }
 
   const refreshToken =
-    tokens.refreshToken !== undefined
-      ? tokens.refreshToken
-      : await getItemAsync(REFRESH_KEY);
+    tokens.refreshToken !== undefined ? tokens.refreshToken : await getItemAsync(REFRESH_KEY);
 
   return {
     accessToken: tokens.accessToken,

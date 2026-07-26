@@ -3,12 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export type LogSection = 'recovery' | 'wellness' | 'nutrition' | 'measurements';
 
 /** Device preference for which Log segment opens by default. */
-export type LogTabPreference =
-  | 'auto'
-  | 'nutrition'
-  | 'recovery'
-  | 'wellness'
-  | 'measurements';
+export type LogTabPreference = 'auto' | 'nutrition' | 'recovery' | 'wellness' | 'measurements';
 
 const STORAGE_KEY = 'watts.log.defaultTab.v1';
 
@@ -82,7 +77,7 @@ export function logTabOrder(nutritionEnabled: boolean): LogSection[] {
 /** Resolve which tab to open when no `?section=` deep link is present. */
 export function resolveDefaultLogTab(
   preference: LogTabPreference,
-  nutritionEnabled: boolean
+  nutritionEnabled: boolean,
 ): LogSection {
   if (preference === 'wellness') return 'wellness';
   if (preference === 'recovery') return 'recovery';
@@ -96,7 +91,7 @@ export function resolveDefaultLogTab(
 
 export function logTabPreferenceLabel(
   preference: LogTabPreference,
-  nutritionEnabled: boolean
+  nutritionEnabled: boolean,
 ): string {
   if (preference === 'auto') {
     return nutritionEnabled ? 'Automatic (Nutrition)' : 'Automatic (Recovery)';

@@ -54,14 +54,10 @@ export function RecoveryEventCard({ item, onPress }: RecoveryEventCardProps) {
 
           <View>
             <View className="flex-row items-center gap-2">
-              <Text className="text-base font-semibold text-text-primary">
-                {item.label}
-              </Text>
+              <Text className="text-base font-semibold text-text-primary">{item.label}</Text>
               {readOnly ? (
                 <View className="rounded bg-border px-1.5 py-0.5">
-                  <Text className="text-[10px] font-semibold text-text-muted">
-                    Auto Sync
-                  </Text>
+                  <Text className="text-[10px] font-semibold text-text-muted">Auto Sync</Text>
                 </View>
               ) : null}
             </View>
@@ -71,12 +67,7 @@ export function RecoveryEventCard({ item, onPress }: RecoveryEventCardProps) {
           </View>
         </View>
 
-        <AppSymbol
-          sf="chevron.right"
-          size={14}
-          tintColor={theme.textMuted}
-          fallback="›"
-        />
+        <AppSymbol sf="chevron.right" size={14} tintColor={theme.textMuted} fallback="›" />
       </View>
 
       {/* Severity meter */}
@@ -86,11 +77,7 @@ export function RecoveryEventCard({ item, onPress }: RecoveryEventCardProps) {
           style={{
             width: `${severityPct}%`,
             backgroundColor:
-              severity > 7
-                ? Colors.danger
-                : severity > 4
-                ? Colors.modify
-                : Colors.brand,
+              severity > 7 ? Colors.danger : severity > 4 ? Colors.modify : Colors.brand,
           }}
         />
       </View>

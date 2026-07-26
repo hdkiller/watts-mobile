@@ -26,7 +26,7 @@ export function useUnreadNotificationsCount(): number {
 
 function markLocalRead(
   current: NotificationsInbox | undefined,
-  id: string
+  id: string,
 ): NotificationsInbox | undefined {
   if (!current) return current;
   let changed = false;
@@ -60,7 +60,7 @@ export function useMarkNotificationRead() {
       await queryClient.cancelQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
       const previous = queryClient.getQueryData<NotificationsInbox>(NOTIFICATIONS_QUERY_KEY);
       queryClient.setQueryData<NotificationsInbox>(NOTIFICATIONS_QUERY_KEY, (current) =>
-        markLocalRead(current, id)
+        markLocalRead(current, id),
       );
       return { previous };
     },
@@ -109,7 +109,9 @@ export function useUpdateNotificationPreferences() {
     mutationFn: (prefs: NotificationPreferences) => updateNotificationPreferences(prefs),
     onMutate: async (newPrefs) => {
       await queryClient.cancelQueries({ queryKey: NOTIFICATION_PREFS_QUERY_KEY });
-      const previous = queryClient.getQueryData<NotificationPreferences>(NOTIFICATION_PREFS_QUERY_KEY);
+      const previous = queryClient.getQueryData<NotificationPreferences>(
+        NOTIFICATION_PREFS_QUERY_KEY,
+      );
       queryClient.setQueryData<NotificationPreferences>(NOTIFICATION_PREFS_QUERY_KEY, newPrefs);
       return { previous };
     },

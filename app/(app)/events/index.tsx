@@ -22,8 +22,7 @@ import { useThemeColors } from '@/src/theme/useThemeColors';
 
 export default function UpcomingEventsListScreen() {
   const { instanceUrl } = useAuth();
-  const { data, isLoading, isError, error, refetch, dataUpdatedAt } =
-    useUpcomingEventsQuery();
+  const { data, isLoading, isError, error, refetch, dataUpdatedAt } = useUpcomingEventsQuery();
   const { showCachedOffline, lastUpdatedLabel } = useOfflineCached({
     data,
     isError,

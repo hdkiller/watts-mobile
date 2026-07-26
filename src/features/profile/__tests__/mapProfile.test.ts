@@ -113,7 +113,7 @@ describe('mapProfile', () => {
         aiRequireToolApproval: true,
         nickname: 'Ada',
         aiContext: 'Z2 focus',
-      })
+      }),
     ).toEqual({
       aiPersona: 'Motivational',
       aiRequireToolApproval: true,
@@ -148,7 +148,7 @@ describe('mapProfile', () => {
         ...sampleProfile,
         weightKg: 72.5748,
         weightUnits: 'Pounds',
-      }).weight
+      }).weight,
     ).toBe('160');
   });
 
@@ -161,8 +161,8 @@ describe('mapProfile', () => {
           maxHr: '',
           lthr: '170',
         },
-        'Pounds'
-      )
+        'Pounds',
+      ),
     ).toEqual({
       weight: 160,
       weightUnits: 'Pounds',

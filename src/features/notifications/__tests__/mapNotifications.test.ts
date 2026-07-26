@@ -17,7 +17,7 @@ describe('mapNotificationItem', () => {
         read: false,
         createdAt: '2026-07-19T10:00:00.000Z',
         link: '/',
-      })
+      }),
     ).toEqual({
       id: 'n1',
       title: 'Ready',
@@ -36,7 +36,7 @@ describe('mapNotificationItem', () => {
         body: 'Sync finished',
         read: true,
         createdAt: '2026-07-19T11:00:00.000Z',
-      })
+      }),
     ).toMatchObject({ body: 'Sync finished', read: true, link: null });
   });
 
@@ -150,4 +150,3 @@ describe('markNotificationRepeats', () => {
     expect(marked.map((m) => m.isRepeat)).toEqual([false, true, false]);
   });
 });
-

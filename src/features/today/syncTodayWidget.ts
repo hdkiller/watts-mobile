@@ -12,10 +12,10 @@ export async function syncTodayWidget(data: TodayViewModel | undefined): Promise
     const planned = data.plannedWorkout;
     const meta = planned
       ? [
-            humanizeWorkoutType(planned.type),
-            formatDuration(planned.durationSec),
-            planned.tss != null ? `TSS ${Math.round(planned.tss)}` : null,
-          ]
+          humanizeWorkoutType(planned.type),
+          formatDuration(planned.durationSec),
+          planned.tss != null ? `TSS ${Math.round(planned.tss)}` : null,
+        ]
           .filter(Boolean)
           .join(' · ')
       : data.action === 'rest'

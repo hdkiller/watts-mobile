@@ -29,11 +29,7 @@ import {
   weekHasSelectedMeals,
   weekRangeFromOffset,
 } from './mapNutritionPlan';
-import type {
-  NutritionPlanApi,
-  NutritionPlanMealView,
-  NutritionPlanWindowView,
-} from './types';
+import type { NutritionPlanApi, NutritionPlanMealView, NutritionPlanWindowView } from './types';
 
 type NutritionSubmode = 'strategy' | 'plan';
 
@@ -103,7 +99,7 @@ export function PlanNutritionSegment() {
   const hasMeals = weekHasSelectedMeals(days);
   const selectedDay = useMemo(
     () => (selectedDateKey ? (days.find((d) => d.dateKey === selectedDateKey) ?? null) : null),
-    [days, selectedDateKey]
+    [days, selectedDateKey],
   );
   const weekLabel = formatWeekRangeLabel(range.start, range.end) ?? `${range.start} – ${range.end}`;
 
@@ -147,7 +143,7 @@ export function PlanNutritionSegment() {
 
   const generateDraft = () =>
     void run('Generating meal plan', () =>
-      generate.mutateAsync({ startDate: range.start, endDate: range.end })
+      generate.mutateAsync({ startDate: range.start, endDate: range.end }),
     );
 
   return (
@@ -160,170 +156,172 @@ export function PlanNutritionSegment() {
 
       {submode === 'plan' ? (
         <>
-      {busy ? (
-        <Text className="text-sm text-brand" testID="plan-nutrition-busy">
-          {busy}…
-        </Text>
-      ) : null}
-      {error ? (
-        <View className="rounded-xl border border-danger/40 bg-tint-error p-3">
-          <Text className="text-sm text-danger">{error}</Text>
-        </View>
-      ) : null}
+          {busy ? (
+            <Text className="text-sm text-brand" testID="plan-nutrition-busy">
+              {busy}…
+            </Text>
+          ) : null}
+          {error ? (
+            <View className="rounded-xl border border-danger/40 bg-tint-error p-3">
+              <Text className="text-sm text-danger">{error}</Text>
+            </View>
+          ) : null}
 
-      <View className="flex-row items-center justify-between">
-        <AnimatedPressable
-          hitSlop={8}
-          disabled={Boolean(busy)}
-          onPress={() => {
-            hapticLight();
-            setWeekOffset((o) => o - 1);
-          }}
-          accessibilityRole="button"
-          accessibilityLabel="Previous week"
-        >
-          <Text className="text-sm font-semibold text-brand">Previous</Text>
-        </AnimatedPressable>
-        <Text className="text-sm font-semibold text-text-primary">{weekLabel}</Text>
-        <AnimatedPressable
-          hitSlop={8}
-          disabled={Boolean(busy)}
-          onPress={() => {
-            hapticLight();
-            setWeekOffset((o) => o + 1);
-          }}
-          accessibilityRole="button"
-          accessibilityLabel="Next week"
-        >
-          <Text className="text-sm font-semibold text-brand">Next</Text>
-        </AnimatedPressable>
-      </View>
-
-      {planQuery.isLoading && !hasMeals && !plan ? (
-        <PlanNutritionSkeleton compact />
-      ) : !hasMeals ? (
-        <View className="gap-3" testID="plan-nutrition-empty">
-          <Text className="text-sm text-text-muted">
-            No meals selected this week yet. Generate a draft to fill fueling windows from your
-            catalog.
-          </Text>
-          <Button
-            label="Generate draft"
-            onPress={generateDraft}
-            loading={Boolean(busy)}
-            disabled={Boolean(busy)}
-            testID="plan-nutrition-generate"
-          />
-          <AnimatedPressable
-            hitSlop={8}
-            disabled={Boolean(busy)}
-            onPress={openGrocery}
-            accessibilityRole="button"
-            accessibilityLabel="Grocery list"
-            className="self-start py-1"
-          >
-            <Text className="text-sm font-semibold text-brand">Grocery list</Text>
-          </AnimatedPressable>
-        </View>
-      ) : (
-        <>
-          <View className="flex-row items-center justify-between gap-3">
-            <Button
-              className="flex-1"
-              label="Regenerate draft"
-              variant="secondary"
-              disabled={Boolean(busy)}
-              onPress={generateDraft}
-            />
+          <View className="flex-row items-center justify-between">
             <AnimatedPressable
               hitSlop={8}
               disabled={Boolean(busy)}
-              onPress={openGrocery}
+              onPress={() => {
+                hapticLight();
+                setWeekOffset((o) => o - 1);
+              }}
               accessibilityRole="button"
-              accessibilityLabel="Grocery list"
-              className="py-1"
+              accessibilityLabel="Previous week"
             >
-              <Text className="text-sm font-semibold text-brand">Grocery</Text>
+              <Text className="text-sm font-semibold text-brand">Previous</Text>
+            </AnimatedPressable>
+            <Text className="text-sm font-semibold text-text-primary">{weekLabel}</Text>
+            <AnimatedPressable
+              hitSlop={8}
+              disabled={Boolean(busy)}
+              onPress={() => {
+                hapticLight();
+                setWeekOffset((o) => o + 1);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Next week"
+            >
+              <Text className="text-sm font-semibold text-brand">Next</Text>
             </AnimatedPressable>
           </View>
-          <View>
-            {days.map((day) => (
-              <AnimatedPressable
-                key={day.dateKey}
-                onPress={() => {
-                  hapticLight();
-                  setSelectedDateKey(day.dateKey);
-                }}
-                hitSlop={8}
-                className="border-b border-border/80 py-3"
-                accessibilityRole="button"
-                accessibilityLabel={day.weekdayLabel}
-              >
-                <Text className="text-base font-medium text-text-primary">{day.weekdayLabel}</Text>
-                <Text className="mt-1 text-sm text-text-muted">
-                  {day.meals.length === 0
-                    ? day.windows.length > 0
-                      ? `${day.windows.length} windows · no meals locked`
-                      : 'No meals selected'
-                    : `${day.meals.length} meals · ${day.doneCount} done · ${day.skippedCount} skipped`}
-                </Text>
-              </AnimatedPressable>
-            ))}
-          </View>
-        </>
-      )}
 
-      <BottomSheet
-        visible={Boolean(selectedDateKey)}
-        onClose={() => setSelectedDateKey(null)}
-        testID="plan-nutrition-day-sheet"
-      >
-        <Text className="mb-3 text-lg font-semibold text-text-primary">
-          {selectedDay?.weekdayLabel}
-        </Text>
-        <Button
-          label="Regenerate day fueling"
-          variant="secondary"
-          disabled={Boolean(busy)}
-          onPress={() => {
-            if (!selectedDateKey) return;
-            void run('Regenerating day', () => regenDay.mutateAsync(selectedDateKey));
-          }}
-        />
-        <View className="mt-3 gap-2">
-          {(selectedDay?.windows ?? []).length === 0 ? (
-            <Text className="text-sm text-text-muted">No fueling windows for this day.</Text>
-          ) : (
-            (selectedDay?.windows ?? []).map((window) => (
-              <WindowRow
-                key={window.key}
-                window={window}
-                busy={Boolean(busy)}
-                onPick={() => {
-                  hapticLight();
-                  setPickerWindow(window);
-                }}
-                onAction={(action) => {
-                  if (!window.meal) return;
-                  void run('Updating meal', () =>
-                    patchMeal.mutateAsync({ mealId: window.meal!.id, action })
-                  );
-                }}
+          {planQuery.isLoading && !hasMeals && !plan ? (
+            <PlanNutritionSkeleton compact />
+          ) : !hasMeals ? (
+            <View className="gap-3" testID="plan-nutrition-empty">
+              <Text className="text-sm text-text-muted">
+                No meals selected this week yet. Generate a draft to fill fueling windows from your
+                catalog.
+              </Text>
+              <Button
+                label="Generate draft"
+                onPress={generateDraft}
+                loading={Boolean(busy)}
+                disabled={Boolean(busy)}
+                testID="plan-nutrition-generate"
               />
-            ))
+              <AnimatedPressable
+                hitSlop={8}
+                disabled={Boolean(busy)}
+                onPress={openGrocery}
+                accessibilityRole="button"
+                accessibilityLabel="Grocery list"
+                className="self-start py-1"
+              >
+                <Text className="text-sm font-semibold text-brand">Grocery list</Text>
+              </AnimatedPressable>
+            </View>
+          ) : (
+            <>
+              <View className="flex-row items-center justify-between gap-3">
+                <Button
+                  className="flex-1"
+                  label="Regenerate draft"
+                  variant="secondary"
+                  disabled={Boolean(busy)}
+                  onPress={generateDraft}
+                />
+                <AnimatedPressable
+                  hitSlop={8}
+                  disabled={Boolean(busy)}
+                  onPress={openGrocery}
+                  accessibilityRole="button"
+                  accessibilityLabel="Grocery list"
+                  className="py-1"
+                >
+                  <Text className="text-sm font-semibold text-brand">Grocery</Text>
+                </AnimatedPressable>
+              </View>
+              <View>
+                {days.map((day) => (
+                  <AnimatedPressable
+                    key={day.dateKey}
+                    onPress={() => {
+                      hapticLight();
+                      setSelectedDateKey(day.dateKey);
+                    }}
+                    hitSlop={8}
+                    className="border-b border-border/80 py-3"
+                    accessibilityRole="button"
+                    accessibilityLabel={day.weekdayLabel}
+                  >
+                    <Text className="text-base font-medium text-text-primary">
+                      {day.weekdayLabel}
+                    </Text>
+                    <Text className="mt-1 text-sm text-text-muted">
+                      {day.meals.length === 0
+                        ? day.windows.length > 0
+                          ? `${day.windows.length} windows · no meals locked`
+                          : 'No meals selected'
+                        : `${day.meals.length} meals · ${day.doneCount} done · ${day.skippedCount} skipped`}
+                    </Text>
+                  </AnimatedPressable>
+                ))}
+              </View>
+            </>
           )}
-        </View>
-        <View className="mt-4">
-          <Button label="Close" variant="secondary" onPress={() => setSelectedDateKey(null)} />
-        </View>
-      </BottomSheet>
 
-      <MealRecommendationPickerSheet
-        visible={pickerWindow != null}
-        dateKey={selectedDateKey ?? ''}
-        window={pickerWindow}
-        onClose={() => setPickerWindow(null)}
-      />
+          <BottomSheet
+            visible={Boolean(selectedDateKey)}
+            onClose={() => setSelectedDateKey(null)}
+            testID="plan-nutrition-day-sheet"
+          >
+            <Text className="mb-3 text-lg font-semibold text-text-primary">
+              {selectedDay?.weekdayLabel}
+            </Text>
+            <Button
+              label="Regenerate day fueling"
+              variant="secondary"
+              disabled={Boolean(busy)}
+              onPress={() => {
+                if (!selectedDateKey) return;
+                void run('Regenerating day', () => regenDay.mutateAsync(selectedDateKey));
+              }}
+            />
+            <View className="mt-3 gap-2">
+              {(selectedDay?.windows ?? []).length === 0 ? (
+                <Text className="text-sm text-text-muted">No fueling windows for this day.</Text>
+              ) : (
+                (selectedDay?.windows ?? []).map((window) => (
+                  <WindowRow
+                    key={window.key}
+                    window={window}
+                    busy={Boolean(busy)}
+                    onPick={() => {
+                      hapticLight();
+                      setPickerWindow(window);
+                    }}
+                    onAction={(action) => {
+                      if (!window.meal) return;
+                      void run('Updating meal', () =>
+                        patchMeal.mutateAsync({ mealId: window.meal!.id, action }),
+                      );
+                    }}
+                  />
+                ))
+              )}
+            </View>
+            <View className="mt-4">
+              <Button label="Close" variant="secondary" onPress={() => setSelectedDateKey(null)} />
+            </View>
+          </BottomSheet>
+
+          <MealRecommendationPickerSheet
+            visible={pickerWindow != null}
+            dateKey={selectedDateKey ?? ''}
+            window={pickerWindow}
+            onClose={() => setPickerWindow(null)}
+          />
         </>
       ) : null}
     </View>
@@ -393,10 +391,7 @@ function WindowRow({
   }
 
   return (
-    <View
-      className="border-b border-border/80 py-3"
-      testID={`plan-nutrition-window-${window.key}`}
-    >
+    <View className="border-b border-border/80 py-3" testID={`plan-nutrition-window-${window.key}`}>
       <Text className="text-xs font-semibold uppercase tracking-wide text-text-muted">
         {window.label}
       </Text>

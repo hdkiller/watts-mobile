@@ -40,17 +40,14 @@ export function parseE2eLoginDeepLink(input: string): ParsedE2eLoginDeepLink | n
   const host = url.hostname || url.host;
   const pathFromHost = host ? `/${host}${url.pathname === '/' ? '' : url.pathname}` : url.pathname;
   const path = (pathFromHost.split('?')[0] ?? '').replace(/\/{2,}/g, '/') || '/';
-  const normalized =
-    path.length > 1 && path.endsWith('/') ? path.slice(0, -1) : path;
+  const normalized = path.length > 1 && path.endsWith('/') ? path.slice(0, -1) : path;
 
   if (normalized !== '/e2e/login') {
     return null;
   }
 
   const email = (url.searchParams.get('email') ?? DEFAULT_E2E_LOGIN_EMAIL).trim();
-  const instanceUrl = (
-    url.searchParams.get('instance') ?? DEFAULT_E2E_LOGIN_INSTANCE_URL
-  ).trim();
+  const instanceUrl = (url.searchParams.get('instance') ?? DEFAULT_E2E_LOGIN_INSTANCE_URL).trim();
 
   if (!email || !instanceUrl) return null;
 
@@ -58,13 +55,8 @@ export function parseE2eLoginDeepLink(input: string): ParsedE2eLoginDeepLink | n
 }
 
 /** Canonical Maestro / local openLink target (iOS Simulator). */
-export function e2eLoginDeepLinkUrl(options?: {
-  email?: string;
-  instanceUrl?: string;
-}): string {
+export function e2eLoginDeepLinkUrl(options?: { email?: string; instanceUrl?: string }): string {
   const email = encodeURIComponent(options?.email ?? DEFAULT_E2E_LOGIN_EMAIL);
-  const instance = encodeURIComponent(
-    options?.instanceUrl ?? DEFAULT_E2E_LOGIN_INSTANCE_URL
-  );
+  const instance = encodeURIComponent(options?.instanceUrl ?? DEFAULT_E2E_LOGIN_INSTANCE_URL);
   return `${APP_SCHEME}://e2e/login?email=${email}&instance=${instance}`;
 }

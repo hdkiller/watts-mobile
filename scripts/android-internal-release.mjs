@@ -36,15 +36,9 @@ const APP_JSON = join(ROOT, 'app.json');
 const ENV_PATH = join(ROOT, '.env');
 const ENV_LOCAL_PATH = join(ROOT, '.env.local');
 const KEYSTORE_PROPS = join(ROOT, 'credentials/android/keystore.properties');
-const DEFAULT_SERVICE_ACCOUNT = join(
-  ROOT,
-  'credentials/android/play-service-account.json'
-);
+const DEFAULT_SERVICE_ACCOUNT = join(ROOT, 'credentials/android/play-service-account.json');
 const OUT_DIR = join(ROOT, 'dist', 'android-internal');
-const DEFAULT_AAB = join(
-  ROOT,
-  'android/app/build/outputs/bundle/release/app-release.aab'
-);
+const DEFAULT_AAB = join(ROOT, 'android/app/build/outputs/bundle/release/app-release.aab');
 const PACKAGE_NAME = 'com.coachwatts.app';
 const INTERNAL_TRACK = 'internal';
 
@@ -135,11 +129,7 @@ function parseArgs(argv) {
 
   const uploadOnly = Boolean(opts.aab);
   if (!uploadOnly) {
-    if (
-      opts.versionCode == null ||
-      !Number.isInteger(opts.versionCode) ||
-      opts.versionCode < 1
-    ) {
+    if (opts.versionCode == null || !Number.isInteger(opts.versionCode) || opts.versionCode < 1) {
       throw new Error('--version-code <positive integer> is required to build');
     }
   } else if (
@@ -199,7 +189,7 @@ function assertNoE2eFlags(envPath) {
     });
   if (enabled.length) {
     throw new Error(
-      `Refusing store AAB: ${enabled.join(', ')} set in ${envPath}. Use a production env (or --env-file).`
+      `Refusing store AAB: ${enabled.join(', ')} set in ${envPath}. Use a production env (or --env-file).`,
     );
   }
 }
@@ -222,7 +212,7 @@ function assertReleaseEnv(envPath) {
 function assertSigning() {
   if (!existsSync(KEYSTORE_PROPS)) {
     throw new Error(
-      `Missing ${KEYSTORE_PROPS}. See docs/distribution/tasks/014-eas-android-credentials.md`
+      `Missing ${KEYSTORE_PROPS}. See docs/distribution/tasks/014-eas-android-credentials.md`,
     );
   }
   const props = readDotEnv(KEYSTORE_PROPS);
@@ -259,9 +249,7 @@ function setVersionCode(versionCode) {
   const previous = app.expo.android.versionCode;
   app.expo.android.versionCode = versionCode;
   writeFileSync(APP_JSON, `${JSON.stringify(app, null, 2)}\n`);
-  console.log(
-    `expo.android.versionCode: ${previous ?? '(unset)'} → ${versionCode}`
-  );
+  console.log(`expo.android.versionCode: ${previous ?? '(unset)'} → ${versionCode}`);
   return String(app.expo.version ?? '0.0.0');
 }
 
@@ -300,16 +288,10 @@ function withReleaseEnvIsolation(envFile, fn) {
   }
 }
 
-async function uploadInternalAab({
-  aabPath,
-  serviceAccountPath,
-  draft,
-  versionCode,
-  versionName,
-}) {
+async function uploadInternalAab({ aabPath, serviceAccountPath, draft, versionCode, versionName }) {
   if (!existsSync(serviceAccountPath)) {
     throw new Error(
-      `Missing Play service account JSON: ${serviceAccountPath}\nCreate via gcloud + invite in Play Console Users and permissions.`
+      `Missing Play service account JSON: ${serviceAccountPath}\nCreate via gcloud + invite in Play Console Users and permissions.`,
     );
   }
   if (!existsSync(aabPath)) {
@@ -349,8 +331,7 @@ async function uploadInternalAab({
     const releaseName =
       versionName && uploadedVersionCode
         ? `${versionName} (${uploadedVersionCode})`
-        : versionName ||
-          (uploadedVersionCode != null ? String(uploadedVersionCode) : undefined);
+        : versionName || (uploadedVersionCode != null ? String(uploadedVersionCode) : undefined);
 
     await play.edits.tracks.update({
       packageName: PACKAGE_NAME,
@@ -373,7 +354,7 @@ async function uploadInternalAab({
     console.log(`\nPlay Internal ${draft ? 'draft' : 'rollout'} committed.`);
     if (versionCode != null && uploadedVersionCode !== versionCode) {
       console.log(
-        `Note: requested versionCode ${versionCode} but Play reported ${uploadedVersionCode}.`
+        `Note: requested versionCode ${versionCode} but Play reported ${uploadedVersionCode}.`,
       );
     }
     return uploadedVersionCode;
@@ -394,14 +375,12 @@ async function main() {
   console.log('Android internal release (local Gradle AAB)');
   console.log(`  root: ${ROOT}`);
   console.log(
-    `  mode: ${uploadOnly ? 'upload-only' : opts.uploadInternal ? 'build+upload' : 'build'}`
+    `  mode: ${uploadOnly ? 'upload-only' : opts.uploadInternal ? 'build+upload' : 'build'}`,
   );
   if (opts.versionCode != null) console.log(`  versionCode: ${opts.versionCode}`);
   if (!uploadOnly) {
     console.log(`  env: ${opts.envFile ?? ENV_PATH}`);
-    console.log(
-      `  prebuild: ${opts.skipPrebuild ? 'skip' : opts.clean ? 'clean' : 'no-clean'}`
-    );
+    console.log(`  prebuild: ${opts.skipPrebuild ? 'skip' : opts.clean ? 'clean' : 'no-clean'}`);
   }
   if (opts.uploadInternal) {
     console.log(`  upload: internal${opts.draft ? ' (draft)' : ''}`);
@@ -424,7 +403,7 @@ async function main() {
       console.log(
         `\nDry run OK — would set versionCode, prebuild, bundleRelease${
           opts.uploadInternal ? ', and upload to Internal' : ''
-        }.`
+        }.`,
       );
       return;
     }
@@ -475,16 +454,12 @@ async function main() {
     }
     if (opts.dryRun) {
       console.log(
-        `\nDry run OK — would upload ${outPath} to Play Internal${
-          opts.draft ? ' as draft' : ''
-        }.`
+        `\nDry run OK — would upload ${outPath} to Play Internal${opts.draft ? ' as draft' : ''}.`,
       );
       return;
     }
     try {
-      versionName = String(
-        JSON.parse(readFileSync(APP_JSON, 'utf8')).expo?.version ?? ''
-      );
+      versionName = String(JSON.parse(readFileSync(APP_JSON, 'utf8')).expo?.version ?? '');
     } catch {
       versionName = null;
     }
@@ -503,11 +478,9 @@ async function main() {
       versionName,
     });
     console.log(`\nNext:`);
+    console.log('  1. Confirm Internal testing release in Play Console (testers + opt-in link)');
     console.log(
-      '  1. Confirm Internal testing release in Play Console (testers + opt-in link)'
-    );
-    console.log(
-      `  2. Prepend versionName ${versionName ?? '?'} / versionCode ${uploaded} to docs/distribution/log.md`
+      `  2. Prepend versionName ${versionName ?? '?'} / versionCode ${uploaded} to docs/distribution/log.md`,
     );
     console.log('  3. Promote Internal → Production later from Play Console (task 017)');
     return;
@@ -515,10 +488,10 @@ async function main() {
 
   console.log(`\nNext:`);
   console.log(
-    '  1. Re-run with --upload-internal, or Play Console → Internal testing → upload AAB'
+    '  1. Re-run with --upload-internal, or Play Console → Internal testing → upload AAB',
   );
   console.log(
-    `  2. Prepend versionName ${versionName} / versionCode ${opts.versionCode} to docs/distribution/log.md`
+    `  2. Prepend versionName ${versionName} / versionCode ${opts.versionCode} to docs/distribution/log.md`,
   );
   console.log('  3. Promote Internal → Production later from Play Console (task 017)');
 }

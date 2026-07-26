@@ -95,9 +95,7 @@ async function prefillFromHealthConnect(): Promise<HealthPrefill | null> {
     ascendingOrder: false,
     pageSize: 1,
   });
-  const weightRecord = weightRes?.records?.[0] as
-    | { weight?: { inKilograms?: number } }
-    | undefined;
+  const weightRecord = weightRes?.records?.[0] as { weight?: { inKilograms?: number } } | undefined;
   const kg = weightRecord?.weight?.inKilograms;
   if (kg != null && Number.isFinite(kg)) {
     result.weightKg = String(Math.round(kg * 10) / 10);

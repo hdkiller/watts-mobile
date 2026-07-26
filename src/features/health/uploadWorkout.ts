@@ -12,7 +12,7 @@ export type UploadWorkoutResult = {
 };
 
 export async function uploadPlatformWorkout(
-  session: PlatformWorkoutSession
+  session: PlatformWorkoutSession,
 ): Promise<UploadWorkoutResult> {
   const fitBytes = buildMinimalFit(session);
   const filename = fitFilename(session);
@@ -26,14 +26,11 @@ export async function uploadPlatformWorkout(
     cacheFile.write(fitBytes);
 
     const form = new FormData();
-    form.append(
-      'file',
-      {
-        uri: cacheFile.uri,
-        type: 'application/octet-stream',
-        name: filename,
-      } as unknown as Blob
-    );
+    form.append('file', {
+      uri: cacheFile.uri,
+      type: 'application/octet-stream',
+      name: filename,
+    } as unknown as Blob);
     form.append(
       'metadata',
       JSON.stringify({
@@ -43,7 +40,7 @@ export async function uploadPlatformWorkout(
         startedAt: session.startedAt,
         endedAt: session.endedAt,
         sportType: session.sportType,
-      })
+      }),
     );
     if (session.title) {
       form.append('name', session.title);
@@ -71,7 +68,10 @@ export async function uploadPlatformWorkout(
     if (!response.ok || body?.success === false || (body?.results?.failed ?? 0) > 0) {
       const detail = body?.results?.errors?.filter(Boolean).join('; ');
       throw new Error(
-        detail || body?.message || body?.statusMessage || `Workout sync failed (${response.status})`
+        detail ||
+          body?.message ||
+          body?.statusMessage ||
+          `Workout sync failed (${response.status})`,
       );
     }
 

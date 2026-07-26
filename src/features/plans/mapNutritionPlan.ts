@@ -135,7 +135,7 @@ function baseWindowType(value: string): string {
 /** Match a plan meal row to a fueling-plan window (web WeeklyPlanDashboard parity). */
 export function matchesMealToWindow(
   meal: NutritionPlanMealApi,
-  window: Record<string, unknown>
+  window: Record<string, unknown>,
 ): boolean {
   const windowType = String(window.type ?? '');
   const mealType = String(meal.windowType ?? '');
@@ -218,7 +218,7 @@ function targetsFromMeal(meal: NutritionPlanMealApi): {
 
 function mealViewFromApi(
   meal: NutritionPlanMealApi,
-  dateKey: string
+  dateKey: string,
 ): NutritionPlanMealView | null {
   if (!meal?.id || !mealHasSelection(meal)) return null;
   return {
@@ -242,10 +242,13 @@ function summaryDays(plan: NutritionPlanApi | null | undefined): unknown[] {
 function windowsForDay(
   dateKey: string,
   dayMeals: NutritionPlanMealApi[],
-  plan: NutritionPlanApi | null | undefined
+  plan: NutritionPlanApi | null | undefined,
 ): NutritionPlanWindowView[] {
   const daySummary = summaryDays(plan).find(
-    (d) => d && typeof d === 'object' && String((d as { date?: unknown }).date ?? '').slice(0, 10) === dateKey
+    (d) =>
+      d &&
+      typeof d === 'object' &&
+      String((d as { date?: unknown }).date ?? '').slice(0, 10) === dateKey,
   ) as { fuelingPlan?: { windows?: unknown } } | undefined;
 
   const summaryWindowsRaw = daySummary?.fuelingPlan?.windows;
@@ -279,8 +282,7 @@ function windowsForDay(
             slotName,
             startTime,
             scheduledLabel:
-              scheduledLabelFrom(matching?.scheduledAt) ??
-              scheduledLabelFrom(window.startTime),
+              scheduledLabelFrom(matching?.scheduledAt) ?? scheduledLabelFrom(window.startTime),
             targetCarbs: Math.round(targets.carbs),
             targetProtein: Math.round(targets.protein),
             targetKcal: Math.round(targets.kcal),
@@ -317,15 +319,13 @@ function windowsForDay(
     (meal) =>
       !base.some((window) =>
         matchesMealToWindow(meal, {
-          type: window.windowType.startsWith('DAILY_BASE')
-            ? 'DAILY_BASE'
-            : window.windowType,
+          type: window.windowType.startsWith('DAILY_BASE') ? 'DAILY_BASE' : window.windowType,
           // Without the key a keyed meal matches nothing here and gets appended a second time.
           windowKey: window.windowKey,
           slotName: window.slotName,
           label: window.label,
-        })
-      )
+        }),
+      ),
   );
 
   const appended: NutritionPlanWindowView[] = unmatched.map((meal, index) => {
@@ -355,12 +355,10 @@ function windowsForDay(
 function toDayView(
   dateKey: string,
   dayMeals: NutritionPlanMealApi[],
-  plan: NutritionPlanApi | null | undefined
+  plan: NutritionPlanApi | null | undefined,
 ): NutritionPlanDayView {
   const windows = windowsForDay(dateKey, dayMeals, plan);
-  const meals = windows
-    .map((w) => w.meal)
-    .filter((m): m is NutritionPlanMealView => Boolean(m));
+  const meals = windows.map((w) => w.meal).filter((m): m is NutritionPlanMealView => Boolean(m));
   return {
     dateKey,
     weekdayLabel: weekdayLabelForKey(dateKey),
@@ -378,7 +376,7 @@ function toDayView(
  */
 export function mapNutritionPlanDays(
   plan: NutritionPlanApi | null | undefined,
-  range?: { start: string; end: string }
+  range?: { start: string; end: string },
 ): NutritionPlanDayView[] {
   const apiMeals = plan?.meals ?? [];
   const byDay = new Map<string, NutritionPlanMealApi[]>();
@@ -392,7 +390,7 @@ export function mapNutritionPlanDays(
 
   if (range?.start && range?.end) {
     return dateKeysInRange(range.start, range.end).map((dateKey) =>
-      toDayView(dateKey, byDay.get(dateKey) ?? [], plan)
+      toDayView(dateKey, byDay.get(dateKey) ?? [], plan),
     );
   }
 
@@ -445,7 +443,7 @@ export function weekRangeFromOffset(weekOffset: number): { start: string; end: s
   const monday = new Date(
     now.getFullYear(),
     now.getMonth(),
-    now.getDate() + mondayOffset + weekOffset * 7
+    now.getDate() + mondayOffset + weekOffset * 7,
   );
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);

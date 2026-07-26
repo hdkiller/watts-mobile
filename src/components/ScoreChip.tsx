@@ -1,13 +1,7 @@
 import { Text, View } from 'react-native';
 
 /** Compact score with muted /10 scale for athlete-facing chips and analysis rows. */
-export function ScoreChip({
-  label,
-  score,
-}: {
-  label: string;
-  score: string | number;
-}) {
+export function ScoreChip({ label, score }: { label: string; score: string | number }) {
   const numeric = typeof score === 'number' ? score : Number(score);
   const low = Number.isFinite(numeric) && numeric > 0 && numeric <= 3;
 
@@ -24,13 +18,7 @@ export function ScoreChip({
 }
 
 /** Fixed-width score cell for analysis grids. */
-export function ScoreCell({
-  label,
-  score,
-}: {
-  label: string;
-  score: string | number;
-}) {
+export function ScoreCell({ label, score }: { label: string; score: string | number }) {
   return (
     <View className="mb-2 w-1/3 pr-2">
       <Text className="text-xs text-text-muted">{label}</Text>

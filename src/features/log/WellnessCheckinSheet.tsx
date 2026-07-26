@@ -1,12 +1,6 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useEffect, useRef, useState } from 'react';
-import {
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
 import { Button } from '@/src/components/Button';
@@ -145,7 +139,9 @@ export function WellnessCheckinSheet({
     setError(null);
     setSaveNotice(null);
     try {
-      const result = await saveMutation.mutateAsync(toWellnessPayload(values, undefined, weightUnits));
+      const result = await saveMutation.mutateAsync(
+        toWellnessPayload(values, undefined, weightUnits),
+      );
       hapticSuccess();
       if (result.queuedOffline) {
         setSaveNotice('Saved offline — will sync when you’re back online.');
@@ -164,23 +160,18 @@ export function WellnessCheckinSheet({
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent
-      onRequestClose={onClose}
-    >
-      <Pressable accessible={false} className="flex-1 bg-black/60 justify-end" onPress={onClose}>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      <Pressable accessible={false} className="flex-1 justify-end bg-black/60" onPress={onClose}>
         <Pressable
           testID="wellness-checkin-sheet"
           accessible={false}
-          className="rounded-t-3xl bg-surface px-6 pt-4 pb-10"
+          className="rounded-t-3xl bg-surface px-6 pb-10 pt-4"
           style={{ maxHeight: '90%' }}
           onPress={(e) => e.stopPropagation()}
         >
           <View className="mb-4 h-1 w-10 self-center rounded-full bg-border-strong" />
 
-          <View className="flex-row items-center justify-between mb-2">
+          <View className="mb-2 flex-row items-center justify-between">
             <View>
               <Text className="text-xl font-bold text-text-primary">Daily Wellness Check-in</Text>
               <Text className="text-xs text-text-muted">Target completion &lt; 20 seconds</Text>
@@ -196,7 +187,7 @@ export function WellnessCheckinSheet({
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Prefill from Health"
-              className="mt-2 mb-1 self-start rounded-full border border-border bg-card px-3 py-1.5 active:opacity-70"
+              className="mb-1 mt-2 self-start rounded-full border border-border bg-card px-3 py-1.5 active:opacity-70"
               disabled={healthBusy}
               onPress={() => void onPrefillFromHealth()}
             >

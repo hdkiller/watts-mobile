@@ -85,10 +85,7 @@ function structureSummary(structure: unknown): string | null {
   return null;
 }
 
-function pickCtxValue(
-  ctx: Record<string, unknown> | null | undefined,
-  keys: string[]
-): unknown {
+function pickCtxValue(ctx: Record<string, unknown> | null | undefined, keys: string[]): unknown {
   if (!ctx) return null;
   for (const key of keys) {
     const value = ctx[key];
@@ -111,7 +108,7 @@ function labelFromValue(value: unknown): string | null {
  * Returns null when the label is only a raw number or unrecognized wording.
  */
 export function recoverySentimentFromLabel(
-  label: string | null | undefined
+  label: string | null | undefined,
 ): RecoverySentiment | null {
   if (label == null) return null;
   const s = label.toLowerCase().trim();
@@ -147,7 +144,7 @@ export function recoverySentimentFromLabel(
  * otherwise a 0–10 scale (readiness / feel).
  */
 export function recoverySentimentFromNumber(
-  value: number | null | undefined
+  value: number | null | undefined,
 ): RecoverySentiment | null {
   if (value == null || Number.isNaN(value)) return null;
   if (value > 10) {
@@ -179,7 +176,7 @@ export function recoverySentimentFromValue(value: unknown): RecoverySentiment | 
  * Fatigue wording is inverted vs readiness: high/elevated → poor, low/minimal → good.
  */
 export function fatigueSentimentFromLabel(
-  label: string | null | undefined
+  label: string | null | undefined,
 ): RecoverySentiment | null {
   if (label == null) return null;
   const s = label.toLowerCase().trim();
@@ -190,9 +187,7 @@ export function fatigueSentimentFromLabel(
   return recoverySentimentFromLabel(s);
 }
 
-function mapRecoveryStrip(
-  analysis: ActivityRecommendationApi['analysisJson']
-): TodayRecoveryStrip {
+function mapRecoveryStrip(analysis: ActivityRecommendationApi['analysisJson']): TodayRecoveryStrip {
   const ctx = analysis?.recovery_context ?? null;
   const ra = analysis?.recovery_analysis ?? null;
 
@@ -214,16 +209,15 @@ function mapRecoveryStrip(
 
   const sleepSentiment =
     recoverySentimentFromValue(
-      pickCtxValue(ctx, ['sleepRating', 'sleep_status', 'sleepStatus', 'sleep_quality'])
+      pickCtxValue(ctx, ['sleepRating', 'sleep_status', 'sleepStatus', 'sleep_quality']),
     ) ?? recoverySentimentFromValue(sleepRaw);
 
   const hrvSentiment =
-    recoverySentimentFromValue(
-      pickCtxValue(ctx, ['hrvRating', 'hrv_status', 'hrvStatus'])
-    ) ?? recoverySentimentFromValue(hrvRaw);
+    recoverySentimentFromValue(pickCtxValue(ctx, ['hrvRating', 'hrv_status', 'hrvStatus'])) ??
+    recoverySentimentFromValue(hrvRaw);
 
   const feelFromCtx = recoverySentimentFromValue(
-    pickCtxValue(ctx, ['feelRating', 'feel_status', 'readiness', 'feel'])
+    pickCtxValue(ctx, ['feelRating', 'feel_status', 'readiness', 'feel']),
   );
   const feelFromScore =
     ra?.readiness_score != null ? recoverySentimentFromNumber(ra.readiness_score) : null;
@@ -323,7 +317,7 @@ function asFiniteNumber(value: unknown): number | null {
  * Prefers `analysisJson` originals/mods; falls back to linked planned workout for Original Plan.
  */
 export function mapRecommendationDetail(
-  raw: ActivityRecommendationApi | null | undefined
+  raw: ActivityRecommendationApi | null | undefined,
 ): RecommendationDetailViewModel | null {
   if (!raw?.id) return null;
 
@@ -333,7 +327,9 @@ export function mapRecommendationDetail(
   const unit = normalizeConfidence(typeof raw.confidence === 'number' ? raw.confidence : null);
 
   const keyFactors = Array.isArray(raw.analysisJson?.key_factors)
-    ? raw.analysisJson!.key_factors!.filter((f): f is string => typeof f === 'string' && f.trim().length > 0)
+    ? raw.analysisJson!.key_factors!.filter(
+        (f): f is string => typeof f === 'string' && f.trim().length > 0,
+      )
     : [];
   const recoveryAnalysis = raw.analysisJson?.recovery_analysis ?? null;
   const drivers = mapRecommendationDrivers({

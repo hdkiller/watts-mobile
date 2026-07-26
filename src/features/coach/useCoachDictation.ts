@@ -173,13 +173,7 @@ function useCoachDictationNative(options: UseCoachDictationOptions): UseCoachDic
     } finally {
       busyRef.current = false;
     }
-  }, [
-    canStart,
-    isTranscribing,
-    recorderState.isRecording,
-    startRecording,
-    stopAndTranscribe,
-  ]);
+  }, [canStart, isTranscribing, recorderState.isRecording, startRecording, stopAndTranscribe]);
 
   const statusLine = recorderState.isRecording
     ? 'Recording voice note…'
@@ -198,6 +192,4 @@ function useCoachDictationNative(options: UseCoachDictationOptions): UseCoachDic
 }
 
 /** Soft-fails when the installed binary lacks ExpoAudio (stale dev client). */
-export const useCoachDictation = ExpoAudio
-  ? useCoachDictationNative
-  : useCoachDictationUnavailable;
+export const useCoachDictation = ExpoAudio ? useCoachDictationNative : useCoachDictationUnavailable;

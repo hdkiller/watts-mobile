@@ -91,6 +91,7 @@ Keep this table honest when you add or remove IDs.
 | `wellness-checkin` | Log wellness banner CTA | check-in open / save |
 | `wellness-checkin-sheet` / `wellness-checkin-save` / `wellness-checkin-saved` | Wellness sheet | check-in flows |
 | `log-meal` / `log-meal-sheet` | Meal CTA + sheet | `flow-log-meal-open` |
+| `log-meal-search-tab` / `log-meal-scan-barcode` / `barcode-scanner-modal` / `barcode-scanner-close` | Meal search → barcode scanner open/cancel path | `flow-log-meal-open` |
 | `coach-screen` | Coach tab | shell, compose, deeplink |
 | `coach-composer` / `coach-send` | Chat composer | `flow-coach-compose` |
 | `more-screen` | More tab | shell, more hubs |
@@ -389,7 +390,7 @@ OpenSpec: `openspec/changes/e2e-deeplink-login/`.
 | `maestro/scenarios/shell-tabs.yaml` | Today → Log → Coach → More | On | Scenario |
 | `maestro/scenarios/today-recommendation.yaml` | Recommendation or readiness panel | On | Scenario |
 | `maestro/scenarios/log-checkin-open.yaml` | Wellness check-in sheet open | On | Scenario |
-| `maestro/scenarios/log-meal-open.yaml` | Meal sheet open (nutrition on) | On | Scenario |
+| `maestro/scenarios/log-meal-open.yaml` | Meal sheet → food search → barcode scanner open/cancel (nutrition on) | On | Scenario |
 | `maestro/scenarios/coach-compose.yaml` | Coach composer + send | On | Scenario |
 | `maestro/scenarios/more-hubs.yaml` | More → profile / Settings → Health Sync | On | Scenario |
 | `maestro/scenarios/today-invite.yaml` | Today name → Athlete → Invite friends | On | Scenario |
@@ -408,6 +409,7 @@ These stay manual or store-sandbox. Unauth smoke already proves login chrome; do
 | System-browser PKCE | Sign in on a non-e2e build against `:3099` or hosted | Real ASWebAuthenticationSession / Chrome Custom Tabs |
 | HealthKit / Health Connect | Settings → Health Sync → grant / deny | OS permission sheet; simulator Health data optional |
 | Store IAP (RevenueCat) | Sandbox Apple / Play license testers | OpenSpec `store-subscriptions-revenuecat` task 7.3; unit-test adapters |
+| Barcode camera permission + real product scan | Fresh install/device → Log Meal → Search Food → Scan | Maestro covers scanner open/cancel; verify OS permission and barcode recognition manually |
 | Push permission denial | Fresh install → deny notifications | Inbox still reachable from More |
 | Full activation wizard | Incomplete-activation athlete (not e2e happy-path) | consent → goal → plan → insight → connect; add Maestro after activation `testID`s |
 | Airplane / offline check-in queue | Toggle airplane mid-save | Manual until offline queue hardening ships |
@@ -415,11 +417,14 @@ These stay manual or store-sandbox. Unauth smoke already proves login chrome; do
 
 ## CI / store gate
 
-GitHub Actions workflow: [`.github/workflows/e2e-smoke.yml`](../.github/workflows/e2e-smoke.yml).
+GitHub Actions workflows: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) for
+static validation and [`.github/workflows/e2e-smoke.yml`](../.github/workflows/e2e-smoke.yml)
+for manual simulator smoke.
 
 | Job | When | What |
 |-----|------|------|
-| `validate-flows` | PRs touching Maestro / e2e docs / workflow | YAML parse + required flow files present |
+| `CI / Quality gates` | PRs into `develop` / `master`, pushes to `develop` | YAML parse + required flow files present; does **not** launch Maestro |
+| `validate-flows` | `workflow_dispatch` (manual) | Validate the flow definitions before the simulator build |
 | `ios-smoke` | `workflow_dispatch` (manual) | Build sim app → `smoke-unauth`; optionally `smoke-shell` when secrets + reachable e2e API are set |
 
 Secrets / vars for authenticated CI smoke (optional):
@@ -429,4 +434,4 @@ Secrets / vars for authenticated CI smoke (optional):
 | `E2E_ACCESS_TOKEN` | Fixture Bearer (minted from coach-wattz `__e2e/token`) |
 | `E2E_INSTANCE_URL` | Default `http://localhost:3199` (or tunneled host) |
 
-Never bake fixture tokens into store / preview artifacts. Full companion suite stays local until flaky rate is near zero; CI gate is **smoke-unauth + smoke-shell** only.
+Never bake fixture tokens into store / preview artifacts. Maestro execution is manual; the regular CI gate only validates the checked-in flow definitions. Full companion suites remain local until the flaky rate is near zero.

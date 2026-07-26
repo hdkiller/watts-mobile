@@ -1,10 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import {
-  applyLedgerRetention,
-  sortLedgerNewestFirst,
-  upsertLedgerItem,
-} from './ledgerHelpers';
+import { applyLedgerRetention, sortLedgerNewestFirst, upsertLedgerItem } from './ledgerHelpers';
 import type { SyncLedgerItem } from './types';
 
 const STORAGE_KEY = 'watts.health.ledger.v1';

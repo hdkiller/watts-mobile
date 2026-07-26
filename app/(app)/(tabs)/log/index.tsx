@@ -1,12 +1,7 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { router, useLocalSearchParams, usePathname, type Href } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { AnimatedPressable } from '@/src/components/AnimatedPressable';
@@ -59,7 +54,7 @@ export default function LogScreen() {
   // Active recovery items for today
   const activeTodayRecovery = useMemo(
     () => (recoveryItems ? filterActiveToday(recoveryItems) : []),
-    [recoveryItems]
+    [recoveryItems],
   );
 
   // Modal Sheet States
@@ -72,17 +67,16 @@ export default function LogScreen() {
 
   // Detail Sheet States
   const [nutritionDetailSheetOpen, setNutritionDetailSheetOpen] = useState(
-    params.section === 'nutrition' && !params.action
+    params.section === 'nutrition' && !params.action,
   );
   const [measurementsDetailSheetOpen, setMeasurementsDetailSheetOpen] = useState(
-    params.section === 'measurements' && !params.action
+    params.section === 'measurements' && !params.action,
   );
 
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (params.action === 'camera') {
-        const launchToken =
-          typeof params.t === 'string' && params.t.length > 0 ? params.t : null;
+        const launchToken = typeof params.t === 'string' && params.t.length > 0 ? params.t : null;
 
         if (launchToken != null) {
           if (launchedPhotoTokenRef.current === launchToken) return;
@@ -131,18 +125,17 @@ export default function LogScreen() {
   const wellnessInitialValues = useMemo(
     () =>
       todayWellness ? formFromWellness(todayWellness, athleteProfile?.weightUnits) : undefined,
-    [todayWellness, athleteProfile?.weightUnits]
+    [todayWellness, athleteProfile?.weightUnits],
   );
 
-  const isWellnessDone =
-    todayWellness != null && formHasContent(formFromWellness(todayWellness));
+  const isWellnessDone = todayWellness != null && formHasContent(formFromWellness(todayWellness));
   const todayDateStr = useMemo(
     () =>
       new Date().toLocaleDateString([], {
         month: 'short',
         day: 'numeric',
       }),
-    []
+    [],
   );
 
   // Today's Entries Feed Items
@@ -192,7 +185,7 @@ export default function LogScreen() {
           actionLabel: 'View',
           onAction: () =>
             router.push(
-              `/(app)/recovery-event?id=${encodeURIComponent(item.sourceRecordId)}` as Href
+              `/(app)/recovery-event?id=${encodeURIComponent(item.sourceRecordId)}` as Href,
             ),
         });
       });
@@ -256,7 +249,9 @@ export default function LogScreen() {
                 <Pressable
                   testID="wellness-checkin"
                   accessibilityRole="button"
-                  accessibilityLabel={isWellnessDone ? 'Update wellness check-in' : 'Wellness check-in'}
+                  accessibilityLabel={
+                    isWellnessDone ? 'Update wellness check-in' : 'Wellness check-in'
+                  }
                   hitSlop={8}
                   onPress={() => {
                     hapticLight();
@@ -374,7 +369,7 @@ export default function LogScreen() {
           </View>
 
           {/* Today's Entries Timeline Feed */}
-          <Text className="mt-6 mb-2.5 text-xs font-semibold uppercase tracking-widest text-text-muted">
+          <Text className="mb-2.5 mt-6 text-xs font-semibold uppercase tracking-widest text-text-muted">
             Today’s Entries
           </Text>
 
@@ -396,14 +391,16 @@ export default function LogScreen() {
                       <Text className="text-[10px] font-bold text-text-muted">{entry.time}</Text>
                     </View>
                     <View>
-                      <Text className="text-sm font-semibold text-text-primary">
-                        {entry.title}
-                      </Text>
+                      <Text className="text-sm font-semibold text-text-primary">{entry.title}</Text>
                       <Text className="text-xs text-text-muted">{entry.sub}</Text>
                     </View>
                   </View>
 
-                  <Pressable hitSlop={8} onPress={entry.onAction} className="py-1 active:opacity-70">
+                  <Pressable
+                    hitSlop={8}
+                    onPress={entry.onAction}
+                    className="py-1 active:opacity-70"
+                  >
                     <Text className="text-xs font-semibold text-brand">{entry.actionLabel}</Text>
                   </Pressable>
                 </View>
@@ -412,7 +409,7 @@ export default function LogScreen() {
           )}
 
           {/* Secondary Summary Cards */}
-          <Text className="mt-8 mb-2.5 text-xs font-semibold uppercase tracking-widest text-text-muted">
+          <Text className="mb-2.5 mt-8 text-xs font-semibold uppercase tracking-widest text-text-muted">
             Nutrition & Metrics Summary
           </Text>
 
@@ -427,8 +424,10 @@ export default function LogScreen() {
                 setNutritionDetailSheetOpen(true);
               }}
             >
-              <View className="flex-row items-center justify-between mb-2">
-                <Text className="text-sm font-semibold text-text-primary">Nutrition & Hydration</Text>
+              <View className="mb-2 flex-row items-center justify-between">
+                <Text className="text-sm font-semibold text-text-primary">
+                  Nutrition & Hydration
+                </Text>
                 <Text className="text-xs font-semibold text-brand">View Details ›</Text>
               </View>
 
@@ -467,7 +466,7 @@ export default function LogScreen() {
                 setMeasurementsDetailSheetOpen(true);
               }}
             >
-              <View className="flex-row items-center justify-between mb-2">
+              <View className="mb-2 flex-row items-center justify-between">
                 <Text className="text-sm font-semibold text-text-primary">Body Measurements</Text>
                 <Text className="text-xs font-semibold text-brand">View Details ›</Text>
               </View>
@@ -476,7 +475,7 @@ export default function LogScreen() {
                 <View className="flex-row flex-wrap gap-3">
                   {measurementsData.latestByMetric.slice(0, 3).map((m) => (
                     <View key={m.id} className="rounded-lg bg-surface px-3 py-2">
-                      <Text className="text-[10px] font-bold text-text-muted uppercase">
+                      <Text className="text-[10px] font-bold uppercase text-text-muted">
                         {m.metricKey}
                       </Text>
                       <Text className="text-sm font-bold text-text-primary">

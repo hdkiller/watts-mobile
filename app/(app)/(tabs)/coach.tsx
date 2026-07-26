@@ -20,8 +20,7 @@ export default function CoachScreen() {
   }>();
   const roomId = firstParam(params.roomId);
   const attachRaw = firstParam(params.attach);
-  const autoAttach =
-    attachRaw === 'camera' || attachRaw === 'library' ? attachRaw : null;
+  const autoAttach = attachRaw === 'camera' || attachRaw === 'library' ? attachRaw : null;
   const discussParam = firstParam(params.discuss);
   const discussToday = discussParam === '1';
   const discussSession = discussParam === 'session';

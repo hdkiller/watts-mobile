@@ -13,7 +13,7 @@ export function useMonthlyProgressMetric() {
   const metric = useSyncExternalStore(
     subscribeMonthlyProgressMetric,
     getMonthlyProgressMetricSync,
-    getMonthlyProgressMetricSync
+    getMonthlyProgressMetricSync,
   );
   const [ready, setReady] = useState(isMonthlyProgressMetricHydrated());
 

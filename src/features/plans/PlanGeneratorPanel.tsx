@@ -16,12 +16,7 @@ import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { blockTypeColor } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
-import {
-  activatePlan,
-  generateFirstWeekPreview,
-  initializePlan,
-  saveAvailability,
-} from './api';
+import { activatePlan, generateFirstWeekPreview, initializePlan, saveAvailability } from './api';
 import { formatDayChipLabel } from './formatPlanCopy';
 import {
   buildAvailabilityDays,
@@ -46,11 +41,7 @@ import {
   weeksBetweenYmd,
 } from './planGeneratorHelpers';
 import { StrategySparkline } from './StrategySparkline';
-import type {
-  PlannedWorkoutPreview,
-  PlanStrategy,
-  StartingPhase,
-} from './types';
+import type { PlannedWorkoutPreview, PlanStrategy, StartingPhase } from './types';
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const SPORTS = [
@@ -176,7 +167,7 @@ export function PlanGeneratorPanel({
   const goalIds = useMemo(() => goals.map((g) => g.id), [goals]);
   const defaultGoalId = useMemo(
     () => defaultSelectedGoalId(goalIds, hostPreferredId, primaryGoal.data?.id ?? null),
-    [goalIds, hostPreferredId, primaryGoal.data?.id]
+    [goalIds, hostPreferredId, primaryGoal.data?.id],
   );
 
   const [selectedGoalIdOverride, setSelectedGoalIdOverride] = useState<string | null>(null);
@@ -208,12 +199,12 @@ export function PlanGeneratorPanel({
   useFocusEffect(
     useCallback(() => {
       void refetchGoals();
-    }, [refetchGoals])
+    }, [refetchGoals]),
   );
 
   const selectedGoal = useMemo(
     () => goals.find((g) => g.id === selectedGoalId) ?? null,
-    [goals, selectedGoalId]
+    [goals, selectedGoalId],
   );
 
   const endMode: PlanEndMode = selectedGoal?.planEndDateKey
@@ -230,7 +221,7 @@ export function PlanGeneratorPanel({
         goalEndYmd: selectedGoal?.planEndDateKey,
         durationWeeks,
       }),
-    [endMode, startYmd, selectedGoal?.planEndDateKey, durationWeeks]
+    [endMode, startYmd, selectedGoal?.planEndDateKey, durationWeeks],
   );
 
   const endReady = Boolean(endYmd && isPlanSpanValid(startYmd, endYmd));
@@ -248,9 +239,8 @@ export function PlanGeneratorPanel({
   };
 
   const canGenerate = useMemo(
-    () =>
-      Boolean(selectedGoalId) && days.length > 0 && sports.length > 0 && endReady,
-    [selectedGoalId, days.length, sports.length, endReady]
+    () => Boolean(selectedGoalId) && days.length > 0 && sports.length > 0 && endReady,
+    [selectedGoalId, days.length, sports.length, endReady],
   );
 
   const volumeBand =
@@ -290,9 +280,7 @@ export function PlanGeneratorPanel({
         strategy,
         recoveryRhythm,
         startingPhase,
-        ...(customInstructions.trim()
-          ? { customInstructions: customInstructions.trim() }
-          : {}),
+        ...(customInstructions.trim() ? { customInstructions: customInstructions.trim() } : {}),
       });
       setPlanId(result.planId);
       setActivateStartIso(startIso);
@@ -632,7 +620,9 @@ export function PlanGeneratorPanel({
           <StepMeta step="timeline" />
           <View>
             <Text className="mb-1 text-base font-semibold text-text-primary">Season timeline</Text>
-            <Text className="mb-3 text-sm text-text-muted">When should this plan start and end?</Text>
+            <Text className="mb-3 text-sm text-text-muted">
+              When should this plan start and end?
+            </Text>
             <Text className="mb-2 text-sm font-medium text-text-muted">Start</Text>
             <View className="mb-3 flex-row flex-wrap gap-2">
               {(

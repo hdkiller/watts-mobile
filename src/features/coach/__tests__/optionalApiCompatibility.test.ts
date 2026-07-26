@@ -14,7 +14,7 @@ describe('optional API compatibility', () => {
       'FormData',
       class MockFormData {
         append() {}
-      }
+      },
     );
   });
 
@@ -30,7 +30,7 @@ describe('optional API compatibility', () => {
 
   it('transcribes with non-destructive auth handling', async () => {
     apiFetch.mockResolvedValueOnce(
-      new Response(JSON.stringify({ transcript: 'Ready to train' }), { status: 200 })
+      new Response(JSON.stringify({ transcript: 'Ready to train' }), { status: 200 }),
     );
 
     await expect(
@@ -38,7 +38,7 @@ describe('optional API compatibility', () => {
         uri: 'file:///dictation.m4a',
         mediaType: 'audio/mp4',
         filename: 'dictation.m4a',
-      })
+      }),
     ).resolves.toBe('Ready to train');
 
     expect(apiFetch).toHaveBeenCalledWith(
@@ -46,7 +46,7 @@ describe('optional API compatibility', () => {
       expect.objectContaining({
         method: 'POST',
         softUnauthorized: true,
-      })
+      }),
     );
   });
 });

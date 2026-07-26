@@ -5,10 +5,7 @@ import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { hapticLight } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
-import {
-  themePreferenceLabel,
-  type ThemePreference,
-} from '@/src/theme/themePreference';
+import { themePreferenceLabel, type ThemePreference } from '@/src/theme/themePreference';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 import { useThemePreference } from '@/src/theme/useThemePreference';
 
@@ -46,14 +43,8 @@ export default function AppearanceSettingsScreen() {
           headerShown: true,
         }}
       />
-      <SafeAreaView
-        edges={{ bottom: true }}
-        style={{ flex: 1, backgroundColor: theme.surface }}
-      >
-        <ScrollView
-          className="flex-1 bg-surface"
-          contentContainerClassName="px-6 pb-12 pt-4"
-        >
+      <SafeAreaView edges={{ bottom: true }} style={{ flex: 1, backgroundColor: theme.surface }}>
+        <ScrollView className="flex-1 bg-surface" contentContainerClassName="px-6 pb-12 pt-4">
           <Text className="text-2xl font-semibold text-text-primary">Appearance</Text>
           <Text className="mt-2 text-sm text-text-muted">
             Choose how Coach Watts looks on this device. System follows your phone’s setting.
@@ -76,7 +67,9 @@ export default function AppearanceSettingsScreen() {
                 >
                   <View className="flex-row items-start justify-between gap-3">
                     <View className="min-w-0 flex-1">
-                      <Text className="text-base font-semibold text-text-primary">{option.title}</Text>
+                      <Text className="text-base font-semibold text-text-primary">
+                        {option.title}
+                      </Text>
                       <Text className="mt-1 text-sm text-text-muted">{option.detail}</Text>
                     </View>
                     <View

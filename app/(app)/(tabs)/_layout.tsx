@@ -28,10 +28,7 @@ export default function TabsLayout() {
       minimizeBehavior="onScrollDown"
     >
       <NativeTabs.Trigger name="today" contentStyle={tabContentStyle}>
-        <NativeTabs.Trigger.Icon
-          sf={{ default: 'sun.max', selected: 'sun.max.fill' }}
-          md="sunny"
-        />
+        <NativeTabs.Trigger.Icon sf={{ default: 'sun.max', selected: 'sun.max.fill' }} md="sunny" />
         <NativeTabs.Trigger.Label>Today</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="plan" contentStyle={tabContentStyle}>
@@ -48,13 +45,12 @@ export default function TabsLayout() {
         />
         <NativeTabs.Trigger.Label>Log</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger
-        name="coach"
-        disableAutomaticContentInsets
-        contentStyle={tabContentStyle}
-      >
+      <NativeTabs.Trigger name="coach" disableAutomaticContentInsets contentStyle={tabContentStyle}>
         <NativeTabs.Trigger.Icon
-          sf={{ default: 'bubble.left.and.bubble.right', selected: 'bubble.left.and.bubble.right.fill' }}
+          sf={{
+            default: 'bubble.left.and.bubble.right',
+            selected: 'bubble.left.and.bubble.right.fill',
+          }}
           md="forum"
         />
         <NativeTabs.Trigger.Label>Coach</NativeTabs.Trigger.Label>

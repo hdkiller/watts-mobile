@@ -78,20 +78,14 @@ function Chip({
         selected ? 'border-brand bg-brand/15' : 'border-border bg-card/60'
       }`}
     >
-      <Text
-        className={`text-sm font-semibold ${selected ? 'text-brand' : 'text-text-primary'}`}
-      >
+      <Text className={`text-sm font-semibold ${selected ? 'text-brand' : 'text-text-primary'}`}>
         {label}
       </Text>
     </AnimatedPressable>
   );
 }
 
-export function EventGoalWizard({
-  testID = 'event-goal-wizard',
-  onCreated,
-  onCreateEvent,
-}: Props) {
+export function EventGoalWizard({ testID = 'event-goal-wizard', onCreated, onCreateEvent }: Props) {
   const theme = useThemeColors();
   const createGoal = useCreateGoalMutation();
   const [step, setStep] = useState<Step>('type');
@@ -155,9 +149,7 @@ export function EventGoalWizard({
     }
     setError(null);
     try {
-      const goal = await createGoal.mutateAsync(
-        buildEventGoalWizardInput(form, selectableEvents)
-      );
+      const goal = await createGoal.mutateAsync(buildEventGoalWizardInput(form, selectableEvents));
       hapticSuccess();
       await onCreated(goal);
     } catch (err) {
@@ -192,9 +184,7 @@ export function EventGoalWizard({
                   <AppSymbol sf={TYPE_ICONS[opt.id]} size={18} tintColor={theme.brand} />
                 </View>
                 <Text className="text-sm font-semibold text-text-primary">{opt.label}</Text>
-                <Text className="mt-1 text-xs leading-snug text-text-muted">
-                  {opt.description}
-                </Text>
+                <Text className="mt-1 text-xs leading-snug text-text-muted">{opt.description}</Text>
               </AnimatedPressable>
             ))}
           </View>
@@ -215,7 +205,9 @@ export function EventGoalWizard({
           >
             <Text className="text-sm font-semibold text-brand">← Goal type</Text>
           </AnimatedPressable>
-          <Text className="text-base font-semibold text-text-primary">Select your target event</Text>
+          <Text className="text-base font-semibold text-text-primary">
+            Select your target event
+          </Text>
           <Text className="text-sm text-text-muted">
             Choose one or more upcoming events. The last selected becomes the primary date.
           </Text>
@@ -247,9 +239,7 @@ export function EventGoalWizard({
             </View>
           ) : null}
 
-          {!eventsQuery.isError &&
-          selectableEvents.length === 0 &&
-          !eventsQuery.isLoading ? (
+          {!eventsQuery.isError && selectableEvents.length === 0 && !eventsQuery.isLoading ? (
             <View className="gap-3 rounded-xl border border-border bg-card/60 p-4">
               <Text className="text-sm text-text-muted">
                 {allowEventDataStub
@@ -337,8 +327,7 @@ export function EventGoalWizard({
           </AnimatedPressable>
 
           <Text className="text-base font-semibold text-text-primary">
-            Configure{' '}
-            {GOAL_TYPE_OPTIONS.find((t) => t.id === form.type)?.label ?? 'goal'}
+            Configure {GOAL_TYPE_OPTIONS.find((t) => t.id === form.type)?.label ?? 'goal'}
           </Text>
 
           <View>

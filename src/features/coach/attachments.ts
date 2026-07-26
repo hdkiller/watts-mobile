@@ -26,8 +26,7 @@ function assetToPending(asset: ImagePickerAsset): PendingAttachment {
   const mediaType = asset.mimeType || 'image/jpeg';
   const ext = extensionForMediaType(mediaType);
   const filename =
-    asset.fileName ||
-    `coach-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    asset.fileName || `coach-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
   return {
     id: `${asset.assetId || filename}-${asset.uri}`,
     localUri: asset.uri,
@@ -53,9 +52,7 @@ const UNAVAILABLE_RESULT: AttachResult = {
     'Photo attach needs a rebuilt native app. Run npx expo run:ios (or android) after adding expo-image-picker.',
 };
 
-export async function pickChatImagesFromLibrary(
-  currentCount: number
-): Promise<AttachResult> {
+export async function pickChatImagesFromLibrary(currentCount: number): Promise<AttachResult> {
   const ImagePicker = getImagePicker();
   if (!ImagePicker) return UNAVAILABLE_RESULT;
 

@@ -40,7 +40,10 @@ function recoveryRows(analysis: RecoveryAnalysis | null | undefined): Recommenda
 }
 
 function normalizeForDedupe(text: string): string {
-  return text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
 }
 
 /** True when a free-text factor clearly restates a recovery-analysis value already shown. */
@@ -110,7 +113,7 @@ export function mapRecommendationDrivers(input: {
 /** Convenience: drivers from a raw recommendation payload (+ optional fuel label). */
 export function mapRecommendationDriversFromApi(
   raw: ActivityRecommendationApi | null | undefined,
-  fuelStateLabel?: string | null
+  fuelStateLabel?: string | null,
 ): RecommendationDriverRow[] {
   return mapRecommendationDrivers({
     recoveryAnalysis: raw?.analysisJson?.recovery_analysis ?? null,

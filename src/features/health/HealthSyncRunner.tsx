@@ -33,7 +33,7 @@ export function HealthSyncRunner() {
       })().catch((err) => {
         console.warn(
           '[HealthSync] foreground pass failed',
-          err instanceof Error ? err.message : 'error'
+          err instanceof Error ? err.message : 'error',
         );
       });
     };

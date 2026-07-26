@@ -35,7 +35,7 @@ describe('mapZoneBars', () => {
         { name: 'Z1', min: 100, max: 150 },
         { name: 'Z2', min: 150, max: 200 },
       ],
-      'W'
+      'W',
     );
     expect(bars).toHaveLength(2);
     expect(bars[0]?.minutes).toBe(1);

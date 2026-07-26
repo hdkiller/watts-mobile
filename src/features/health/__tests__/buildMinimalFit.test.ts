@@ -15,11 +15,13 @@ describe('buildMinimalFit', () => {
     });
     expect(bytes.length).toBeGreaterThan(30);
     expect(String.fromCharCode(bytes[8]!, bytes[9]!, bytes[10]!, bytes[11]!)).toBe('.FIT');
-    expect(fitFilename({
-      platformSessionId: 's1',
-      platform: 'healthkit',
-      startedAt: '2026-07-20T08:00:00.000Z',
-    })).toContain('.fit');
+    expect(
+      fitFilename({
+        platformSessionId: 's1',
+        platform: 'healthkit',
+        startedAt: '2026-07-20T08:00:00.000Z',
+      }),
+    ).toContain('.fit');
   });
 
   it('grows with an encoded heart-rate stream and stays a valid FIT', () => {

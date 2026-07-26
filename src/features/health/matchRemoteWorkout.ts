@@ -28,7 +28,7 @@ function normalizedSport(value?: string | null): string | null {
  */
 export function matchRemoteWorkout(
   session: PlatformWorkoutSession,
-  remotes: RemoteWorkoutMatchCandidate[]
+  remotes: RemoteWorkoutMatchCandidate[],
 ): RemoteWorkoutMatchCandidate | null {
   const startMs = new Date(session.startedAt).getTime();
   if (!Number.isFinite(startMs)) return null;
@@ -97,8 +97,7 @@ export function workoutHistoryTitle(session: PlatformWorkoutSession): string {
         minute: '2-digit',
       })
     : session.startedAt;
-  const mins =
-    session.durationSec != null ? Math.round(session.durationSec / 60) : null;
+  const mins = session.durationSec != null ? Math.round(session.durationSec / 60) : null;
   const dur = mins != null && mins > 0 ? ` · ${mins} min` : '';
   const name = session.title ?? sportLabel(session.sportType) ?? 'Workout';
   return `${name}${dur} · ${timeLabel}`;

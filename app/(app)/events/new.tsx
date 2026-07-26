@@ -38,7 +38,7 @@ export default function NewEventScreen() {
 
   const values = useMemo(
     () => ({ title, date, type, priority, location, description, startTime }),
-    [title, date, type, priority, location, description, startTime]
+    [title, date, type, priority, location, description, startTime],
   );
 
   const onSubmit = async () => {
@@ -84,12 +84,7 @@ export default function NewEventScreen() {
           />
 
           <View className="mt-4">
-            <DateYmdField
-              label="Date"
-              value={date}
-              onChange={setDate}
-              testID="event-create-date"
-            />
+            <DateYmdField label="Date" value={date} onChange={setDate} testID="event-create-date" />
           </View>
 
           <Text className="mt-4 text-sm font-medium text-text-muted">Type</Text>

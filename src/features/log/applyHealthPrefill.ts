@@ -5,7 +5,7 @@ import type { HealthPrefill } from './healthPrefillTypes';
 export function applyHealthPrefill(
   form: LogFormValues,
   prefill: HealthPrefill,
-  opts?: { weightUnit?: 'kg' | 'lb' }
+  opts?: { weightUnit?: 'kg' | 'lb' },
 ): LogFormValues {
   const next = { ...form };
   if (!next.sleepHours.trim() && prefill.sleepHours) {

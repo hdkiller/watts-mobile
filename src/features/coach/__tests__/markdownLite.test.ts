@@ -6,7 +6,7 @@ describe('markdownLite', () => {
   describe('stripHtmlTags', () => {
     it('strips HTML tags without interpreting them', () => {
       expect(stripHtmlTags('Hello <b>world</b> <script>alert(1)</script>')).toBe(
-        'Hello world alert(1)'
+        'Hello world alert(1)',
       );
     });
   });
@@ -27,7 +27,7 @@ describe('markdownLite', () => {
   describe('parseMarkdownLite', () => {
     it('parses emphasis, lists, and links', () => {
       const blocks = parseMarkdownLite(
-        'Try **bold** and *italic*\n\n- one\n- two\n\nSee [docs](https://coachwatts.com) and https://example.com/path'
+        'Try **bold** and *italic*\n\n- one\n- two\n\nSee [docs](https://coachwatts.com) and https://example.com/path',
       );
 
       expect(blocks[0]).toMatchObject({ type: 'paragraph' });
@@ -35,7 +35,7 @@ describe('markdownLite', () => {
         expect.arrayContaining([
           expect.objectContaining({ type: 'bold' }),
           expect.objectContaining({ type: 'italic' }),
-        ])
+        ]),
       );
       expect(blocks[1]).toMatchObject({ type: 'ul' });
       expect(blocks[1]?.type === 'ul' && blocks[1].items).toHaveLength(2);
@@ -49,14 +49,12 @@ describe('markdownLite', () => {
             type: 'link',
             href: 'https://example.com/path',
           }),
-        ])
+        ]),
       );
     });
 
     it('parses ordered lists (ol) and inline code', () => {
-      const blocks = parseMarkdownLite(
-        'Step 1:\n1. First step with `code`\n2. Second step'
-      );
+      const blocks = parseMarkdownLite('Step 1:\n1. First step with `code`\n2. Second step');
 
       expect(blocks[0]).toMatchObject({ type: 'paragraph' });
       expect(blocks[1]).toMatchObject({ type: 'ol' });
@@ -66,15 +64,13 @@ describe('markdownLite', () => {
           expect.arrayContaining([
             expect.objectContaining({ type: 'text', value: 'First step with ' }),
             expect.objectContaining({ type: 'code', value: 'code' }),
-          ])
+          ]),
         );
       }
     });
 
     it('handles CRLF line breaks and strips trailing punctuation on bare URLs', () => {
-      const blocks = parseMarkdownLite(
-        'Check out https://coachwatts.com/go.\r\nAnother line.'
-      );
+      const blocks = parseMarkdownLite('Check out https://coachwatts.com/go.\r\nAnother line.');
 
       expect(blocks[0]?.type).toBe('paragraph');
       if (blocks[0]?.type === 'paragraph') {

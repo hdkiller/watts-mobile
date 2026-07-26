@@ -13,7 +13,9 @@ import {
 } from '../ledgerHelpers';
 import type { SyncLedgerItem } from '../types';
 
-function item(partial: Partial<SyncLedgerItem> & Pick<SyncLedgerItem, 'id' | 'kind'>): SyncLedgerItem {
+function item(
+  partial: Partial<SyncLedgerItem> & Pick<SyncLedgerItem, 'id' | 'kind'>,
+): SyncLedgerItem {
   return {
     platform: 'health_connect',
     title: partial.id,
@@ -32,11 +34,16 @@ describe('ledgerHelpers', () => {
     let items: SyncLedgerItem[] = [];
     items = upsertLedgerItem(
       items,
-      item({ id: 'wellness:a', kind: 'wellness', lastAttemptAt: '2026-07-01T00:00:00Z' })
+      item({ id: 'wellness:a', kind: 'wellness', lastAttemptAt: '2026-07-01T00:00:00Z' }),
     );
     items = upsertLedgerItem(
       items,
-      item({ id: 'wellness:a', kind: 'wellness', status: 'synced', lastAttemptAt: '2026-07-02T00:00:00Z' })
+      item({
+        id: 'wellness:a',
+        kind: 'wellness',
+        status: 'synced',
+        lastAttemptAt: '2026-07-02T00:00:00Z',
+      }),
     );
     expect(items).toHaveLength(1);
     expect(items[0]?.status).toBe('synced');
@@ -80,10 +87,10 @@ describe('ledgerHelpers', () => {
         id: `wellness:${i}`,
         kind: 'wellness',
         lastAttemptAt: `2026-07-${String((i % 28) + 1).padStart(2, '0')}T00:00:00Z`,
-      })
+      }),
     );
-    expect(applyLedgerRetention(many).filter((i) => i.kind === 'wellness').length).toBeLessThanOrEqual(
-      90
-    );
+    expect(
+      applyLedgerRetention(many).filter((i) => i.kind === 'wellness').length,
+    ).toBeLessThanOrEqual(90);
   });
 });

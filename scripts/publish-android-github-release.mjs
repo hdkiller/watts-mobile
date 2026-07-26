@@ -143,9 +143,7 @@ function parseArgs(argv) {
 
 function run(command, args, { capture = false, allowFail = false, inheritStderr = false } = {}) {
   // capture+inheritStderr: keep JSON on stdout, stream progress/logs on stderr (eas --json).
-  const stdio = capture
-    ? ['ignore', 'pipe', inheritStderr ? 'inherit' : 'pipe']
-    : 'inherit';
+  const stdio = capture ? ['ignore', 'pipe', inheritStderr ? 'inherit' : 'pipe'] : 'inherit';
   const result = spawnSync(command, args, {
     cwd: ROOT,
     encoding: 'utf8',
@@ -155,13 +153,9 @@ function run(command, args, { capture = false, allowFail = false, inheritStderr 
 
   if (result.error) throw result.error;
   if (result.status !== 0 && !allowFail) {
-    const detail = capture
-      ? [result.stderr, result.stdout].filter(Boolean).join('\n').trim()
-      : '';
+    const detail = capture ? [result.stderr, result.stdout].filter(Boolean).join('\n').trim() : '';
     throw new Error(
-      `${command} ${args.join(' ')} failed (exit ${result.status})${
-        detail ? `\n${detail}` : ''
-      }`,
+      `${command} ${args.join(' ')} failed (exit ${result.status})${detail ? `\n${detail}` : ''}`,
     );
   }
 
@@ -175,11 +169,7 @@ function extractJson(text) {
     return JSON.parse(trimmed);
   } catch {
     // eas sometimes prints spinners/logs before the JSON payload
-    const start = Math.min(
-      ...['[', '{']
-        .map((ch) => trimmed.indexOf(ch))
-        .filter((i) => i >= 0),
-    );
+    const start = Math.min(...['[', '{'].map((ch) => trimmed.indexOf(ch)).filter((i) => i >= 0));
     if (!Number.isFinite(start) || start < 0) throw new Error('no JSON payload');
     return JSON.parse(trimmed.slice(start));
   }
@@ -192,9 +182,7 @@ function runJson(command, args, { inheritStderr = false } = {}) {
   try {
     return extractJson(stdout);
   } catch (error) {
-    throw new Error(
-      `Failed to parse JSON from ${command} ${args.join(' ')}:\n${stdout}\n${error}`,
-    );
+    throw new Error(`Failed to parse JSON from ${command} ${args.join(' ')}:\n${stdout}\n${error}`);
   }
 }
 
@@ -222,9 +210,7 @@ function waitForFinishedBuild(buildId, { pollSeconds = 30 } = {}) {
   console.log('(Ctrl+C stops this waiter only — the cloud build keeps running.)\n');
 
   for (;;) {
-    const build = unwrapBuild(
-      easJson(['build:view', buildId], { nonInteractive: false }),
-    );
+    const build = unwrapBuild(easJson(['build:view', buildId], { nonInteractive: false }));
     const status = String(build.status || '').toLowerCase();
     if (status === 'finished') return build;
     if (status === 'errored' || status === 'canceled') {
@@ -233,10 +219,11 @@ function waitForFinishedBuild(buildId, { pollSeconds = 30 } = {}) {
       );
     }
     console.log(`  status=${build.status || 'unknown'} — next check in ${pollSeconds}s`);
-    spawnSync(process.platform === 'win32' ? 'timeout' : 'sleep', [
-      process.platform === 'win32' ? '/T' : '',
-      String(pollSeconds),
-    ].filter(Boolean), { stdio: 'ignore' });
+    spawnSync(
+      process.platform === 'win32' ? 'timeout' : 'sleep',
+      [process.platform === 'win32' ? '/T' : '', String(pollSeconds)].filter(Boolean),
+      { stdio: 'ignore' },
+    );
   }
 }
 
@@ -273,11 +260,7 @@ function unwrapBuild(payload) {
 }
 
 function artifactUrl(build) {
-  return (
-    build?.artifacts?.applicationArchiveUrl ||
-    build?.artifacts?.buildUrl ||
-    null
-  );
+  return build?.artifacts?.applicationArchiveUrl || build?.artifacts?.buildUrl || null;
 }
 
 function assertFinishedApk(build) {
@@ -451,9 +434,7 @@ async function main() {
     console.log(`\nLocal APK ready (${mb} MB): ${apkPath}`);
   } else {
     console.log(`\nStarting EAS Android cloud build (profile=${opts.profile})…`);
-    console.log(
-      'Cloud builds often take 10–20+ minutes (queue + Gradle). Progress streams below.',
-    );
+    console.log('Cloud builds often take 10–20+ minutes (queue + Gradle). Progress streams below.');
     console.log(
       'Prefer a machine build? Re-run with --local. Ctrl+C cancels waiting only — resume with --build-id.\n',
     );
@@ -568,7 +549,9 @@ async function main() {
 
   // Convenience copy with a stable name for adb install loops.
   copyFileSync(apkPath, join(OUT_DIR, 'CoachWatts-preview-latest.apk'));
-  console.log(`\nDone. Install with:\n  adb install -r ${join(OUT_DIR, 'CoachWatts-preview-latest.apk')}`);
+  console.log(
+    `\nDone. Install with:\n  adb install -r ${join(OUT_DIR, 'CoachWatts-preview-latest.apk')}`,
+  );
 }
 
 main().catch((error) => {

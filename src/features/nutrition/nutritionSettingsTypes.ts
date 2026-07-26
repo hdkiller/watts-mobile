@@ -1,10 +1,5 @@
 export type ActivityLevel =
-  | 'SEDENTARY'
-  | 'LIGHTLY_ACTIVE'
-  | 'ACTIVE'
-  | 'MODERATELY_ACTIVE'
-  | 'VERY_ACTIVE'
-  | 'EXTRA_ACTIVE';
+  'SEDENTARY' | 'LIGHTLY_ACTIVE' | 'ACTIVE' | 'MODERATELY_ACTIVE' | 'VERY_ACTIVE' | 'EXTRA_ACTIVE';
 
 export type BaseCaloriesMode = 'AUTO' | 'MANUAL_NON_EXERCISE';
 export type GoalProfile = 'LOSE' | 'MAINTAIN' | 'GAIN';

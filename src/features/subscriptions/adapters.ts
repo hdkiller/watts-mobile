@@ -3,14 +3,17 @@ import type { SubscriptionSummary, SubscriptionTier } from './types';
 export function classifyProductTier(
   productId: string,
   supporterProductIds: readonly string[],
-  proProductIds: readonly string[]
+  proProductIds: readonly string[],
 ): Exclude<SubscriptionTier, 'FREE'> | null {
   if (proProductIds.includes(productId)) return 'PRO';
   if (supporterProductIds.includes(productId)) return 'SUPPORTER';
   return null;
 }
 
-export function packagePeriod(identifier: string, packageType: string): 'MONTHLY' | 'ANNUAL' | null {
+export function packagePeriod(
+  identifier: string,
+  packageType: string,
+): 'MONTHLY' | 'ANNUAL' | null {
   const normalized = `${identifier}:${packageType}`.toLowerCase();
   if (normalized.includes('annual')) return 'ANNUAL';
   if (normalized.includes('month')) return 'MONTHLY';
@@ -27,5 +30,5 @@ export function identityForSession(input: {
   hostedAcquisitionEnabled: boolean;
   userId?: string | null;
 }): string | null {
-  return input.authenticated && input.hostedAcquisitionEnabled ? input.userId ?? null : null;
+  return input.authenticated && input.hostedAcquisitionEnabled ? (input.userId ?? null) : null;
 }

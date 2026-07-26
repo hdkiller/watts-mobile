@@ -24,26 +24,26 @@ function withHealthConnectPermissionDelegate(config) {
     if (!contents.includes('import android.os.Bundle')) {
       contents = contents.replace(
         /package [^\n]+\n/,
-        (pkg) => `${pkg}\nimport android.os.Bundle\n`
+        (pkg) => `${pkg}\nimport android.os.Bundle\n`,
       );
     }
 
     contents = contents.replace(
       /import expo\.modules\.ReactActivityDelegateWrapper\n/,
-      'import expo.modules.ReactActivityDelegateWrapper\nimport dev.matinzd.healthconnect.permissions.HealthConnectPermissionDelegate\n'
+      'import expo.modules.ReactActivityDelegateWrapper\nimport dev.matinzd.healthconnect.permissions.HealthConnectPermissionDelegate\n',
     );
 
     if (!contents.includes('HealthConnectPermissionDelegate')) {
       // Fallback if import path above didn't match.
       contents = contents.replace(
         /import com\.facebook\.react\.defaults\.DefaultReactActivityDelegate\n/,
-        'import com.facebook.react.defaults.DefaultReactActivityDelegate\nimport dev.matinzd.healthconnect.permissions.HealthConnectPermissionDelegate\n'
+        'import com.facebook.react.defaults.DefaultReactActivityDelegate\nimport dev.matinzd.healthconnect.permissions.HealthConnectPermissionDelegate\n',
       );
     }
 
     contents = contents.replace(
       /(super\.onCreate\([^\)]*\))/,
-      '$1\n    // react-native-health-connect: activity result contract for permission dialogs\n    HealthConnectPermissionDelegate.setPermissionDelegate(this)'
+      '$1\n    // react-native-health-connect: activity result contract for permission dialogs\n    HealthConnectPermissionDelegate.setPermissionDelegate(this)',
     );
 
     cfg.modResults.contents = contents;

@@ -222,11 +222,7 @@ function formFromState(state: NutritionSettingsState): NutritionSettingsFormValu
   return form;
 }
 
-export function NutritionSettingsForm({
-  initial,
-}: {
-  initial: NutritionSettingsState;
-}) {
+export function NutritionSettingsForm({ initial }: { initial: NutritionSettingsState }) {
   const theme = useThemeColors();
   const saveMutation = useSaveNutritionSettings();
 
@@ -254,7 +250,7 @@ export function NutritionSettingsForm({
 
   const patch = <K extends keyof NutritionSettingsFormValues>(
     key: K,
-    value: NutritionSettingsFormValues[K]
+    value: NutritionSettingsFormValues[K],
   ) => {
     setForm((prev) => ({ ...prev, [key]: value }));
     setSuccessMessage(null);
@@ -326,8 +322,7 @@ export function NutritionSettingsForm({
       keyboardShouldPersistTaps="handled"
     >
       <Text className="text-sm text-text-muted">
-        Calibrate tracking, targets, constraints, and hydration. Meal plans and grocery stay on
-        web.
+        Calibrate tracking, targets, constraints, and hydration. Meal plans and grocery stay on web.
       </Text>
 
       <View className="mt-4 flex-row items-center justify-between gap-3">
@@ -343,12 +338,8 @@ export function NutritionSettingsForm({
         />
       </View>
 
-      {formError ? (
-        <Text className="mt-3 text-sm text-red-400">{formError}</Text>
-      ) : null}
-      {successMessage ? (
-        <Text className="mt-3 text-sm text-brand">{successMessage}</Text>
-      ) : null}
+      {formError ? <Text className="mt-3 text-sm text-red-400">{formError}</Text> : null}
+      {successMessage ? <Text className="mt-3 text-sm text-brand">{successMessage}</Text> : null}
       {saveMutation.isPending ? (
         <View className="mt-3 flex-row items-center gap-2">
           <ActivityIndicator color={Colors.brand} />
@@ -372,7 +363,12 @@ export function NutritionSettingsForm({
       </SectionCard>
 
       <SectionCard title="Metabolic" subtitle="BMR, activity, and calorie goal profile.">
-        <NumberField label="BMR" value={form.bmr} suffix="kcal/day" onChange={(n) => patch('bmr', n ?? form.bmr)} />
+        <NumberField
+          label="BMR"
+          value={form.bmr}
+          suffix="kcal/day"
+          onChange={(n) => patch('bmr', n ?? form.bmr)}
+        />
         <Text className="border-b border-border/80 px-4 py-2 text-xs text-text-muted">
           Auto-calc from height/sex needs web Profile basics. Enter BMR manually here.
         </Text>
@@ -468,7 +464,7 @@ export function NutritionSettingsForm({
                   hapticLight();
                   patch(
                     'mealPattern',
-                    form.mealPattern.filter((_, i) => i !== index)
+                    form.mealPattern.filter((_, i) => i !== index),
                   );
                 }}
               >

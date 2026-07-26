@@ -75,9 +75,7 @@ function MacroColumn({
     >
       <View className="flex-row items-center justify-between">
         <Text className="text-xs font-semibold text-text-muted">{label}</Text>
-        {pct != null ? (
-          <Text className="text-xs font-medium text-text-muted">{pct}%</Text>
-        ) : null}
+        {pct != null ? <Text className="text-xs font-medium text-text-muted">{pct}%</Text> : null}
       </View>
       <Text className="mt-1 text-sm font-bold text-text-primary">
         {formatMacroGrams(value)}
@@ -95,7 +93,11 @@ export function NutritionGlance() {
   const theme = useThemeColors();
   const profileQuery = useAthleteProfileQuery();
   const trackingEnabled = isNutritionTrackingEnabled(profileQuery.data);
-  const { data: today, isLoading, isError } = useTodayNutritionQuery({
+  const {
+    data: today,
+    isLoading,
+    isError,
+  } = useTodayNutritionQuery({
     enabled: trackingEnabled,
   });
   const { data: nextWindow } = useNextFuelingWindowQuery({ enabled: trackingEnabled });
@@ -186,14 +188,18 @@ export function NutritionGlance() {
                   value={today.carbs}
                   goal={today.carbsGoal}
                   color={NutritionAccents.carbs}
-                  onPress={canExplainMetric(today, 'Carbs') ? () => openExplain('Carbs') : undefined}
+                  onPress={
+                    canExplainMetric(today, 'Carbs') ? () => openExplain('Carbs') : undefined
+                  }
                 />
                 <MacroColumn
                   label="Protein"
                   value={today.protein}
                   goal={today.proteinGoal}
                   color={NutritionAccents.protein}
-                  onPress={canExplainMetric(today, 'Protein') ? () => openExplain('Protein') : undefined}
+                  onPress={
+                    canExplainMetric(today, 'Protein') ? () => openExplain('Protein') : undefined
+                  }
                 />
                 <MacroColumn
                   label="Fat"
@@ -206,7 +212,12 @@ export function NutritionGlance() {
 
               {/* Hydration Row */}
               <View className="mt-3.5 flex-row items-center gap-2">
-                <AppSymbol sf="drop.fill" size={13} tintColor={NutritionAccents.hydration} fallback="ml" />
+                <AppSymbol
+                  sf="drop.fill"
+                  size={13}
+                  tintColor={NutritionAccents.hydration}
+                  fallback="ml"
+                />
                 <Text className="text-sm font-semibold text-text-primary">
                   {today.waterMl}
                   <Text className="text-sm font-normal text-text-muted">
@@ -229,12 +240,7 @@ export function NutritionGlance() {
               className="mt-3.5 flex-row items-center border-t border-border pt-3 active:opacity-70"
               onPress={openNutritionLog}
             >
-              <AppSymbol
-                sf="clock.fill"
-                size={14}
-                tintColor={theme.textMuted}
-                fallback="⏱"
-              />
+              <AppSymbol sf="clock.fill" size={14} tintColor={theme.textMuted} fallback="⏱" />
               <View className="ml-2 flex-1">
                 <Text className="text-xs text-text-muted">
                   Next window · {nextWindow.label} {formatWindowTime(nextWindow.startTime)}
@@ -243,12 +249,7 @@ export function NutritionGlance() {
                   {nextWindow.targetCarbs} g carbs · {nextWindow.targetProtein} g protein
                 </Text>
               </View>
-              <AppSymbol
-                sf="chevron.right"
-                size={12}
-                tintColor={theme.textMuted}
-                fallback="›"
-              />
+              <AppSymbol sf="chevron.right" size={12} tintColor={theme.textMuted} fallback="›" />
             </Pressable>
           ) : null}
         </View>

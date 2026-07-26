@@ -40,7 +40,12 @@ import {
 import { buildCoachSeedContext, buildSessionCoachSeedContext, withSeedPrefix } from './seedContext';
 import { takeSessionDiscuss } from './sessionDiscussStore';
 import { decideSessionOpen, findRoomById } from './sessionPolicy';
-import type { ChatRoomSummary, CoachUIMessage, PendingAttachment, StoredChatMessage } from './types';
+import type {
+  ChatRoomSummary,
+  CoachUIMessage,
+  PendingAttachment,
+  StoredChatMessage,
+} from './types';
 
 const POLL_INTERVAL_MS = 1500;
 const POLL_GRACE_MS = 15000;
@@ -130,7 +135,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
   const setMessagesRef = useRef<(messages: CoachUIMessage[]) => void>(() => {});
   const restartTurnPollingRef = useRef<(options?: { forceForMs?: number }) => void>(() => {});
   const loadMessagesRef = useRef<(id: string, options?: { silent?: boolean }) => Promise<void>>(
-    async () => {}
+    async () => {},
   );
   const isRealtimeConnectedRef = useRef(false);
   const approvalInFlight = useRef(new Set<string>());
@@ -179,7 +184,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
           Accept: 'text/event-stream, application/json',
         }),
       }),
-    [apiUrl, roomId]
+    [apiUrl, roomId],
   );
 
   const {
@@ -220,56 +225,59 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
     }
   }, []);
 
-  const loadMessages = useCallback(async (id: string, options?: { silent?: boolean }) => {
-    if (!activeRef.current) return;
-    if (loadInFlight.current) {
-      loadPending.current = true;
-      return;
-    }
-    loadInFlight.current = true;
-    const silent = options?.silent ?? false;
-    try {
-      if (!silent) setLoading(true);
-      const loaded = await fetchChatMessages(id);
-      if (!activeRef.current || roomIdRef.current !== id) return;
-      queryClient.setQueryData(chatMessagesQueryKey(id), loaded);
-      const transformed = hydrateCoachMessages(loaded);
-      const merged = mergeLoadedMessages(messagesRef.current, transformed);
-      setMessagesRef.current(merged);
-      if (
-        transformed.some(
-          (message) =>
-            message.role === 'assistant' || isActiveTurnStatus(message.metadata?.turnStatus)
-        )
-      ) {
-        setAwaitingTurnStart(false);
+  const loadMessages = useCallback(
+    async (id: string, options?: { silent?: boolean }) => {
+      if (!activeRef.current) return;
+      if (loadInFlight.current) {
+        loadPending.current = true;
+        return;
       }
-      if (transformed.length > 0) {
-        setSeedUsed(true);
-      }
-      setError(null);
-      restartTurnPollingRef.current();
-    } catch (err) {
-      const cached = queryClient.getQueryData<StoredChatMessage[]>(chatMessagesQueryKey(id));
-      if (cached && cached.length > 0 && (!silent || messagesRef.current.length === 0)) {
+      loadInFlight.current = true;
+      const silent = options?.silent ?? false;
+      try {
+        if (!silent) setLoading(true);
+        const loaded = await fetchChatMessages(id);
         if (!activeRef.current || roomIdRef.current !== id) return;
-        const transformed = hydrateCoachMessages(cached);
-        setMessagesRef.current(transformed);
-        if (transformed.length > 0) setSeedUsed(true);
+        queryClient.setQueryData(chatMessagesQueryKey(id), loaded);
+        const transformed = hydrateCoachMessages(loaded);
+        const merged = mergeLoadedMessages(messagesRef.current, transformed);
+        setMessagesRef.current(merged);
+        if (
+          transformed.some(
+            (message) =>
+              message.role === 'assistant' || isActiveTurnStatus(message.metadata?.turnStatus),
+          )
+        ) {
+          setAwaitingTurnStart(false);
+        }
+        if (transformed.length > 0) {
+          setSeedUsed(true);
+        }
         setError(null);
-        setNotice('You’re offline — showing last saved chat');
-      } else if (!silent) {
-        setError(friendlyError(err, 'Failed to load messages'));
+        restartTurnPollingRef.current();
+      } catch (err) {
+        const cached = queryClient.getQueryData<StoredChatMessage[]>(chatMessagesQueryKey(id));
+        if (cached && cached.length > 0 && (!silent || messagesRef.current.length === 0)) {
+          if (!activeRef.current || roomIdRef.current !== id) return;
+          const transformed = hydrateCoachMessages(cached);
+          setMessagesRef.current(transformed);
+          if (transformed.length > 0) setSeedUsed(true);
+          setError(null);
+          setNotice('You’re offline — showing last saved chat');
+        } else if (!silent) {
+          setError(friendlyError(err, 'Failed to load messages'));
+        }
+      } finally {
+        loadInFlight.current = false;
+        if (!silent) setLoading(false);
+        if (loadPending.current) {
+          loadPending.current = false;
+          void loadMessagesRef.current(id, { silent: true });
+        }
       }
-    } finally {
-      loadInFlight.current = false;
-      if (!silent) setLoading(false);
-      if (loadPending.current) {
-        loadPending.current = false;
-        void loadMessagesRef.current(id, { silent: true });
-      }
-    }
-  }, [queryClient]);
+    },
+    [queryClient],
+  );
 
   useEffect(() => {
     loadMessagesRef.current = loadMessages;
@@ -343,7 +351,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
         }
       }, POLL_INTERVAL_MS);
     },
-    [stopTurnPolling]
+    [stopTurnPolling],
   );
 
   const cleanupWebSocket = useCallback(() => {
@@ -439,7 +447,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
               turnId: data.turnId,
               textDelta: data.textDelta,
               status: data.status,
-            })
+            }),
           );
           return;
         }
@@ -520,7 +528,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
       }
       await loadMessages(room.roomId);
     },
-    [loadMessages]
+    [loadMessages],
   );
 
   const refreshRooms = useCallback(async () => {
@@ -566,7 +574,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
       }
       await applyActiveRoom(room);
     },
-    [applyActiveRoom, rooms]
+    [applyActiveRoom, rooms],
   );
 
   const createRoom = useCallback(async () => {
@@ -634,11 +642,10 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
           setNotice('You’re offline — showing last saved chat');
           const targeted = targetRoomId ? findRoomById(cachedRooms, targetRoomId) : null;
           const decision = targeted
-            ? ({ action: 'select' as const, room: targeted })
+            ? { action: 'select' as const, room: targeted }
             : decideSessionOpen(cachedRooms);
           // Can't create rooms offline — reopen last cached room as a fallback.
-          const room =
-            decision.action === 'select' ? decision.room : cachedRooms[0];
+          const room = decision.action === 'select' ? decision.room : cachedRooms[0];
           if (room) {
             await applyActiveRoom(room);
           } else {
@@ -677,7 +684,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
       .find(
         (m) =>
           m.role === 'assistant' &&
-          (m.metadata?.turnStatus === 'INTERRUPTED' || m.metadata?.turnStatus === 'FAILED')
+          (m.metadata?.turnStatus === 'INTERRUPTED' || m.metadata?.turnStatus === 'FAILED'),
       );
     return {
       turnId: (latest?.metadata?.turnId as string | undefined) || null,
@@ -745,10 +752,10 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
         const session = takeSessionDiscuss();
         const sessionSeed = session ? buildSessionCoachSeedContext(session) : null;
         const today = queryClient.getQueryData<TodayViewModel>(TODAY_QUERY_KEY);
-        const recoveryWindow = queryClient.getQueryData<RecoveryContextItem[]>(RECOVERY_CONTEXT_KEY);
+        const recoveryWindow =
+          queryClient.getQueryData<RecoveryContextItem[]>(RECOVERY_CONTEXT_KEY);
         const recovery = recoveryWindow ? filterActiveToday(recoveryWindow) : undefined;
-        const seed =
-          sessionSeed || buildCoachSeedContext({ today, activeRecovery: recovery });
+        const seed = sessionSeed || buildCoachSeedContext({ today, activeRecovery: recovery });
         outbound = withSeedPrefix(text, seed);
         setSeedUsed(true);
       } else if (!seedUsedRef.current && messagesRef.current.length === 0) {
@@ -800,7 +807,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
       queryClient,
       restartTurnPolling,
       sendMessage,
-    ]
+    ],
   );
 
   const applyStarter = useCallback((text: string) => {
@@ -857,7 +864,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
         throw err;
       }
     },
-    [loadMessages, restartTurnPolling]
+    [loadMessages, restartTurnPolling],
   );
 
   const resumeTurn = useCallback(async () => {

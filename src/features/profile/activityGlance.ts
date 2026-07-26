@@ -6,8 +6,7 @@ export const ACTIVITY_GLANCE_PAST_WEEKS = 10;
 /** Extra Monday-start weeks after the current week. */
 export const ACTIVITY_GLANCE_FUTURE_WEEKS = 2;
 /** Total week columns = past (incl. current) + future. */
-export const ACTIVITY_GLANCE_WEEK_COUNT =
-  ACTIVITY_GLANCE_PAST_WEEKS + ACTIVITY_GLANCE_FUTURE_WEEKS;
+export const ACTIVITY_GLANCE_WEEK_COUNT = ACTIVITY_GLANCE_PAST_WEEKS + ACTIVITY_GLANCE_FUTURE_WEEKS;
 
 /** Live page = 0; each step back is one 12-week block. */
 export const ACTIVITY_GLANCE_MAX_PAGE_OFFSET = 0;
@@ -70,7 +69,7 @@ function addLocalDays(d: Date, days: number): Date {
 export function clampGlancePageOffset(pageOffset: number): number {
   return Math.min(
     ACTIVITY_GLANCE_MAX_PAGE_OFFSET,
-    Math.max(ACTIVITY_GLANCE_MIN_PAGE_OFFSET, Math.trunc(pageOffset))
+    Math.max(ACTIVITY_GLANCE_MIN_PAGE_OFFSET, Math.trunc(pageOffset)),
   );
 }
 
@@ -89,7 +88,7 @@ export function glancePageOffsets(): number[] {
  */
 export function activityGlanceRange(
   now = new Date(),
-  pageOffset = 0
+  pageOffset = 0,
 ): {
   start: Date;
   end: Date;
@@ -126,7 +125,7 @@ export function computeActivityGlance(
   recent: ActivityListItem[] | undefined,
   planned: PlannedListItem[] | undefined,
   now = new Date(),
-  pageOffset = 0
+  pageOffset = 0,
 ): ActivityGlance {
   const { startKey, endKey, weekStarts, pageOffset: offset } = activityGlanceRange(now, pageOffset);
   const todayKey = localDateKey(startOfLocalDay(now))!;
@@ -198,7 +197,7 @@ export function computeActivityGlance(
 export function computeNutritionGlance(
   loggedDateKeys: Iterable<string> | undefined,
   now = new Date(),
-  pageOffset = 0
+  pageOffset = 0,
 ): NutritionGlance {
   const { startKey, endKey, weekStarts, pageOffset: offset } = activityGlanceRange(now, pageOffset);
   const todayKey = localDateKey(startOfLocalDay(now))!;

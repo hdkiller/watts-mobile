@@ -28,7 +28,7 @@ describe('validateAdHocForm', () => {
         durationText: '0',
         intensity: 'Tempo',
         notes: '',
-      }).ok
+      }).ok,
     ).toBe(false);
     expect(
       validateAdHocForm({
@@ -36,7 +36,7 @@ describe('validateAdHocForm', () => {
         durationText: '',
         intensity: 'Tempo',
         notes: '',
-      }).ok
+      }).ok,
     ).toBe(false);
   });
 

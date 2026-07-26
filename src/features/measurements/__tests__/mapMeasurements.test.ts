@@ -12,29 +12,27 @@ import {
 describe('mapMeasurements', () => {
   it('requires a numeric value (and custom name when custom)', () => {
     expect(measurementFormHasContent(emptyMeasurementForm())).toBe(false);
-    expect(
-      measurementFormHasContent({ ...emptyMeasurementForm(), value: '72.5' })
-    ).toBe(true);
+    expect(measurementFormHasContent({ ...emptyMeasurementForm(), value: '72.5' })).toBe(true);
     expect(
       measurementFormHasContent({
         ...emptyMeasurementForm('custom'),
         value: '30',
         customName: '',
-      })
+      }),
     ).toBe(false);
     expect(
       measurementFormHasContent({
         ...emptyMeasurementForm('custom'),
         value: '30',
         customName: 'Flexed bicep',
-      })
+      }),
     ).toBe(true);
   });
 
   it('converts lbs display to kg for create payload', () => {
     const payload = toCreatePayload(
       { ...emptyMeasurementForm('weight'), value: '165' },
-      { weightUnits: 'Pounds', distanceUnits: 'Miles' }
+      { weightUnits: 'Pounds', distanceUnits: 'Miles' },
     );
     expect(payload?.unit).toBe('kg');
     expect(payload?.value).toBeCloseTo(74.84, 1);
@@ -44,7 +42,7 @@ describe('mapMeasurements', () => {
   it('converts inches display to cm for length metrics', () => {
     const payload = toCreatePayload(
       { ...emptyMeasurementForm('waist'), value: '32' },
-      { weightUnits: 'Pounds', distanceUnits: 'Miles' }
+      { weightUnits: 'Pounds', distanceUnits: 'Miles' },
     );
     expect(payload?.unit).toBe('cm');
     expect(payload?.value).toBeCloseTo(81.28, 1);
@@ -58,7 +56,7 @@ describe('mapMeasurements', () => {
         customUnit: 'cm',
         value: '35',
       },
-      { weightUnits: 'Kilograms', distanceUnits: 'Kilometers' }
+      { weightUnits: 'Kilograms', distanceUnits: 'Kilometers' },
     );
     expect(payload?.metricKey).toBe('custom:left_bicep');
     expect(payload?.displayName).toBe('Left Bicep!');

@@ -37,7 +37,9 @@ describe('summarizeHeartRate', () => {
     }));
     const res = summarizeHeartRate(raw);
     expect(res.samples!.length).toBeLessThanOrEqual(MAX_HR_SAMPLES + 1);
-    expect(res.samples![res.samples!.length - 1]!.t).toBe(new Date(raw[raw.length - 1]!.t).toISOString());
+    expect(res.samples![res.samples!.length - 1]!.t).toBe(
+      new Date(raw[raw.length - 1]!.t).toISOString(),
+    );
     // Average/max come from the full (undownsampled) set.
     expect(res.max).toBe(149);
   });
@@ -100,7 +102,7 @@ describe('mergeWorkoutStreams', () => {
           watts: 210,
           rpm: 88,
           mps: 4,
-        })
+        }),
       );
       expect(point.altitudeMeters).toBeTypeOf('number');
       expect(point.distanceMeters).toBeTypeOf('number');

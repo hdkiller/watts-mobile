@@ -7,7 +7,10 @@ import { useThemeColors } from '@/src/theme/useThemeColors';
 type Glyph = { sf: SFSymbol; md: AndroidSymbol; emoji: string };
 
 const GLYPHS: { match: RegExp; glyph: Glyph }[] = [
-  { match: /ride|bike|cycl|gravel|mtb/, glyph: { sf: 'bicycle', md: 'directions_bike', emoji: '🚴' } },
+  {
+    match: /ride|bike|cycl|gravel|mtb/,
+    glyph: { sf: 'bicycle', md: 'directions_bike', emoji: '🚴' },
+  },
   { match: /run/, glyph: { sf: 'figure.run', md: 'directions_run', emoji: '🏃' } },
   { match: /swim/, glyph: { sf: 'figure.pool.swim', md: 'pool', emoji: '🏊' } },
   {
@@ -32,13 +35,7 @@ function glyphForType(type: string | null | undefined): Glyph {
 }
 
 /** Small circular sport glyph for workout rows and cards. */
-export function SportIcon({
-  type,
-  size = 16,
-}: {
-  type: string | null | undefined;
-  size?: number;
-}) {
+export function SportIcon({ type, size = 16 }: { type: string | null | undefined; size?: number }) {
   const glyph = glyphForType(type);
   const theme = useThemeColors();
   return (

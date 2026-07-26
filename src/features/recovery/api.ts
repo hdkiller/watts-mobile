@@ -15,7 +15,9 @@ async function readErrorMessage(response: Response, fallback: string): Promise<s
 export async function fetchRecoveryContext(days = 7): Promise<RecoveryContextItem[]> {
   const response = await apiFetch(`/api/recovery-context?days=${days}`);
   if (!response.ok) {
-    throw new Error(await readErrorMessage(response, `Failed to load recovery context (${response.status})`));
+    throw new Error(
+      await readErrorMessage(response, `Failed to load recovery context (${response.status})`),
+    );
   }
   const json = await response.json();
   return parseRecoveryContextList(json);
@@ -47,7 +49,9 @@ export async function updateJourneyEvent(id: string, payload: JourneyEventPayloa
     body: JSON.stringify(body),
   });
   if (!response.ok) {
-    throw new Error(await readErrorMessage(response, `Failed to update event (${response.status})`));
+    throw new Error(
+      await readErrorMessage(response, `Failed to update event (${response.status})`),
+    );
   }
 }
 
@@ -56,6 +60,8 @@ export async function deleteJourneyEvent(id: string): Promise<void> {
     method: 'DELETE',
   });
   if (!response.ok) {
-    throw new Error(await readErrorMessage(response, `Failed to delete event (${response.status})`));
+    throw new Error(
+      await readErrorMessage(response, `Failed to delete event (${response.status})`),
+    );
   }
 }

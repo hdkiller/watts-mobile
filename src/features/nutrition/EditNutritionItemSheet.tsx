@@ -9,10 +9,7 @@ import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
-import {
-  apiMealTypeToMealSlot,
-  mealSlotToApiMealType,
-} from './mapNutrition';
+import { apiMealTypeToMealSlot, mealSlotToApiMealType } from './mapNutrition';
 import type { ApiMealType, MealSlot, NutritionLoggedItem } from './types';
 import { MEAL_OPTIONS } from './types';
 import { usePatchNutritionItem } from './useNutrition';
@@ -148,9 +145,7 @@ function EditForm({
               }}
             >
               <Text
-                className={`text-xs font-semibold ${
-                  selected ? 'text-brand' : 'text-text-muted'
-                }`}
+                className={`text-xs font-semibold ${selected ? 'text-brand' : 'text-text-muted'}`}
               >
                 {option.label}
               </Text>
@@ -213,9 +208,7 @@ function EditForm({
         </Text>
       ) : null}
 
-      {patchItem.isPending ? (
-        <ActivityIndicator className="mt-3" color={Colors.brand} />
-      ) : null}
+      {patchItem.isPending ? <ActivityIndicator className="mt-3" color={Colors.brand} /> : null}
 
       <Button
         className="mt-4"
@@ -231,13 +224,7 @@ function EditForm({
   );
 }
 
-export function EditNutritionItemSheet({
-  visible,
-  nutritionId,
-  date,
-  item,
-  onClose,
-}: Props) {
+export function EditNutritionItemSheet({ visible, nutritionId, date, item, onClose }: Props) {
   return (
     <BottomSheet
       visible={visible && item != null}

@@ -69,7 +69,7 @@ describe('mapCuratedProviderRows', () => {
       ],
     };
     expect(mapCuratedProviderRows(response).find((r) => r.key === 'strava')?.state).toBe(
-      'not_connected'
+      'not_connected',
     );
   });
 });
@@ -88,14 +88,12 @@ describe('connectedAppsHubDetail', () => {
       ],
     });
     expect(countConnectedCurated(rows)).toBe(2);
-    expect(connectedAppsHubDetail(rows, { isLoading: false, isError: false })).toBe(
-      '2 connected'
-    );
+    expect(connectedAppsHubDetail(rows, { isLoading: false, isError: false })).toBe('2 connected');
     expect(
       connectedAppsHubDetail(mapCuratedProviderRows({ integrations: [] }), {
         isLoading: false,
         isError: false,
-      })
+      }),
     ).toBe('None connected');
   });
 });

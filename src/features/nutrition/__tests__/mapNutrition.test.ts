@@ -40,7 +40,7 @@ describe('pickTodayNutrition', () => {
           { id: 'n0', date: '2026-07-18', calories: 900 },
         ],
       },
-      today
+      today,
     );
 
     expect(result.id).toBe('n1');
@@ -73,7 +73,7 @@ describe('pickTodayNutrition', () => {
           },
         ],
       },
-      today
+      today,
     );
 
     expect(result.notes).toBe('Felt good');
@@ -96,7 +96,7 @@ describe('pickTodayNutrition', () => {
     const today = '2026-07-19';
     const result = pickTodayNutrition(
       { nutrition: [{ id: 'n0', date: '2026-07-18', calories: 900 }] },
-      today
+      today,
     );
     expect(result.isEmpty).toBe(true);
     expect(result.date).toBe(today);
@@ -128,7 +128,7 @@ describe('pickTodayNutrition', () => {
           },
         ],
       },
-      today
+      today,
     );
 
     expect(result.caloriesGoal).toBe(1840);
@@ -143,11 +143,9 @@ describe('pickTodayNutrition', () => {
     const today = '2026-07-20';
     const result = pickTodayNutrition(
       {
-        nutrition: [
-          { id: 'n3', date: today, calories: 100, caloriesGoal: 0, fuelingPlan: null },
-        ],
+        nutrition: [{ id: 'n3', date: today, calories: 100, caloriesGoal: 0, fuelingPlan: null }],
       },
-      today
+      today,
     );
     expect(result.caloriesGoal).toBeNull();
     expect(result.fluidGoalMl).toBeNull();
@@ -167,7 +165,7 @@ describe('pickTodayNutrition', () => {
           },
         ],
       },
-      today
+      today,
     );
     expect(result.fuelState).toBe(3);
     expect(fuelStateLabel(3)).toBe('Performance day');
@@ -183,7 +181,7 @@ describe('pickTodayNutrition', () => {
           { id: 'n5', date: today, calories: 100, fuelingPlan: { dailyTotals: { fuelState: 7 } } },
         ],
       },
-      today
+      today,
     );
     expect(result.fuelState).toBeNull();
   });
@@ -218,7 +216,7 @@ describe('pickTodayNutrition', () => {
           },
         ],
       },
-      today
+      today,
     );
 
     expect(result.fuelingPlan).not.toBeNull();
@@ -236,7 +234,7 @@ describe('pickTodayNutrition', () => {
     const today = '2026-07-22';
     const result = pickTodayNutrition(
       { nutrition: [{ id: 'n7', date: today, calories: 100, fuelingPlan: null }] },
-      today
+      today,
     );
     expect(result.fuelingPlan).toBeNull();
     expect(canExplainMetric(result, 'Calories')).toBe(false);
@@ -275,7 +273,7 @@ describe('pickNextFuelingWindow', () => {
           },
         ],
       },
-      now
+      now,
     );
 
     expect(result?.label).toBe('Dinner');
@@ -297,7 +295,7 @@ describe('pickNextFuelingWindow', () => {
           },
         ],
       },
-      now
+      now,
     );
     expect(result?.label).toBe('Post-workout');
   });
@@ -315,7 +313,7 @@ describe('pickNextFuelingWindow', () => {
           },
         ],
       },
-      now
+      now,
     );
     expect(result).toBeNull();
   });
@@ -340,7 +338,7 @@ describe('toNutritionUploadPayload', () => {
         fat: '8',
       },
       '2026-07-19',
-      loggedAt
+      loggedAt,
     );
 
     expect(payload.date).toBe('2026-07-19');

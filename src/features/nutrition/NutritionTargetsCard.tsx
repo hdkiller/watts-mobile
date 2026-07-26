@@ -136,8 +136,7 @@ export function NutritionTargetsCard({
         onStartShouldSetPanResponder: () => false,
         onMoveShouldSetPanResponder: (_, gestureState) => {
           return (
-            Math.abs(gestureState.dx) > 15 &&
-            Math.abs(gestureState.dx) > Math.abs(gestureState.dy)
+            Math.abs(gestureState.dx) > 15 && Math.abs(gestureState.dx) > Math.abs(gestureState.dy)
           );
         },
         onPanResponderRelease: (_, gestureState) => {
@@ -150,7 +149,7 @@ export function NutritionTargetsCard({
           }
         },
       }),
-    [canGoNext, onNextDate, onPrevDate]
+    [canGoNext, onNextDate, onPrevDate],
   );
 
   const isSwipeable = Boolean(onPrevDate || onNextDate);
@@ -158,7 +157,9 @@ export function NutritionTargetsCard({
 
   if (isLoading && !day) {
     return (
-      <View className={`rounded-xl border border-border bg-card p-4 items-center justify-center ${className}`}>
+      <View
+        className={`items-center justify-center rounded-xl border border-border bg-card p-4 ${className}`}
+      >
         <ActivityIndicator color={Colors.brand} />
       </View>
     );
@@ -205,7 +206,11 @@ export function NutritionTargetsCard({
               onNextDate?.();
             }}
           >
-            <Text className={`text-xs font-semibold ${canGoNext ? 'text-brand' : 'text-text-muted'}`}>Next</Text>
+            <Text
+              className={`text-xs font-semibold ${canGoNext ? 'text-brand' : 'text-text-muted'}`}
+            >
+              Next
+            </Text>
             <AppSymbol
               sf="chevron.right"
               size={13}
@@ -217,7 +222,7 @@ export function NutritionTargetsCard({
       ) : null}
 
       {!day ? (
-        <View className="py-4 items-center">
+        <View className="items-center py-4">
           <Text className="text-xs text-text-muted">No nutrition data for this date.</Text>
         </View>
       ) : (
@@ -258,10 +263,7 @@ export function NutritionTargetsCard({
           </Pressable>
 
           {/* Main Calorie Bar */}
-          <GoalBar
-            pct={goalProgressPct(day.calories, day.caloriesGoal)}
-            color={Colors.brand}
-          />
+          <GoalBar pct={goalProgressPct(day.calories, day.caloriesGoal)} color={Colors.brand} />
 
           {/* Macros Row (Tappable for Carbs, Protein, Fat Analysis) */}
           <View className="mt-4 flex-row gap-3">
@@ -291,7 +293,12 @@ export function NutritionTargetsCard({
           {/* Hydration Row */}
           {showHydration && (day.waterMl > 0 || day.fluidGoalMl != null) ? (
             <View className="mt-3.5 flex-row items-center gap-2.5">
-              <AppSymbol sf="drop.fill" size={13} tintColor={NutritionAccents.hydration} fallback="ml" />
+              <AppSymbol
+                sf="drop.fill"
+                size={13}
+                tintColor={NutritionAccents.hydration}
+                fallback="ml"
+              />
               <Text className="text-xs font-bold text-text-primary">
                 {day.waterMl}
                 <Text className="text-xs font-normal text-text-muted">

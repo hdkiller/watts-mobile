@@ -1,13 +1,6 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { friendlyError } from '@/src/api/errors';
@@ -47,9 +40,7 @@ export function MonthlyProgressSheet({
   const sportsQuery = useWorkoutSportsQuery(visible);
 
   const summary = query.data ? summarizeMonthlyProgress(query.data, metric) : null;
-  const chart = query.data
-    ? mapMonthlyChartSeries(query.data, metric, viewMode)
-    : null;
+  const chart = query.data ? mapMonthlyChartSeries(query.data, metric, viewMode) : null;
 
   const sportOptions = useMemo(() => {
     const list = sportsQuery.data || [];
@@ -74,9 +65,7 @@ export function MonthlyProgressSheet({
         <View className="flex-row items-start justify-between border-b border-border px-5 py-4">
           <View className="min-w-0 flex-1 pr-3">
             <Text className="text-xl font-semibold text-text-primary">Monthly Progress</Text>
-            <Text className="mt-1 text-sm text-text-muted">
-              This month vs last month.
-            </Text>
+            <Text className="mt-1 text-sm text-text-muted">This month vs last month.</Text>
           </View>
           <Pressable onPress={onClose} className="active:opacity-70" hitSlop={8}>
             <Text className="text-sm font-semibold text-brand">Done</Text>
@@ -97,9 +86,7 @@ export function MonthlyProgressSheet({
                   }`}
                 >
                   <Text
-                    className={`text-xs font-semibold ${
-                      selected ? 'text-ink' : 'text-text-body'
-                    }`}
+                    className={`text-xs font-semibold ${selected ? 'text-ink' : 'text-text-body'}`}
                   >
                     {monthlyMetricLabel(key)}
                   </Text>
@@ -153,9 +140,7 @@ export function MonthlyProgressSheet({
                   }`}
                 >
                   <Text
-                    className={`text-xs font-semibold ${
-                      selected ? 'text-ink' : 'text-text-body'
-                    }`}
+                    className={`text-xs font-semibold ${selected ? 'text-ink' : 'text-text-body'}`}
                   >
                     {label}
                   </Text>
@@ -184,7 +169,9 @@ export function MonthlyProgressSheet({
               <View className="mt-4 flex-row flex-wrap items-center gap-x-4 gap-y-2">
                 <Text className="text-xs text-text-muted">
                   {query.data.currentMonthName}:{' '}
-                  <Text className="font-semibold text-text-primary">{summary.formattedCurrent}</Text>
+                  <Text className="font-semibold text-text-primary">
+                    {summary.formattedCurrent}
+                  </Text>
                 </Text>
                 <Text className="text-xs text-text-muted">
                   {query.data.lastMonthName}:{' '}

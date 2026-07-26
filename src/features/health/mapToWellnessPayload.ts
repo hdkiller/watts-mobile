@@ -61,7 +61,9 @@ export function wellnessContentFingerprint(sample: DailyWellnessSample): string 
   return parts.join('|');
 }
 
-export function mapSampleToWellnessPayload(sample: DailyWellnessSample): HealthWellnessUploadPayload {
+export function mapSampleToWellnessPayload(
+  sample: DailyWellnessSample,
+): HealthWellnessUploadPayload {
   const activity: Record<string, number> = {};
   if (sample.steps != null) activity.steps = Math.round(sample.steps);
   if (sample.distanceMeters != null) activity.distanceMeters = Math.round(sample.distanceMeters);

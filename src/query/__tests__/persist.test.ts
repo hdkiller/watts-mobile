@@ -43,15 +43,9 @@ describe('shouldPersistQuery', () => {
 
 describe('shouldDehydratePersistedQuery', () => {
   it('only dehydrates successful allowlisted queries', () => {
-    expect(shouldDehydratePersistedQuery(query(['performance', 'pmc', 90], 'success'))).toBe(
-      true
-    );
-    expect(shouldDehydratePersistedQuery(query(['performance', 'pmc', 90], 'pending'))).toBe(
-      false
-    );
-    expect(shouldDehydratePersistedQuery(query(['performance', 'pmc', 90], 'error'))).toBe(
-      false
-    );
+    expect(shouldDehydratePersistedQuery(query(['performance', 'pmc', 90], 'success'))).toBe(true);
+    expect(shouldDehydratePersistedQuery(query(['performance', 'pmc', 90], 'pending'))).toBe(false);
+    expect(shouldDehydratePersistedQuery(query(['performance', 'pmc', 90], 'error'))).toBe(false);
     expect(shouldDehydratePersistedQuery(query(['settings', 'ai'], 'success'))).toBe(false);
   });
 });

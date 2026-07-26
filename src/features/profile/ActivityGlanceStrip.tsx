@@ -91,13 +91,7 @@ function ModeSegment({
   );
 }
 
-function ActivityGlancePage({
-  pageOffset,
-  width,
-}: {
-  pageOffset: number;
-  width: number;
-}) {
+function ActivityGlancePage({ pageOffset, width }: { pageOffset: number; width: number }) {
   const range = useMemo(() => activityGlanceRange(new Date(), pageOffset), [pageOffset]);
   const workoutsQuery = useActivityGlanceWorkoutsQuery(range.start, range.end);
   const plannedQuery = useActivityGlancePlannedQuery(range.start, range.end);
@@ -107,13 +101,11 @@ function ActivityGlancePage({
     (plannedQuery.isLoading && !plannedQuery.data);
   const error = workoutsQuery.error ?? plannedQuery.error;
   const failed =
-    (workoutsQuery.isError || plannedQuery.isError) &&
-    !workoutsQuery.data &&
-    !plannedQuery.data;
+    (workoutsQuery.isError || plannedQuery.isError) && !workoutsQuery.data && !plannedQuery.data;
 
   const glance = useMemo(
     () => computeActivityGlance(workoutsQuery.data, plannedQuery.data, new Date(), pageOffset),
-    [workoutsQuery.data, plannedQuery.data, pageOffset]
+    [workoutsQuery.data, plannedQuery.data, pageOffset],
   );
 
   const onDayPress = (day: ActivityGlanceDay) => {
@@ -222,13 +214,7 @@ function ActivityGlancePage({
   );
 }
 
-function NutritionGlancePage({
-  pageOffset,
-  width,
-}: {
-  pageOffset: number;
-  width: number;
-}) {
+function NutritionGlancePage({ pageOffset, width }: { pageOffset: number; width: number }) {
   const range = useMemo(() => activityGlanceRange(new Date(), pageOffset), [pageOffset]);
   const loggedQuery = useNutritionGlanceLoggedDaysQuery(range.startKey, range.endKey);
 
@@ -237,7 +223,7 @@ function NutritionGlancePage({
 
   const glance = useMemo(
     () => computeNutritionGlance(loggedQuery.data, new Date(), pageOffset),
-    [loggedQuery.data, pageOffset]
+    [loggedQuery.data, pageOffset],
   );
 
   const onDayPress = () => {

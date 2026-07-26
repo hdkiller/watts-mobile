@@ -16,7 +16,7 @@ function errorMessage(body: unknown, fallback: string): string {
     return String(
       (body as { message?: string; statusMessage?: string }).message ||
         (body as { statusMessage?: string }).statusMessage ||
-        fallback
+        fallback,
     );
   }
   return fallback;
@@ -26,7 +26,11 @@ export async function fetchGoals(): Promise<GoalApi[]> {
   const response = await apiFetch('/api/goals');
   if (!response.ok) {
     const body = await readErrorBody(response);
-    throw new ApiError(errorMessage(body, `Failed to load goals (${response.status})`), response.status, body);
+    throw new ApiError(
+      errorMessage(body, `Failed to load goals (${response.status})`),
+      response.status,
+      body,
+    );
   }
   const json = await response.json();
   if (Array.isArray(json)) return json as GoalApi[];
@@ -44,7 +48,11 @@ export async function createGoal(input: CreateGoalInput): Promise<GoalApi> {
   });
   if (!response.ok) {
     const body = await readErrorBody(response);
-    throw new ApiError(errorMessage(body, `Failed to create goal (${response.status})`), response.status, body);
+    throw new ApiError(
+      errorMessage(body, `Failed to create goal (${response.status})`),
+      response.status,
+      body,
+    );
   }
   const json = (await response.json()) as { goal?: GoalApi } & GoalApi;
   return json.goal ?? (json as GoalApi);
@@ -52,7 +60,7 @@ export async function createGoal(input: CreateGoalInput): Promise<GoalApi> {
 
 export async function patchGoal(
   id: string,
-  patch: Partial<Pick<CreateGoalInput, 'title' | 'targetDate' | 'metric' | 'targetValue'>>
+  patch: Partial<Pick<CreateGoalInput, 'title' | 'targetDate' | 'metric' | 'targetValue'>>,
 ): Promise<GoalApi> {
   const response = await apiFetch(`/api/goals/${encodeURIComponent(id)}`, {
     method: 'PATCH',
@@ -61,7 +69,11 @@ export async function patchGoal(
   });
   if (!response.ok) {
     const body = await readErrorBody(response);
-    throw new ApiError(errorMessage(body, `Failed to update goal (${response.status})`), response.status, body);
+    throw new ApiError(
+      errorMessage(body, `Failed to update goal (${response.status})`),
+      response.status,
+      body,
+    );
   }
   const json = (await response.json()) as { goal?: GoalApi } & GoalApi;
   return json.goal ?? (json as GoalApi);

@@ -40,10 +40,7 @@ export default function PlanGroceryScreen() {
           className="flex-1 bg-surface"
           contentContainerClassName="px-6 pb-12 pt-4"
           refreshControl={
-            <RefreshControl
-              refreshing={manualRefreshing}
-              onRefresh={() => void handleRefresh()}
-            />
+            <RefreshControl refreshing={manualRefreshing} onRefresh={() => void handleRefresh()} />
           }
         >
           <Text className="mb-4 text-sm text-text-muted">
@@ -71,17 +68,10 @@ export default function PlanGroceryScreen() {
             </View>
           ) : (
             items.map((item, i) => (
-              <View
-                key={`${item.ingredient}-${i}`}
-                className="border-b border-border/80 py-3"
-              >
+              <View key={`${item.ingredient}-${i}`} className="border-b border-border/80 py-3">
                 <Text className="text-base font-medium text-text-primary">{item.ingredient}</Text>
                 <Text className="mt-1 text-sm text-text-muted">
-                  {[
-                    item.quantity != null ? String(item.quantity) : null,
-                    item.unit,
-                    item.category,
-                  ]
+                  {[item.quantity != null ? String(item.quantity) : null, item.unit, item.category]
                     .filter(Boolean)
                     .join(' · ')}
                 </Text>

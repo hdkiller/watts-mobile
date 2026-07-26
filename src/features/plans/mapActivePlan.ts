@@ -77,7 +77,7 @@ export function flattenPlanWeeks(blocks: PlanBlockApi[]): PlanWeekShell[] {
 /** Pick the week containing today; else nearest upcoming; else last past week. */
 export function selectCurrentWeek(
   blocks: PlanBlockApi[],
-  nowKey: string = todayKey()
+  nowKey: string = todayKey(),
 ): PlanWeekShell | null {
   const weeks = flattenPlanWeeks(blocks);
   if (weeks.length === 0) return null;
@@ -95,7 +95,7 @@ export function selectCurrentWeek(
 
 export function mapActivePlanShell(
   plan: ActivePlanApi | null | undefined,
-  options: { hasUsableData?: boolean } = {}
+  options: { hasUsableData?: boolean } = {},
 ): ActivePlanShell | null {
   if (!plan?.id) return null;
   const blocks = (plan.blocks ?? []).map((b, i) => mapPlanBlock(b, i));
@@ -136,7 +136,7 @@ export function mapActivePlanShell(
 /** Filter planned list items to the shell week date range (inclusive). */
 export function filterPlannedToWeek<T extends { date?: string | null }>(
   items: T[],
-  week: PlanWeekShell | null
+  week: PlanWeekShell | null,
 ): T[] {
   if (!week?.startDateKey) return [];
   const end = week.endDateKey ?? week.startDateKey;
@@ -167,7 +167,7 @@ export function weekDateKeys(week: PlanWeekShell | null): string[] {
 export function seasonTodayPercent(
   blocks: PlanBlockShell[],
   weeks: PlanWeekShell[],
-  todayKey: string
+  todayKey: string,
 ): number | null {
   if (blocks.length === 0 || !todayKey) return null;
   const total = blocks.reduce((sum, b) => sum + Math.max(1, b.durationWeeks), 0);
@@ -175,9 +175,7 @@ export function seasonTodayPercent(
 
   const containing = weeks.find(
     (w) =>
-      w.startDateKey &&
-      todayKey >= w.startDateKey &&
-      todayKey <= (w.endDateKey ?? w.startDateKey)
+      w.startDateKey && todayKey >= w.startDateKey && todayKey <= (w.endDateKey ?? w.startDateKey),
   );
   // Outside the plan: no needle / “Today” legend (clamping to 0/100 looked like a ghost mark).
   if (!containing) return null;

@@ -6,7 +6,7 @@ import type { DailyCheckin, DailyCheckinQuestion } from './dailyCheckinApi';
  * does not advertise questions that do not exist.
  */
 export function isDailyCheckinCompleted(
-  checkin: Pick<DailyCheckin, 'questions'> | null | undefined
+  checkin: Pick<DailyCheckin, 'questions'> | null | undefined,
 ): boolean {
   if (!checkin) return false;
   const questions = checkin.questions;

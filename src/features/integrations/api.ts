@@ -18,13 +18,11 @@ export async function fetchIntegrationStatus(): Promise<IntegrationsStatusRespon
   if (!response.ok) {
     const body = await readErrorBody(response);
     const message =
-      typeof body === 'object' &&
-      body !== null &&
-      ('message' in body || 'statusMessage' in body)
+      typeof body === 'object' && body !== null && ('message' in body || 'statusMessage' in body)
         ? String(
             (body as { message?: string; statusMessage?: string }).message ||
               (body as { statusMessage?: string }).statusMessage ||
-              `Failed to load integrations (${response.status})`
+              `Failed to load integrations (${response.status})`,
           )
         : `Failed to load integrations (${response.status})`;
     throw new ApiError(message, response.status, body);

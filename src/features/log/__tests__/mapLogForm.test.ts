@@ -25,7 +25,7 @@ describe('mapLogForm', () => {
         notes: 'Felt light',
         weight: '72.2',
       },
-      '2026-07-19'
+      '2026-07-19',
     );
 
     expect(payload).toEqual({
@@ -41,10 +41,7 @@ describe('mapLogForm', () => {
   });
 
   it('omits unset subjective metrics from the payload', () => {
-    const payload = toWellnessPayload(
-      { ...emptyLogForm(), sleepHours: '8' },
-      '2026-07-19'
-    );
+    const payload = toWellnessPayload({ ...emptyLogForm(), sleepHours: '8' }, '2026-07-19');
     expect(payload).toEqual({ date: '2026-07-19', sleepHours: 8 });
   });
 
@@ -64,7 +61,7 @@ describe('mapLogForm', () => {
           weight: 72,
         },
       ],
-      '2026-07-19'
+      '2026-07-19',
     );
 
     expect(formFromWellness(today)).toEqual({
@@ -81,7 +78,7 @@ describe('mapLogForm', () => {
   it('round-trips Pounds display weight to kg on save', () => {
     const today = pickTodayWellness(
       [{ id: 'w1', date: '2026-07-19', weight: 72.5748 }],
-      '2026-07-19'
+      '2026-07-19',
     );
     const form = formFromWellness(today, 'Pounds');
     expect(Number(form.weight)).toBeCloseTo(160, 0);
@@ -89,7 +86,7 @@ describe('mapLogForm', () => {
     const payload = toWellnessPayload(
       { ...emptyLogForm(), weight: form.weight },
       '2026-07-19',
-      'Pounds'
+      'Pounds',
     );
     expect(payload.weight).toBeCloseTo(72.575, 2);
   });

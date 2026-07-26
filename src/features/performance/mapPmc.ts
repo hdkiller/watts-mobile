@@ -58,8 +58,7 @@ export function mapPmcPayload(json: unknown): PmcPayload {
         : 'gray',
     formDescription:
       typeof summaryRaw.formDescription === 'string' ? summaryRaw.formDescription : '',
-    lastUpdated:
-      typeof summaryRaw.lastUpdated === 'string' ? summaryRaw.lastUpdated : null,
+    lastUpdated: typeof summaryRaw.lastUpdated === 'string' ? summaryRaw.lastUpdated : null,
   };
 
   const rows = Array.isArray(root.data) ? root.data : [];
@@ -137,7 +136,7 @@ export function formatTsb(value: number): string {
  */
 export function calculateLoadTrend(
   current: number | null | undefined,
-  history: (number | null | undefined)[]
+  history: (number | null | undefined)[],
 ): number | null {
   if (current == null || !Number.isFinite(current)) return null;
   const valid = history.filter((v): v is number => v != null && Number.isFinite(v));
@@ -157,15 +156,15 @@ export function mapPmcTrends(payload: PmcPayload): {
   return {
     ctl: calculateLoadTrend(
       payload.summary.currentCTL,
-      prior.map((p) => p.ctl)
+      prior.map((p) => p.ctl),
     ),
     atl: calculateLoadTrend(
       payload.summary.currentATL,
-      prior.map((p) => p.atl)
+      prior.map((p) => p.atl),
     ),
     tsb: calculateLoadTrend(
       payload.summary.currentTSB,
-      prior.map((p) => p.tsb)
+      prior.map((p) => p.tsb),
     ),
   };
 }

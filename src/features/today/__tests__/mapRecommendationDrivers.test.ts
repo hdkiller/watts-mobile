@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  formatDriverRowText,
-  mapRecommendationDrivers,
-} from '../mapRecommendationDrivers';
+import { formatDriverRowText, mapRecommendationDrivers } from '../mapRecommendationDrivers';
 
 describe('mapRecommendationDrivers', () => {
   it('maps key factors only', () => {
@@ -53,13 +50,13 @@ describe('mapRecommendationDrivers', () => {
       mapRecommendationDrivers({
         recoveryAnalysis: null,
         keyFactors: [],
-      })
+      }),
     ).toEqual([]);
     expect(
       mapRecommendationDrivers({
         recoveryAnalysis: { sleep_quality: '  ', readiness_score: null },
         keyFactors: [''],
-      })
+      }),
     ).toEqual([]);
   });
 

@@ -39,13 +39,13 @@ export function useAdvanceActivationStatus() {
     const key = identity ? ([...activationStatusQueryKey, identity] as const) : null;
     if (key) {
       client.setQueryData<ActivationStatus>(key, (prev) =>
-        prev ? mergeActivationAdvance(prev, patch) : prev
+        prev ? mergeActivationAdvance(prev, patch) : prev,
       );
     }
     await client.invalidateQueries({ queryKey: activationStatusQueryKey });
     if (key) {
       client.setQueryData<ActivationStatus>(key, (prev) =>
-        prev ? mergeActivationAdvance(prev, patch) : prev
+        prev ? mergeActivationAdvance(prev, patch) : prev,
       );
     }
   };

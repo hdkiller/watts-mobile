@@ -17,13 +17,29 @@ describe('subscription adapters', () => {
   });
 
   it('detaches RevenueCat identity for logout, account transition, or self-hosted use', () => {
-    expect(identityForSession({ authenticated: true, hostedAcquisitionEnabled: true, userId: 'user-1' })).toBe('user-1');
-    expect(identityForSession({ authenticated: false, hostedAcquisitionEnabled: true, userId: 'user-1' })).toBeNull();
-    expect(identityForSession({ authenticated: true, hostedAcquisitionEnabled: false, userId: 'user-1' })).toBeNull();
+    expect(
+      identityForSession({ authenticated: true, hostedAcquisitionEnabled: true, userId: 'user-1' }),
+    ).toBe('user-1');
+    expect(
+      identityForSession({
+        authenticated: false,
+        hostedAcquisitionEnabled: true,
+        userId: 'user-1',
+      }),
+    ).toBeNull();
+    expect(
+      identityForSession({
+        authenticated: true,
+        hostedAcquisitionEnabled: false,
+        userId: 'user-1',
+      }),
+    ).toBeNull();
   });
 
   it('maps only configured products and supported recurrence packages', () => {
-    expect(classifyProductTier('support.month', ['support.month'], ['pro.month'])).toBe('SUPPORTER');
+    expect(classifyProductTier('support.month', ['support.month'], ['pro.month'])).toBe(
+      'SUPPORTER',
+    );
     expect(classifyProductTier('pro.month', ['support.month'], ['pro.month'])).toBe('PRO');
     expect(classifyProductTier('unknown', ['support.month'], ['pro.month'])).toBeNull();
     expect(packagePeriod('$rc_monthly', 'MONTHLY')).toBe('MONTHLY');
@@ -31,11 +47,13 @@ describe('subscription adapters', () => {
   });
 
   it('uses the canonical server summary even when client state differs', () => {
-    expect(canonicalSubscriptionTier({
-      tier: 'SUPPORTER',
-      hasCollision: false,
-      acquisitionSuppressed: true,
-      subscriptions: [],
-    })).toBe('SUPPORTER');
+    expect(
+      canonicalSubscriptionTier({
+        tier: 'SUPPORTER',
+        hasCollision: false,
+        acquisitionSuppressed: true,
+        subscriptions: [],
+      }),
+    ).toBe('SUPPORTER');
   });
 });

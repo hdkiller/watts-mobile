@@ -3,7 +3,10 @@ import { Platform } from 'react-native';
 // native HealthKit module (Android / tests). It exists to make a mistyped
 // identifier a compile error instead of a silently-dropped read — the native
 // bridge only warns and skips identifiers it cannot resolve.
-import type { ObjectTypeIdentifier, SampleTypeIdentifier } from '@kingstinct/react-native-healthkit';
+import type {
+  ObjectTypeIdentifier,
+  SampleTypeIdentifier,
+} from '@kingstinct/react-native-healthkit';
 
 /** HealthKit types for wellness + workout sync (read-only). */
 export const HEALTHKIT_SYNC_READ_TYPES = [
@@ -104,11 +107,11 @@ type HealthConnectPermissionLike = { accessType?: string; recordType?: string };
 
 /** Background access and route reads are best-effort; the remaining record reads are required. */
 export function hasRequiredHealthConnectPermissions(
-  granted: readonly HealthConnectPermissionLike[]
+  granted: readonly HealthConnectPermissionLike[],
 ): boolean {
   const keys = new Set(granted.map((p) => `${p.accessType}:${p.recordType}`));
   return HEALTH_CONNECT_SYNC_PERMISSIONS.filter(
-    (permission) => !OPTIONAL_HEALTH_CONNECT_RECORD_TYPES.includes(permission.recordType)
+    (permission) => !OPTIONAL_HEALTH_CONNECT_RECORD_TYPES.includes(permission.recordType),
   ).every((permission) => keys.has(`${permission.accessType}:${permission.recordType}`));
 }
 
@@ -131,9 +134,9 @@ export async function requestHealthSyncPermissions(): Promise<boolean> {
       const status = await HC.getSdkStatus();
       if (status !== 3) return false;
       await HC.initialize();
-      const granted = await HC.requestPermission([
-        ...HEALTH_CONNECT_SYNC_PERMISSIONS,
-      ] as Parameters<typeof HC.requestPermission>[0]);
+      const granted = await HC.requestPermission([...HEALTH_CONNECT_SYNC_PERMISSIONS] as Parameters<
+        typeof HC.requestPermission
+      >[0]);
       return Array.isArray(granted) && hasRequiredHealthConnectPermissions(granted);
     }
   } catch (err) {

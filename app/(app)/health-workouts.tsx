@@ -99,7 +99,7 @@ export default function HealthRecentWorkoutsScreen() {
 
   const unsyncedCount = useMemo(
     () => rows.filter((row) => isUnsyncedRecentStatus(row.status)).length,
-    [rows]
+    [rows],
   );
 
   const handleSyncOne = async (row: RecentWorkoutRow, force: boolean) => {
@@ -107,7 +107,7 @@ export default function HealthRecentWorkoutsScreen() {
       setActionError(
         !preferences.syncEnabled
           ? 'Enable Sync to Coach Watts first'
-          : 'Enable Sync workouts first'
+          : 'Enable Sync workouts first',
       );
       hapticError();
       return;
@@ -133,7 +133,7 @@ export default function HealthRecentWorkoutsScreen() {
       setActionError(
         !preferences.syncEnabled
           ? 'Enable Sync to Coach Watts first'
-          : 'Enable Sync workouts first'
+          : 'Enable Sync workouts first',
       );
       hapticError();
       return;
@@ -163,8 +163,8 @@ export default function HealthRecentWorkoutsScreen() {
     <>
       <Stack.Screen options={{ title: 'Recent workouts', headerShown: true }} />
       <SafeAreaView edges={{ bottom: true }} style={{ flex: 1, backgroundColor: theme.surface }}>
-        <View className="px-6 pt-4 pb-2">
-          <Text className="text-sm text-text-muted leading-5">
+        <View className="px-6 pb-2 pt-4">
+          <Text className="text-sm leading-5 text-text-muted">
             Workouts on this phone from {platformLabel}, and whether they are in Coach Watts.
           </Text>
           {!uploadsEnabled ? (
@@ -175,7 +175,7 @@ export default function HealthRecentWorkoutsScreen() {
               }}
               className="mt-3 rounded-xl border border-modify/40 bg-modify/10 px-3 py-3"
             >
-              <Text className="text-xs text-modify leading-4.5">
+              <Text className="leading-4.5 text-xs text-modify">
                 {!preferences.syncEnabled
                   ? 'Sync to Coach Watts is off. You can browse workouts here; turn sync on to upload.'
                   : 'Sync workouts is off. Turn it on in Health Sync to upload from this list.'}
@@ -194,10 +194,10 @@ export default function HealthRecentWorkoutsScreen() {
             </View>
           ) : null}
           {actionError ? (
-            <Text className="mt-2 text-xs text-danger leading-4.5">{actionError}</Text>
+            <Text className="leading-4.5 mt-2 text-xs text-danger">{actionError}</Text>
           ) : null}
           {loadError ? (
-            <Text className="mt-2 text-xs text-danger leading-4.5">{loadError}</Text>
+            <Text className="leading-4.5 mt-2 text-xs text-danger">{loadError}</Text>
           ) : null}
         </View>
 
@@ -217,10 +217,10 @@ export default function HealthRecentWorkoutsScreen() {
           >
             {rows.length === 0 ? (
               <View className="mt-10 items-center px-4">
-                <Text className="text-base font-semibold text-text-primary text-center">
+                <Text className="text-center text-base font-semibold text-text-primary">
                   No workouts on this phone
                 </Text>
-                <Text className="mt-2 text-sm text-text-muted text-center leading-5">
+                <Text className="mt-2 text-center text-sm leading-5 text-text-muted">
                   Recent {platformLabel} workouts from the last two weeks appear here once Coach
                   Watts has read access and sessions exist on the device.
                 </Text>
@@ -238,7 +238,7 @@ export default function HealthRecentWorkoutsScreen() {
                     className="mb-3 rounded-xl border border-border bg-card/60 px-4 py-3.5"
                   >
                     <View className="flex-row items-start justify-between">
-                      <View className="flex-1 mr-3">
+                      <View className="mr-3 flex-1">
                         <Text className="text-sm font-semibold text-text-primary">{row.title}</Text>
                         <Text className="mt-1 text-xs text-text-muted">
                           On phone · {formatWhen(row.startedAt)}

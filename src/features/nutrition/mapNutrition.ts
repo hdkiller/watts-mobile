@@ -60,10 +60,7 @@ export function apiMealTypeLabel(mealType: ApiMealType): string {
 function mapLoggedItem(raw: unknown, mealType: ApiMealType): NutritionLoggedItem | null {
   if (!raw || typeof raw !== 'object') return null;
   const r = raw as Record<string, unknown>;
-  const name =
-    typeof r.name === 'string' && r.name.trim()
-      ? r.name.trim()
-      : 'Untitled item';
+  const name = typeof r.name === 'string' && r.name.trim() ? r.name.trim() : 'Untitled item';
   return {
     id: typeof r.id === 'string' && r.id.trim() ? r.id.trim() : null,
     name,
@@ -72,7 +69,8 @@ function mapLoggedItem(raw: unknown, mealType: ApiMealType): NutritionLoggedItem
     carbs: roundMacro(asNumber(r.carbs)),
     fat: roundMacro(asNumber(r.fat)),
     mealType,
-    amount: r.amount != null && Number.isFinite(asNumber(r.amount)) ? asNumber(r.amount) : undefined,
+    amount:
+      r.amount != null && Number.isFinite(asNumber(r.amount)) ? asNumber(r.amount) : undefined,
     unit: typeof r.unit === 'string' && r.unit.trim() ? r.unit.trim() : undefined,
     loggedAt:
       typeof r.logged_at === 'string' && r.logged_at.trim()
@@ -98,10 +96,7 @@ export function mapNutritionLoggedItems(row: Record<string, unknown>): Nutrition
 }
 
 /** Optimistic helper: remove one item by id from a day totals snapshot. */
-export function removeItemFromDay(
-  day: NutritionDayTotals,
-  itemId: string
-): NutritionDayTotals {
+export function removeItemFromDay(day: NutritionDayTotals, itemId: string): NutritionDayTotals {
   const items = day.items.filter((item) => item.id !== itemId);
   return { ...day, items, isEmpty: items.length === 0 && day.waterMl === 0 };
 }
@@ -214,8 +209,7 @@ export function mapFuelingPlanAnalysis(plan: unknown): FuelingPlanAnalysis | nul
   if (!totalsRaw && !Array.isArray(root.windows)) return null;
 
   const modeRaw = totalsRaw?.baseCaloriesMode;
-  const baseCaloriesMode =
-    modeRaw === 'MANUAL_NON_EXERCISE' || modeRaw === 'AUTO' ? modeRaw : null;
+  const baseCaloriesMode = modeRaw === 'MANUAL_NON_EXERCISE' || modeRaw === 'AUTO' ? modeRaw : null;
 
   const dailyTotals: FuelingPlanDailyTotals = {
     calories: asOptionalNumber(totalsRaw?.calories),
@@ -282,7 +276,8 @@ export function pickTodayNutrition(payload: unknown, today = localDateYmd()): Nu
     const waterMl = Math.round(asNumber(r.waterMl));
     const isEmpty = calories === 0 && protein === 0 && carbs === 0 && fat === 0 && waterMl === 0;
 
-    const caloriesGoal = asGoal(r.caloriesGoal) != null ? Math.round(asGoal(r.caloriesGoal)!) : null;
+    const caloriesGoal =
+      asGoal(r.caloriesGoal) != null ? Math.round(asGoal(r.caloriesGoal)!) : null;
     const proteinGoal = asGoal(r.proteinGoal) != null ? roundMacro(asGoal(r.proteinGoal)!) : null;
     const carbsGoal = asGoal(r.carbsGoal) != null ? roundMacro(asGoal(r.carbsGoal)!) : null;
     const fatGoal = asGoal(r.fatGoal) != null ? roundMacro(asGoal(r.fatGoal)!) : null;
@@ -293,8 +288,7 @@ export function pickTodayNutrition(payload: unknown, today = localDateYmd()): Nu
 
     const fuelingPlan = mapFuelingPlanAnalysis(r.fuelingPlan);
     const items = mapNutritionLoggedItems(r);
-    const notes =
-      typeof r.notes === 'string' ? r.notes : r.notes == null ? null : String(r.notes);
+    const notes = typeof r.notes === 'string' ? r.notes : r.notes == null ? null : String(r.notes);
 
     return {
       id: r.id != null ? String(r.id) : null,
@@ -312,8 +306,7 @@ export function pickTodayNutrition(payload: unknown, today = localDateYmd()): Nu
       carbsGoal,
       fatGoal,
       fluidGoalMl,
-      hasGoals:
-        caloriesGoal != null || proteinGoal != null || carbsGoal != null || fatGoal != null,
+      hasGoals: caloriesGoal != null || proteinGoal != null || carbsGoal != null || fatGoal != null,
       fuelState: fuelStateFromPlan(r.fuelingPlan),
       fuelingPlan,
     };
@@ -343,17 +336,17 @@ export function emptyQuickLogForm(meal: MealSlot = 'SNACK'): NutritionQuickLogFo
 export function quickLogHasContent(form: NutritionQuickLogForm): boolean {
   return Boolean(
     form.name.trim() ||
-      form.calories.trim() ||
-      form.protein.trim() ||
-      form.carbs.trim() ||
-      form.fat.trim()
+    form.calories.trim() ||
+    form.protein.trim() ||
+    form.carbs.trim() ||
+    form.fat.trim(),
   );
 }
 
 export function toNutritionUploadPayload(
   form: NutritionQuickLogForm,
   date = localDateYmd(),
-  loggedAt = new Date()
+  loggedAt = new Date(),
 ): NutritionUploadPayload {
   const item: NutritionItemPayload = {
     meal: form.meal,
@@ -402,7 +395,10 @@ const WINDOW_TYPE_LABELS: Record<string, string> = {
 };
 
 /** Pick the next upcoming window from GET /api/nutrition/upcoming-plan. */
-export function pickNextFuelingWindow(payload: unknown, now = new Date()): NextFuelingWindow | null {
+export function pickNextFuelingWindow(
+  payload: unknown,
+  now = new Date(),
+): NextFuelingWindow | null {
   if (!payload || typeof payload !== 'object') return null;
   const windows = (payload as Record<string, unknown>).windows;
   if (!Array.isArray(windows)) return null;

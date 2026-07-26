@@ -17,14 +17,8 @@ export default function SportsSettingsScreen() {
           headerShown: true,
         }}
       />
-      <SafeAreaView
-        edges={{ bottom: true }}
-        style={{ flex: 1, backgroundColor: theme.surface }}
-      >
-        <ScrollView
-          className="flex-1 bg-surface"
-          contentContainerClassName="px-6 pb-12 pt-4"
-        >
+      <SafeAreaView edges={{ bottom: true }} style={{ flex: 1, backgroundColor: theme.surface }}>
+        <ScrollView className="flex-1 bg-surface" contentContainerClassName="px-6 pb-12 pt-4">
           <Text className="text-sm text-text-muted">
             Edit FTP, LTHR, and Max HR for each sport.
           </Text>

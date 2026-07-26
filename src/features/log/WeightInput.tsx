@@ -37,9 +37,7 @@ export function WeightInput({
               setEditing((prev) => !prev);
             }}
           >
-            <Text className="text-xs font-semibold text-brand">
-              {editing ? 'Done' : 'Adjust'}
-            </Text>
+            <Text className="text-xs font-semibold text-brand">{editing ? 'Done' : 'Adjust'}</Text>
           </Pressable>
         ) : null}
       </View>

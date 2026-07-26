@@ -27,10 +27,7 @@ export function FinishSetupCard() {
         data. You can skip and come back anytime.
       </Text>
       <View className="mt-4 gap-2">
-        <Button
-          label="Health Sync"
-          onPress={() => router.push(APP_HREFS.settingsHealth as Href)}
-        />
+        <Button label="Health Sync" onPress={() => router.push(APP_HREFS.settingsHealth as Href)} />
         <Button
           variant="secondary"
           label="Connected Apps"

@@ -12,9 +12,7 @@
       "bundleIdentifier": "com.coachwatts.app",
       "buildNumber": "3",
       "icon": "./assets/images/icon.png",
-      "associatedDomains": [
-        "applinks:coachwatts.com"
-      ],
+      "associatedDomains": ["applinks:coachwatts.com"],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "Coach Watts uses the camera so you can photograph meals and share them in Coach chat for nutrition logging.",
@@ -68,10 +66,7 @@
         {
           "action": "VIEW",
           "autoVerify": true,
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ],
+          "category": ["BROWSABLE", "DEFAULT"],
           "data": [
             {
               "scheme": "https",
@@ -109,7 +104,9 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Coach Watts uses the camera to scan food package barcodes for nutrition logging."
+          "cameraPermission": "Coach Watts uses the camera to scan food package barcodes for nutrition logging.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
         }
       ],
       [
@@ -167,10 +164,7 @@
               "name": "TodaySessionWidget",
               "displayName": "Today’s session",
               "description": "Today’s Coach Watts recommendation and planned session.",
-              "supportedFamilies": [
-                "systemSmall",
-                "systemMedium"
-              ]
+              "supportedFamilies": ["systemSmall", "systemMedium"]
             }
           ]
         }

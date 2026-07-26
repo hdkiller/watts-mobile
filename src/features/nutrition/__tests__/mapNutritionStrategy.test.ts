@@ -95,7 +95,7 @@ describe('isHorizonLegible', () => {
         { timestampMs: 2, level: 50.1 },
         { timestampMs: 3, level: 50.2 },
         { timestampMs: 4, level: 50.1 },
-      ])
+      ]),
     ).toBe(false);
     expect(
       isHorizonLegible([
@@ -103,7 +103,7 @@ describe('isHorizonLegible', () => {
         { timestampMs: 2, level: 55 },
         { timestampMs: 3, level: 70 },
         { timestampMs: 4, level: 60 },
-      ])
+      ]),
     ).toBe(true);
   });
 });

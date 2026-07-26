@@ -4,8 +4,7 @@ import type { ChatRoomSummary } from './types';
 export const CHAT_SESSION_REUSE_MS = 15 * 60 * 1000;
 
 export type SessionOpenDecision =
-  | { action: 'select'; room: ChatRoomSummary }
-  | { action: 'create' };
+  { action: 'select'; room: ChatRoomSummary } | { action: 'create' };
 
 export function roomActivityMs(room: ChatRoomSummary): number {
   if (typeof room.index === 'number' && Number.isFinite(room.index)) {
@@ -27,7 +26,7 @@ export function isEmptyRoom(room: ChatRoomSummary): boolean {
  */
 export function decideSessionOpen(
   rooms: ChatRoomSummary[],
-  nowMs: number = Date.now()
+  nowMs: number = Date.now(),
 ): SessionOpenDecision {
   const lastRoom = rooms[0];
   if (!lastRoom?.roomId) {
@@ -46,7 +45,7 @@ export function decideSessionOpen(
 
 export function findRoomById(
   rooms: ChatRoomSummary[],
-  roomId: string | null | undefined
+  roomId: string | null | undefined,
 ): ChatRoomSummary | undefined {
   if (!roomId) return undefined;
   return rooms.find((room) => room.roomId === roomId);

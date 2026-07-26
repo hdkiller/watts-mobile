@@ -82,7 +82,7 @@ function metric(
   value: number | string | null,
   unit: string,
   trendPercent: number | null,
-  lowerIsBetter = false
+  lowerIsBetter = false,
 ): WellnessOverviewMetric | null {
   if (value == null || value === '') return null;
   if (typeof value === 'number' && !Number.isFinite(value)) return null;
@@ -145,10 +145,7 @@ export function mapWellnessOverview(json: unknown): WellnessOverview | null {
   const root = asRecord(json);
   if (!root) return null;
 
-  const date =
-    dateKey(root.date) ||
-    dateKey(root.wellnessDate) ||
-    localTodayKey();
+  const date = dateKey(root.date) || dateKey(root.wellnessDate) || localTodayKey();
 
   const trendsRoot = asRecord(root.trends) || {};
   const hrvTrend = parseTrend(trendsRoot.hrv);
@@ -158,15 +155,11 @@ export function mapWellnessOverview(json: unknown): WellnessOverview | null {
 
   const hrv = asFiniteNumber(root.hrv) ?? hrvTrend?.value ?? null;
   const rawSleepHours =
-    asFiniteNumber(root.sleepHours) ??
-    asFiniteNumber(root.hoursSlept) ??
-    sleepTrend?.value ??
-    null;
+    asFiniteNumber(root.sleepHours) ?? asFiniteNumber(root.hoursSlept) ?? sleepTrend?.value ?? null;
   const sleepHours = isPlausibleSleepHours(rawSleepHours) ? rawSleepHours : null;
   const rawRestingHr = asFiniteNumber(root.restingHr) ?? rhrTrend?.value ?? null;
   const restingHr = isPlausibleRestingHr(rawRestingHr) ? rawRestingHr : null;
-  const recoveryScore =
-    asFiniteNumber(root.recoveryScore) ?? recoveryTrend?.value ?? null;
+  const recoveryScore = asFiniteNumber(root.recoveryScore) ?? recoveryTrend?.value ?? null;
   const readiness = asFiniteNumber(root.readiness);
   const rawWeight = asFiniteNumber(root.weight);
   const weightTrend = parseTrend(trendsRoot.weight);
@@ -182,23 +175,28 @@ export function mapWellnessOverview(json: unknown): WellnessOverview | null {
   const systolic = asFiniteNumber(root.systolic);
   const diastolic = asFiniteNumber(root.diastolic);
   const bloodPressure =
-    systolic != null && diastolic != null ? `${Math.round(systolic)}/${Math.round(diastolic)}` : null;
+    systolic != null && diastolic != null
+      ? `${Math.round(systolic)}/${Math.round(diastolic)}`
+      : null;
 
   const hrvTrendPercent = calculateTrend(hrv, priorValues(hrvTrend?.history ?? [], date));
   const sleepTrendPercent =
     sleepHours != null
-      ? calculateTrend(sleepHours, plausibleSleepHistory(priorValues(sleepTrend?.history ?? [], date)))
+      ? calculateTrend(
+          sleepHours,
+          plausibleSleepHistory(priorValues(sleepTrend?.history ?? [], date)),
+        )
       : null;
   const rhrTrendPercent =
     restingHr != null
       ? calculateTrend(
           restingHr,
-          plausibleRestingHrHistory(priorValues(rhrTrend?.history ?? [], date))
+          plausibleRestingHrHistory(priorValues(rhrTrend?.history ?? [], date)),
         )
       : null;
   const recoveryTrendPercent = calculateTrend(
     recoveryScore,
-    priorValues(recoveryTrend?.history ?? [], date)
+    priorValues(recoveryTrend?.history ?? [], date),
   );
 
   const metrics = [
@@ -208,7 +206,7 @@ export function mapWellnessOverview(json: unknown): WellnessOverview | null {
       'Sleep',
       sleepHours != null ? Number(sleepHours.toFixed(1)) : null,
       'hrs',
-      sleepTrendPercent
+      sleepTrendPercent,
     ),
     metric(
       'restingHr',
@@ -216,22 +214,16 @@ export function mapWellnessOverview(json: unknown): WellnessOverview | null {
       restingHr != null ? Math.round(restingHr) : null,
       'bpm',
       rhrTrendPercent,
-      true
+      true,
     ),
     metric(
       'recoveryScore',
       'Recovery',
       recoveryScore != null ? Math.round(recoveryScore) : null,
       '%',
-      recoveryTrendPercent
+      recoveryTrendPercent,
     ),
-    metric(
-      'readiness',
-      'Readiness',
-      readiness != null ? Math.round(readiness) : null,
-      '',
-      null
-    ),
+    metric('readiness', 'Readiness', readiness != null ? Math.round(readiness) : null, '', null),
     metric('weight', 'Weight', weight != null ? Number(weight.toFixed(1)) : null, '', null),
     metric('stress', 'Stress', stress != null ? Math.round(stress) : null, '', null),
     metric('mood', 'Mood', mood != null ? Math.round(mood) : null, '', null),

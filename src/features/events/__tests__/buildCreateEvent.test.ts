@@ -53,8 +53,8 @@ describe('buildCreateEvent', () => {
   it('omits empty optionals', () => {
     expect(
       buildCreateEventInput(
-        base({ priority: '', location: '', description: '', startTime: '', type: '' })
-      )
+        base({ priority: '', location: '', description: '', startTime: '', type: '' }),
+      ),
     ).toEqual({
       title: 'Autumn fondo',
       date: '2026-10-15T12:00:00.000Z',

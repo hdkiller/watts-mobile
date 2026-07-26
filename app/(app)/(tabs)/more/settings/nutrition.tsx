@@ -22,10 +22,7 @@ export default function NutritionSettingsScreen() {
           headerShown: true,
         }}
       />
-      <SafeAreaView
-        edges={{ bottom: true }}
-        style={{ flex: 1, backgroundColor: theme.surface }}
-      >
+      <SafeAreaView edges={{ bottom: true }} style={{ flex: 1, backgroundColor: theme.surface }}>
         {isLoading && !data ? (
           <DetailSkeleton />
         ) : isError && !data ? (

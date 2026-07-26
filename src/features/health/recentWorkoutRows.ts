@@ -19,11 +19,7 @@ export type RecentWorkoutRow = {
   ledgerId: string;
 };
 
-const UNSYNCED: ReadonlySet<SyncLedgerStatus> = new Set([
-  'needs_sync',
-  'failed',
-  'pending',
-]);
+const UNSYNCED: ReadonlySet<SyncLedgerStatus> = new Set(['needs_sync', 'failed', 'pending']);
 
 export function isUnsyncedRecentStatus(status: SyncLedgerStatus): boolean {
   return UNSYNCED.has(status);
@@ -37,7 +33,7 @@ export function isUnsyncedRecentStatus(status: SyncLedgerStatus): boolean {
 export function resolveRecentWorkoutStatus(
   session: PlatformWorkoutSession,
   ledgerItem: SyncLedgerItem | undefined,
-  remotes: RemoteWorkoutMatchCandidate[]
+  remotes: RemoteWorkoutMatchCandidate[],
 ): SyncLedgerStatus {
   if (ledgerItem?.status === 'syncing') return 'syncing';
 
@@ -56,7 +52,7 @@ export function resolveRecentWorkoutStatus(
 export function buildRecentWorkoutRows(
   sessions: PlatformWorkoutSession[],
   remotes: RemoteWorkoutMatchCandidate[],
-  ledgerItems: SyncLedgerItem[]
+  ledgerItems: SyncLedgerItem[],
 ): RecentWorkoutRow[] {
   const ledgerById = new Map(ledgerItems.map((item) => [item.id, item]));
 

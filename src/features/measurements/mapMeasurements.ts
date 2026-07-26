@@ -83,7 +83,7 @@ export function prefersImperialMass(weightUnits: WeightUnits): boolean {
 export function displayUnitLabel(
   metricKey: string,
   canonicalUnit: CanonicalUnit,
-  opts: { weightUnits: WeightUnits; distanceUnits: DistanceUnits }
+  opts: { weightUnits: WeightUnits; distanceUnits: DistanceUnits },
 ): string {
   const category = metricCategoryFor(metricKey, canonicalUnit);
   if (category === 'mass') return prefersImperialMass(opts.weightUnits) ? 'lbs' : 'kg';
@@ -98,7 +98,7 @@ export function toDisplayValue(
   value: number,
   metricKey: string,
   canonicalUnit: CanonicalUnit,
-  opts: { weightUnits: WeightUnits; distanceUnits: DistanceUnits }
+  opts: { weightUnits: WeightUnits; distanceUnits: DistanceUnits },
 ): number {
   const category = metricCategoryFor(metricKey, canonicalUnit);
   if (category === 'mass' && prefersImperialMass(opts.weightUnits)) {
@@ -118,7 +118,7 @@ export function fromDisplayValue(
   displayValue: number,
   metricKey: string,
   canonicalUnit: CanonicalUnit,
-  opts: { weightUnits: WeightUnits; distanceUnits: DistanceUnits }
+  opts: { weightUnits: WeightUnits; distanceUnits: DistanceUnits },
 ): number {
   const category = metricCategoryFor(metricKey, canonicalUnit);
   if (category === 'mass' && prefersImperialMass(opts.weightUnits)) {
@@ -161,7 +161,7 @@ export function formatRecordedAt(iso: string): string {
 
 export function toCreatePayload(
   form: MeasurementFormValues,
-  opts: { weightUnits: WeightUnits; distanceUnits: DistanceUnits }
+  opts: { weightUnits: WeightUnits; distanceUnits: DistanceUnits },
 ): CreateBodyMeasurementPayload | null {
   const display = Number(form.value.trim());
   if (!Number.isFinite(display)) return null;

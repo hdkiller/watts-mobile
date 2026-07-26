@@ -2,12 +2,7 @@ import { localDateYmd } from '@/src/features/log/mapLogForm';
 import { localDateKey } from '@/src/features/today/weekGlance';
 
 import type { AvailabilityDay } from './api';
-import type {
-  PlanInitializeResult,
-  PlanStrategy,
-  StartingPhase,
-  VolumePreference,
-} from './types';
+import type { PlanInitializeResult, PlanStrategy, StartingPhase, VolumePreference } from './types';
 
 /** Web PlanWizard mapping: ≤5 LOW, ≥10 HIGH, else MID. */
 export function volumePreferenceFromHours(hours: number): VolumePreference {
@@ -96,7 +91,7 @@ export function isPlanSpanValid(startYmd: string, endYmd: string): boolean {
 export function defaultSelectedGoalId(
   goalIds: string[],
   preferredId?: string | null,
-  primaryId?: string | null
+  primaryId?: string | null,
 ): string | null {
   if (goalIds.length === 0) return null;
   if (goalIds.length === 1) return goalIds[0] ?? null;
@@ -106,7 +101,7 @@ export function defaultSelectedGoalId(
 }
 
 export function mapPhaseGlance(
-  blocks: NonNullable<PlanInitializeResult['plan']>['blocks'] | undefined
+  blocks: NonNullable<PlanInitializeResult['plan']>['blocks'] | undefined,
 ): PhaseGlance[] {
   if (!Array.isArray(blocks)) return [];
   return blocks
@@ -130,8 +125,7 @@ export function mapPhaseGlance(
       } else if (startKey) {
         rangeLabel = startKey;
       }
-      const type =
-        typeof block.type === 'string' && block.type.trim() ? block.type.trim() : null;
+      const type = typeof block.type === 'string' && block.type.trim() ? block.type.trim() : null;
       return {
         id,
         title: name,
@@ -146,10 +140,7 @@ export function mapPhaseGlance(
 export const DURATION_WEEK_CHIPS = [8, 12, 16, 20, 24] as const;
 
 /** Afternoon training slot so week gen does not treat the day as rest. */
-export function buildAvailabilityDays(
-  dayOfWeeks: number[],
-  sports: string[]
-): AvailabilityDay[] {
+export function buildAvailabilityDays(dayOfWeeks: number[], sports: string[]): AvailabilityDay[] {
   const activityTypes = sports.length > 0 ? sports : ['Ride'];
   const gymAccess = activityTypes.some((s) => /gym|weight/i.test(s));
   const bikeAccess = activityTypes.some((s) => /ride|bike/i.test(s));
@@ -260,16 +251,14 @@ export const RECOVERY_RHYTHM_OPTIONS: {
     label: '2:1',
     hint: 'Two on · one off',
     title: 'High Recovery',
-    description:
-      '2 weeks build, 1 week rest. Ideal for Masters (45+) and high-stress lifestyles.',
+    description: '2 weeks build, 1 week rest. Ideal for Masters (45+) and high-stress lifestyles.',
   },
   {
     id: 4,
     label: '3:1',
     hint: 'Classic load cycle',
     title: 'Standard Build',
-    description:
-      '3 weeks build, 1 week rest. The classic standard for most healthy athletes.',
+    description: '3 weeks build, 1 week rest. The classic standard for most healthy athletes.',
   },
   {
     id: 5,
@@ -304,8 +293,7 @@ export function recommendStrategy(input: {
     }
     return {
       strategy: 'LINEAR',
-      rationale:
-        'Linear periodization is the safest and most reliable way to peak for your event.',
+      rationale: 'Linear periodization is the safest and most reliable way to peak for your event.',
     };
   }
   return {

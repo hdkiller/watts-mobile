@@ -56,7 +56,7 @@ function PreferenceRow({
     <View className="flex-row items-center justify-between border-b border-border/80 px-4 py-4">
       <View className="mr-4 flex-1">
         <Text className="text-base font-semibold text-text-primary">{title}</Text>
-        <Text className="mt-1 text-sm text-text-muted leading-5">{description}</Text>
+        <Text className="mt-1 text-sm leading-5 text-text-muted">{description}</Text>
       </View>
       <Switch
         trackColor={{ false: theme.border, true: Colors.brand }}
@@ -72,7 +72,13 @@ function PreferenceRow({
 export default function NotificationSettingsScreen() {
   const theme = useThemeColors();
 
-  const { data: preferences, isLoading, isError, error, refetch } = useNotificationPreferencesQuery();
+  const {
+    data: preferences,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useNotificationPreferencesQuery();
   const updateMutation = useUpdateNotificationPreferences();
   const [osPermission, setOsPermission] = useState<PushPermissionState>('granted');
 
@@ -133,20 +139,12 @@ export default function NotificationSettingsScreen() {
                 marginLeft: Platform.OS === 'ios' ? -6 : 0,
               }}
             >
-              <AppSymbol
-                sf="chevron.left"
-                size={22}
-                tintColor={theme.textPrimary}
-                fallback="←"
-              />
+              <AppSymbol sf="chevron.left" size={22} tintColor={theme.textPrimary} fallback="←" />
             </Pressable>
           ),
         }}
       />
-      <SafeAreaView
-        edges={{ bottom: true }}
-        style={{ flex: 1, backgroundColor: theme.surface }}
-      >
+      <SafeAreaView edges={{ bottom: true }} style={{ flex: 1, backgroundColor: theme.surface }}>
         {isLoading ? (
           <DetailSkeleton />
         ) : isError ? (
@@ -157,10 +155,7 @@ export default function NotificationSettingsScreen() {
             <Button className="mt-4" label="Try again" onPress={() => void refetch()} />
           </View>
         ) : (
-          <ScrollView
-            className="flex-1 bg-surface"
-            contentContainerClassName="px-6 pb-12 pt-4"
-          >
+          <ScrollView className="flex-1 bg-surface" contentContainerClassName="px-6 pb-12 pt-4">
             <Text className="text-2xl font-semibold text-text-primary">Push notifications</Text>
             <Text className="mt-1 text-sm text-text-muted">
               Choose which coaching alerts Coach Watts may send as push notifications on your
@@ -170,11 +165,19 @@ export default function NotificationSettingsScreen() {
             {osPermission === 'denied' ? (
               <View className="mt-6 rounded-xl border border-modify/40 bg-modify/10 p-4">
                 <View className="flex-row items-center gap-2">
-                  <AppSymbol sf="exclamationmark.triangle" size={18} tintColor={Colors.modify} fallback="⚠️" />
-                  <Text className="text-sm font-semibold text-modify">Notifications disabled in device settings</Text>
+                  <AppSymbol
+                    sf="exclamationmark.triangle"
+                    size={18}
+                    tintColor={Colors.modify}
+                    fallback="⚠️"
+                  />
+                  <Text className="text-sm font-semibold text-modify">
+                    Notifications disabled in device settings
+                  </Text>
                 </View>
-                <Text className="mt-1.5 text-xs leading-4.5 text-text-muted">
-                  System notifications are currently turned off for Coach Watts. Enable notifications in your phone settings to receive coaching alerts.
+                <Text className="leading-4.5 mt-1.5 text-xs text-text-muted">
+                  System notifications are currently turned off for Coach Watts. Enable
+                  notifications in your phone settings to receive coaching alerts.
                 </Text>
                 <Pressable
                   className="mt-3 self-start active:opacity-75"
@@ -220,4 +223,3 @@ export default function NotificationSettingsScreen() {
     </>
   );
 }
-

@@ -37,7 +37,7 @@ export function getRedirectUri(): string {
 export function assertOAuthClientConfigured(): string {
   if (!OAUTH_CLIENT_ID) {
     throw new Error(
-      'Missing EXPO_PUBLIC_OAUTH_CLIENT_ID. Register an OAuth app in Coach Watts and set the client id in .env'
+      'Missing EXPO_PUBLIC_OAUTH_CLIENT_ID. Register an OAuth app in Coach Watts and set the client id in .env',
     );
   }
   return OAUTH_CLIENT_ID;
@@ -67,7 +67,7 @@ export async function loginWithPkce(instanceBaseUrl: string): Promise<StoredToke
     {
       preferEphemeralSession: false,
       showInRecents: true,
-    }
+    },
   );
 
   if (result.type !== 'success' || !result.params.code) {

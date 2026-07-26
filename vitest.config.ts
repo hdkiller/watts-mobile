@@ -13,7 +13,10 @@ export default defineConfig({
     alias: {
       'react-native': 'react-native-web',
       'expo-constants': path.resolve(__dirname, 'src/test/mocks/expo-constants.ts'),
-      '@react-native-async-storage/async-storage': path.resolve(__dirname, 'src/test/mocks/async-storage.ts'),
+      '@react-native-async-storage/async-storage': path.resolve(
+        __dirname,
+        'src/test/mocks/async-storage.ts',
+      ),
       '@': path.resolve(__dirname, '.'),
     },
   },

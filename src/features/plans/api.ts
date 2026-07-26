@@ -39,7 +39,7 @@ function errorMessage(body: unknown, fallback: string): string {
     return String(
       (body as { message?: string; statusMessage?: string }).message ||
         (body as { statusMessage?: string }).statusMessage ||
-        fallback
+        fallback,
     );
   }
   return fallback;
@@ -75,7 +75,7 @@ export async function saveAvailability(days: AvailabilityDay[]): Promise<void> {
     throw new ApiError(
       errorMessage(body, `Failed to save availability (${response.status})`),
       response.status,
-      body
+      body,
     );
   }
 }
@@ -91,7 +91,7 @@ export async function initializePlan(input: PlanInitializeInput): Promise<PlanIn
     throw new ApiError(
       errorMessage(body, `Failed to initialize plan (${response.status})`),
       response.status,
-      body
+      body,
     );
   }
   return (await response.json()) as PlanInitializeResult;
@@ -104,7 +104,7 @@ async function fetchPlan(planId: string): Promise<PlanInitializeResult> {
     throw new ApiError(
       errorMessage(body, `Failed to refresh plan preview (${response.status})`),
       response.status,
-      body
+      body,
     );
   }
   const plan = (await response.json()) as NonNullable<PlanInitializeResult['plan']>;
@@ -122,7 +122,7 @@ async function requestWeekPreview(blockId: string, weekId: string): Promise<void
     throw new ApiError(
       errorMessage(body, `Failed to generate plan preview (${response.status})`),
       response.status,
-      body
+      body,
     );
   }
 }
@@ -134,7 +134,7 @@ function delay(ms: number): Promise<void> {
 /** Generate the draft's first real training week and poll until its workouts are persisted. */
 export async function generateFirstWeekPreview(
   initialized: PlanInitializeResult,
-  options: { timeoutMs?: number; pollMs?: number } = {}
+  options: { timeoutMs?: number; pollMs?: number } = {},
 ): Promise<PlannedWorkoutPreview[]> {
   const existing = extractFirstWeekPreview(initialized);
   if (existing.length > 0) return existing;
@@ -171,7 +171,7 @@ export async function activatePlan(planId: string, startDate?: string): Promise<
     throw new ApiError(
       errorMessage(body, `Failed to activate plan (${response.status})`),
       response.status,
-      body
+      body,
     );
   }
 }
@@ -181,7 +181,11 @@ export async function fetchUpcomingPlanned(limit = 7): Promise<PlannedWorkoutPre
   if (!response.ok) return [];
   const json = await response.json();
   if (Array.isArray(json)) return json as PlannedWorkoutPreview[];
-  if (json && typeof json === 'object' && Array.isArray((json as { workouts?: unknown }).workouts)) {
+  if (
+    json &&
+    typeof json === 'object' &&
+    Array.isArray((json as { workouts?: unknown }).workouts)
+  ) {
     return (json as { workouts: PlannedWorkoutPreview[] }).workouts;
   }
   if (json && typeof json === 'object' && Array.isArray((json as { items?: unknown }).items)) {
@@ -210,7 +214,7 @@ export async function fetchActivePlan(): Promise<ActivePlanResponse> {
     throw new ApiError(
       errorMessage(body, `Failed to load active plan (${response.status})`),
       response.status,
-      body
+      body,
     );
   }
   return (await response.json()) as ActivePlanResponse;
@@ -223,7 +227,7 @@ export async function fetchPlanDetail(planId: string): Promise<ActivePlanApi> {
     throw new ApiError(
       errorMessage(body, `Failed to load plan (${response.status})`),
       response.status,
-      body
+      body,
     );
   }
   return (await response.json()) as ActivePlanApi;
@@ -231,7 +235,7 @@ export async function fetchPlanDetail(planId: string): Promise<ActivePlanApi> {
 
 export async function adaptPlan(
   planId: string,
-  adaptationType: PlanAdaptationType
+  adaptationType: PlanAdaptationType,
 ): Promise<{ jobId?: string }> {
   const response = await apiFetch('/api/plans/adapt', {
     method: 'POST',
@@ -243,7 +247,7 @@ export async function adaptPlan(
     throw new ApiError(
       errorMessage(body, `Failed to adapt plan (${response.status})`),
       response.status,
-      body
+      body,
     );
   }
   const result = (await response.json()) as { jobId?: string };
@@ -252,7 +256,7 @@ export async function adaptPlan(
 }
 
 export async function abandonPlan(
-  planId: string
+  planId: string,
 ): Promise<{ success?: boolean; deletedWorkouts?: number }> {
   const response = await apiFetch(`/api/plans/${encodeURIComponent(planId)}/abandon`, {
     method: 'POST',
@@ -262,7 +266,7 @@ export async function abandonPlan(
     throw new ApiError(
       errorMessage(body, `Failed to abandon plan (${response.status})`),
       response.status,
-      body
+      body,
     );
   }
   return (await response.json()) as { success?: boolean; deletedWorkouts?: number };
@@ -270,7 +274,7 @@ export async function abandonPlan(
 
 export async function replanStructure(
   planId: string,
-  blocks: ReplanBlockInput[]
+  blocks: ReplanBlockInput[],
 ): Promise<unknown> {
   const response = await apiFetch(`/api/plans/${encodeURIComponent(planId)}/replan-structure`, {
     method: 'POST',
@@ -282,7 +286,7 @@ export async function replanStructure(
     throw new ApiError(
       errorMessage(body, `Failed to replan structure (${response.status})`),
       response.status,
-      body
+      body,
     );
   }
   return response.json();
@@ -299,7 +303,7 @@ export async function patchPlanWeek(weekId: string, input: WeekTuneInput): Promi
     throw new ApiError(
       errorMessage(body, `Failed to update week (${response.status})`),
       response.status,
-      body
+      body,
     );
   }
   return response.json();
@@ -316,7 +320,7 @@ export async function createPlanBlock(planId: string, input: BlockCreateInput): 
     throw new ApiError(
       errorMessage(body, `Failed to add block (${response.status})`),
       response.status,
-      body
+      body,
     );
   }
   return response.json();
@@ -325,7 +329,7 @@ export async function createPlanBlock(planId: string, input: BlockCreateInput): 
 export async function patchPlanBlock(
   planId: string,
   blockId: string,
-  input: BlockPatchInput
+  input: BlockPatchInput,
 ): Promise<unknown> {
   const response = await apiFetch(
     `/api/plans/${encodeURIComponent(planId)}/blocks/${encodeURIComponent(blockId)}`,
@@ -333,14 +337,14 @@ export async function patchPlanBlock(
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(input),
-    }
+    },
   );
   if (!response.ok) {
     const body = await readErrorBody(response);
     throw new ApiError(
       errorMessage(body, `Failed to update block (${response.status})`),
       response.status,
-      body
+      body,
     );
   }
   return response.json();
@@ -349,21 +353,21 @@ export async function patchPlanBlock(
 export async function deletePlanBlock(planId: string, blockId: string): Promise<void> {
   const response = await apiFetch(
     `/api/plans/${encodeURIComponent(planId)}/blocks/${encodeURIComponent(blockId)}`,
-    { method: 'DELETE' }
+    { method: 'DELETE' },
   );
   if (!response.ok) {
     const body = await readErrorBody(response);
     throw new ApiError(
       errorMessage(body, `Failed to delete block (${response.status})`),
       response.status,
-      body
+      body,
     );
   }
 }
 
 export async function reorderPlanBlocks(
   planId: string,
-  blocks: { id: string; order: number }[]
+  blocks: { id: string; order: number }[],
 ): Promise<void> {
   const response = await apiFetch(`/api/plans/${encodeURIComponent(planId)}/blocks/reorder`, {
     method: 'PUT',
@@ -375,7 +379,7 @@ export async function reorderPlanBlocks(
     throw new ApiError(
       errorMessage(body, `Failed to reorder blocks (${response.status})`),
       response.status,
-      body
+      body,
     );
   }
 }
@@ -383,7 +387,7 @@ export async function reorderPlanBlocks(
 export async function generateAiWeek(
   blockId: string,
   weekId: string,
-  instructions?: string
+  instructions?: string,
 ): Promise<{ jobId?: string }> {
   const response = await apiFetch('/api/plans/generate-ai-week', {
     method: 'POST',
@@ -399,7 +403,7 @@ export async function generateAiWeek(
     throw new ApiError(
       errorMessage(body, `Failed to generate week (${response.status})`),
       response.status,
-      body
+      body,
     );
   }
   const result = (await response.json()) as { jobId?: string };
@@ -418,7 +422,7 @@ export async function generateTrainingBlock(blockId: string): Promise<{ jobId?: 
     throw new ApiError(
       errorMessage(body, `Failed to generate block (${response.status})`),
       response.status,
-      body
+      body,
     );
   }
   const result = (await response.json()) as { jobId?: string };
@@ -427,18 +431,18 @@ export async function generateTrainingBlock(blockId: string): Promise<{ jobId?: 
 }
 
 export async function generateWorkoutStructure(
-  plannedWorkoutId: string
+  plannedWorkoutId: string,
 ): Promise<{ jobId?: string }> {
   const response = await apiFetch(
     `/api/workouts/planned/${encodeURIComponent(plannedWorkoutId)}/generate-structure`,
-    { method: 'POST' }
+    { method: 'POST' },
   );
   if (!response.ok) {
     const body = await readErrorBody(response);
     throw new ApiError(
       errorMessage(body, `Failed to generate structure (${response.status})`),
       response.status,
-      body
+      body,
     );
   }
   const result = (await response.json()) as { jobId?: string; taskId?: string };
@@ -450,7 +454,7 @@ export async function generateWorkoutStructure(
 /** Client-side batch (web PlanDashboard pattern) — generate structure for many sessions. */
 export async function generateWeekStructures(
   plannedWorkoutIds: string[],
-  onProgress?: (done: number, total: number) => void
+  onProgress?: (done: number, total: number) => void,
 ): Promise<{ succeeded: number; failed: number }> {
   const ids = plannedWorkoutIds.filter(Boolean);
   const total = ids.length;
@@ -487,7 +491,7 @@ export async function generateWeekStructures(
     throw new Error(
       `Generated structure for ${succeeded} of ${total} sessions${
         firstError?.message ? ` — ${firstError.message}` : ''
-      }`
+      }`,
     );
   }
   return { succeeded, failed };
@@ -532,7 +536,7 @@ export async function createPlannedWorkout(input: PlannedWorkoutWriteInput): Pro
     throw new ApiError(
       errorMessage(body, `Failed to create workout (${response.status})`),
       response.status,
-      body
+      body,
     );
   }
   return response.json();
@@ -541,7 +545,7 @@ export async function createPlannedWorkout(input: PlannedWorkoutWriteInput): Pro
 /** Patch planned workout fields (content edits re-tag managedBy to USER on server). */
 export async function patchPlannedWorkout(
   plannedWorkoutId: string,
-  input: PlannedWorkoutPatchInput
+  input: PlannedWorkoutPatchInput,
 ): Promise<unknown> {
   const response = await apiFetch(`/api/planned-workouts/${encodeURIComponent(plannedWorkoutId)}`, {
     method: 'PATCH',
@@ -553,7 +557,7 @@ export async function patchPlannedWorkout(
     throw new ApiError(
       errorMessage(body, `Failed to update workout (${response.status})`),
       response.status,
-      body
+      body,
     );
   }
   return response.json();
@@ -569,7 +573,7 @@ export async function deletePlannedWorkout(plannedWorkoutId: string): Promise<vo
     throw new ApiError(
       errorMessage(body, `Failed to delete workout (${response.status})`),
       response.status,
-      body
+      body,
     );
   }
 }
@@ -580,7 +584,7 @@ export async function movePlannedWorkout(plannedWorkoutId: string, date: string)
 }
 
 export async function fetchPlanJobStatus(
-  jobId: string
+  jobId: string,
 ): Promise<{ status?: string; completed?: boolean }> {
   const response = await apiFetch(`/api/plans/status?jobId=${encodeURIComponent(jobId)}`);
   if (!response.ok) {
@@ -588,7 +592,7 @@ export async function fetchPlanJobStatus(
     throw new ApiError(
       errorMessage(body, `Failed to check plan job (${response.status})`),
       response.status,
-      body
+      body,
     );
   }
   return (await response.json()) as { status?: string; completed?: boolean };
@@ -606,7 +610,7 @@ export async function waitForPlanJob(jobId: string, options: JobPollOptions = {}
           ? 'Plan job timed out — try again shortly'
           : 'Plan job failed — try again',
         500,
-        status
+        status,
       );
     }
     return { done: true, value: undefined };

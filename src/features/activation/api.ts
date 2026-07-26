@@ -27,7 +27,7 @@ export async function fetchActivationStatus(identity?: string | null): Promise<A
     throw new ApiError(
       `Failed to load onboarding status (${response.status})`,
       response.status,
-      body
+      body,
     );
   }
 
@@ -51,13 +51,11 @@ export async function submitConsent(input: {
   if (!response.ok) {
     const body = await readErrorBody(response);
     const message =
-      typeof body === 'object' &&
-      body !== null &&
-      ('message' in body || 'statusMessage' in body)
+      typeof body === 'object' && body !== null && ('message' in body || 'statusMessage' in body)
         ? String(
             (body as { message?: string; statusMessage?: string }).message ||
               (body as { statusMessage?: string }).statusMessage ||
-              `Consent failed (${response.status})`
+              `Consent failed (${response.status})`,
           )
         : `Consent failed (${response.status})`;
     throw new ApiError(message, response.status, body);
@@ -72,11 +70,7 @@ export async function markFirstInsightViewed(): Promise<void> {
   });
   if (!response.ok && response.status !== 404) {
     const body = await readErrorBody(response);
-    throw new ApiError(
-      `Failed to mark first insight (${response.status})`,
-      response.status,
-      body
-    );
+    throw new ApiError(`Failed to mark first insight (${response.status})`, response.status, body);
   }
 }
 

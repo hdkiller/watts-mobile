@@ -66,7 +66,7 @@ export async function generateTodayRecommendation(userFeedback?: string): Promis
       throw new ApiError(
         err.message || 'Quota exceeded for activity recommendation.',
         429,
-        err.body
+        err.body,
       );
     }
     throw err;

@@ -34,10 +34,10 @@ describe('invalidateQueriesForPush', () => {
 
   it('invalidates activity detail on WORKOUT_ANALYSIS_READY', async () => {
     const invalidateQueries = vi.fn(async () => undefined);
-    await invalidateQueriesForPush(
-      { invalidateQueries } as never,
-      { type: 'WORKOUT_ANALYSIS_READY', path: '/activities/w99' }
-    );
+    await invalidateQueriesForPush({ invalidateQueries } as never, {
+      type: 'WORKOUT_ANALYSIS_READY',
+      path: '/activities/w99',
+    });
     expect(invalidateQueries).toHaveBeenCalledWith({
       queryKey: ['activity', 'detail', 'w99'],
     });

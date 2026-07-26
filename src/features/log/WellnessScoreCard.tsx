@@ -33,7 +33,10 @@ export function WellnessScoreCard({
       <View className="flex-row items-baseline justify-between">
         <Text className="text-sm font-semibold text-text-primary">{label}</Text>
         <View className="flex-row items-baseline gap-1">
-          <Text className="text-lg font-bold" style={{ color: isAnswered ? tintColor : theme.textMuted }}>
+          <Text
+            className="text-lg font-bold"
+            style={{ color: isAnswered ? tintColor : theme.textMuted }}
+          >
             {isAnswered ? current : '—'}
           </Text>
           <Text className="text-xs text-text-muted">/ 10</Text>
@@ -56,11 +59,7 @@ export function WellnessScoreCard({
               accessibilityState={{ selected: active }}
               className="h-9 flex-1 items-center justify-center rounded-lg active:opacity-80"
               style={{
-                backgroundColor: active
-                  ? tintColor
-                  : isFilled
-                  ? `${tintColor}22`
-                  : theme.border,
+                backgroundColor: active ? tintColor : isFilled ? `${tintColor}22` : theme.border,
                 borderWidth: active ? 1.5 : 0,
                 borderColor: active ? tintColor : 'transparent',
               }}
@@ -69,11 +68,7 @@ export function WellnessScoreCard({
               <Text
                 className="text-xs font-bold"
                 style={{
-                  color: active
-                    ? '#000000'
-                    : isFilled
-                    ? tintColor
-                    : theme.textMuted,
+                  color: active ? '#000000' : isFilled ? tintColor : theme.textMuted,
                 }}
               >
                 {score}

@@ -7,11 +7,20 @@ export const SUBSCRIPTION_SUMMARY_KEY = ['subscription', 'summary'] as const;
 export const SUBSCRIPTION_OFFERINGS_KEY = ['subscription', 'offerings'] as const;
 
 export function useSubscriptionSummary() {
-  return useQuery({ queryKey: SUBSCRIPTION_SUMMARY_KEY, queryFn: fetchSubscriptionSummary, staleTime: 15_000 });
+  return useQuery({
+    queryKey: SUBSCRIPTION_SUMMARY_KEY,
+    queryFn: fetchSubscriptionSummary,
+    staleTime: 15_000,
+  });
 }
 
 export function useStoreOfferings(enabled: boolean) {
-  return useQuery({ queryKey: SUBSCRIPTION_OFFERINGS_KEY, queryFn: fetchStorePackages, enabled, staleTime: 60_000 });
+  return useQuery({
+    queryKey: SUBSCRIPTION_OFFERINGS_KEY,
+    queryFn: fetchStorePackages,
+    enabled,
+    staleTime: 60_000,
+  });
 }
 
 export function useReconcileSubscription() {

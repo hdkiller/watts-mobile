@@ -1,12 +1,7 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack, router, useLocalSearchParams, type Href } from 'expo-router';
 import { useMemo, useState, type RefObject } from 'react';
-import {
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View } from 'react-native';
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
@@ -18,7 +13,8 @@ import {
   formHasInvalidNumbers,
   showThresholdPace,
   sportSettingsWebPath,
-  toSportThresholdPatch } from '@/src/features/sports/mapSports';
+  toSportThresholdPatch,
+} from '@/src/features/sports/mapSports';
 import type { SportProfile, SportThresholdFormValues } from '@/src/features/sports/types';
 import { usePatchSportThresholds, useSportProfilesQuery } from '@/src/features/sports/useSports';
 import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
@@ -36,7 +32,7 @@ export default function SportProfileEditorScreen() {
 
   const profile = useMemo(
     () => profiles?.find((item) => item.id === profileId) ?? null,
-    [profiles, profileId]
+    [profiles, profileId],
   );
 
   const title = profile ? displaySportName(profile) : 'Sport profile';
@@ -57,7 +53,9 @@ export default function SportProfileEditorScreen() {
         </View>
       ) : !profile ? (
         <View className="flex-1 bg-surface px-6 pt-6">
-          <Text className="text-base text-text-muted">This sport profile is no longer available.</Text>
+          <Text className="text-base text-text-muted">
+            This sport profile is no longer available.
+          </Text>
           <Pressable
             className="mt-4"
             hitSlop={8}
@@ -98,7 +96,7 @@ function SportProfileForm({
 
   const patch = <K extends keyof SportThresholdFormValues>(
     key: K,
-    value: SportThresholdFormValues[K]
+    value: SportThresholdFormValues[K],
   ) => {
     setFormError(null);
     setSuccessMessage(null);
@@ -144,9 +142,7 @@ function SportProfileForm({
         keyboardShouldPersistTaps="handled"
       >
         <Text className="text-2xl font-semibold text-text-primary">{title}</Text>
-        <Text className="mt-2 text-sm text-text-muted">
-          Edit thresholds for this sport.
-        </Text>
+        <Text className="mt-2 text-sm text-text-muted">Edit thresholds for this sport.</Text>
 
         <Field
           label="FTP (W)"
@@ -241,9 +237,7 @@ function Field({
         placeholder={placeholder}
         placeholderTextColor={theme.textMuted}
       />
-      {helperText ? (
-        <Text className="mt-1 text-xs text-text-muted">{helperText}</Text>
-      ) : null}
+      {helperText ? <Text className="mt-1 text-xs text-text-muted">{helperText}</Text> : null}
     </View>
   );
 }

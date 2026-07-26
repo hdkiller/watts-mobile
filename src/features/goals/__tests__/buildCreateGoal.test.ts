@@ -24,7 +24,9 @@ describe('buildCreateGoal', () => {
   it('validates title and date', () => {
     expect(validateGoalCreateForm(base({ title: 'x' }))).toMatch(/title/i);
     expect(validateGoalCreateForm(base({ targetDate: '15-10-2026' }))).toMatch(/YYYY-MM-DD/);
-    expect(validateGoalCreateForm(base({ targetDate: '2026-02-31' }))).toMatch(/valid target date/i);
+    expect(validateGoalCreateForm(base({ targetDate: '2026-02-31' }))).toMatch(
+      /valid target date/i,
+    );
     expect(validateGoalCreateForm(base())).toBeNull();
   });
 

@@ -5,7 +5,7 @@ import { LOOKBACK_DAYS } from './types';
 import { lookbackStartDate } from './mapToWellnessPayload';
 
 export async function fetchRemoteWorkoutsForMatch(
-  lookbackDays: number = LOOKBACK_DAYS
+  lookbackDays: number = LOOKBACK_DAYS,
 ): Promise<RemoteWorkoutMatchCandidate[]> {
   const start = lookbackStartDate(lookbackDays);
   const end = new Date();
