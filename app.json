@@ -107,6 +107,12 @@
         }
       ],
       [
+        "expo-camera",
+        {
+          "cameraPermission": "Coach Watts uses the camera to scan food package barcodes for nutrition logging."
+        }
+      ],
+      [
         "expo-image-picker",
         {
           "photosPermission": "Coach Watts accesses your photo library so you can attach meal photos in Coach chat for nutrition logging.",

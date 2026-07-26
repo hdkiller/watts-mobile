@@ -548,3 +548,85 @@ export async function resetNutritionHydration(): Promise<unknown> {
   }
   return response.json();
 }
+
+export interface FoodItemResult {
+  name: string;
+  brand?: string;
+  barcode?: string;
+  serving_size_g?: number;
+  serving_description?: string;
+  nutrients_per_100g: {
+    calories_kcal: number;
+    protein_g: number;
+    carbs_g: number;
+    fat_g: number;
+    fiber_g?: number;
+    sugar_g?: number;
+    sodium_mg?: number;
+  };
+}
+
+/** Search global food database by query string. Bearer nutrition:read. */
+export async function searchFoodDatabase(query: string, limit = 20): Promise<FoodItemResult[]> {
+  const trimmed = query.trim();
+  if (!trimmed) return [];
+  const params = new URLSearchParams({ q: trimmed, limit: String(limit) });
+  const response = await apiFetch(`/api/nutrition/search?${params.toString()}`);
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, `Failed to search food database (${response.status})`)
+    );
+  }
+  const json = await response.json();
+  if (Array.isArray(json)) return json as FoodItemResult[];
+  if (json && typeof json === 'object') {
+    const obj = json as Record<string, unknown>;
+    if (Array.isArray(obj.items)) return obj.items as FoodItemResult[];
+    if (Array.isArray(obj.results)) return obj.results as FoodItemResult[];
+    if (Array.isArray(obj.data)) return obj.data as FoodItemResult[];
+  }
+  return [];
+}
+
+/** Lookup a single food item by barcode string. Bearer nutrition:read. */
+export async function lookupFoodBarcode(barcode: string): Promise<FoodItemResult | null> {
+  const trimmed = barcode.trim();
+  if (!trimmed) return null;
+  const response = await apiFetch(`/api/nutrition/barcode/${encodeURIComponent(trimmed)}`);
+  if (response.status === 404) return null;
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, `Failed to lookup food barcode (${response.status})`)
+    );
+  }
+  const json = await response.json();
+  if (!json) return null;
+  if (typeof json === 'object') {
+    const obj = json as Record<string, unknown>;
+    if (obj.item && typeof obj.item === 'object') return obj.item as FoodItemResult;
+    if (obj.foodItem && typeof obj.foodItem === 'object') return obj.foodItem as FoodItemResult;
+    if (obj.result && typeof obj.result === 'object') return obj.result as FoodItemResult;
+  }
+  return json as FoodItemResult;
+}
+
+/** Lookup a single food item by database key/id. Bearer nutrition:read. */
+export async function lookupFoodItem(key: string): Promise<FoodItemResult | null> {
+  const trimmed = key.trim();
+  if (!trimmed) return null;
+  const response = await apiFetch(`/api/nutrition/item/${encodeURIComponent(trimmed)}`);
+  if (response.status === 404) return null;
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, `Failed to lookup food item (${response.status})`)
+    );
+  }
+  const json = await response.json();
+  if (!json) return null;
+  if (typeof json === 'object') {
+    const obj = json as Record<string, unknown>;
+    if (obj.item && typeof obj.item === 'object') return obj.item as FoodItemResult;
+  }
+  return json as FoodItemResult;
+}
+
