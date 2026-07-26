@@ -29,6 +29,8 @@ export type NutritionStrategyStanding = {
 export type EnergyWavePoint = {
   timestampMs: number;
   level: number;
+  /** Whether this point's intake was logged, assumed from the plan, or projected forward. */
+  intakeProvenance?: 'logged' | 'assumed' | 'projected';
 };
 
 export type ActiveFuelFeedEntry = {
@@ -192,7 +194,15 @@ export function mapEnergyHorizonPoints(
       (typeof r.time === 'string' ? Date.parse(r.time) : null) ??
       null;
     if (level == null || ts == null || !Number.isFinite(ts)) continue;
-    points.push({ timestampMs: ts, level });
+    const provenance = r.intakeProvenance;
+    points.push({
+      timestampMs: ts,
+      level,
+      intakeProvenance:
+        provenance === 'logged' || provenance === 'assumed' || provenance === 'projected'
+          ? provenance
+          : undefined,
+    });
   }
   points.sort((a, b) => a.timestampMs - b.timestampMs);
   if (points.length <= maxPoints) return points;

@@ -22,6 +22,11 @@ export function EnergyHorizonChart({ points, height = 96 }: Props) {
 
   if (!isHorizonLegible(points)) return null;
 
+  // Most athletes log little or no food, so the curve is usually inferred from the plan rather
+  // than measured. A solid line would present that inference as a record of what they ate.
+  const measured = points.filter((p) => p.intakeProvenance === 'logged').length;
+  const isMostlyAssumed = points.length > 0 && measured / points.length < 0.3;
+
   const levels = points.map((p) => p.level);
   const min = Math.min(...levels);
   const max = Math.max(...levels);
@@ -46,7 +51,9 @@ export function EnergyHorizonChart({ points, height = 96 }: Props) {
       className="w-full"
       onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
       accessibilityRole="image"
-      accessibilityLabel={`Energy horizon, glycogen from ${Math.round(min)} to ${Math.round(max)}`}
+      accessibilityLabel={`Energy horizon, glycogen from ${Math.round(min)} to ${Math.round(max)}${
+        isMostlyAssumed ? ', assumed from your plan rather than logged food' : ''
+      }`}
     >
       <View style={{ height }}>
         {width > 0 ? (
@@ -67,6 +74,8 @@ export function EnergyHorizonChart({ points, height = 96 }: Props) {
               fill="none"
               strokeLinecap="round"
               strokeLinejoin="round"
+              strokeDasharray={isMostlyAssumed ? '4 3' : undefined}
+              opacity={isMostlyAssumed ? 0.75 : 1}
             />
           </Svg>
         ) : null}
@@ -78,6 +87,9 @@ export function EnergyHorizonChart({ points, height = 96 }: Props) {
       </View>
       <View className="mt-0.5 flex-row items-center justify-between">
         <Text className="text-xs text-text-muted">Low {Math.round(min)}</Text>
+        {isMostlyAssumed ? (
+          <Text className="text-xs text-text-muted">Assumed from plan</Text>
+        ) : null}
         <Text className="text-xs text-text-muted">High {Math.round(max)}</Text>
       </View>
     </View>
