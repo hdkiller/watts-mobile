@@ -1,17 +1,10 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useState } from 'react';
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Modal, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/src/components/Button';
+import { useKeyboardSheetInset } from '@/src/hooks/useKeyboardSheetInset';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
 export function RefineRecommendationSheet({
@@ -26,6 +19,7 @@ export function RefineRecommendationSheet({
   onSubmit: (feedback: string) => void;
 }) {
   const theme = useThemeColors();
+  const keyboardInset = useKeyboardSheetInset();
   const [feedback, setFeedback] = useState('');
 
   const [prevVisible, setPrevVisible] = useState(visible);
@@ -46,11 +40,9 @@ export function RefineRecommendationSheet({
     >
       <SafeAreaView className="flex-1 bg-surface" edges={['top', 'bottom']}>
         {/* autoFocus opens the keyboard immediately, which would cover the pinned footer.
-            KeyboardAvoidingView takes a plain style, never className (NativeWind remapProps). */}
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={{ flex: 1 }}
-        >
+            Both KeyboardAvoidingView and useKeyboardOverlap under-measure inside a pageSheet
+            (window vs screen coords), so use src/hooks/useKeyboardSheetInset.ts. */}
+        <View className="flex-1" style={{ paddingBottom: keyboardInset }}>
           <View className="flex-row items-start justify-between border-b border-border px-5 py-4">
             <View className="min-w-0 flex-1 pr-3">
               <Text className="text-xl font-semibold text-text-primary">Refine or Refresh</Text>
@@ -91,7 +83,7 @@ export function RefineRecommendationSheet({
             />
             <Button variant="secondary" label="Cancel" onPress={onClose} disabled={submitting} />
           </View>
-        </KeyboardAvoidingView>
+        </View>
       </SafeAreaView>
     </Modal>
   );

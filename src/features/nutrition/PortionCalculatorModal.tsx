@@ -13,6 +13,14 @@ import {
 
 import { Button } from '@/src/components/Button';
 import type { FoodItemResult } from './api';
+import {
+  defaultPortionGrams,
+  foodItemKey,
+  parseGrams,
+  portionPresets,
+  scalePortion,
+  servingDescription,
+} from './portionMath';
 import type { NutritionQuickLogForm } from './types';
 import { hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { useThemeColors } from '@/src/theme/useThemeColors';
@@ -21,6 +29,8 @@ export interface PortionCalculatorModalProps {
   visible: boolean;
   item: FoodItemResult | null;
   onClose: () => void;
+  /** Fires once the modal has finished dismissing. iOS only (RN Modal.onDismiss). */
+  onDismissed?: () => void;
   onApplyPortion: (formValues: Partial<NutritionQuickLogForm>) => void;
 }
 
@@ -28,36 +38,30 @@ export function PortionCalculatorModal({
   visible,
   item,
   onClose,
+  onDismissed,
   onApplyPortion,
 }: PortionCalculatorModalProps) {
   const theme = useThemeColors();
 
-  // Gram weight state defaulting to serving_size_g if available, otherwise 100
-  const defaultGrams = item?.serving_size_g && item.serving_size_g > 0 ? item.serving_size_g : 100;
-  const [gramsInput, setGramsInput] = useState<string>(String(defaultGrams));
+  // This modal stays mounted while `visible` toggles, so gram state has to be re-seeded
+  // whenever the user picks a different food — otherwise the first item's weight (and the
+  // initial 100 g default) sticks for every later item. Render-time sync, not an effect.
+  const itemKey = foodItemKey(item);
+  const [gramsInput, setGramsInput] = useState<string>(() => String(defaultPortionGrams(item)));
+  const [prevItemKey, setPrevItemKey] = useState(itemKey);
+  if (itemKey !== prevItemKey) {
+    setPrevItemKey(itemKey);
+    setGramsInput(String(defaultPortionGrams(item)));
+  }
 
-  const grams = useMemo(() => {
-    const parsed = parseFloat(gramsInput);
-    return isNaN(parsed) || parsed <= 0 ? 0 : parsed;
-  }, [gramsInput]);
+  const grams = useMemo(() => parseGrams(gramsInput), [gramsInput]);
 
-  const calculated = useMemo(() => {
-    if (!item || grams <= 0) {
-      return { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 };
-    }
-    const factor = grams / 100;
-    const per100 = item.nutrients_per_100g;
+  const calculated = useMemo(
+    () => scalePortion(item?.nutrients_per_100g, grams),
+    [item, grams]
+  );
 
-    return {
-      calories: Math.round(per100.calories_kcal * factor),
-      protein: Math.round(per100.protein_g * factor * 10) / 10,
-      carbs: Math.round(per100.carbs_g * factor * 10) / 10,
-      fat: Math.round(per100.fat_g * factor * 10) / 10,
-      fiber: per100.fiber_g ? Math.round(per100.fiber_g * factor * 10) / 10 : 0,
-    };
-  }, [item, grams]);
-
-  if (!visible || !item) return null;
+  if (!item) return null;
 
   const handlePresetGrams = (presetGrams: number) => {
     hapticLight();
@@ -80,10 +84,16 @@ export function PortionCalculatorModal({
     onClose();
   };
 
-  const servingDesc = item.serving_description || (item.serving_size_g ? `${item.serving_size_g}g serving` : '100g serving');
+  const servingDesc = servingDescription(item);
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}
+      onDismiss={onDismissed}
+    >
       {/* NativeWind registers KeyboardAvoidingView with remapProps, not cssInterop, so
           `className` never resolves into a real style here — keep layout as a plain style. */}
       <KeyboardAvoidingView
@@ -143,8 +153,7 @@ export function PortionCalculatorModal({
 
               {/* Quick Gram Presets */}
               <View className="mt-3 flex-row flex-wrap gap-2">
-                {[50, 100, 150, 200, item.serving_size_g].map((preset) => {
-                  if (!preset || preset <= 0) return null;
+                {portionPresets(item).map((preset) => {
                   const isSelected = grams === preset;
                   return (
                     <Pressable

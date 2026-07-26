@@ -1,5 +1,5 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -190,6 +190,8 @@ type LoggedMealSnapshot = {
   carbs: string;
   fat: string;
 };
+
+type NutritionModalStage = 'sheet' | 'scanner' | 'portion' | 'transition';
 
 const NUTRIENT_ICONS = {
   Energy: { sf: 'flame.fill', md: 'local_fire_department', fallback: 'E' },
@@ -530,7 +532,14 @@ export function LogMealSheet({
   const [searchResults, setSearchResults] = useState<FoodItemResult[]>([]);
   const [isSearchingFood, setIsSearchingFood] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
-  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
+  /** Monotonic id so only the newest food search may write results. */
+  const searchRequestRef = useRef(0);
+  /**
+   * iOS will drop a Modal presentation while another Modal is still presented or
+   * dismissing. Keep exactly one native modal visible and advance from onDismiss.
+   */
+  const pendingModalStageRef = useRef<Exclude<NutritionModalStage, 'transition'> | null>(null);
+  const [modalStage, setModalStage] = useState<NutritionModalStage>('sheet');
   const [selectedSearchItem, setSelectedSearchItem] = useState<FoodItemResult | null>(null);
 
   const nutritionQuery = useTodayNutritionQuery(selectedDateYmd, {
@@ -551,6 +560,8 @@ export function LogMealSheet({
     const trimmed = searchQuery.trim();
     if (trimmed.length < 2) {
       const resetTimer = setTimeout(() => {
+        // Invalidate anything still in flight so it cannot repopulate the cleared list.
+        searchRequestRef.current += 1;
         setSearchResults([]);
         setIsSearchingFood(false);
         setSearchError(null);
@@ -558,20 +569,31 @@ export function LogMealSheet({
       return () => clearTimeout(resetTimer);
     }
 
+    let cancelled = false;
     const timer = setTimeout(async () => {
+      const requestId = ++searchRequestRef.current;
       setIsSearchingFood(true);
       setSearchError(null);
       try {
         const results = await searchFoodDatabase(trimmed);
+        // Responses can land out of order: a slow "chick" must not overwrite "chicken".
+        if (cancelled || requestId !== searchRequestRef.current) return;
         setSearchResults(results);
       } catch (err) {
+        if (cancelled || requestId !== searchRequestRef.current) return;
         setSearchError(err instanceof Error ? err.message : 'Failed to search food database');
       } finally {
-        setIsSearchingFood(false);
+        // Only the newest request may clear the spinner, or a stale one turns it off
+        // while a newer search is still running.
+        if (!cancelled && requestId === searchRequestRef.current) setIsSearchingFood(false);
       }
     }, 300);
 
-    return () => clearTimeout(timer);
+    return () => {
+      // Covers unmount and tab/query changes before the newer request has claimed an id.
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [composeTab, searchQuery]);
 
   const resetSheetState = () => {
@@ -581,7 +603,8 @@ export function LogMealSheet({
     setSearchResults([]);
     setIsSearchingFood(false);
     setSearchError(null);
-    setShowBarcodeScanner(false);
+    pendingModalStageRef.current = null;
+    setModalStage('sheet');
     setSelectedSearchItem(null);
     setSelectedDateYmd(localDateYmd());
     setForm(emptyQuickLogForm());
@@ -593,6 +616,37 @@ export function LogMealSheet({
     setEstimateItems([]);
     setLoggedMeal(null);
     setAnalyzingStep(0);
+  };
+
+  const transitionToModal = (next: Exclude<NutritionModalStage, 'transition'>) => {
+    if (Platform.OS === 'ios') {
+      pendingModalStageRef.current = next;
+      setModalStage('transition');
+      return;
+    }
+
+    if (next === 'sheet') setSelectedSearchItem(null);
+    setModalStage(next);
+  };
+
+  const completeModalTransition = () => {
+    const next = pendingModalStageRef.current;
+    pendingModalStageRef.current = null;
+    if (!next) return;
+
+    if (next === 'sheet') setSelectedSearchItem(null);
+    setModalStage(next);
+  };
+
+  const openBarcodeScanner = () => {
+    hapticLight();
+    transitionToModal('scanner');
+  };
+
+  const openPortionCalculator = (item: FoodItemResult) => {
+    hapticLight();
+    setSelectedSearchItem(item);
+    transitionToModal('portion');
   };
 
   const handleClose = () => {
@@ -1187,6 +1241,7 @@ export function LogMealSheet({
                   </Pressable>
 
                   <Pressable
+                    testID="log-meal-search-tab"
                     accessibilityRole="tab"
                     accessibilityState={{ selected: composeTab === 'search' }}
                     onPress={() => {
@@ -1250,12 +1305,10 @@ export function LogMealSheet({
                       </View>
 
                       <Pressable
+                        testID="log-meal-scan-barcode"
                         accessibilityRole="button"
                         accessibilityLabel="Scan barcode"
-                        onPress={() => {
-                          hapticLight();
-                          setShowBarcodeScanner(true);
-                        }}
+                        onPress={openBarcodeScanner}
                         className="flex-row items-center gap-1.5 rounded-xl border border-brand bg-tint-success px-3.5 py-2.5 active:opacity-80"
                       >
                         <AppSymbol sf="barcode.viewfinder" size={18} tintColor={theme.brand} fallback="📷" />
@@ -1291,7 +1344,7 @@ export function LogMealSheet({
                           label="Scan Product Barcode"
                           variant="secondary"
                           className="mt-4"
-                          onPress={() => setShowBarcodeScanner(true)}
+                          onPress={openBarcodeScanner}
                         />
                       </View>
                     ) : null}
@@ -1306,8 +1359,9 @@ export function LogMealSheet({
                       </View>
                     ) : null}
 
-                    {/* Search Results List */}
-                    {searchResults.length > 0 ? (
+                    {/* Search Results List — hidden while a new query is in flight so the
+                        previous query's cards don't sit under the spinner. */}
+                    {!isSearchingFood && searchResults.length > 0 ? (
                       <View>
                         <Text className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-muted">
                           Results ({searchResults.length})
@@ -1318,10 +1372,7 @@ export function LogMealSheet({
                             accessibilityRole="button"
                             accessibilityLabel={`Select ${item.name}`}
                             className="mb-2.5 rounded-xl border border-border bg-card p-3.5 active:opacity-80"
-                            onPress={() => {
-                              hapticLight();
-                              setSelectedSearchItem(item);
-                            }}
+                            onPress={() => openPortionCalculator(item)}
                           >
                             <View className="flex-row items-start justify-between">
                               <View className="flex-1 pr-2">
@@ -1469,37 +1520,26 @@ export function LogMealSheet({
   );
 
   if (presentation === 'screen') {
+    // Screen presentation is the photo-analysis flow only — it renders no mode tabs, so
+    // neither the scanner nor the portion calculator is reachable here.
     return (
-      <>
-        <SafeAreaView className="flex-1 bg-surface" edges={['top', 'bottom']}>
-          <View ref={screenContainerRef} className="flex-1 bg-surface px-6 pt-3">
-            {content}
-          </View>
-        </SafeAreaView>
-
-        <BarcodeScannerModal
-          visible={showBarcodeScanner}
-          onClose={() => setShowBarcodeScanner(false)}
-          onSelectFoodItem={(item) => setSelectedSearchItem(item)}
-        />
-
-        <PortionCalculatorModal
-          visible={Boolean(selectedSearchItem)}
-          item={selectedSearchItem}
-          onClose={() => setSelectedSearchItem(null)}
-          onApplyPortion={(formValues) => {
-            setForm((prev) => ({ ...prev, ...formValues }));
-            setShowMacros(true);
-            setComposeTab('quick');
-          }}
-        />
-      </>
+      <SafeAreaView className="flex-1 bg-surface" edges={['top', 'bottom']}>
+        <View ref={screenContainerRef} className="flex-1 bg-surface px-6 pt-3">
+          {content}
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
     <>
-      <Modal visible={visible} animationType="slide" transparent onRequestClose={handleClose}>
+      <Modal
+        visible={visible && modalStage === 'sheet'}
+        animationType="slide"
+        transparent
+        onRequestClose={handleClose}
+        onDismiss={completeModalTransition}
+      >
         {/* NativeWind registers KeyboardAvoidingView with remapProps, not cssInterop, so
             `className` never resolves into a real style here — keep layout as a plain style. */}
         <KeyboardAvoidingView
@@ -1522,15 +1562,20 @@ export function LogMealSheet({
       </Modal>
 
       <BarcodeScannerModal
-        visible={showBarcodeScanner}
-        onClose={() => setShowBarcodeScanner(false)}
-        onSelectFoodItem={(item) => setSelectedSearchItem(item)}
+        visible={visible && modalStage === 'scanner'}
+        onClose={() => transitionToModal('sheet')}
+        onSelectFoodItem={(item) => {
+          setSelectedSearchItem(item);
+          transitionToModal('portion');
+        }}
+        onDismissed={completeModalTransition}
       />
 
       <PortionCalculatorModal
-        visible={Boolean(selectedSearchItem)}
+        visible={visible && modalStage === 'portion' && Boolean(selectedSearchItem)}
         item={selectedSearchItem}
-        onClose={() => setSelectedSearchItem(null)}
+        onClose={() => transitionToModal('sheet')}
+        onDismissed={completeModalTransition}
         onApplyPortion={(formValues) => {
           setForm((prev) => ({ ...prev, ...formValues }));
           setShowMacros(true);
@@ -1540,4 +1585,3 @@ export function LogMealSheet({
     </>
   );
 }
-

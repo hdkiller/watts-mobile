@@ -27,6 +27,22 @@ appId: com.coachwatts.app
     timeout: 10000
 - assertVisible:
     id: log-meal-sheet
+- tapOn:
+    id: log-meal-search-tab
+- tapOn:
+    id: log-meal-scan-barcode
+- extendedWaitUntil:
+    visible:
+      id: barcode-scanner-modal
+    timeout: 10000
+- assertVisible:
+    id: barcode-scanner-modal
+- tapOn:
+    id: barcode-scanner-close
+- extendedWaitUntil:
+    visible:
+      id: log-meal-sheet
+    timeout: 10000
 # Header control uses a11y "Cancel meal logging" (plain "Cancel" is flaky when nested).
 - tapOn:
     text: "Cancel meal logging"

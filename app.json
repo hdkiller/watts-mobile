@@ -109,7 +109,9 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Coach Watts uses the camera to scan food package barcodes for nutrition logging."
+          "cameraPermission": "Coach Watts uses the camera to scan food package barcodes for nutrition logging.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
         }
       ],
       [

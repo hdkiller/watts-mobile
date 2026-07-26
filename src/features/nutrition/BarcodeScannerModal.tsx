@@ -32,7 +32,13 @@ const useCameraPermissionsHook =
 export interface BarcodeScannerModalProps {
   visible: boolean;
   onClose: () => void;
+  /**
+   * Reports a scanned item. The scanner does not close itself — the parent decides when,
+   * so it can wait for `onDismissed` before presenting another modal.
+   */
   onSelectFoodItem: (item: FoodItemResult) => void;
+  /** Fires once the modal has finished dismissing. iOS only (RN Modal.onDismiss). */
+  onDismissed?: () => void;
 }
 
 function NativeScannerContent({
@@ -66,8 +72,9 @@ function NativeScannerContent({
       const item = await lookupFoodBarcode(rawBarcode);
       if (item) {
         hapticSuccess();
+        // The parent closes the scanner and sequences the next modal — closing here would
+        // present the portion calculator while this one is still dismissing.
         onSelectFoodItem(item);
-        onClose();
       } else {
         hapticError();
         setNotFoundBarcode(rawBarcode);
@@ -93,7 +100,7 @@ function NativeScannerContent({
   if (!CameraView) return null;
 
   return (
-    <View className="flex-1 bg-black">
+    <View testID="barcode-scanner-modal" className="flex-1 bg-black">
       {!permission?.granted ? (
         <View className="flex-1 items-center justify-center px-6 bg-surface">
           <View className="h-16 w-16 items-center justify-center rounded-full border border-border bg-card mb-4">
@@ -114,6 +121,7 @@ function NativeScannerContent({
             <Button
               label="Cancel"
               variant="secondary"
+              testID="barcode-scanner-close"
               onPress={onClose}
             />
           </View>
@@ -146,6 +154,7 @@ function NativeScannerContent({
               </Text>
             </View>
             <Pressable
+              testID="barcode-scanner-close"
               accessibilityRole="button"
               accessibilityLabel="Close scanner"
               onPress={onClose}
@@ -224,22 +233,28 @@ export function BarcodeScannerModal({
   visible,
   onClose,
   onSelectFoodItem,
+  onDismissed,
 }: BarcodeScannerModalProps) {
   const theme = useThemeColors();
 
-  if (!visible) return null;
-
   const hasNativeModule = Boolean(ExpoCameraModule?.CameraView);
 
+  // Deliberately not `if (!visible) return null`: RN keeps the Modal mounted through its
+  // dismissal animation so onDismiss can fire, and unmounting here would cut that short.
+  // The camera itself is gated on `visible` below so it still tears down on close.
   return (
     <Modal
       visible={visible}
       animationType="slide"
       presentationStyle="fullScreen"
       onRequestClose={onClose}
+      onDismiss={onDismissed}
     >
       {!hasNativeModule ? (
-        <View className="flex-1 items-center justify-center px-6 bg-surface">
+        <View
+          testID="barcode-scanner-modal"
+          className="flex-1 items-center justify-center px-6 bg-surface"
+        >
           <View className="h-16 w-16 items-center justify-center rounded-full border border-border bg-card mb-4">
             <AppSymbol sf="camera.fill" size={28} tintColor={theme.brand} fallback="📷" />
           </View>
@@ -253,13 +268,14 @@ export function BarcodeScannerModal({
           <View className="mt-8 w-full max-w-xs">
             <Button
               label="Dismiss & Search Manually"
+              testID="barcode-scanner-close"
               onPress={onClose}
             />
           </View>
         </View>
-      ) : (
+      ) : visible ? (
         <NativeScannerContent onClose={onClose} onSelectFoodItem={onSelectFoodItem} />
-      )}
+      ) : null}
     </Modal>
   );
 }

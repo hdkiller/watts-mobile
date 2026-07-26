@@ -91,6 +91,7 @@ Keep this table honest when you add or remove IDs.
 | `wellness-checkin` | Log wellness banner CTA | check-in open / save |
 | `wellness-checkin-sheet` / `wellness-checkin-save` / `wellness-checkin-saved` | Wellness sheet | check-in flows |
 | `log-meal` / `log-meal-sheet` | Meal CTA + sheet | `flow-log-meal-open` |
+| `log-meal-search-tab` / `log-meal-scan-barcode` / `barcode-scanner-modal` / `barcode-scanner-close` | Meal search → barcode scanner open/cancel path | `flow-log-meal-open` |
 | `coach-screen` | Coach tab | shell, compose, deeplink |
 | `coach-composer` / `coach-send` | Chat composer | `flow-coach-compose` |
 | `more-screen` | More tab | shell, more hubs |
@@ -389,7 +390,7 @@ OpenSpec: `openspec/changes/e2e-deeplink-login/`.
 | `maestro/scenarios/shell-tabs.yaml` | Today → Log → Coach → More | On | Scenario |
 | `maestro/scenarios/today-recommendation.yaml` | Recommendation or readiness panel | On | Scenario |
 | `maestro/scenarios/log-checkin-open.yaml` | Wellness check-in sheet open | On | Scenario |
-| `maestro/scenarios/log-meal-open.yaml` | Meal sheet open (nutrition on) | On | Scenario |
+| `maestro/scenarios/log-meal-open.yaml` | Meal sheet → food search → barcode scanner open/cancel (nutrition on) | On | Scenario |
 | `maestro/scenarios/coach-compose.yaml` | Coach composer + send | On | Scenario |
 | `maestro/scenarios/more-hubs.yaml` | More → profile / Settings → Health Sync | On | Scenario |
 | `maestro/scenarios/today-invite.yaml` | Today name → Athlete → Invite friends | On | Scenario |
@@ -408,6 +409,7 @@ These stay manual or store-sandbox. Unauth smoke already proves login chrome; do
 | System-browser PKCE | Sign in on a non-e2e build against `:3099` or hosted | Real ASWebAuthenticationSession / Chrome Custom Tabs |
 | HealthKit / Health Connect | Settings → Health Sync → grant / deny | OS permission sheet; simulator Health data optional |
 | Store IAP (RevenueCat) | Sandbox Apple / Play license testers | OpenSpec `store-subscriptions-revenuecat` task 7.3; unit-test adapters |
+| Barcode camera permission + real product scan | Fresh install/device → Log Meal → Search Food → Scan | Maestro covers scanner open/cancel; verify OS permission and barcode recognition manually |
 | Push permission denial | Fresh install → deny notifications | Inbox still reachable from More |
 | Full activation wizard | Incomplete-activation athlete (not e2e happy-path) | consent → goal → plan → insight → connect; add Maestro after activation `testID`s |
 | Airplane / offline check-in queue | Toggle airplane mid-save | Manual until offline queue hardening ships |

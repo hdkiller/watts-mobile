@@ -1,18 +1,10 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useRef, useState } from 'react';
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/src/components/Button';
+import { useKeyboardSheetInset } from '@/src/hooks/useKeyboardSheetInset';
 import type { AdHocWorkoutRequest } from '@/src/features/today/adHocApi';
 import { validateAdHocForm } from '@/src/features/today/adHocForm';
 import { useThemeColors } from '@/src/theme/useThemeColors';
@@ -87,6 +79,7 @@ export function CreateAdHocWorkoutSheet({
   onSubmit: (payload: AdHocWorkoutRequest) => void;
 }) {
   const theme = useThemeColors();
+  const keyboardInset = useKeyboardSheetInset();
   const scrollRef = useRef<ScrollView>(null);
   const [form, setForm] = useState<AdHocWorkoutRequest>(DEFAULT_FORM);
   const [durationText, setDurationText] = useState('60');
@@ -126,12 +119,10 @@ export function CreateAdHocWorkoutSheet({
     >
       <SafeAreaView className="flex-1 bg-surface" edges={['top', 'bottom']}>
         {/* The notes field sits at the end of the scroll content and the footer is pinned, so
-            both are covered by the keyboard without this. KeyboardAvoidingView takes a plain
-            style, never className (NativeWind registers it with remapProps). */}
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={{ flex: 1 }}
-        >
+            both are covered by the keyboard without this. Both KeyboardAvoidingView and
+            useKeyboardOverlap under-measure inside a pageSheet (window vs screen coords),
+            so use the anchored-container hook — see src/hooks/useKeyboardSheetInset.ts. */}
+        <View className="flex-1" style={{ paddingBottom: keyboardInset }}>
           <View className="flex-row items-start justify-between border-b border-border px-5 py-4">
             <View className="min-w-0 flex-1 pr-3">
               <Text className="text-xl font-semibold text-text-primary">Generate Ad-Hoc Workout</Text>
@@ -210,7 +201,7 @@ export function CreateAdHocWorkoutSheet({
             <Button label="Generate Workout" onPress={submit} loading={submitting} />
             <Button variant="secondary" label="Cancel" onPress={onClose} disabled={submitting} />
           </View>
-        </KeyboardAvoidingView>
+        </View>
       </SafeAreaView>
     </Modal>
   );
