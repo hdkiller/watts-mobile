@@ -19,10 +19,10 @@ describe('waitForPlanJob', () => {
   it('polls until the job completes successfully', async () => {
     apiFetch
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ status: 'EXECUTING', completed: false }), { status: 200 })
+        new Response(JSON.stringify({ status: 'EXECUTING', completed: false }), { status: 200 }),
       )
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ status: 'COMPLETED', completed: true }), { status: 200 })
+        new Response(JSON.stringify({ status: 'COMPLETED', completed: true }), { status: 200 }),
       );
 
     const done = waitForPlanJob('run-1', { pollMs: 10, timeoutMs: 1_000 });
@@ -35,11 +35,11 @@ describe('waitForPlanJob', () => {
 
   it('throws when the job fails', async () => {
     apiFetch.mockResolvedValueOnce(
-      new Response(JSON.stringify({ status: 'FAILURE', completed: true }), { status: 200 })
+      new Response(JSON.stringify({ status: 'FAILURE', completed: true }), { status: 200 }),
     );
 
-    await expect(waitForPlanJob('run-fail', { pollMs: 10, timeoutMs: 1_000 })).rejects.toBeInstanceOf(
-      ApiError
-    );
+    await expect(
+      waitForPlanJob('run-fail', { pollMs: 10, timeoutMs: 1_000 }),
+    ).rejects.toBeInstanceOf(ApiError);
   });
 });

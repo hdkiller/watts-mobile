@@ -1,11 +1,6 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useState } from 'react';
-import {
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  View } from 'react-native';
+import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { friendlyError } from '@/src/api/errors';
@@ -13,23 +8,14 @@ import { useAuth } from '@/src/auth/AuthContext';
 import { Skeleton } from '@/src/components/Skeleton';
 import { LineSeriesChart } from '@/src/features/activity/charts/LineSeriesChart';
 
-import {
-  formStatusTextClass,
-  mapPmcChartSeries,
-  performanceWebPath,
-  roundLoad } from './mapPmc';
+import { formStatusTextClass, mapPmcChartSeries, performanceWebPath, roundLoad } from './mapPmc';
 import type { PmcPeriodDays } from './types';
 import { usePmcQuery } from './usePmc';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 
 const PERIODS: PmcPeriodDays[] = [30, 60, 90];
 
-export function TrainingLoadSheet({
-  visible,
-  onClose }: {
-  visible: boolean;
-  onClose: () => void;
-}) {
+export function TrainingLoadSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const { instanceUrl } = useAuth();
   const [days, setDays] = useState<PmcPeriodDays>(90);
   const query = usePmcQuery(days, visible);
@@ -74,9 +60,7 @@ export function TrainingLoadSheet({
                   }`}
                 >
                   <Text
-                    className={`text-xs font-semibold ${
-                      selected ? 'text-ink' : 'text-text-body'
-                    }`}
+                    className={`text-xs font-semibold ${selected ? 'text-ink' : 'text-text-body'}`}
                   >
                     {period}d
                   </Text>
@@ -122,7 +106,9 @@ export function TrainingLoadSheet({
                 ) : null}
               </View>
 
-              <Text className={`mt-4 text-sm font-semibold ${formStatusTextClass(summary.formColor)}`}>
+              <Text
+                className={`mt-4 text-sm font-semibold ${formStatusTextClass(summary.formColor)}`}
+              >
                 {summary.formStatus}
               </Text>
               {summary.formDescription ? (
@@ -147,9 +133,7 @@ export function TrainingLoadSheet({
                 className="mt-8 items-center rounded-xl border border-border-strong py-3.5 active:opacity-80"
                 onPress={() => void openWeb()}
               >
-                <Text className="text-base font-semibold text-text-primary">
-                  Open Performance
-                </Text>
+                <Text className="text-base font-semibold text-text-primary">Open Performance</Text>
               </Pressable>
             </>
           ) : null}
@@ -159,19 +143,10 @@ export function TrainingLoadSheet({
   );
 }
 
-function SummaryCard({
-  label,
-  value,
-  unit }: {
-  label: string;
-  value: number;
-  unit: string;
-}) {
+function SummaryCard({ label, value, unit }: { label: string; value: number; unit: string }) {
   return (
     <View className="w-[48%] rounded-xl border border-border bg-card px-3 py-3">
-      <Text className="text-[10px] font-bold uppercase tracking-wide text-text-muted">
-        {label}
-      </Text>
+      <Text className="text-[10px] font-bold uppercase tracking-wide text-text-muted">{label}</Text>
       <View className="mt-2 flex-row items-baseline gap-1">
         <Text className="text-xl font-semibold text-text-primary">{value}</Text>
         {unit ? <Text className="text-[10px] font-semibold text-text-muted">{unit}</Text> : null}

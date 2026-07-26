@@ -18,19 +18,15 @@ export const APP_HREFS = {
   coach: '/(app)/(tabs)/coach',
   more: '/(app)/(tabs)/more',
   activityList: '/(app)/activity',
-  activityDetail: (id: string) =>
-    `/(app)/activity/${encodeURIComponent(id)}` as const,
-  plannedDetail: (id: string) =>
-    `/(app)/planned/${encodeURIComponent(id)}` as const,
+  activityDetail: (id: string) => `/(app)/activity/${encodeURIComponent(id)}` as const,
+  plannedDetail: (id: string) => `/(app)/planned/${encodeURIComponent(id)}` as const,
   upcoming: '/(app)/upcoming',
   eventsList: '/(app)/events',
   eventsNew: '/(app)/events/new',
-  eventDetail: (id: string) =>
-    `/(app)/events/${encodeURIComponent(id)}` as const,
+  eventDetail: (id: string) => `/(app)/events/${encodeURIComponent(id)}` as const,
   goalsList: '/(app)/goals',
   goalsNew: '/(app)/goals/new',
-  goalDetail: (id: string) =>
-    `/(app)/goals/${encodeURIComponent(id)}` as const,
+  goalDetail: (id: string) => `/(app)/goals/${encodeURIComponent(id)}` as const,
   athlete: '/(app)/athlete',
   /** Multi-entry: Today name sheet + More — root stack so Back returns to opener. */
   invite: '/(app)/invite',
@@ -45,14 +41,12 @@ export const APP_HREFS = {
   settingsNutrition: '/(app)/(tabs)/more/settings/nutrition',
   settingsSports: '/(app)/sports',
   settingsCoach: '/(app)/(tabs)/more/settings/coach',
-  sportProfile: (id: string) =>
-    `/(app)/sports/${encodeURIComponent(id)}` as const,
+  sportProfile: (id: string) => `/(app)/sports/${encodeURIComponent(id)}` as const,
   healthHistory: '/(app)/health-history',
   healthWorkouts: '/(app)/health-workouts',
   dailyCheckin: '/(app)/daily-checkin',
   recoveryEvent: '/(app)/recovery-event',
-  recoveryEventEdit: (id: string) =>
-    `/(app)/recovery-event?id=${encodeURIComponent(id)}` as const,
+  recoveryEventEdit: (id: string) => `/(app)/recovery-event?id=${encodeURIComponent(id)}` as const,
 } as const;
 
 /** One-shot Log → photo-meal intent. Always include a unique `t` so relaunches are not deduped. */
@@ -89,18 +83,9 @@ export function migrateLegacyAppHref(href: string): string {
     [/^\/\(app\)\/\(tabs\)\/more\/athlete\/?$/, APP_HREFS.athlete],
     [/^\/\(app\)\/\(tabs\)\/more\/invite\/?$/, APP_HREFS.invite],
     [/^\/\(app\)\/\(tabs\)\/more\/settings\/health\/?$/, APP_HREFS.settingsHealth],
-    [
-      /^\/\(app\)\/\(tabs\)\/more\/settings\/health-history\/?$/,
-      APP_HREFS.healthHistory,
-    ],
-    [
-      /^\/\(app\)\/\(tabs\)\/more\/settings\/health-workouts\/?$/,
-      APP_HREFS.healthWorkouts,
-    ],
-    [
-      /^\/\(app\)\/\(tabs\)\/more\/settings\/connected-apps\/?$/,
-      APP_HREFS.settingsConnectedApps,
-    ],
+    [/^\/\(app\)\/\(tabs\)\/more\/settings\/health-history\/?$/, APP_HREFS.healthHistory],
+    [/^\/\(app\)\/\(tabs\)\/more\/settings\/health-workouts\/?$/, APP_HREFS.healthWorkouts],
+    [/^\/\(app\)\/\(tabs\)\/more\/settings\/connected-apps\/?$/, APP_HREFS.settingsConnectedApps],
     [/^\/\(app\)\/\(tabs\)\/more\/settings\/sports\/?$/, APP_HREFS.settingsSports],
     [
       /^\/\(app\)\/\(tabs\)\/more\/sports\/([^/?#]+)/,

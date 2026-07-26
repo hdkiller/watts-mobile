@@ -47,10 +47,16 @@ export function RefineRecommendationSheet({
             <View className="min-w-0 flex-1 pr-3">
               <Text className="text-xl font-semibold text-text-primary">Refine or Refresh</Text>
               <Text className="mt-1 text-sm leading-5 text-text-muted">
-                Provide feedback to adjust the plan, or leave empty to simply refresh with latest data.
+                Provide feedback to adjust the plan, or leave empty to simply refresh with latest
+                data.
               </Text>
             </View>
-            <Pressable onPress={onClose} className="active:opacity-70" hitSlop={8} disabled={submitting}>
+            <Pressable
+              onPress={onClose}
+              className="active:opacity-70"
+              hitSlop={8}
+              disabled={submitting}
+            >
               <Text className="text-sm font-semibold text-brand">Cancel</Text>
             </Pressable>
           </View>
@@ -76,11 +82,7 @@ export function RefineRecommendationSheet({
           </View>
 
           <View className="gap-3 border-t border-border px-5 py-4">
-            <Button
-              label={submitLabel}
-              onPress={() => onSubmit(trimmed)}
-              loading={submitting}
-            />
+            <Button label={submitLabel} onPress={() => onSubmit(trimmed)} loading={submitting} />
             <Button variant="secondary" label="Cancel" onPress={onClose} disabled={submitting} />
           </View>
         </View>

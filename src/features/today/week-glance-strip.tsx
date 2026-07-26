@@ -16,15 +16,13 @@ export function WeekGlanceStrip({ recent, planned }: WeekGlanceStripProps) {
       <Text className="text-xs font-semibold uppercase tracking-widest text-text-muted">
         This week
       </Text>
-      <Text className="mt-2 text-sm text-text-body">{glance.summaryLine.replace(/^This week:\s*/, '')}</Text>
+      <Text className="mt-2 text-sm text-text-body">
+        {glance.summaryLine.replace(/^This week:\s*/, '')}
+      </Text>
       <View className="mt-3 flex-row items-end justify-between gap-1">
         {glance.days.map((day) => {
           const barH = Math.max(4, Math.round(day.height * 28));
-          const fill = day.hasDone
-            ? 'bg-brand'
-            : day.hasPlanned
-              ? 'bg-border-strong'
-              : 'bg-border';
+          const fill = day.hasDone ? 'bg-brand' : day.hasPlanned ? 'bg-border-strong' : 'bg-border';
           return (
             <View key={day.dateKey} className="flex-1 items-center">
               <View className="h-8 w-full items-center justify-end">

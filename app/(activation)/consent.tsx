@@ -6,10 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { friendlyError } from '@/src/api/errors';
 import { Button } from '@/src/components/Button';
-import {
-  PRIVACY_POLICY_URL,
-  TERMS_OF_SERVICE_URL,
-} from '@/src/features/account/paths';
+import { PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from '@/src/features/account/paths';
 import { trackActivationEvent } from '@/src/features/activation/analytics';
 import { POLICY_VERSIONS, submitConsent } from '@/src/features/activation/api';
 import { useAdvanceActivationStatus } from '@/src/features/activation/useActivationStatus';
@@ -55,11 +52,17 @@ export default function ActivationConsentScreen() {
               <Text className="text-base font-medium text-text-primary">Terms & privacy</Text>
               <Text className="mt-1 text-sm text-text-muted">
                 I accept the{' '}
-                <Text className="text-brand" onPress={() => void Linking.openURL(TERMS_OF_SERVICE_URL)}>
+                <Text
+                  className="text-brand"
+                  onPress={() => void Linking.openURL(TERMS_OF_SERVICE_URL)}
+                >
                   Terms
                 </Text>{' '}
                 and{' '}
-                <Text className="text-brand" onPress={() => void Linking.openURL(PRIVACY_POLICY_URL)}>
+                <Text
+                  className="text-brand"
+                  onPress={() => void Linking.openURL(PRIVACY_POLICY_URL)}
+                >
                   Privacy Policy
                 </Text>
                 .
@@ -88,7 +91,6 @@ export default function ActivationConsentScreen() {
           loading={busy}
           onPress={() => void onContinue()}
         />
-
       </ScrollView>
     </SafeAreaView>
   );

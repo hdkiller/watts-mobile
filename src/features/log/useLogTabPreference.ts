@@ -13,7 +13,7 @@ export function useLogTabPreference() {
   const preference = useSyncExternalStore(
     subscribeLogTabPreference,
     getLogTabPreferenceSync,
-    getLogTabPreferenceSync
+    getLogTabPreferenceSync,
   );
   const [ready, setReady] = useState(isLogTabPreferenceHydrated());
 

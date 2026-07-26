@@ -1,17 +1,14 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack } from 'expo-router';
 import { useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { Button } from '@/src/components/Button';
-import { filterLedgerByAttention, formatLedgerStatusLabel } from '@/src/features/health/ledgerHelpers';
+import {
+  filterLedgerByAttention,
+  formatLedgerStatusLabel,
+} from '@/src/features/health/ledgerHelpers';
 import { retryLedgerItem, runHealthSyncPass } from '@/src/features/health/orchestrator';
 import type { SyncLedgerItem, SyncLedgerStatus } from '@/src/features/health/types';
 import { useSyncLedger } from '@/src/features/health/useSyncLedger';
@@ -63,8 +60,8 @@ function FilterChip({
   return (
     <Pressable
       onPress={onPress}
-      className={`rounded-full px-3 py-1.5 mr-2 border ${
-        active ? 'bg-brand/15 border-brand/40' : 'bg-transparent border-border'
+      className={`mr-2 rounded-full border px-3 py-1.5 ${
+        active ? 'border-brand/40 bg-brand/15' : 'border-border bg-transparent'
       }`}
     >
       <Text className={`text-xs font-semibold ${active ? 'text-brand' : 'text-text-muted'}`}>
@@ -82,10 +79,7 @@ export default function HealthSyncHistoryScreen() {
   const [syncingAll, setSyncingAll] = useState(false);
   const [resyncing, setResyncing] = useState(false);
 
-  const visible = useMemo(
-    () => filterLedgerByAttention(items, filter),
-    [items, filter]
-  );
+  const visible = useMemo(() => filterLedgerByAttention(items, filter), [items, filter]);
 
   const handleRetry = async (id: string) => {
     hapticLight();
@@ -131,8 +125,8 @@ export default function HealthSyncHistoryScreen() {
     <>
       <Stack.Screen options={{ title: 'Sync history', headerShown: true }} />
       <SafeAreaView edges={{ bottom: true }} style={{ flex: 1, backgroundColor: theme.surface }}>
-        <View className="px-6 pt-4 pb-2">
-          <View className="flex-row items-center mb-3">
+        <View className="px-6 pb-2 pt-4">
+          <View className="mb-3 flex-row items-center">
             <FilterChip label="All" active={filter === 'all'} onPress={() => setFilter('all')} />
             <FilterChip
               label="Failed"
@@ -159,7 +153,7 @@ export default function HealthSyncHistoryScreen() {
               variant="secondary"
             />
           </View>
-          <Text className="mt-2 text-xs text-text-muted leading-4">
+          <Text className="mt-2 text-xs leading-4 text-text-muted">
             Resync all re-reads the full lookback window and re-uploads changed items.
           </Text>
         </View>
@@ -167,10 +161,10 @@ export default function HealthSyncHistoryScreen() {
         <ScrollView className="flex-1" contentContainerClassName="px-6 pb-12 pt-2">
           {visible.length === 0 ? (
             <View className="mt-10 items-center px-4">
-              <Text className="text-base font-semibold text-text-primary text-center">
+              <Text className="text-center text-base font-semibold text-text-primary">
                 No sync history yet
               </Text>
-              <Text className="mt-2 text-sm text-text-muted text-center leading-5">
+              <Text className="mt-2 text-center text-sm leading-5 text-text-muted">
                 After Sync to Coach Watts runs, wellness days and workouts appear here with status
                 and retry.
               </Text>
@@ -185,9 +179,9 @@ export default function HealthSyncHistoryScreen() {
                   className="mb-3 rounded-xl border border-border bg-card/60 px-4 py-3.5"
                 >
                   <View className="flex-row items-start justify-between">
-                    <View className="flex-1 mr-3">
+                    <View className="mr-3 flex-1">
                       <Text className="text-sm font-semibold text-text-primary">{item.title}</Text>
-                      <Text className="mt-1 text-xs text-text-muted capitalize">
+                      <Text className="mt-1 text-xs capitalize text-text-muted">
                         {item.kind} · {item.platform.replace('_', ' ')}
                       </Text>
                       <Text className="mt-1 text-xs text-text-muted">{formatWhen(item)}</Text>

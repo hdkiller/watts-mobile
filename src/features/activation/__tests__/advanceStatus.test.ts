@@ -15,28 +15,28 @@ const base: ActivationStatus = {
 
 describe('mergeActivationAdvance', () => {
   it('moves the step forward when the patch is ahead of cache', () => {
-    expect(mergeActivationAdvance(base, { mobileActivationStep: 'goal' }).mobileActivationStep).toBe(
-      'goal'
-    );
+    expect(
+      mergeActivationAdvance(base, { mobileActivationStep: 'goal' }).mobileActivationStep,
+    ).toBe('goal');
   });
 
   it('does not regress when the server is already ahead of the patch', () => {
     const ahead = { ...base, mobileActivationStep: 'plan' as const };
-    expect(mergeActivationAdvance(ahead, { mobileActivationStep: 'goal' }).mobileActivationStep).toBe(
-      'plan'
-    );
+    expect(
+      mergeActivationAdvance(ahead, { mobileActivationStep: 'goal' }).mobileActivationStep,
+    ).toBe('plan');
   });
 
   it('keeps soft activation once set even if a lagging refetch omits it', () => {
     const soft = { ...base, mobileActivationStep: 'connect' as const, softActivated: true };
     expect(mergeActivationAdvance(soft, { mobileActivationStep: 'connect' }).softActivated).toBe(
-      true
+      true,
     );
     expect(
       mergeActivationAdvance(
         { ...soft, softActivated: false },
-        { softActivated: true, mobileActivationStep: 'connect' }
-      ).softActivated
+        { softActivated: true, mobileActivationStep: 'connect' },
+      ).softActivated,
     ).toBe(true);
   });
 

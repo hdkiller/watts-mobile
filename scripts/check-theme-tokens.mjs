@@ -6,15 +6,13 @@
 import { execSync } from 'node:child_process';
 
 const roots = ['app', 'src'];
-const pattern =
-  String.raw`zinc-\d|text-white\b|bg-surface-dark|text-ink-muted|#09090b|#27272a|#18181b|#3f3f46`;
+const pattern = String.raw`zinc-\d|text-white\b|bg-surface-dark|text-ink-muted|#09090b|#27272a|#18181b|#3f3f46`;
 
 let output = '';
 try {
-  output = execSync(
-    `rg -n --glob '*.{tsx,ts,jsx,js}' -e '${pattern}' ${roots.join(' ')}`,
-    { encoding: 'utf8' }
-  );
+  output = execSync(`rg -n --glob '*.{tsx,ts,jsx,js}' -e '${pattern}' ${roots.join(' ')}`, {
+    encoding: 'utf8',
+  });
 } catch (err) {
   // rg exit 1 = no matches
   if (err.status === 1) {

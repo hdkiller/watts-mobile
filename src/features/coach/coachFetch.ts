@@ -16,7 +16,7 @@ async function failAuthSession(): Promise<void> {
  */
 export async function coachChatFetch(
   input: RequestInfo | URL,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<Response> {
   const instanceBaseUrl = await getInstanceUrl();
   if (!instanceBaseUrl) {

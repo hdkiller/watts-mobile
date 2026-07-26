@@ -35,7 +35,7 @@ describe('logMealSheetMode helpers', () => {
         protein: '38.5',
         carbs: '0',
         fat: '',
-      })
+      }),
     ).toEqual([
       { label: 'Energy', value: '+642 kcal' },
       { label: 'Protein', value: '+38.5g' },

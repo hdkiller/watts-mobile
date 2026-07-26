@@ -59,10 +59,10 @@ describe('mapWellnessOverview', () => {
     expect(overview!.date).toBe('2026-07-18');
     expect(overview!.coachNote).toBe('Solid recovery day.');
     expect(overview!.metrics.map((m) => m.key)).toEqual(
-      expect.arrayContaining(['hrv', 'sleep', 'restingHr', 'recoveryScore', 'readiness'])
+      expect.arrayContaining(['hrv', 'sleep', 'restingHr', 'recoveryScore', 'readiness']),
     );
     expect(overview!.barSeries.map((s) => s.key)).toEqual(
-      expect.arrayContaining(['sleep', 'hrv', 'restingHr', 'recoveryScore'])
+      expect.arrayContaining(['sleep', 'hrv', 'restingHr', 'recoveryScore']),
     );
     const hrv = overview!.metrics.find((m) => m.key === 'hrv');
     expect(hrv?.trendPercent).not.toBeNull();
@@ -100,7 +100,7 @@ describe('heuristicCoachNote', () => {
         sleepHours: null,
         restingHr: null,
         restingHrTrendPercent: null,
-      })
+      }),
     ).toMatch(/well recovered/i);
   });
 });

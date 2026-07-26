@@ -1,10 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import {
-  createBodyMeasurement,
-  fetchBodyMeasurements,
-  softDeleteBodyMeasurement,
-} from './api';
+import { createBodyMeasurement, fetchBodyMeasurements, softDeleteBodyMeasurement } from './api';
 import type { CreateBodyMeasurementPayload } from './types';
 
 export const BODY_MEASUREMENTS_KEY = ['body-measurements'] as const;

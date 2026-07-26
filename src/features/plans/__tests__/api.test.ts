@@ -49,8 +49,8 @@ describe('plan preview', () => {
               },
             ],
           }),
-          { status: 200 }
-        )
+          { status: 200 },
+        ),
       );
 
     const resultPromise = generateFirstWeekPreview(initialized, { pollMs: 1, timeoutMs: 100 });

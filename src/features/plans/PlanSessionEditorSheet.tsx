@@ -12,10 +12,7 @@ import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
 import { formatDayChipLabel } from './formatPlanCopy';
-import {
-  useCreatePlannedWorkoutMutation,
-  usePatchPlannedWorkoutMutation,
-} from './usePlans';
+import { useCreatePlannedWorkoutMutation, usePatchPlannedWorkoutMutation } from './usePlans';
 import {
   SESSION_SPORT_OPTIONS,
   emptySessionEditorForm,
@@ -90,13 +87,7 @@ function Field({
   );
 }
 
-function EditorBody({
-  context,
-  onClose,
-}: {
-  context: CreateMode | EditMode;
-  onClose: () => void;
-}) {
+function EditorBody({ context, onClose }: { context: CreateMode | EditMode; onClose: () => void }) {
   const createMutation = useCreatePlannedWorkoutMutation();
   const patchMutation = usePatchPlannedWorkoutMutation();
   const initial =
@@ -112,7 +103,7 @@ function EditorBody({
   const weekDays =
     context.mode === 'create'
       ? context.weekDayKeys
-      : context.weekDayKeys ?? (context.dateKey ? [context.dateKey] : []);
+      : (context.weekDayKeys ?? (context.dateKey ? [context.dateKey] : []));
   const busy = createMutation.isPending || patchMutation.isPending;
 
   const setType = (type: SessionSportType) => {
@@ -166,9 +157,7 @@ function EditorBody({
       <Text className="mb-1 text-lg font-semibold text-text-primary">
         {context.mode === 'create' ? 'Add session' : 'Edit session'}
       </Text>
-      <Text className="mb-3 text-sm text-text-muted">
-        Title, sport, and duration are required.
-      </Text>
+      <Text className="mb-3 text-sm text-text-muted">Title, sport, and duration are required.</Text>
 
       {weekDays.length > 1 ? (
         <View className="mb-3">
@@ -237,9 +226,7 @@ function EditorBody({
               onPress={() => setType(option.value)}
             >
               <Text
-                className={`text-xs font-semibold ${
-                  selected ? 'text-brand' : 'text-text-muted'
-                }`}
+                className={`text-xs font-semibold ${selected ? 'text-brand' : 'text-text-muted'}`}
               >
                 {option.label}
               </Text>
@@ -319,9 +306,7 @@ export function PlanSessionEditorSheet({ visible, onClose, context }: Props) {
       {context ? (
         <EditorBody
           key={
-            context.mode === 'create'
-              ? `create:${context.dateKey}`
-              : `edit:${context.plannedId}`
+            context.mode === 'create' ? `create:${context.dateKey}` : `edit:${context.plannedId}`
           }
           context={context}
           onClose={onClose}

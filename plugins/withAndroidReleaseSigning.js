@@ -26,13 +26,12 @@ function withAndroidReleaseSigning(config) {
 `;
 
     if (!contents.includes('signingConfigs {')) {
-      throw new Error('withAndroidReleaseSigning: signingConfigs block not found in app/build.gradle');
+      throw new Error(
+        'withAndroidReleaseSigning: signingConfigs block not found in app/build.gradle',
+      );
     }
 
-    contents = contents.replace(
-      /android\s*\{/,
-      (match) => `${match}${propsBlock}`
-    );
+    contents = contents.replace(/android\s*\{/, (match) => `${match}${propsBlock}`);
 
     contents = contents.replace(
       /signingConfigs\s*\{\s*debug\s*\{[^}]+\}/,
@@ -44,7 +43,7 @@ function withAndroidReleaseSigning(config) {
                 storeFile file(coachWattsUploadKeystoreProperties['storeFile'])
                 storePassword coachWattsUploadKeystoreProperties['storePassword']
             }
-        }`
+        }`,
     );
 
     contents = contents.replace(
@@ -55,7 +54,7 @@ function withAndroidReleaseSigning(config) {
                 signingConfig signingConfigs.release
             } else {
                 signingConfig signingConfigs.debug
-            }`
+            }`,
     );
 
     cfg.modResults.contents = contents;

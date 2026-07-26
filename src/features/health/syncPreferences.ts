@@ -25,8 +25,7 @@ function parsePreferences(raw: string | null): HealthSyncPreferences {
     return {
       syncEnabled: parsed.syncEnabled === true,
       syncWorkouts: parsed.syncWorkouts !== false,
-      lastSuccessAt:
-        typeof parsed.lastSuccessAt === 'string' ? parsed.lastSuccessAt : undefined,
+      lastSuccessAt: typeof parsed.lastSuccessAt === 'string' ? parsed.lastSuccessAt : undefined,
       workoutsDefaultApplied: parsed.workoutsDefaultApplied === true,
     };
   } catch {

@@ -14,13 +14,7 @@ type Props = {
   onClose: () => void;
 };
 
-export function FuelStateExplainSheet({
-  visible,
-  state,
-  isRest,
-  carbsTarget,
-  onClose,
-}: Props) {
+export function FuelStateExplainSheet({ visible, state, isRest, carbsTarget, onClose }: Props) {
   const model = fuelStateExplanation({ state, isRest });
 
   return (

@@ -1,10 +1,7 @@
 import { fetchRemoteWorkoutsForMatch } from './fetchRemoteWorkouts';
 import { loadSyncLedger } from './ledger';
 import { readPlatformWorkouts } from './readers';
-import {
-  buildRecentWorkoutRows,
-  type RecentWorkoutRow,
-} from './recentWorkoutRows';
+import { buildRecentWorkoutRows, type RecentWorkoutRow } from './recentWorkoutRows';
 import type { PlatformWorkoutSession, RemoteWorkoutMatchCandidate } from './types';
 import { LOOKBACK_DAYS } from './types';
 
@@ -17,7 +14,7 @@ export {
 
 /** Read on-device workouts + remote match + ledger overlay for the lookback window. */
 export async function listRecentPlatformWorkoutsWithStatus(
-  lookbackDays: number = LOOKBACK_DAYS
+  lookbackDays: number = LOOKBACK_DAYS,
 ): Promise<RecentWorkoutRow[]> {
   const [sessions, ledgerItems] = await Promise.all([
     readPlatformWorkouts({ lookbackDays }),
@@ -30,7 +27,7 @@ export async function listRecentPlatformWorkoutsWithStatus(
   } catch (err) {
     console.warn(
       '[HealthSync] recent workouts remote match failed',
-      err instanceof Error ? err.message : 'error'
+      err instanceof Error ? err.message : 'error',
     );
   }
 
@@ -40,7 +37,7 @@ export async function listRecentPlatformWorkoutsWithStatus(
 /** Resolve a single session from the device lookback window. */
 export async function findPlatformWorkoutSession(
   platformSessionId: string,
-  lookbackDays: number = LOOKBACK_DAYS
+  lookbackDays: number = LOOKBACK_DAYS,
 ): Promise<PlatformWorkoutSession | undefined> {
   const sessions = await readPlatformWorkouts({ lookbackDays });
   return sessions.find((s) => s.platformSessionId === platformSessionId);

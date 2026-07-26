@@ -105,7 +105,11 @@ if ((suiteShared.match(/clearState:\s*true/g) || []).length > 0) {
   fail('suite-shared.yaml: must not clearState (use boot-and-login only)');
 }
 
-const isolated = ['smoke-unauth.yaml', 'flow-wellness-save.yaml', 'flow-recommendation-accept.yaml'];
+const isolated = [
+  'smoke-unauth.yaml',
+  'flow-wellness-save.yaml',
+  'flow-recommendation-accept.yaml',
+];
 for (const name of isolated) {
   const text = readFileSync(join(maestroDir, name), 'utf8');
   if (!text.includes('isolated') && name !== 'smoke-unauth.yaml') {
@@ -120,5 +124,5 @@ for (const name of isolated) {
 }
 
 console.log(
-  `validate-maestro-flows: ok (${REQUIRED.length} required, ${onDisk.size} yaml on disk)`
+  `validate-maestro-flows: ok (${REQUIRED.length} required, ${onDisk.size} yaml on disk)`,
 );

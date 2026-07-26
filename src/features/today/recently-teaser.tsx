@@ -2,14 +2,8 @@ import { router, type Href } from 'expo-router';
 import { useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-import {
-  formatActivityDate,
-  formatDuration,
-} from '@/src/features/activity/mapActivity';
-import {
-  buildComplianceIndex,
-  type ComplianceMark,
-} from '@/src/features/activity/compliance';
+import { formatActivityDate, formatDuration } from '@/src/features/activity/mapActivity';
+import { buildComplianceIndex, type ComplianceMark } from '@/src/features/activity/compliance';
 import { ComplianceMarkView } from '@/src/features/activity/ComplianceMark';
 import { SportIcon } from '@/src/components/SportIcon';
 import type { ActivityListItem } from '@/src/features/activity/types';
@@ -28,7 +22,7 @@ export function RecentlyTeaser() {
 
   const compliance = useMemo(
     () => buildComplianceIndex(data, upcoming.data),
-    [data, upcoming.data]
+    [data, upcoming.data],
   );
 
   if (isError) return null;
@@ -55,11 +49,7 @@ export function RecentlyTeaser() {
       ) : (
         <View className="mt-2">
           {rows.map((item) => (
-            <RecentRow
-              key={item.id}
-              item={item}
-              mark={compliance.forActivity.get(item.id)}
-            />
+            <RecentRow key={item.id} item={item} mark={compliance.forActivity.get(item.id)} />
           ))}
         </View>
       )}
@@ -67,13 +57,7 @@ export function RecentlyTeaser() {
   );
 }
 
-function RecentRow({
-  item,
-  mark,
-}: {
-  item: ActivityListItem;
-  mark: ComplianceMark | undefined;
-}) {
+function RecentRow({ item, mark }: { item: ActivityListItem; mark: ComplianceMark | undefined }) {
   const meta = [
     formatActivityDate(item.date),
     humanizeWorkoutType(item.type),

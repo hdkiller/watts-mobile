@@ -126,7 +126,7 @@ export type SelectableEvent = {
 /** Upcoming events first (date ≥ today), then past — for wizard step 2. */
 export function sortEventsForGoalWizard(
   events: SelectableEvent[],
-  todayKey: string
+  todayKey: string,
 ): SelectableEvent[] {
   return [...events].sort((a, b) => {
     const aKey = a.dateKey ?? '';
@@ -160,8 +160,7 @@ export function mapApiEventForWizard(raw: {
     type: raw.type,
     distance: typeof raw.distance === 'number' ? raw.distance : null,
     elevation: typeof raw.elevation === 'number' ? raw.elevation : null,
-    expectedDuration:
-      typeof raw.expectedDuration === 'number' ? raw.expectedDuration : null,
+    expectedDuration: typeof raw.expectedDuration === 'number' ? raw.expectedDuration : null,
     terrain: raw.terrain,
   };
 }
@@ -170,7 +169,7 @@ export function mapApiEventForWizard(raw: {
 export function applyPrimaryEventToForm(
   form: EventGoalWizardForm,
   events: SelectableEvent[],
-  eventIds: string[]
+  eventIds: string[],
 ): EventGoalWizardForm {
   if (eventIds.length === 0) {
     return { ...form, eventIds };
@@ -179,10 +178,7 @@ export function applyPrimaryEventToForm(
   const primary = events.find((e) => e.id === primaryId);
   if (!primary) return { ...form, eventIds };
 
-  const title =
-    eventIds.length === 1
-      ? primary.title
-      : `${primary.title} and others`;
+  const title = eventIds.length === 1 ? primary.title : `${primary.title} and others`;
 
   const next: EventGoalWizardForm = {
     ...form,
@@ -194,7 +190,10 @@ export function applyPrimaryEventToForm(
         ? primary.description
         : form.description,
   };
-  if (primary.subType && EVENT_SUBTYPES.includes(primary.subType as (typeof EVENT_SUBTYPES)[number])) {
+  if (
+    primary.subType &&
+    EVENT_SUBTYPES.includes(primary.subType as (typeof EVENT_SUBTYPES)[number])
+  ) {
     next.eventType = primary.subType;
   }
   return next;
@@ -216,7 +215,7 @@ export type EventGoalWizardValidateOptions = {
 
 export function validateEventGoalWizardForm(
   form: EventGoalWizardForm,
-  options: EventGoalWizardValidateOptions = {}
+  options: EventGoalWizardValidateOptions = {},
 ): string | null {
   if (form.title.trim().length < 2) {
     return 'Enter a goal title (at least 2 characters).';
@@ -231,7 +230,11 @@ export function validateEventGoalWizardForm(
   } else if (form.type !== 'EVENT' || (form.type === 'EVENT' && form.eventIds.length === 0)) {
     return 'Enter a target date for this goal.';
   }
-  if (form.type === 'PERFORMANCE' || form.type === 'BODY_COMPOSITION' || form.type === 'CONSISTENCY') {
+  if (
+    form.type === 'PERFORMANCE' ||
+    form.type === 'BODY_COMPOSITION' ||
+    form.type === 'CONSISTENCY'
+  ) {
     if (form.targetValue.trim() && Number.isNaN(Number(form.targetValue))) {
       return 'Target value must be a number.';
     }
@@ -243,11 +246,7 @@ export function validateEventGoalWizardForm(
 }
 
 function buildAiContext(form: EventGoalWizardForm, primary?: SelectableEvent | null): string {
-  const parts = [
-    `Type: ${form.type}.`,
-    `Goal: ${form.title.trim()}.`,
-    'Phase Preference: BASE.',
-  ];
+  const parts = [`Type: ${form.type}.`, `Goal: ${form.title.trim()}.`, 'Phase Preference: BASE.'];
   if (form.type === 'EVENT') {
     parts.push(`Race Type: ${form.eventType}.`);
     if (primary?.distance != null) parts.push(`Distance: ${primary.distance}km.`);
@@ -263,7 +262,7 @@ function buildAiContext(form: EventGoalWizardForm, primary?: SelectableEvent | n
 /** Bearer POST body matching web EventGoalWizard saveGoal outcomes. */
 export function buildEventGoalWizardInput(
   form: EventGoalWizardForm,
-  events: SelectableEvent[] = []
+  events: SelectableEvent[] = [],
 ): CreateGoalInput {
   const title = form.title.trim();
   const primary =

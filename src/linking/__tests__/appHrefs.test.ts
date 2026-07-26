@@ -6,15 +6,15 @@ describe('migrateLegacyAppHref', () => {
   it('rewrites Today-tab nested drill-downs into the root stack', () => {
     expect(migrateLegacyAppHref('/(app)/(tabs)/today/activity')).toBe(APP_HREFS.activityList);
     expect(migrateLegacyAppHref('/(app)/(tabs)/today/activity/abc')).toBe(
-      APP_HREFS.activityDetail('abc')
+      APP_HREFS.activityDetail('abc'),
     );
     expect(migrateLegacyAppHref('/(app)/(tabs)/today/planned/pw-1')).toBe(
-      APP_HREFS.plannedDetail('pw-1')
+      APP_HREFS.plannedDetail('pw-1'),
     );
     expect(migrateLegacyAppHref('/(app)/(tabs)/today/upcoming')).toBe(APP_HREFS.upcoming);
     expect(migrateLegacyAppHref('/(app)/(tabs)/today/events')).toBe(APP_HREFS.eventsList);
     expect(migrateLegacyAppHref('/(app)/(tabs)/today/events/ev-1')).toBe(
-      APP_HREFS.eventDetail('ev-1')
+      APP_HREFS.eventDetail('ev-1'),
     );
   });
 
@@ -22,20 +22,18 @@ describe('migrateLegacyAppHref', () => {
     expect(migrateLegacyAppHref('/(app)/(tabs)/more/athlete')).toBe(APP_HREFS.athlete);
     expect(migrateLegacyAppHref('/(app)/(tabs)/more/invite')).toBe(APP_HREFS.invite);
     expect(migrateLegacyAppHref('/(app)/(tabs)/more/goals')).toBe(APP_HREFS.goalsList);
-    expect(migrateLegacyAppHref('/(app)/(tabs)/more/goals/g-1')).toBe(
-      APP_HREFS.goalDetail('g-1')
-    );
+    expect(migrateLegacyAppHref('/(app)/(tabs)/more/goals/g-1')).toBe(APP_HREFS.goalDetail('g-1'));
     expect(migrateLegacyAppHref('/(app)/(tabs)/more/settings/health')).toBe(
-      APP_HREFS.settingsHealth
+      APP_HREFS.settingsHealth,
     );
     expect(migrateLegacyAppHref('/(app)/(tabs)/more/settings/connected-apps')).toBe(
-      APP_HREFS.settingsConnectedApps
+      APP_HREFS.settingsConnectedApps,
     );
     expect(migrateLegacyAppHref('/(app)/(tabs)/more/settings/sports')).toBe(
-      APP_HREFS.settingsSports
+      APP_HREFS.settingsSports,
     );
     expect(migrateLegacyAppHref('/(app)/(tabs)/more/sports/sp-1')).toBe(
-      APP_HREFS.sportProfile('sp-1')
+      APP_HREFS.sportProfile('sp-1'),
     );
   });
 

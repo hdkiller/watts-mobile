@@ -58,7 +58,7 @@ export async function generateDailyCheckin(force = false): Promise<DailyCheckin>
 export async function submitDailyCheckinAnswers(
   checkinId: string,
   answers: Record<string, 'YES' | 'NO'>,
-  userNotes?: string
+  userNotes?: string,
 ): Promise<DailyCheckin> {
   const response = await apiFetch('/api/checkin/answer', {
     method: 'POST',

@@ -84,7 +84,9 @@ export function summarizeHeartRate(raw: { t: number; bpm: number }[]): HeartRate
 
 export function summarizePower(raw: { t: number; watts: number }[]): PowerSummary {
   const clean = raw
-    .filter((s) => Number.isFinite(s.t) && Number.isFinite(s.watts) && s.watts >= 0 && s.watts < 3000)
+    .filter(
+      (s) => Number.isFinite(s.t) && Number.isFinite(s.watts) && s.watts >= 0 && s.watts < 3000,
+    )
     .sort((a, b) => a.t - b.t);
   if (!clean.length) return {};
   const sum = clean.reduce((a, s) => a + s.watts, 0);
@@ -124,7 +126,7 @@ export function summarizeSpeed(raw: { t: number; mps: number }[]): SpeedSummary 
 }
 
 export function summarizeRoute(
-  raw: { t: number; lat: number; lon: number; altitudeMeters?: number }[]
+  raw: { t: number; lat: number; lon: number; altitudeMeters?: number }[],
 ): RouteSummary {
   const clean = raw
     .filter(
@@ -133,7 +135,7 @@ export function summarizeRoute(
         Number.isFinite(s.lat) &&
         Number.isFinite(s.lon) &&
         Math.abs(s.lat) <= 90 &&
-        Math.abs(s.lon) <= 180
+        Math.abs(s.lon) <= 180,
     )
     .sort((a, b) => a.t - b.t);
   if (!clean.length) return {};
@@ -232,14 +234,9 @@ export function mergeWorkoutStreams(input: {
         const dLon = (current.lon - previous.lon) * toRad;
         const a =
           Math.sin(dLat / 2) ** 2 +
-          Math.cos(previous.lat * toRad) *
-            Math.cos(current.lat * toRad) *
-            Math.sin(dLon / 2) ** 2;
+          Math.cos(previous.lat * toRad) * Math.cos(current.lat * toRad) * Math.sin(dLon / 2) ** 2;
         const clampedA = Math.min(1, Math.max(0, a));
-        cumulative +=
-          6_371_000 *
-          2 *
-          Math.atan2(Math.sqrt(clampedA), Math.sqrt(1 - clampedA));
+        cumulative += 6_371_000 * 2 * Math.atan2(Math.sqrt(clampedA), Math.sqrt(1 - clampedA));
       } else if (speed.length > 1 && current.mps != null) {
         cumulative += current.mps * Math.max(0, (current.t - previous.t) / 1000);
       }

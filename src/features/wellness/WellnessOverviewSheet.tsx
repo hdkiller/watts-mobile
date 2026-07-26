@@ -1,11 +1,6 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { router, type Href } from 'expo-router';
-import {
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  View } from 'react-native';
+import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { friendlyError } from '@/src/api/errors';
@@ -24,18 +19,14 @@ function formatOverviewDate(dateKey: string): string {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
-      year: 'numeric' });
+      year: 'numeric',
+    });
   } catch {
     return dateKey;
   }
 }
 
-function TrendText({
-  value,
-  lowerIsBetter }: {
-  value: number | null;
-  lowerIsBetter: boolean;
-}) {
+function TrendText({ value, lowerIsBetter }: { value: number | null; lowerIsBetter: boolean }) {
   if (value == null || value === 0) return null;
   const isGood = lowerIsBetter ? value < 0 : value > 0;
   const sign = value > 0 ? '+' : '';
@@ -71,13 +62,10 @@ function TrendBars({ series }: { series: WellnessBarSeries }) {
 
   return (
     <View className="mt-4">
-      <Text className="text-xs font-semibold text-text-body">
-        {series.label} · 7 days
-      </Text>
+      <Text className="text-xs font-semibold text-text-body">{series.label} · 7 days</Text>
       <View className="mt-2 h-16 flex-row items-end gap-1.5">
         {series.points.map((point) => {
-          const height =
-            point.value != null && max > 0 ? Math.max(4, (point.value / max) * 56) : 4;
+          const height = point.value != null && max > 0 ? Math.max(4, (point.value / max) * 56) : 4;
           return (
             <View key={point.date} className="flex-1 items-center justify-end">
               <View
@@ -95,7 +83,8 @@ function TrendBars({ series }: { series: WellnessBarSeries }) {
 export function WellnessOverviewSheet({
   visible,
   date,
-  onClose }: {
+  onClose,
+}: {
   visible: boolean;
   date: string | null;
   onClose: () => void;
@@ -128,9 +117,7 @@ export function WellnessOverviewSheet({
               <Text className="mt-1 text-sm text-text-muted">{formatOverviewDate(date)}</Text>
             ) : null}
             {query.data?.isStale ? (
-              <Text className="mt-1 text-xs font-semibold text-modify">
-                Not from today
-              </Text>
+              <Text className="mt-1 text-xs font-semibold text-modify">Not from today</Text>
             ) : null}
           </View>
           <Pressable onPress={onClose} className="active:opacity-70" hitSlop={8}>
@@ -193,9 +180,7 @@ export function WellnessOverviewSheet({
 
             {query.data.coachNote ? (
               <View className="mt-8 rounded-xl border border-border bg-card/80 px-4 py-4">
-                <Text className="text-xs uppercase tracking-wide text-text-muted">
-                  Coach note
-                </Text>
+                <Text className="text-xs uppercase tracking-wide text-text-muted">Coach note</Text>
                 <Text className="mt-2 text-sm leading-5 text-text-body">
                   {query.data.coachNote}
                 </Text>

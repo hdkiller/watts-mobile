@@ -30,10 +30,7 @@ function mapDayBucket(raw: unknown): MonthlyDayMetrics {
   };
 }
 
-function mapDayMap(
-  raw: unknown,
-  allowNull = false
-): Record<number, MonthlyDayMetrics | null> {
+function mapDayMap(raw: unknown, allowNull = false): Record<number, MonthlyDayMetrics | null> {
   const obj = asRecord(raw) || {};
   const out: Record<number, MonthlyDayMetrics | null> = {};
   for (let day = 1; day <= 31; day++) {
@@ -55,8 +52,7 @@ export function mapMonthlyComparisonPayload(json: unknown): MonthlyComparisonPay
   const last = asRecord(root.lastMonth) || {};
 
   return {
-    currentMonthName:
-      typeof current.name === 'string' && current.name ? current.name : 'Current',
+    currentMonthName: typeof current.name === 'string' && current.name ? current.name : 'Current',
     lastMonthName: typeof last.name === 'string' && last.name ? last.name : 'Last month',
     todayDay: Math.max(1, Math.min(31, Math.round(asFiniteNumber(root.todayDay) || 1))),
     currentDaily: mapDayMap(current.daily) as Record<number, MonthlyDayMetrics>,
@@ -89,7 +85,7 @@ export function formatMetricValue(value: number, metric: MonthlyMetric): string 
 
 export function summarizeMonthlyProgress(
   payload: MonthlyComparisonPayload,
-  metric: MonthlyMetric
+  metric: MonthlyMetric,
 ): MonthlyProgressSummary {
   const currentAtToday = payload.currentCumulative[payload.todayDay];
   const lastAtToday = payload.lastCumulative[payload.todayDay];
@@ -111,7 +107,7 @@ export function summarizeMonthlyProgress(
 export function mapMonthlyChartSeries(
   payload: MonthlyComparisonPayload,
   metric: MonthlyMetric,
-  viewMode: MonthlyViewMode
+  viewMode: MonthlyViewMode,
 ): { series: StreamSeries[]; durationSec: number; endDay: number } {
   // Match web MonthlyComparisonCard: x-axis is days 1–31. Current month stops at
   // today; last month keeps the full curve so month-over-month shape is visible.
@@ -121,9 +117,7 @@ export function mapMonthlyChartSeries(
 
   for (let day = 1; day <= endDay; day++) {
     const currentPoint =
-      viewMode === 'cumulative'
-        ? payload.currentCumulative[day]
-        : payload.currentDaily[day];
+      viewMode === 'cumulative' ? payload.currentCumulative[day] : payload.currentDaily[day];
     const lastPoint =
       viewMode === 'cumulative' ? payload.lastCumulative[day] : payload.lastDaily[day];
 

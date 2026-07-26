@@ -1,13 +1,7 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack, type Href, router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import {
-  FlatList,
-  Pressable,
-  RefreshControl,
-  Text,
-  View,
-} from 'react-native';
+import { FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
 import { AppSymbol } from '@/src/components/AppSymbol';
@@ -58,9 +52,7 @@ function NotificationRow({
   return (
     <Pressable
       className={`mb-3 rounded-xl border px-4 py-3.5 active:opacity-80 ${
-        item.read || item.isRepeat
-          ? 'border-border bg-card/50'
-          : 'border-border-strong bg-card/90'
+        item.read || item.isRepeat ? 'border-border bg-card/50' : 'border-border-strong bg-card/90'
       }`}
       onPress={() => onOpen(item)}
     >
@@ -99,10 +91,7 @@ export default function NotificationsScreen() {
   };
 
   const unreadCount = data?.unreadCount ?? 0;
-  const rows = useMemo(
-    () => markNotificationRepeats(data?.items ?? []),
-    [data?.items]
-  );
+  const rows = useMemo(() => markNotificationRepeats(data?.items ?? []), [data?.items]);
 
   const onOpen = (item: InboxNotification) => {
     if (!item.read) {
@@ -131,12 +120,7 @@ export default function NotificationsScreen() {
                 marginLeft: -4,
               }}
             >
-              <AppSymbol
-                sf="chevron.left"
-                size={20}
-                tintColor={theme.textPrimary}
-                fallback="‹"
-              />
+              <AppSymbol sf="chevron.left" size={20} tintColor={theme.textPrimary} fallback="‹" />
             </Pressable>
           ),
           headerRight: () =>

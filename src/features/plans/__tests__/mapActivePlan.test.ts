@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  filterPlannedToWeek,
-  mapActivePlanShell,
-  selectCurrentWeek,
-} from '../mapActivePlan';
+import { filterPlannedToWeek, mapActivePlanShell, selectCurrentWeek } from '../mapActivePlan';
 import type { ActivePlanApi } from '../types';
 
 const plan: ActivePlanApi = {
@@ -79,7 +75,7 @@ describe('mapActivePlanShell', () => {
         { id: '1', date: '2026-07-23T00:00:00.000Z', title: 'In' },
         { id: '2', date: '2026-07-30T00:00:00.000Z', title: 'Out' },
       ],
-      week
+      week,
     );
     expect(filtered.map((x) => x.id)).toEqual(['1']);
   });

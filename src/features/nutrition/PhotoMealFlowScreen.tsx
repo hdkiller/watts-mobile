@@ -7,11 +7,6 @@ import { LogMealSheet } from '@/src/features/nutrition/LogMealSheet';
 /** Full-screen photo analysis and review flow; manual quick logging stays in the Log sheet. */
 export function PhotoMealFlowScreen() {
   return (
-    <LogMealSheet
-      visible
-      autoOpenPicker
-      presentation="screen"
-      onClose={() => router.back()}
-    />
+    <LogMealSheet visible autoOpenPicker presentation="screen" onClose={() => router.back()} />
   );
 }

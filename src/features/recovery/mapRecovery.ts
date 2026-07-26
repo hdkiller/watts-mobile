@@ -105,7 +105,11 @@ export function parseRecoveryContextItem(raw: unknown): RecoveryContextItem | nu
   if (kind !== 'wellness' && kind !== 'journey_event' && kind !== 'daily_checkin') return null;
 
   const sourceType = r.sourceType;
-  if (sourceType !== 'imported' && sourceType !== 'manual_event' && sourceType !== 'daily_checkin') {
+  if (
+    sourceType !== 'imported' &&
+    sourceType !== 'manual_event' &&
+    sourceType !== 'daily_checkin'
+  ) {
     return null;
   }
 
@@ -147,7 +151,7 @@ export function parseRecoveryContextList(raw: unknown): RecoveryContextItem[] {
  */
 export function filterActiveToday(
   items: RecoveryContextItem[],
-  today = localDateYmd()
+  today = localDateYmd(),
 ): RecoveryContextItem[] {
   return items.filter((item) => {
     if (item.kind === 'journey_event') {

@@ -9,7 +9,7 @@ import { absoluteInstanceUrl } from '@/src/features/profile/mapProfile';
  */
 export async function openInstanceWeb(
   instanceUrl: string | null | undefined,
-  path = '/'
+  path = '/',
 ): Promise<void> {
   if (!instanceUrl) return;
 

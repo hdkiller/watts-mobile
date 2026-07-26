@@ -50,12 +50,14 @@ function toIsoDate(d: Date): string {
 }
 
 export async function fetchRecentActivities(
-  limit: number = RECENT_ACTIVITY_LIMIT
+  limit: number = RECENT_ACTIVITY_LIMIT,
 ): Promise<ActivityListItem[]> {
   const capped = Math.min(Math.max(limit, 1), RECENT_ACTIVITY_LIMIT);
   const response = await apiFetch(`/api/workouts?limit=${capped}&offset=0`);
   if (!response.ok) {
-    throw new Error(await readErrorMessage(response, `Failed to load workouts (${response.status})`));
+    throw new Error(
+      await readErrorMessage(response, `Failed to load workouts (${response.status})`),
+    );
   }
   const json = (await response.json()) as WorkoutListItemApi[];
   if (!Array.isArray(json)) return [];
@@ -70,7 +72,7 @@ export async function fetchUpcomingPlanned(
     lookbackDays?: number;
     /** Raise above Today’s default cap (glance only). */
     maxLimit?: number;
-  } = {}
+  } = {},
 ): Promise<PlannedListItem[]> {
   const maxLimit = options.maxLimit ?? UPCOMING_PLANNED_LIMIT;
   const limit = Math.min(Math.max(options.limit ?? UPCOMING_PLANNED_LIMIT, 1), maxLimit);
@@ -102,7 +104,7 @@ async function fetchPlannedInRange(options: {
   const response = await apiFetch(`/api/planned-workouts?${params.toString()}`);
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, `Failed to load planned workouts (${response.status})`)
+      await readErrorMessage(response, `Failed to load planned workouts (${response.status})`),
     );
   }
   const json = (await response.json()) as PlannedListItemApi[];
@@ -113,7 +115,7 @@ async function fetchPlannedInRange(options: {
 /** Workouts for Athlete activity glance — date-ranged, paginated, not Today’s limit-10 list. */
 export async function fetchWorkoutsForActivityGlance(
   start: Date,
-  end: Date
+  end: Date,
 ): Promise<ActivityListItem[]> {
   const all: ActivityListItem[] = [];
   for (let page = 0; page < ACTIVITY_GLANCE_WORKOUT_MAX_PAGES; page += 1) {
@@ -126,7 +128,9 @@ export async function fetchWorkoutsForActivityGlance(
     });
     const response = await apiFetch(`/api/workouts?${params.toString()}`);
     if (!response.ok) {
-      throw new Error(await readErrorMessage(response, `Failed to load workouts (${response.status})`));
+      throw new Error(
+        await readErrorMessage(response, `Failed to load workouts (${response.status})`),
+      );
     }
     const json = (await response.json()) as WorkoutListItemApi[];
     if (!Array.isArray(json) || json.length === 0) break;
@@ -139,7 +143,7 @@ export async function fetchWorkoutsForActivityGlance(
 /** Planned workouts for Athlete activity glance window. */
 export async function fetchPlannedForActivityGlance(
   start: Date,
-  end: Date
+  end: Date,
 ): Promise<PlannedListItem[]> {
   return fetchPlannedInRange({
     start,
@@ -150,11 +154,13 @@ export async function fetchPlannedForActivityGlance(
 
 export async function fetchActivitySummary(
   id: string,
-  distanceUnits: DistanceDisplayUnits = 'Kilometers'
+  distanceUnits: DistanceDisplayUnits = 'Kilometers',
 ): Promise<ActivitySummary> {
   const response = await apiFetch(`/api/workouts/${encodeURIComponent(id)}?includeStreams=false`);
   if (!response.ok) {
-    throw new Error(await readErrorMessage(response, `Failed to load workout (${response.status})`));
+    throw new Error(
+      await readErrorMessage(response, `Failed to load workout (${response.status})`),
+    );
   }
   const json = (await response.json()) as WorkoutSummaryApi;
   return mapWorkoutSummary(json, distanceUnits);
@@ -174,7 +180,9 @@ export async function fetchActivityStreamCharts(id: string): Promise<ActivityStr
   const response = await apiFetch(`/api/workouts/${encodeURIComponent(id)}/streams`);
   if (response.status === 404) return null;
   if (!response.ok) {
-    throw new Error(await readErrorMessage(response, `Failed to load streams (${response.status})`));
+    throw new Error(
+      await readErrorMessage(response, `Failed to load streams (${response.status})`),
+    );
   }
   const json = (await response.json()) as WorkoutStreamsApi;
   return mapActivityStreamCharts(json);
@@ -185,7 +193,7 @@ export async function fetchActivityPowerCurve(id: string): Promise<PowerCurveCha
   if (response.status === 404) return null;
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, `Failed to load power curve (${response.status})`)
+      await readErrorMessage(response, `Failed to load power curve (${response.status})`),
     );
   }
   const json = (await response.json()) as PowerCurveApi;
@@ -202,7 +210,7 @@ export async function requestWorkoutAnalysis(id: string): Promise<void> {
       response,
       response.status === 403
         ? 'Analysis requires workout write permission. Sign out and sign in again.'
-        : `Failed to start analysis (${response.status})`
+        : `Failed to start analysis (${response.status})`,
     );
     throw new AnalyzeWorkoutError(message, response.status);
   }
@@ -212,7 +220,7 @@ export async function fetchPlannedWorkoutDetail(id: string): Promise<PlannedDeta
   const response = await apiFetch(`/api/planned-workouts/${encodeURIComponent(id)}`);
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, `Failed to load planned workout (${response.status})`)
+      await readErrorMessage(response, `Failed to load planned workout (${response.status})`),
     );
   }
   const json = (await response.json()) as PlannedDetailApi;
@@ -231,7 +239,7 @@ export async function fetchPlannedWorkout(id: string): Promise<Record<string, un
 /** Mark planned workout completed. Requires Bearer `workout:write`. */
 export async function completePlannedWorkout(
   id: string,
-  options: { workoutId?: string } = {}
+  options: { workoutId?: string } = {},
 ): Promise<void> {
   const response = await apiFetch(`/api/planned-workouts/${encodeURIComponent(id)}/complete`, {
     method: 'POST',
@@ -246,8 +254,8 @@ export async function completePlannedWorkout(
         response,
         response.status === 403
           ? 'Completing a workout requires write permission. Sign out and sign in again.'
-          : `Failed to complete workout (${response.status})`
-      )
+          : `Failed to complete workout (${response.status})`,
+      ),
     );
   }
 }
@@ -263,8 +271,8 @@ export async function skipPlannedWorkout(id: string): Promise<void> {
         response,
         response.status === 403
           ? 'Skipping a workout requires write permission. Sign out and sign in again.'
-          : `Failed to skip workout (${response.status})`
-      )
+          : `Failed to skip workout (${response.status})`,
+      ),
     );
   }
 }
@@ -272,11 +280,9 @@ export async function skipPlannedWorkout(id: string): Promise<void> {
 /** Fueling prep for a planned workout. Requires Bearer `nutrition:read`. Soft-fails to null. */
 export async function fetchPlannedFuelingPrep(
   id: string,
-  strategy?: string | null
+  strategy?: string | null,
 ): Promise<FuelingPrepGlance | null> {
-  const response = await apiFetch(
-    `/api/workouts/planned/${encodeURIComponent(id)}/fueling`
-  );
+  const response = await apiFetch(`/api/workouts/planned/${encodeURIComponent(id)}/fueling`);
   if (response.status === 401 || response.status === 403 || response.status === 404) {
     return null;
   }

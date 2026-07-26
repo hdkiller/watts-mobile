@@ -91,7 +91,7 @@ function weekdayShort(dateKey: string): string {
 export function computeWeekGlance(
   recent: ActivityListItem[] | undefined,
   planned: PlannedListItem[] | undefined,
-  now = new Date()
+  now = new Date(),
 ): WeekGlance {
   const { keys } = weekRangeContaining(now);
   const keySet = new Set(keys);
@@ -106,7 +106,8 @@ export function computeWeekGlance(
   for (const item of recent ?? []) {
     const key = localDateKey(item.date);
     if (!key || !keySet.has(key)) continue;
-    const dur = item.durationSec != null && Number.isFinite(item.durationSec) ? item.durationSec : 0;
+    const dur =
+      item.durationSec != null && Number.isFinite(item.durationSec) ? item.durationSec : 0;
     const tss = item.tss != null && Number.isFinite(item.tss) ? item.tss : 0;
     doneDurationSec += dur;
     doneTss += tss;

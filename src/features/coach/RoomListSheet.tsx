@@ -1,12 +1,5 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
-import {
-  FlatList,
-  Modal,
-  Platform,
-  Pressable,
-  Text,
-  View,
-} from 'react-native';
+import { FlatList, Modal, Platform, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Skeleton } from '@/src/components/Skeleton';
@@ -62,7 +55,12 @@ export function RoomListSheet({
   onRefresh: () => void;
 }) {
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
       <SafeAreaView className="flex-1 bg-surface" edges={sheetEdges}>
         <View className="flex-row items-center justify-between border-b border-border px-5 py-4">
           <Text className="text-xl font-semibold text-text-primary">Chats</Text>
@@ -77,7 +75,7 @@ export function RoomListSheet({
         </View>
 
         <Pressable
-          className="mx-5 mt-4 mb-3 items-center rounded-xl bg-brand py-3.5 active:opacity-80"
+          className="mx-5 mb-3 mt-4 items-center rounded-xl bg-brand py-3.5 active:opacity-80"
           onPress={onCreate}
         >
           <Text className="text-base font-semibold text-ink">New chat</Text>

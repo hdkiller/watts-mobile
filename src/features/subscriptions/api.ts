@@ -6,7 +6,11 @@ import type { SubscriptionSummary } from './types';
 async function parse(response: Response): Promise<SubscriptionSummary> {
   if (!response.ok) {
     let body: unknown;
-    try { body = await response.json(); } catch { body = undefined; }
+    try {
+      body = await response.json();
+    } catch {
+      body = undefined;
+    }
     throw new ApiError(`Subscription request failed (${response.status})`, response.status, body);
   }
   return (await response.json()) as SubscriptionSummary;

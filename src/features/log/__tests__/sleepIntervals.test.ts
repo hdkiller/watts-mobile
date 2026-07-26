@@ -8,7 +8,7 @@ describe('mergeIntervalDurationMs', () => {
       mergeIntervalDurationMs([
         { start: 0, end: 1000 },
         { start: 2000, end: 3000 },
-      ])
+      ]),
     ).toBe(2000);
   });
 
@@ -19,14 +19,14 @@ describe('mergeIntervalDurationMs', () => {
       mergeIntervalDurationMs([
         { start: 0, end: sevenHours },
         { start: 0, end: sevenHours },
-      ])
+      ]),
     ).toBe(sevenHours);
 
     expect(
       mergeIntervalDurationMs([
         { start: 0, end: 4 * 3600_000 },
         { start: 3 * 3600_000, end: 7 * 3600_000 },
-      ])
+      ]),
     ).toBe(7 * 3600_000);
   });
 });

@@ -139,9 +139,7 @@ export default function EventDetailScreen() {
                   >
                     <View className="min-w-0 flex-1">
                       <Text className="text-base font-medium text-text-primary">{goal.title}</Text>
-                      {meta ? (
-                        <Text className="mt-1 text-sm text-text-muted">{meta}</Text>
-                      ) : null}
+                      {meta ? <Text className="mt-1 text-sm text-text-muted">{meta}</Text> : null}
                     </View>
                     <AppSymbol
                       sf="chevron.right"

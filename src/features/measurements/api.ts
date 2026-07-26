@@ -17,15 +17,13 @@ export async function fetchBodyMeasurements(limit = 50): Promise<BodyMeasurement
   const response = await apiFetch(`/api/body-measurements?${params.toString()}`);
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, `Failed to load measurements (${response.status})`)
+      await readErrorMessage(response, `Failed to load measurements (${response.status})`),
     );
   }
   return parseBodyMeasurementsResponse(await response.json());
 }
 
-export async function createBodyMeasurement(
-  payload: CreateBodyMeasurementPayload
-): Promise<void> {
+export async function createBodyMeasurement(payload: CreateBodyMeasurementPayload): Promise<void> {
   const response = await apiFetch('/api/body-measurements', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -33,7 +31,7 @@ export async function createBodyMeasurement(
   });
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, `Failed to save measurement (${response.status})`)
+      await readErrorMessage(response, `Failed to save measurement (${response.status})`),
     );
   }
 }
@@ -46,7 +44,7 @@ export async function softDeleteBodyMeasurement(id: string): Promise<void> {
   });
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, `Failed to delete measurement (${response.status})`)
+      await readErrorMessage(response, `Failed to delete measurement (${response.status})`),
     );
   }
 }

@@ -1,14 +1,7 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { router } from 'expo-router';
 import { useState } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { friendlyError } from '@/src/api/errors';
@@ -55,7 +48,7 @@ export default function InstanceScreen() {
             Enter your Coach Watts instance URL. Use the hosted app or your self-hosted base URL.
           </Text>
 
-          <Text className="mt-8 mb-2 text-sm text-text-muted">Instance URL</Text>
+          <Text className="mb-2 mt-8 text-sm text-text-muted">Instance URL</Text>
           <TextInput
             className="rounded-xl border border-border-strong bg-card px-4 py-3 text-base text-text-primary"
             autoCapitalize="none"

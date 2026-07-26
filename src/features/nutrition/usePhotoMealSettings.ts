@@ -16,12 +16,12 @@ export function usePhotoMealSettings() {
   const sourceMode = useSyncExternalStore(
     subscribePhotoMealSettings,
     getPhotoSourceModeSync,
-    getPhotoSourceModeSync
+    getPhotoSourceModeSync,
   );
   const saveToLibrary = useSyncExternalStore(
     subscribePhotoMealSettings,
     getSavePhotoToLibrarySync,
-    getSavePhotoToLibrarySync
+    getSavePhotoToLibrarySync,
   );
   const [ready, setReady] = useState(isPhotoMealSettingsHydrated());
 

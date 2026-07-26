@@ -13,7 +13,10 @@ function startOfLocalDay(d: Date): Date {
 }
 
 /** Whole local calendar days from today to event date (can be negative if past). */
-export function daysUntilLocal(eventDate: string | Date | null | undefined, now = new Date()): number | null {
+export function daysUntilLocal(
+  eventDate: string | Date | null | undefined,
+  now = new Date(),
+): number | null {
   const key = localDateKey(eventDate);
   if (!key) return null;
   const [y, m, d] = key.split('-').map(Number);
@@ -30,7 +33,9 @@ export function countdownLabel(daysUntil: number): string {
 }
 
 /** Prefer city, country; fall back to freeform location (web calendar parity). */
-export function formatEventLocation(raw: Pick<EventApi, 'city' | 'country' | 'location'>): string | null {
+export function formatEventLocation(
+  raw: Pick<EventApi, 'city' | 'country' | 'location'>,
+): string | null {
   const cityCountry = [raw.city?.trim(), raw.country?.trim()].filter(Boolean).join(', ');
   if (cityCountry) return cityCountry;
   const location = raw.location?.trim();
@@ -45,9 +50,10 @@ export function formatEventMeta(raw: EventApi): string {
   return type;
 }
 
-function monthDayLabels(
-  eventDate: string | Date | null | undefined
-): { monthLabel: string | null; dayLabel: string | null } {
+function monthDayLabels(eventDate: string | Date | null | undefined): {
+  monthLabel: string | null;
+  dayLabel: string | null;
+} {
   const key = localDateKey(eventDate);
   if (!key) return { monthLabel: null, dayLabel: null };
   const [y, m, d] = key.split('-').map(Number);
@@ -114,7 +120,10 @@ export function mapEventGlance(raw: EventApi, now = new Date()): CalendarEventGl
 }
 
 /** Upcoming events sorted soonest-first; past excluded. */
-export function mapUpcomingEvents(raw: EventApi[] | undefined, now = new Date()): CalendarEventGlance[] {
+export function mapUpcomingEvents(
+  raw: EventApi[] | undefined,
+  now = new Date(),
+): CalendarEventGlance[] {
   const glances = (raw ?? [])
     .map((e) => mapEventGlance(e, now))
     .filter((e): e is CalendarEventGlance => e != null);
@@ -122,7 +131,9 @@ export function mapUpcomingEvents(raw: EventApi[] | undefined, now = new Date())
   return glances;
 }
 
-export function pickNextEvent(events: CalendarEventGlance[] | undefined): CalendarEventGlance | null {
+export function pickNextEvent(
+  events: CalendarEventGlance[] | undefined,
+): CalendarEventGlance | null {
   return events?.[0] ?? null;
 }
 
@@ -138,11 +149,11 @@ export function mapEventDetail(raw: EventApi, now = new Date()): EventDetail | n
   const distance =
     raw.distance != null && Number.isFinite(raw.distance) ? Number(raw.distance) : null;
   const elevation =
-    raw.elevation != null && Number.isFinite(raw.elevation) ? Math.round(Number(raw.elevation)) : null;
+    raw.elevation != null && Number.isFinite(raw.elevation)
+      ? Math.round(Number(raw.elevation))
+      : null;
 
-  const goals = (raw.goals ?? [])
-    .map(mapGoalGlance)
-    .filter((g): g is EventGoalGlance => g != null);
+  const goals = (raw.goals ?? []).map(mapGoalGlance).filter((g): g is EventGoalGlance => g != null);
 
   return {
     id: raw.id,

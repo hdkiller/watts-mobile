@@ -8,13 +8,13 @@ import { SafeAreaView } from 'react-native-screens/experimental';
 import { useAuth } from '@/src/auth/AuthContext';
 import { AppSymbol } from '@/src/components/AppSymbol';
 import { getHealthAuthStatus } from '@/src/features/log/healthAuth';
-import {
-  logTabPreferenceLabel } from '@/src/features/log/logTabPreference';
+import { logTabPreferenceLabel } from '@/src/features/log/logTabPreference';
 import { useLogTabPreference } from '@/src/features/log/useLogTabPreference';
 import {
   dangerZoneWebPath,
   isNutritionTrackingEnabled,
-  profileSettingsWebPath } from '@/src/features/profile/mapProfile';
+  profileSettingsWebPath,
+} from '@/src/features/profile/mapProfile';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { themePreferenceLabel } from '@/src/theme/themePreference';
 import { useThemeColors } from '@/src/theme/useThemeColors';
@@ -35,9 +35,7 @@ function RowIcon({ sf }: { sf: SFSymbol }) {
 
 function Chevron() {
   const theme = useThemeColors();
-  return (
-    <AppSymbol sf="chevron.right" size={14} tintColor={theme.textMuted} fallback="›" />
-  );
+  return <AppSymbol sf="chevron.right" size={14} tintColor={theme.textMuted} fallback="›" />;
 }
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
@@ -70,9 +68,7 @@ function MenuRow({
 }) {
   const body = (
     <View
-      className={`flex-row items-center px-4 py-3.5 ${
-        isLast ? '' : 'border-b border-border/80'
-      }`}
+      className={`flex-row items-center px-4 py-3.5 ${isLast ? '' : 'border-b border-border/80'}`}
     >
       <RowIcon sf={sf} />
       <View className="min-w-0 flex-1">
@@ -180,8 +176,9 @@ export default function SettingsScreen() {
           onPress: async () => {
             await signOut();
             router.replace('/(auth)/instance');
-          } },
-      ]
+          },
+        },
+      ],
     );
   };
 
@@ -194,8 +191,9 @@ export default function SettingsScreen() {
         {
           text: 'Open Coach Watts',
           style: 'destructive',
-          onPress: () => void openWebPath(dangerZoneWebPath()) },
-      ]
+          onPress: () => void openWebPath(dangerZoneWebPath()),
+        },
+      ],
     );
   };
 
@@ -204,20 +202,16 @@ export default function SettingsScreen() {
       <Stack.Screen
         options={{
           title: 'Settings',
-          headerShown: true }}
+          headerShown: true,
+        }}
       />
       <SafeAreaView
         testID="settings-screen"
         edges={{ bottom: true }}
         style={{ flex: 1, backgroundColor: theme.surface }}
       >
-        <ScrollView
-          className="flex-1 bg-surface"
-          contentContainerClassName="px-6 pb-12 pt-4"
-        >
-          <Text className="text-sm text-text-muted">
-            Preferences for this device.
-          </Text>
+        <ScrollView className="flex-1 bg-surface" contentContainerClassName="px-6 pb-12 pt-4">
+          <Text className="text-sm text-text-muted">Preferences for this device.</Text>
 
           <Section title="Integrations & Data">
             <MenuRow
@@ -307,11 +301,7 @@ export default function SettingsScreen() {
               sf="square.and.arrow.up"
               onPress={() => void openWebPath(dangerZoneWebPath())}
             />
-            <MenuRow
-              title="Delete account"
-              sf="trash"
-              onPress={handleDeleteAccount}
-            />
+            <MenuRow title="Delete account" sf="trash" onPress={handleDeleteAccount} />
             <MenuRow
               title="Open Profile Settings"
               sf="globe"

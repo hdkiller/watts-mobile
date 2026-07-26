@@ -9,7 +9,10 @@ import { friendlyError } from '@/src/api/errors';
 import { Button } from '@/src/components/Button';
 import { Skeleton } from '@/src/components/Skeleton';
 import { PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from '@/src/features/account/paths';
-import { canAcquireNativeSubscription, isOfficialHostedInstance } from '@/src/features/subscriptions/gating';
+import {
+  canAcquireNativeSubscription,
+  isOfficialHostedInstance,
+} from '@/src/features/subscriptions/gating';
 import {
   purchaseStorePackage,
   restoreStorePurchases,
@@ -45,7 +48,9 @@ export default function SubscriptionScreen() {
       await reconcile.mutateAsync();
       setMessage(successMessage);
     } catch {
-      setMessage('The store completed the action, but Coach Watts is still confirming it. Pull to refresh shortly.');
+      setMessage(
+        'The store completed the action, but Coach Watts is still confirming it. Pull to refresh shortly.',
+      );
     } finally {
       setOperation(null);
     }
@@ -57,8 +62,10 @@ export default function SubscriptionScreen() {
     try {
       const outcome = await purchaseStorePackage(item);
       if (outcome === 'cancelled') setMessage('Purchase canceled. Nothing was charged.');
-      if (outcome === 'pending') setMessage('Payment is pending. Access will update after the store confirms it.');
-      if (outcome === 'purchased') await confirmWithServer('Subscription confirmed. Your Coach Watts access is up to date.');
+      if (outcome === 'pending')
+        setMessage('Payment is pending. Access will update after the store confirms it.');
+      if (outcome === 'purchased')
+        await confirmWithServer('Subscription confirmed. Your Coach Watts access is up to date.');
     } catch (error) {
       setMessage(friendlyError(error, 'Purchase could not be completed'));
     } finally {
@@ -84,11 +91,12 @@ export default function SubscriptionScreen() {
   };
 
   const manage = async (provider: SubscriptionProvider, managementUrl: string | null) => {
-    const fallback = provider === 'APPLE'
-      ? 'https://apps.apple.com/account/subscriptions'
-      : provider === 'GOOGLE'
-        ? 'https://play.google.com/store/account/subscriptions'
-        : `${instanceUrl?.replace(/\/$/, '')}/profile/settings?tab=billing`;
+    const fallback =
+      provider === 'APPLE'
+        ? 'https://apps.apple.com/account/subscriptions'
+        : provider === 'GOOGLE'
+          ? 'https://play.google.com/store/account/subscriptions'
+          : `${instanceUrl?.replace(/\/$/, '')}/profile/settings?tab=billing`;
     await Linking.openURL(managementUrl || fallback);
   };
 
@@ -98,7 +106,9 @@ export default function SubscriptionScreen() {
       <SafeAreaView edges={{ bottom: true }} style={{ flex: 1, backgroundColor: theme.surface }}>
         <ScrollView className="flex-1 bg-surface" contentContainerClassName="px-6 pb-12 pt-5">
           <View className="rounded-2xl border border-border bg-card p-5">
-            <Text className="text-xs font-semibold uppercase tracking-widest text-text-muted">Current access</Text>
+            <Text className="text-xs font-semibold uppercase tracking-widest text-text-muted">
+              Current access
+            </Text>
             {summary.isLoading ? (
               <View className="mt-4 gap-3">
                 <Skeleton className="h-8 w-32" />
@@ -116,13 +126,24 @@ export default function SubscriptionScreen() {
             ) : null}
             {summary.data ? (
               <>
-                <Text className="mt-2 text-2xl font-semibold text-text-primary">{summary.data.tier}</Text>
+                <Text className="mt-2 text-2xl font-semibold text-text-primary">
+                  {summary.data.tier}
+                </Text>
                 {summary.data.subscriptions.map((item) => (
-                  <View key={`${item.provider}:${item.productId}`} className="mt-4 border-t border-border pt-4">
-                    <Text className="font-semibold text-text-primary">{providerLabels[item.provider]}</Text>
-                    <Text className="mt-1 text-sm text-text-muted">{item.status.replaceAll('_', ' ')}</Text>
+                  <View
+                    key={`${item.provider}:${item.productId}`}
+                    className="mt-4 border-t border-border pt-4"
+                  >
+                    <Text className="font-semibold text-text-primary">
+                      {providerLabels[item.provider]}
+                    </Text>
+                    <Text className="mt-1 text-sm text-text-muted">
+                      {item.status.replaceAll('_', ' ')}
+                    </Text>
                     {item.entitlementEnd ? (
-                      <Text className="mt-1 text-sm text-text-muted">Access through {new Date(item.entitlementEnd).toLocaleDateString()}</Text>
+                      <Text className="mt-1 text-sm text-text-muted">
+                        Access through {new Date(item.entitlementEnd).toLocaleDateString()}
+                      </Text>
                     ) : null}
                     <Button
                       className="mt-3"
@@ -139,28 +160,41 @@ export default function SubscriptionScreen() {
           {summary.data?.hasCollision ? (
             <View className="mt-4 rounded-xl border border-modify/40 bg-modify/10 p-4">
               <Text className="font-semibold text-text-primary">Multiple active subscriptions</Text>
-              <Text className="mt-1 text-sm text-text-muted">Your highest tier is active. Manage the subscription you no longer want with its provider above; Coach Watts will not cancel it automatically.</Text>
+              <Text className="mt-1 text-sm text-text-muted">
+                Your highest tier is active. Manage the subscription you no longer want with its
+                provider above; Coach Watts will not cancel it automatically.
+              </Text>
             </View>
           ) : null}
 
           {!hosted ? (
             <View className="mt-6 rounded-xl border border-border bg-card p-4">
               <Text className="font-semibold text-text-primary">Managed by this instance</Text>
-              <Text className="mt-2 text-sm leading-5 text-text-muted">Store purchases and restores are available only on the official hosted Coach Watts service. This screen shows access reported by your current instance.</Text>
+              <Text className="mt-2 text-sm leading-5 text-text-muted">
+                Store purchases and restores are available only on the official hosted Coach Watts
+                service. This screen shows access reported by your current instance.
+              </Text>
             </View>
           ) : null}
 
           {hosted && !acquisitionEnabled ? (
             <View className="mt-6 rounded-xl border border-border bg-card p-4">
-              <Text className="font-semibold text-text-primary">Store subscriptions are not available yet</Text>
-              <Text className="mt-2 text-sm text-text-muted">Existing access remains active. Native purchase acquisition is currently disabled.</Text>
+              <Text className="font-semibold text-text-primary">
+                Store subscriptions are not available yet
+              </Text>
+              <Text className="mt-2 text-sm text-text-muted">
+                Existing access remains active. Native purchase acquisition is currently disabled.
+              </Text>
             </View>
           ) : null}
 
           {acquisitionEnabled && !summary.data?.acquisitionSuppressed ? (
             <View className="mt-8">
               <Text className="text-2xl font-semibold text-text-primary">Choose a plan</Text>
-              <Text className="mt-2 text-sm leading-5 text-text-muted">Payment is charged to your store account. Subscriptions renew automatically unless canceled in store settings before renewal.</Text>
+              <Text className="mt-2 text-sm leading-5 text-text-muted">
+                Payment is charged to your store account. Subscriptions renew automatically unless
+                canceled in store settings before renewal.
+              </Text>
               {offerings.isLoading ? (
                 <View className="mt-6 gap-3">
                   <Skeleton className="h-24 w-full rounded-2xl" />
@@ -168,11 +202,18 @@ export default function SubscriptionScreen() {
                 </View>
               ) : null}
               {offerings.data?.map((item) => (
-                <View key={`${item.tier}:${item.period}:${item.id}`} className="mt-4 rounded-2xl border border-border bg-card p-5">
+                <View
+                  key={`${item.tier}:${item.period}:${item.id}`}
+                  className="mt-4 rounded-2xl border border-border bg-card p-5"
+                >
                   <View className="flex-row items-start justify-between gap-3">
                     <View className="flex-1">
-                      <Text className="text-lg font-semibold text-text-primary">{item.tier === 'PRO' ? 'Pro' : 'Supporter'}</Text>
-                      <Text className="mt-1 text-sm text-text-muted">{item.period === 'ANNUAL' ? 'Annual' : 'Monthly'} subscription</Text>
+                      <Text className="text-lg font-semibold text-text-primary">
+                        {item.tier === 'PRO' ? 'Pro' : 'Supporter'}
+                      </Text>
+                      <Text className="mt-1 text-sm text-text-muted">
+                        {item.period === 'ANNUAL' ? 'Annual' : 'Monthly'} subscription
+                      </Text>
                     </View>
                     <Text className="text-lg font-semibold text-brand">{item.price}</Text>
                   </View>
@@ -186,7 +227,9 @@ export default function SubscriptionScreen() {
                 </View>
               ))}
               {!offerings.isLoading && offerings.data?.length === 0 ? (
-                <Text className="mt-4 text-sm text-text-muted">No store packages are available for this app build.</Text>
+                <Text className="mt-4 text-sm text-text-muted">
+                  No store packages are available for this app build.
+                </Text>
               ) : null}
             </View>
           ) : null}
@@ -201,8 +244,12 @@ export default function SubscriptionScreen() {
               onPress={() => void restore()}
             />
           ) : null}
-          {operation ? <Text className="mt-4 text-center text-sm text-text-muted">{operation}</Text> : null}
-          {message ? <Text className="mt-4 text-center text-sm text-text-primary">{message}</Text> : null}
+          {operation ? (
+            <Text className="mt-4 text-center text-sm text-text-muted">{operation}</Text>
+          ) : null}
+          {message ? (
+            <Text className="mt-4 text-center text-sm text-text-primary">{message}</Text>
+          ) : null}
 
           <View className="mt-8 flex-row justify-center gap-6">
             <Pressable hitSlop={8} onPress={() => void Linking.openURL(TERMS_OF_SERVICE_URL)}>

@@ -56,10 +56,7 @@ export function PortionCalculatorModal({
 
   const grams = useMemo(() => parseGrams(gramsInput), [gramsInput]);
 
-  const calculated = useMemo(
-    () => scalePortion(item?.nutrients_per_100g, grams),
-    [item, grams]
-  );
+  const calculated = useMemo(() => scalePortion(item?.nutrients_per_100g, grams), [item, grams]);
 
   if (!item) return null;
 
@@ -104,14 +101,14 @@ export function PortionCalculatorModal({
 
         <View
           testID="portion-calculator-modal"
-          className="rounded-t-3xl bg-surface px-6 pt-4 pb-10"
+          className="rounded-t-3xl bg-surface px-6 pb-10 pt-4"
           style={{ maxHeight: '85%', minHeight: 0 }}
         >
           {/* Sheet Handle */}
           <View className="mb-4 h-1 w-10 self-center rounded-full bg-border-strong" />
 
           {/* Header */}
-          <View className="flex-row items-center justify-between mb-4">
+          <View className="mb-4 flex-row items-center justify-between">
             <View className="flex-1 pr-3">
               <Text className="text-xl font-bold text-text-primary" numberOfLines={1}>
                 {item.name}
@@ -160,9 +157,7 @@ export function PortionCalculatorModal({
                       key={preset}
                       onPress={() => handlePresetGrams(preset)}
                       className={`rounded-full border px-3 py-1 ${
-                        isSelected
-                          ? 'border-brand bg-tint-success'
-                          : 'border-border bg-surface'
+                        isSelected ? 'border-brand bg-tint-success' : 'border-border bg-surface'
                       }`}
                     >
                       <Text
@@ -184,7 +179,7 @@ export function PortionCalculatorModal({
                 Nutritional Breakdown ({grams}g)
               </Text>
 
-              <View className="flex-row items-baseline gap-1 mb-4">
+              <View className="mb-4 flex-row items-baseline gap-1">
                 <Text className="text-3xl font-extrabold text-text-primary">
                   {calculated.calories}
                 </Text>
@@ -192,20 +187,24 @@ export function PortionCalculatorModal({
               </View>
 
               <View className="flex-row gap-3">
-                <View className="flex-1 rounded-xl bg-surface p-3 border border-border">
-                  <Text className="text-[11px] font-semibold text-macro-carbs uppercase">Carbs</Text>
+                <View className="flex-1 rounded-xl border border-border bg-surface p-3">
+                  <Text className="text-[11px] font-semibold uppercase text-macro-carbs">
+                    Carbs
+                  </Text>
                   <Text className="mt-1 text-lg font-bold text-text-primary">
                     {calculated.carbs}g
                   </Text>
                 </View>
-                <View className="flex-1 rounded-xl bg-surface p-3 border border-border">
-                  <Text className="text-[11px] font-semibold text-macro-protein uppercase">Protein</Text>
+                <View className="flex-1 rounded-xl border border-border bg-surface p-3">
+                  <Text className="text-[11px] font-semibold uppercase text-macro-protein">
+                    Protein
+                  </Text>
                   <Text className="mt-1 text-lg font-bold text-text-primary">
                     {calculated.protein}g
                   </Text>
                 </View>
-                <View className="flex-1 rounded-xl bg-surface p-3 border border-border">
-                  <Text className="text-[11px] font-semibold text-macro-fat uppercase">Fat</Text>
+                <View className="flex-1 rounded-xl border border-border bg-surface p-3">
+                  <Text className="text-[11px] font-semibold uppercase text-macro-fat">Fat</Text>
                   <Text className="mt-1 text-lg font-bold text-text-primary">
                     {calculated.fat}g
                   </Text>
@@ -213,11 +212,7 @@ export function PortionCalculatorModal({
               </View>
             </View>
 
-            <Button
-              label="Add to Meal Log"
-              onPress={handleApply}
-              disabled={grams <= 0}
-            />
+            <Button label="Add to Meal Log" onPress={handleApply} disabled={grams <= 0} />
           </ScrollView>
         </View>
       </KeyboardAvoidingView>

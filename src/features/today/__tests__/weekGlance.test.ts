@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
 import type { ActivityListItem, PlannedListItem } from '@/src/features/activity/types';
-import { computeWeekGlance, localDateKey, weekRangeContaining } from '@/src/features/today/weekGlance';
+import {
+  computeWeekGlance,
+  localDateKey,
+  weekRangeContaining,
+} from '@/src/features/today/weekGlance';
 
 function activity(
-  partial: Partial<ActivityListItem> & { date: string; durationSec?: number; tss?: number }
+  partial: Partial<ActivityListItem> & { date: string; durationSec?: number; tss?: number },
 ): ActivityListItem {
   return {
     id: partial.id ?? 'a1',
@@ -19,7 +23,7 @@ function activity(
 }
 
 function planned(
-  partial: Partial<PlannedListItem> & { date: string; tss?: number }
+  partial: Partial<PlannedListItem> & { date: string; tss?: number },
 ): PlannedListItem {
   return {
     id: partial.id ?? 'p1',
@@ -46,8 +50,11 @@ describe('weekGlance', () => {
         activity({ date: '2026-07-14T10:00:00', durationSec: 7200, tss: 100 }),
         activity({ date: '2026-07-01T10:00:00', durationSec: 3600, tss: 40 }), // outside week
       ],
-      [planned({ date: '2026-07-16T10:00:00', tss: 90 }), planned({ date: '2026-07-17T10:00:00', tss: 70 })],
-      now
+      [
+        planned({ date: '2026-07-16T10:00:00', tss: 90 }),
+        planned({ date: '2026-07-17T10:00:00', tss: 70 }),
+      ],
+      now,
     );
 
     expect(glance.doneDurationLabel).toBe('2h');
@@ -74,7 +81,7 @@ describe('weekGlance', () => {
     const glance = computeWeekGlance(
       [activity({ date: '2026-07-14T10:00:00', durationSec: 3600, tss: 80 })],
       [planned({ date: '2026-07-16T10:00:00', tss: 70 })],
-      now
+      now,
     );
     const done = glance.days.find((d) => d.dateKey === '2026-07-14')!;
     const plannedDay = glance.days.find((d) => d.dateKey === '2026-07-16')!;

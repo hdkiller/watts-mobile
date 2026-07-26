@@ -17,9 +17,7 @@ export function isValidCalendarYmd(ymd: string): boolean {
   const [year, month, day] = ymd.split('-').map((part) => Number(part));
   if (!year || !month || !day) return false;
   const local = new Date(year, month - 1, day);
-  return (
-    local.getFullYear() === year && local.getMonth() === month - 1 && local.getDate() === day
-  );
+  return local.getFullYear() === year && local.getMonth() === month - 1 && local.getDate() === day;
 }
 
 /** Local YYYY-MM-DD after adding calendar months (avoids UTC off-by-one from toISOString). */
@@ -44,12 +42,12 @@ function asSubjective(value: unknown): number | null {
 export function formHasContent(values: LogFormValues): boolean {
   return Boolean(
     values.mood != null ||
-      values.stress != null ||
-      values.fatigue != null ||
-      values.soreness != null ||
-      values.sleepHours.trim() ||
-      values.notes.trim() ||
-      values.weight.trim()
+    values.stress != null ||
+    values.fatigue != null ||
+    values.soreness != null ||
+    values.sleepHours.trim() ||
+    values.notes.trim() ||
+    values.weight.trim(),
   );
 }
 
@@ -60,7 +58,7 @@ export function formHasContent(values: LogFormValues): boolean {
 export function toWellnessPayload(
   values: LogFormValues,
   date = localDateYmd(),
-  weightUnits: WeightUnits = 'Kilograms'
+  weightUnits: WeightUnits = 'Kilograms',
 ): WellnessUploadPayload {
   const payload: WellnessUploadPayload = { date };
 
@@ -96,7 +94,7 @@ export function emptyLogForm(): LogFormValues {
 /** Hydrate form from server wellness (weight stored in kg → display units). */
 export function formFromWellness(
   day: WellnessDay | null,
-  weightUnits: WeightUnits = 'Kilograms'
+  weightUnits: WeightUnits = 'Kilograms',
 ): LogFormValues {
   if (!day) return emptyLogForm();
   const displayWeight = kgToDisplayWeight(day.weight, weightUnits);

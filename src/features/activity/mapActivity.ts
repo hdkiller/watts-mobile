@@ -95,9 +95,7 @@ const NAMED_ZONE_INDEX: Record<string, number> = {
  * Best-effort intensity from a structure step's label.
  * Only confident matches (`Z<n>`, `%FTP` / bare `%`, named zones) get color/height hints.
  */
-export function stepIntensity(step: {
-  intensityLabel?: string | null;
-}): StepIntensity {
+export function stepIntensity(step: { intensityLabel?: string | null }): StepIntensity {
   const raw = step.intensityLabel?.trim();
   if (!raw) return {};
 
@@ -152,7 +150,7 @@ export type DistanceDisplayUnits = 'Kilometers' | 'Miles';
 
 export function formatDistanceMeters(
   meters: unknown,
-  units: DistanceDisplayUnits = 'Kilometers'
+  units: DistanceDisplayUnits = 'Kilometers',
 ): string | null {
   if (typeof meters !== 'number' || !Number.isFinite(meters) || meters <= 0) return null;
   if (units === 'Miles') {
@@ -241,7 +239,7 @@ export function mapSyncLabel(status: string | null | undefined): string | null {
 
 export function mapWorkoutSummaryMetrics(
   raw: WorkoutSummaryApi,
-  distanceUnits: DistanceDisplayUnits = 'Kilometers'
+  distanceUnits: DistanceDisplayUnits = 'Kilometers',
 ): SummaryMetric[] {
   const metrics: SummaryMetric[] = [];
   const distance = formatDistanceMeters(raw.distanceMeters, distanceUnits);
@@ -302,7 +300,9 @@ export function mapPlanAdherence(raw: WorkoutSummaryApi): PlanAdherenceGlance | 
       : null;
 
   const status =
-    typeof adherence.analysisStatus === 'string' ? adherence.analysisStatus.trim().toUpperCase() : '';
+    typeof adherence.analysisStatus === 'string'
+      ? adherence.analysisStatus.trim().toUpperCase()
+      : '';
   let phase: PlanAdherenceGlance['phase'] = 'unknown';
   let statusLabel: string | null = null;
   if (status === 'COMPLETED' || status === 'READY') {
@@ -354,7 +354,9 @@ function mapExercisePrescription(exercise: WorkoutExerciseApi): string | null {
         ? sets[0].weightUnit.trim()
         : 'kg';
     const same = weights.every((w) => w === weights[0]);
-    bits.push(same ? `${weights[0]} ${unit}` : `${Math.min(...weights)}–${Math.max(...weights)} ${unit}`);
+    bits.push(
+      same ? `${weights[0]} ${unit}` : `${Math.min(...weights)}–${Math.max(...weights)} ${unit}`,
+    );
   }
   const rpes = sets.map((s) => s.rpe).filter((r): r is number => typeof r === 'number' && r > 0);
   if (rpes.length > 0) {
@@ -391,7 +393,7 @@ const FUEL_STATE_LABELS: Record<number, string> = {
 
 export function mapFuelingPrepGlance(
   raw: FuelingPrepApi | null | undefined,
-  strategy?: string | null
+  strategy?: string | null,
 ): FuelingPrepGlance | null {
   const plan = raw?.fuelingPlan;
   if (!plan || typeof plan !== 'object') return null;
@@ -447,10 +449,7 @@ function formatPaceMps(mps: number): string {
   return `${safeMins}:${String(safeSecs).padStart(2, '0')}/km`;
 }
 
-function mapZoneBands(
-  ranges: unknown,
-  formatBound: (n: number) => string
-): PlannedZoneBand[] {
+function mapZoneBands(ranges: unknown, formatBound: (n: number) => string): PlannedZoneBand[] {
   if (!Array.isArray(ranges)) return [];
   const bands: PlannedZoneBand[] = [];
   for (let i = 0; i < ranges.length && bands.length < ZONE_BAND_MAX; i++) {
@@ -721,12 +720,12 @@ export function mapActivityAnalysis(raw: WorkoutSummaryApi): ActivityAnalysis {
 
   const hasContent = Boolean(
     scores.length > 0 ||
-      executiveSummary ||
-      sections.length > 0 ||
-      recommendations.length > 0 ||
-      strengths.length > 0 ||
-      weaknesses.length > 0 ||
-      markdownFallback
+    executiveSummary ||
+    sections.length > 0 ||
+    recommendations.length > 0 ||
+    strengths.length > 0 ||
+    weaknesses.length > 0 ||
+    markdownFallback,
   );
 
   return {
@@ -746,7 +745,7 @@ export function mapActivityAnalysis(raw: WorkoutSummaryApi): ActivityAnalysis {
 
 export function mapWorkoutSummary(
   raw: WorkoutSummaryApi,
-  distanceUnits: DistanceDisplayUnits = 'Kilometers'
+  distanceUnits: DistanceDisplayUnits = 'Kilometers',
 ): ActivitySummary {
   const base = mapWorkoutListItem(raw);
   const adherence = mapPlanAdherence(raw);
@@ -768,7 +767,7 @@ export function mapWorkoutSummary(
 
 export function mapPlannedListItem(
   raw: PlannedListItemApi,
-  refs: ChartTargetRefs = emptyChartRefs()
+  refs: ChartTargetRefs = emptyChartRefs(),
 ): PlannedListItem {
   const structuredWorkout = raw.structuredWorkout;
   const chartBlocks =
@@ -817,17 +816,13 @@ function targetRangeBounds(range: StepTarget['range']): { min: number | null; ma
         ? range.start
         : null;
   const max =
-    typeof range.max === 'number'
-      ? range.max
-      : typeof range.end === 'number'
-        ? range.end
-        : null;
+    typeof range.max === 'number' ? range.max : typeof range.end === 'number' ? range.end : null;
   return { min, max };
 }
 
 function zoneLabelFromNumber(
   zoneNumber: number,
-  bands: PlannedZoneBand[] | null | undefined
+  bands: PlannedZoneBand[] | null | undefined,
 ): string | null {
   const n = Math.round(zoneNumber);
   if (!Number.isFinite(n) || n < 1 || n > 9) return null;
@@ -841,7 +836,7 @@ function zoneLabelFromNumber(
 
 function intensityFromZoneTarget(
   target: StepTarget,
-  bands: PlannedZoneBand[] | null | undefined
+  bands: PlannedZoneBand[] | null | undefined,
 ): string | null {
   if (!unitsLookLikeZone(target.units)) return null;
   if (typeof target.value === 'number') {
@@ -874,7 +869,7 @@ function formatPercentFtpLabel(raw: number): string {
 
 function intensityFromStep(
   step: Record<string, unknown>,
-  bands?: PlannedZoneBand[] | null
+  bands?: PlannedZoneBand[] | null,
 ): string | null {
   const rpe = step.rpe;
   if (typeof rpe === 'number') return `RPE ${rpe}`;
@@ -957,7 +952,7 @@ function flattenSteps(
   depth = 0,
   bands?: PlannedZoneBand[] | null,
   refs: ChartTargetRefs = emptyChartRefs(),
-  snapshot?: ZoneProfileSnapshot
+  snapshot?: ZoneProfileSnapshot,
 ): void {
   if (depth > 3) return;
   for (const node of nodes) {
@@ -1007,7 +1002,7 @@ function flattenSteps(
 
 function summarizeSetRowField(
   setRows: Record<string, unknown>[],
-  field: 'value' | 'loadValue'
+  field: 'value' | 'loadValue',
 ): string | null {
   const values = setRows
     .map((row) => {
@@ -1032,7 +1027,10 @@ function formatRestLabel(rest: string): string {
  */
 export function strengthPrescriptionLabel(exercise: Record<string, unknown>): string | null {
   const setRows = Array.isArray(exercise.setRows)
-    ? (exercise.setRows.filter((row) => row && typeof row === 'object') as Record<string, unknown>[])
+    ? (exercise.setRows.filter((row) => row && typeof row === 'object') as Record<
+        string,
+        unknown
+      >[])
     : [];
   const setsFromRows = setRows.length;
   const setsFromField = typeof exercise.sets === 'number' && exercise.sets > 0 ? exercise.sets : 0;
@@ -1053,9 +1051,7 @@ export function strengthPrescriptionLabel(exercise: Record<string, unknown>): st
             : null);
   const loadSummary =
     summarizeSetRowField(setRows, 'loadValue') ??
-    (typeof exercise.weight === 'string' && exercise.weight.trim()
-      ? exercise.weight.trim()
-      : null);
+    (typeof exercise.weight === 'string' && exercise.weight.trim() ? exercise.weight.trim() : null);
 
   const restOverride = setRows.find((row) => {
     const rest = row.restOverride;
@@ -1093,12 +1089,14 @@ export function strengthPrescriptionLabel(exercise: Record<string, unknown>): st
 }
 
 function strengthDurationSec(exercise: Record<string, unknown>): number | null {
-  const mode =
-    typeof exercise.prescriptionMode === 'string' ? exercise.prescriptionMode : null;
+  const mode = typeof exercise.prescriptionMode === 'string' ? exercise.prescriptionMode : null;
   if (mode !== 'duration') return null;
 
   const setRows = Array.isArray(exercise.setRows)
-    ? (exercise.setRows.filter((row) => row && typeof row === 'object') as Record<string, unknown>[])
+    ? (exercise.setRows.filter((row) => row && typeof row === 'object') as Record<
+        string,
+        unknown
+      >[])
     : [];
   const valueSummary = summarizeSetRowField(setRows, 'value');
   if (valueSummary && /^\d+$/.test(valueSummary)) {
@@ -1121,7 +1119,7 @@ function strengthBlockTitle(block: Record<string, unknown>): string | null {
 
 function mapStrengthExercise(
   exercise: Record<string, unknown>,
-  index: number
+  index: number,
 ): PlannedStructureStep {
   return {
     name: stepName(exercise, index),
@@ -1169,7 +1167,7 @@ export type MappedPlannedStructure = {
  */
 export function mapPlannedStructure(
   structuredWorkout: unknown,
-  refs: ChartTargetRefs = emptyChartRefs()
+  refs: ChartTargetRefs = emptyChartRefs(),
 ): MappedPlannedStructure {
   if (!structuredWorkout || typeof structuredWorkout !== 'object') {
     return { steps: [], isStrength: false };
@@ -1217,7 +1215,7 @@ function mapLinkedCompleted(raw: PlannedDetailApi): PlannedDetail['linkedComplet
 
 export function mapPlannedDetail(
   raw: PlannedDetailApi,
-  refs: ChartTargetRefs = emptyChartRefs()
+  refs: ChartTargetRefs = emptyChartRefs(),
 ): PlannedDetail {
   const base = mapPlannedListItem(raw, refs);
   const structure = mapPlannedStructure(raw.structuredWorkout, refs);

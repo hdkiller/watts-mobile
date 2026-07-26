@@ -1,9 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import {
-  HEALTHKIT_BACKGROUND_DELIVERY_TYPES,
-  HEALTHKIT_SYNC_READ_TYPES,
-} from '../syncPermissions';
+import { HEALTHKIT_BACKGROUND_DELIVERY_TYPES, HEALTHKIT_SYNC_READ_TYPES } from '../syncPermissions';
 
 vi.mock('react-native', () => ({ Platform: { OS: 'ios' } }));
 
@@ -20,7 +17,7 @@ describe('HealthKit identifier spellings', () => {
   it('uses Apple’s all-caps SDNN suffix for HRV', () => {
     expect(HEALTHKIT_SYNC_READ_TYPES).toContain('HKQuantityTypeIdentifierHeartRateVariabilitySDNN');
     expect(HEALTHKIT_BACKGROUND_DELIVERY_TYPES).toContain(
-      'HKQuantityTypeIdentifierHeartRateVariabilitySDNN'
+      'HKQuantityTypeIdentifierHeartRateVariabilitySDNN',
     );
   });
 

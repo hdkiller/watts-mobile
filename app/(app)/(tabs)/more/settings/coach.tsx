@@ -1,28 +1,20 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack } from 'expo-router';
 import { useState } from 'react';
-import {
-  Platform,
-  Pressable,
-  ScrollView,
-  Switch,
-  Text,
-  TextInput,
-  View } from 'react-native';
+import { Platform, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
 import { DetailSkeleton } from '@/src/components/Skeleton';
-import {
-  aiPersonaOptions,
-  profileSettingsWebPath } from '@/src/features/profile/mapProfile';
+import { aiPersonaOptions, profileSettingsWebPath } from '@/src/features/profile/mapProfile';
 import {
   useAiSettingsAvailableQuery,
   useAiSettingsLiteQuery,
   useAthleteProfileQuery,
-  usePatchCoachIdentity } from '@/src/features/profile/useProfile';
+  usePatchCoachIdentity,
+} from '@/src/features/profile/useProfile';
 import type { AiPersona, AiSettingsLite, AthleteProfile } from '@/src/features/profile/types';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
@@ -75,13 +67,16 @@ export default function CoachIdentityScreen() {
       await saveMutation.mutateAsync({
         profile: {
           nickname: nickname.trim() || null,
-          aiContext: aiContext.trim() || null },
+          aiContext: aiContext.trim() || null,
+        },
         aiAvailable,
         ai: aiAvailable
           ? {
               aiPersona: persona,
-              aiRequireToolApproval: requireToolApproval }
-          : undefined });
+              aiRequireToolApproval: requireToolApproval,
+            }
+          : undefined,
+      });
       hapticSuccess();
       setSuccessMessage('Coach identity saved.');
     } catch (err) {
@@ -104,19 +99,13 @@ export default function CoachIdentityScreen() {
   return (
     <>
       <Stack.Screen options={{ title: 'Coach identity', headerShown: true }} />
-      <SafeAreaView
-        edges={{ bottom: true }}
-        style={{ flex: 1, backgroundColor: theme.surface }}
-      >
+      <SafeAreaView edges={{ bottom: true }} style={{ flex: 1, backgroundColor: theme.surface }}>
         {loading ? (
           <DetailSkeleton />
         ) : loadError ? (
           <View className="flex-1 bg-surface px-6 pt-6">
             <Text className="text-danger">
-              {friendlyError(
-                profileQuery.error ?? aiQuery.error,
-                'Failed to load coach identity'
-              )}
+              {friendlyError(profileQuery.error ?? aiQuery.error, 'Failed to load coach identity')}
             </Text>
             <Button
               className="mt-4"
@@ -202,8 +191,10 @@ export default function CoachIdentityScreen() {
 
                 <View className="mt-6 flex-row items-center justify-between rounded-xl border border-border bg-card px-4 py-4">
                   <View className="mr-4 flex-1">
-                    <Text className="text-base font-semibold text-text-primary">Require tool approval</Text>
-                    <Text className="mt-1 text-sm text-text-muted leading-5">
+                    <Text className="text-base font-semibold text-text-primary">
+                      Require tool approval
+                    </Text>
+                    <Text className="mt-1 text-sm leading-5 text-text-muted">
                       Ask before Coach runs tools that change your data.
                     </Text>
                   </View>
@@ -221,8 +212,10 @@ export default function CoachIdentityScreen() {
               </>
             ) : (
               <View className="mt-6 rounded-xl border border-border bg-card px-4 py-4">
-                <Text className="text-base font-semibold text-text-primary">Persona & tool approval</Text>
-                <Text className="mt-1 text-sm text-text-muted leading-5">
+                <Text className="text-base font-semibold text-text-primary">
+                  Persona & tool approval
+                </Text>
+                <Text className="mt-1 text-sm leading-5 text-text-muted">
                   These preferences need a server update before they can be edited in the app. Open
                   AI Coach settings for now — nickname and About me still save here.
                 </Text>
@@ -240,18 +233,15 @@ export default function CoachIdentityScreen() {
               <Text className="mt-4 text-sm text-success">{successMessage}</Text>
             ) : null}
 
-            <Button
-              className="mt-6"
-              label="Save"
-              loading={pending}
-              onPress={() => void onSave()}
-            />
+            <Button className="mt-6" label="Save" loading={pending} onPress={() => void onSave()} />
 
             <Pressable
               className="mt-3 items-center rounded-xl border border-border-strong py-3.5 active:opacity-80"
               onPress={() => void openWebProfile()}
             >
-              <Text className="text-base font-semibold text-text-primary">Open Profile Settings</Text>
+              <Text className="text-base font-semibold text-text-primary">
+                Open Profile Settings
+              </Text>
             </Pressable>
           </ScrollView>
         )}

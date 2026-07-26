@@ -47,7 +47,9 @@ export async function fetchTodayNutrition(date = localDateYmd()): Promise<Nutrit
   });
   const response = await apiFetch(`/api/nutrition?${params.toString()}`);
   if (!response.ok) {
-    throw new Error(await readErrorMessage(response, `Failed to load nutrition (${response.status})`));
+    throw new Error(
+      await readErrorMessage(response, `Failed to load nutrition (${response.status})`),
+    );
   }
   const json = await response.json();
   return pickTodayNutrition(json, date);
@@ -78,11 +80,7 @@ function nutritionGlanceChunks(startYmd: string, endYmd: string): { start: strin
   return chunks;
 }
 
-function loggedKeysFromNutritionPayload(
-  json: unknown,
-  startYmd: string,
-  endYmd: string
-): string[] {
+function loggedKeysFromNutritionPayload(json: unknown, startYmd: string, endYmd: string): string[] {
   if (!json || typeof json !== 'object') return [];
   const rows = Array.isArray((json as { nutrition?: unknown }).nutrition)
     ? (json as { nutrition: unknown[] }).nutrition
@@ -109,7 +107,7 @@ function loggedKeysFromNutritionPayload(
 /** Local date keys (YYYY-MM-DD) with any logged intake/hydration in range — Athlete glance. */
 export async function fetchLoggedNutritionDateKeys(
   startYmd: string,
-  endYmd: string
+  endYmd: string,
 ): Promise<string[]> {
   if (!startYmd || !endYmd || startYmd > endYmd) return [];
   const keys = new Set<string>();
@@ -122,7 +120,7 @@ export async function fetchLoggedNutritionDateKeys(
     const response = await apiFetch(`/api/nutrition?${params.toString()}`);
     if (!response.ok) {
       throw new Error(
-        await readErrorMessage(response, `Failed to load nutrition (${response.status})`)
+        await readErrorMessage(response, `Failed to load nutrition (${response.status})`),
       );
     }
     const json = await response.json();
@@ -137,7 +135,7 @@ export async function fetchNextFuelingWindow(): Promise<NextFuelingWindow | null
   const response = await apiFetch('/api/nutrition/upcoming-plan');
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, `Failed to load fueling plan (${response.status})`)
+      await readErrorMessage(response, `Failed to load fueling plan (${response.status})`),
     );
   }
   const json = await response.json();
@@ -151,7 +149,9 @@ export async function logNutritionItem(payload: NutritionUploadPayload): Promise
     body: JSON.stringify(payload),
   });
   if (!response.ok) {
-    throw new Error(await readErrorMessage(response, `Failed to log nutrition (${response.status})`));
+    throw new Error(
+      await readErrorMessage(response, `Failed to log nutrition (${response.status})`),
+    );
   }
 }
 
@@ -162,7 +162,7 @@ export async function logNutritionItem(payload: NutritionUploadPayload): Promise
  */
 export async function patchNutritionItems(
   nutritionId: string,
-  payload: NutritionItemPatchPayload
+  payload: NutritionItemPatchPayload,
 ): Promise<void> {
   const response = await apiFetch(`/api/nutrition/${encodeURIComponent(nutritionId)}/items`, {
     method: 'PATCH',
@@ -172,7 +172,7 @@ export async function patchNutritionItems(
   });
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, `Failed to update nutrition item (${response.status})`)
+      await readErrorMessage(response, `Failed to update nutrition item (${response.status})`),
     );
   }
 }
@@ -180,7 +180,7 @@ export async function patchNutritionItems(
 /** PATCH day notes on a nutrition day row (id or YYYY-MM-DD). Requires nutrition:write. */
 export async function patchNutritionNotes(
   nutritionId: string,
-  notes: string | null
+  notes: string | null,
 ): Promise<void> {
   const response = await apiFetch(`/api/nutrition/${encodeURIComponent(nutritionId)}/notes`, {
     method: 'PATCH',
@@ -189,7 +189,7 @@ export async function patchNutritionNotes(
   });
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, `Failed to save nutrition notes (${response.status})`)
+      await readErrorMessage(response, `Failed to save nutrition notes (${response.status})`),
     );
   }
 }
@@ -201,7 +201,9 @@ export async function quickAddHydration(payload: HydrationQuickAddPayload): Prom
     body: JSON.stringify(payload),
   });
   if (!response.ok) {
-    throw new Error(await readErrorMessage(response, `Failed to add hydration (${response.status})`));
+    throw new Error(
+      await readErrorMessage(response, `Failed to add hydration (${response.status})`),
+    );
   }
   try {
     const body = (await response.json()) as { totalWaterMl?: number };
@@ -241,7 +243,7 @@ export type PhotoNutritionEstimate = {
 export async function estimatePhotoNutrition(
   imageBase64: string,
   mimeType = 'image/jpeg',
-  context?: PhotoEstimateContext
+  context?: PhotoEstimateContext,
 ): Promise<PhotoNutritionEstimate> {
   const response = await apiFetch('/api/nutrition/estimate-photo', {
     method: 'POST',
@@ -272,14 +274,16 @@ export async function fetchNutritionPlan(start: string, end: string): Promise<un
   const params = new URLSearchParams({ start, end });
   const response = await apiFetch(`/api/nutrition/plan?${params.toString()}`);
   if (!response.ok) {
-    throw new Error(await readErrorMessage(response, `Failed to load nutrition plan (${response.status})`));
+    throw new Error(
+      await readErrorMessage(response, `Failed to load nutrition plan (${response.status})`),
+    );
   }
   return response.json();
 }
 
 export async function generateNutritionPlanDraft(
   startDate: string,
-  endDate: string
+  endDate: string,
 ): Promise<unknown> {
   const response = await apiFetch('/api/nutrition/plan/generate', {
     method: 'POST',
@@ -288,7 +292,7 @@ export async function generateNutritionPlanDraft(
   });
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, `Failed to generate meal plan (${response.status})`)
+      await readErrorMessage(response, `Failed to generate meal plan (${response.status})`),
     );
   }
   return response.json();
@@ -302,7 +306,7 @@ export async function regenerateDayFuelingPlan(date: string): Promise<unknown> {
   });
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, `Failed to regenerate day plan (${response.status})`)
+      await readErrorMessage(response, `Failed to regenerate day plan (${response.status})`),
     );
   }
   return response.json();
@@ -313,7 +317,7 @@ export type NutritionMealAction = 'complete' | 'skip' | 'unlock' | 'replace';
 export async function patchNutritionPlanMeal(
   mealId: string,
   action: NutritionMealAction,
-  meal?: unknown
+  meal?: unknown,
 ): Promise<unknown> {
   const response = await apiFetch(`/api/nutrition/plan/meals/${encodeURIComponent(mealId)}`, {
     method: 'PATCH',
@@ -361,7 +365,7 @@ function extractRecommendationOptions(raw: unknown, depth = 0): MealRecommendati
   if (raw == null || depth > 6) return null;
   if (Array.isArray(raw)) {
     const options = raw.filter(
-      (o) => o && typeof o === 'object' && typeof (o as { title?: unknown }).title === 'string'
+      (o) => o && typeof o === 'object' && typeof (o as { title?: unknown }).title === 'string',
     ) as MealRecommendationOption[];
     return options.length ? options : null;
   }
@@ -395,7 +399,7 @@ function isQuotaFailure(raw: unknown): boolean {
 }
 
 async function triggerMealRecommendation(
-  input: MealRecommendationTrigger
+  input: MealRecommendationTrigger,
 ): Promise<{ runId?: string; recommendationId?: string }> {
   const response = await apiFetch('/api/nutrition/recommendations/meal', {
     method: 'POST',
@@ -405,8 +409,11 @@ async function triggerMealRecommendation(
   });
   if (!response.ok) {
     throw new ApiError(
-      await readErrorMessage(response, `Failed to request meal recommendations (${response.status})`),
-      response.status
+      await readErrorMessage(
+        response,
+        `Failed to request meal recommendations (${response.status})`,
+      ),
+      response.status,
     );
   }
   const json = (await response.json()) as {
@@ -419,12 +426,12 @@ async function triggerMealRecommendation(
 async function fetchMealRecommendationRecord(recommendationId: string): Promise<unknown> {
   const response = await apiFetch(
     `/api/nutrition/recommendations/${encodeURIComponent(recommendationId)}`,
-    { softUnauthorized: true }
+    { softUnauthorized: true },
   );
   if (!response.ok) {
     throw new ApiError(
       await readErrorMessage(response, `Failed to load recommendation (${response.status})`),
-      response.status
+      response.status,
     );
   }
   return response.json();
@@ -438,7 +445,7 @@ const RECOMMENDATION_TIMEOUT_MS = 90_000;
  * Quota exhaustion surfaces as ApiError status 429 with quota copy.
  */
 export async function requestMealRecommendationOptions(
-  input: MealRecommendationTrigger
+  input: MealRecommendationTrigger,
 ): Promise<MealRecommendationOption[]> {
   const triggered = await triggerMealRecommendation(input);
   const recommendationId = triggered.recommendationId;
@@ -457,17 +464,17 @@ export async function requestMealRecommendationOptions(
     const status = String(rec.status ?? '').toUpperCase();
 
     if (status === 'FAILED' || isQuotaFailure(rec) || isQuotaFailure(rec.contextJson)) {
-      if (isQuotaFailure(rec) || isQuotaFailure(rec.contextJson) || isQuotaFailure(rec.resultJson)) {
-        throw new ApiError(
-          'Meal recommendation limit reached — try again later',
-          429,
-          rec
-        );
+      if (
+        isQuotaFailure(rec) ||
+        isQuotaFailure(rec.contextJson) ||
+        isQuotaFailure(rec.resultJson)
+      ) {
+        throw new ApiError('Meal recommendation limit reached — try again later', 429, rec);
       }
       throw new Error(
         typeof rec.message === 'string' && rec.message.trim()
           ? rec.message
-          : 'Could not generate meal recommendations'
+          : 'Could not generate meal recommendations',
       );
     }
 
@@ -479,7 +486,7 @@ export async function requestMealRecommendationOptions(
         throw new ApiError(
           'Meal recommendation limit reached — try again later',
           429,
-          rec.resultJson
+          rec.resultJson,
         );
       }
       throw new Error('No meal options returned for this window');
@@ -495,7 +502,9 @@ export async function fetchNutritionGrocery(start: string, end: string): Promise
   const params = new URLSearchParams({ start, end });
   const response = await apiFetch(`/api/nutrition/grocery?${params.toString()}`);
   if (!response.ok) {
-    throw new Error(await readErrorMessage(response, `Failed to load grocery list (${response.status})`));
+    throw new Error(
+      await readErrorMessage(response, `Failed to load grocery list (${response.status})`),
+    );
   }
   return response.json();
 }
@@ -505,7 +514,7 @@ export async function fetchNutritionStrategy(): Promise<unknown> {
   const response = await apiFetch('/api/nutrition/strategy');
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, `Failed to load nutrition strategy (${response.status})`)
+      await readErrorMessage(response, `Failed to load nutrition strategy (${response.status})`),
     );
   }
   return response.json();
@@ -520,7 +529,7 @@ export async function fetchNutritionExtendedWave(daysAhead = 3): Promise<unknown
   const response = await apiFetch(`/api/nutrition/extended-wave?${params.toString()}`);
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, `Failed to load energy horizon (${response.status})`)
+      await readErrorMessage(response, `Failed to load energy horizon (${response.status})`),
     );
   }
   return response.json();
@@ -531,7 +540,7 @@ export async function fetchNutritionActiveFeed(): Promise<unknown> {
   const response = await apiFetch('/api/nutrition/active-feed');
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, `Failed to load active fueling feed (${response.status})`)
+      await readErrorMessage(response, `Failed to load active fueling feed (${response.status})`),
     );
   }
   return response.json();
@@ -543,7 +552,7 @@ export async function resetNutritionHydration(): Promise<unknown> {
   if (!response.ok) {
     throw new ApiError(
       await readErrorMessage(response, `Failed to reset hydration (${response.status})`),
-      response.status
+      response.status,
     );
   }
   return response.json();
@@ -574,7 +583,7 @@ export async function searchFoodDatabase(query: string, limit = 20): Promise<Foo
   const response = await apiFetch(`/api/nutrition/search?${params.toString()}`);
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, `Failed to search food database (${response.status})`)
+      await readErrorMessage(response, `Failed to search food database (${response.status})`),
     );
   }
   const json = await response.json();
@@ -596,7 +605,7 @@ export async function lookupFoodBarcode(barcode: string): Promise<FoodItemResult
   if (response.status === 404) return null;
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, `Failed to lookup food barcode (${response.status})`)
+      await readErrorMessage(response, `Failed to lookup food barcode (${response.status})`),
     );
   }
   const json = await response.json();
@@ -618,7 +627,7 @@ export async function lookupFoodItem(key: string): Promise<FoodItemResult | null
   if (response.status === 404) return null;
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, `Failed to lookup food item (${response.status})`)
+      await readErrorMessage(response, `Failed to lookup food item (${response.status})`),
     );
   }
   const json = await response.json();
@@ -629,4 +638,3 @@ export async function lookupFoodItem(key: string): Promise<FoodItemResult | null
   }
   return json as FoodItemResult;
 }
-

@@ -10,7 +10,7 @@ const OPTIONAL = ['BackgroundAccessPermission', 'ExerciseRoute'];
 
 describe('hasRequiredHealthConnectPermissions', () => {
   const dataPermissions = HEALTH_CONNECT_SYNC_PERMISSIONS.filter(
-    (permission) => !OPTIONAL.includes(permission.recordType)
+    (permission) => !OPTIONAL.includes(permission.recordType),
   );
 
   it('accepts all data permissions without the optional ones', () => {
@@ -23,7 +23,7 @@ describe('hasRequiredHealthConnectPermissions', () => {
 
   it('does not require route access — declining routes must not block sync', () => {
     const withoutRoutes = HEALTH_CONNECT_SYNC_PERMISSIONS.filter(
-      (permission) => permission.recordType !== 'ExerciseRoute'
+      (permission) => permission.recordType !== 'ExerciseRoute',
     );
     expect(hasRequiredHealthConnectPermissions(withoutRoutes)).toBe(true);
   });
@@ -32,8 +32,8 @@ describe('hasRequiredHealthConnectPermissions', () => {
     expect(
       HEALTH_CONNECT_SYNC_PERMISSIONS.some(
         (permission) =>
-          permission.recordType === 'ExerciseRoute' && permission.accessType === 'read'
-      )
+          permission.recordType === 'ExerciseRoute' && permission.accessType === 'read',
+      ),
     ).toBe(true);
   });
 });

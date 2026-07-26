@@ -112,7 +112,7 @@ describe('recentWorkoutRows', () => {
             remoteWorkoutId: 'remote-789',
             attemptCount: 1,
           },
-        ]
+        ],
       );
 
       expect(rows).toHaveLength(2);

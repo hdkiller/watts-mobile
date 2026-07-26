@@ -1,11 +1,7 @@
 import * as WebBrowser from 'expo-web-browser';
 import { Linking, Text, View } from 'react-native';
 
-import {
-  isSafeHttpUrl,
-  parseMarkdownLite,
-  type InlineNode,
-} from './markdownLiteParse';
+import { isSafeHttpUrl, parseMarkdownLite, type InlineNode } from './markdownLiteParse';
 
 export {
   parseMarkdownLite,
@@ -24,13 +20,7 @@ export async function openMarkdownLink(href: string): Promise<void> {
   }
 }
 
-function Inline({
-  nodes,
-  baseClassName,
-}: {
-  nodes: InlineNode[];
-  baseClassName: string;
-}) {
+function Inline({ nodes, baseClassName }: { nodes: InlineNode[]; baseClassName: string }) {
   return (
     <>
       {nodes.map((node, index) => {
@@ -58,10 +48,7 @@ function Inline({
         }
         if (node.type === 'code') {
           return (
-            <Text
-              key={key}
-              className="rounded bg-border-strong px-1.5 py-0.5 text-sm text-brand"
-            >
+            <Text key={key} className="rounded bg-border-strong px-1.5 py-0.5 text-sm text-brand">
               {node.value}
             </Text>
           );
@@ -100,7 +87,7 @@ export function MarkdownLite({
         const key = `${block.type}-${blockIndex}`;
         if (block.type === 'paragraph') {
           return (
-            <Text key={key} className={`${className}${blockIndex > 0 ? ' mt-2' : ''}`}>
+            <Text key={key} className={`${className}${blockIndex > 0 ? 'mt-2' : ''}`}>
               <Inline nodes={block.children} baseClassName={className} />
             </Text>
           );

@@ -50,7 +50,10 @@ export function TrainingLoadGlance() {
   if (query.isLoading && !query.data) {
     return (
       // key forces a remount when swapping to content — see MonthlyProgressGlance.
-      <View key="skeleton" className="mt-6 h-24 animate-pulse rounded-xl border border-border bg-card/40" />
+      <View
+        key="skeleton"
+        className="mt-6 h-24 animate-pulse rounded-xl border border-border bg-card/40"
+      />
     );
   }
 
@@ -77,9 +80,7 @@ export function TrainingLoadGlance() {
 
   return (
     <View key="content" className="mt-6">
-      <Text className="text-xs uppercase tracking-wide text-text-muted">
-        Training Load & Form
-      </Text>
+      <Text className="text-xs uppercase tracking-wide text-text-muted">Training Load & Form</Text>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Open training load and form"
@@ -133,9 +134,7 @@ function LoadCell({
 }) {
   return (
     <View className="flex-1">
-      <Text className="text-[10px] font-bold uppercase tracking-wide text-text-muted">
-        {label}
-      </Text>
+      <Text className="text-[10px] font-bold uppercase tracking-wide text-text-muted">{label}</Text>
       <Text className="text-[9px] font-normal lowercase text-text-muted">({sublabel})</Text>
       <View className="mt-1 flex-row flex-wrap items-center gap-1.5">
         <Text className="text-xl font-semibold text-text-primary">{value}</Text>

@@ -1,10 +1,4 @@
-export type MobileActivationStepId =
-  | 'consent'
-  | 'goal'
-  | 'plan'
-  | 'insight'
-  | 'connect'
-  | 'done';
+export type MobileActivationStepId = 'consent' | 'goal' | 'plan' | 'insight' | 'connect' | 'done';
 
 export type OnboardingStatusApi = {
   hasConsent?: boolean;

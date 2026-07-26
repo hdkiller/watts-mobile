@@ -39,24 +39,20 @@ describe('unitsLookLikePercentFtp', () => {
 describe('resolveStepChartIntensity', () => {
   it('resolves %FTP power targets', () => {
     expect(
-      resolveStepChartIntensity(
-        { power: { value: 85, units: '%FTP' } },
-        'power',
-        refs
-      )
+      resolveStepChartIntensity({ power: { value: 85, units: '%FTP' } }, 'power', refs),
     ).toBeCloseTo(0.85);
   });
 
   it('resolves absolute watts with FTP', () => {
     expect(
-      resolveStepChartIntensity({ power: { value: 200, units: 'w' } }, 'power', refs)
+      resolveStepChartIntensity({ power: { value: 200, units: 'w' } }, 'power', refs),
     ).toBeCloseTo(0.8);
   });
 
   it('returns 0 for absolute watts without FTP', () => {
-    expect(
-      resolveStepChartIntensity({ power: { value: 200, units: 'w' } }, 'power', noFtp)
-    ).toBe(0);
+    expect(resolveStepChartIntensity({ power: { value: 200, units: 'w' } }, 'power', noFtp)).toBe(
+      0,
+    );
   });
 
   it('resolves HR zone via snapshot mid / LTHR', () => {
@@ -73,8 +69,8 @@ describe('resolveStepChartIntensity', () => {
         { heartRate: { value: 2, units: 'hr_zone' } },
         'hr',
         refs,
-        snapshot
-      )
+        snapshot,
+      ),
     ).toBeCloseTo(145.5 / 160);
   });
 });
@@ -89,7 +85,7 @@ describe('buildStructureChartBlocks', () => {
           { name: 'Hard', durationSeconds: 300, power: { value: 280, units: 'w' } },
         ],
       },
-      noFtp
+      noFtp,
     );
     expect(blocks).toHaveLength(3);
     expect(blocks[0]!.zoneIndex).toBe(0); // 55% → Z1
@@ -106,7 +102,7 @@ describe('buildStructureChartBlocks', () => {
           { name: 'B', durationSeconds: 300, power: { value: 250, units: 'w' } },
         ],
       },
-      refs
+      refs,
     );
     expect(blocks[0]!.zoneIndex).not.toBeNull();
     expect(blocks[1]!.zoneIndex).not.toBeNull();
@@ -137,7 +133,7 @@ describe('buildStructureChartBlocks', () => {
           },
         ],
       },
-      refs
+      refs,
     );
     expect(blocks).toHaveLength(6);
   });
@@ -159,7 +155,7 @@ describe('buildStructureChartBlocks', () => {
           },
         ],
       },
-      refs
+      refs,
     );
     expect(blocks[0]!.ramp).toEqual({ start: 0.5, end: 0.9 });
     expect(blocks[1]!.ramp).toBeNull();
@@ -169,7 +165,7 @@ describe('buildStructureChartBlocks', () => {
     expect(
       buildStructureChartBlocks({
         blocks: [{ type: 'single_exercise', steps: [{ name: 'Squat' }] }],
-      })
+      }),
     ).toEqual([]);
   });
 });

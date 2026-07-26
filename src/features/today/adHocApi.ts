@@ -29,7 +29,7 @@ async function readApiError(response: Response, fallback: string): Promise<ApiEr
 
 /** Trigger AI ad-hoc planned workout generation for today. */
 export async function generateAdHocWorkout(
-  payload: AdHocWorkoutRequest
+  payload: AdHocWorkoutRequest,
 ): Promise<AdHocWorkoutResponse> {
   const response = await apiFetch('/api/workouts/generate', {
     method: 'POST',
@@ -40,11 +40,7 @@ export async function generateAdHocWorkout(
   if (!response.ok) {
     const err = await readApiError(response, `Ad-hoc generation failed (${response.status})`);
     if (response.status === 429) {
-      throw new ApiError(
-        err.message || 'Quota exceeded for workout generation.',
-        429,
-        err.body
-      );
+      throw new ApiError(err.message || 'Quota exceeded for workout generation.', 429, err.body);
     }
     throw err;
   }

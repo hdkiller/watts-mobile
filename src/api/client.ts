@@ -45,7 +45,7 @@ function resolveUrl(instanceBaseUrl: string, path: string): string {
 /** Shared single-flight refresh — use from apiFetch and coachChatFetch to avoid parallel rotations. */
 export async function singleFlightRefresh(
   instanceBaseUrl: string,
-  refreshToken: string
+  refreshToken: string,
 ): Promise<StoredTokens> {
   if (!refreshPromise) {
     refreshPromise = refreshAccessToken({ instanceBaseUrl, refreshToken }).finally(() => {

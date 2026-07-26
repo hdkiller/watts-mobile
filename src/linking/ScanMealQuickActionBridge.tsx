@@ -11,23 +11,24 @@ const SCAN_MEAL_ACTION_ID = 'scan-meal';
  * into Log with a fresh one-shot token. Mount under an authenticated sub-layout.
  */
 export function ScanMealQuickActionBridge() {
-  const onQuickAction = useCallback((action: { id?: string; params?: Record<string, unknown> | null }) => {
-    const id = typeof action.id === 'string' ? action.id : '';
-    const href =
-      action.params && typeof action.params.href === 'string' ? action.params.href : '';
-    const isScanMeal =
-      id === SCAN_MEAL_ACTION_ID ||
-      href.includes('action=camera') ||
-      href.includes('scan-meal');
+  const onQuickAction = useCallback(
+    (action: { id?: string; params?: Record<string, unknown> | null }) => {
+      const id = typeof action.id === 'string' ? action.id : '';
+      const href =
+        action.params && typeof action.params.href === 'string' ? action.params.href : '';
+      const isScanMeal =
+        id === SCAN_MEAL_ACTION_ID || href.includes('action=camera') || href.includes('scan-meal');
 
-    if (!isScanMeal) return false;
+      if (!isScanMeal) return false;
 
-    router.push({
-      pathname: APP_HREFS.log,
-      params: { action: 'camera', t: String(Date.now()) },
-    });
-    return true;
-  }, []);
+      router.push({
+        pathname: APP_HREFS.log,
+        params: { action: 'camera', t: String(Date.now()) },
+      });
+      return true;
+    },
+    [],
+  );
 
   useQuickActionRouting(onQuickAction);
 

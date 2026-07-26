@@ -24,7 +24,7 @@ export function ActivationUnavailable({ error, isFetching, onRetry }: Props) {
           error,
           error instanceof Error
             ? error.message
-            : 'This Coach Watts instance cannot continue mobile activation yet.'
+            : 'This Coach Watts instance cannot continue mobile activation yet.',
         )}
       </Text>
       <View className="mt-6 w-full gap-3">

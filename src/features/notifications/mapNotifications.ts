@@ -97,12 +97,12 @@ export function formatNotificationTime(iso: string, nowMs = Date.now()): string 
 
 /** Mark consecutive same-title (+ same link) rows so the UI can de-emphasize repeats. */
 export function markNotificationRepeats(
-  items: InboxNotification[]
+  items: InboxNotification[],
 ): (InboxNotification & { isRepeat: boolean })[] {
   return items.map((item, index) => {
     const prev = items[index - 1];
     const isRepeat = Boolean(
-      prev && prev.title === item.title && (prev.link ?? null) === (item.link ?? null)
+      prev && prev.title === item.title && (prev.link ?? null) === (item.link ?? null),
     );
     return { ...item, isRepeat };
   });

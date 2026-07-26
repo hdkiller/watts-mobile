@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  DEFAULT_NOTIFICATION_PREFERENCES,
-  normalizeNotificationPreferences,
-} from '../preferences';
+import { DEFAULT_NOTIFICATION_PREFERENCES, normalizeNotificationPreferences } from '../preferences';
 
 describe('DEFAULT_NOTIFICATION_PREFERENCES', () => {
   it('matches server defaults including SYNC_COMPLETED off', () => {
@@ -29,7 +26,7 @@ describe('normalizeNotificationPreferences', () => {
         WORKOUT_ANALYSIS_READY: true,
         SYNC_COMPLETED: true,
         COACH_MESSAGE: false,
-      })
+      }),
     ).toEqual({
       RECOMMENDATION_READY: false,
       WORKOUT_ANALYSIS_READY: true,

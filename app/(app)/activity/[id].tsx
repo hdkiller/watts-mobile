@@ -178,7 +178,9 @@ function FullAnalysisDisclosure({ analysis }: { analysis: ActivityAnalysis }) {
 
           {analysis.recommendations.length > 0 ? (
             <View className="mt-4">
-              <Text className="text-xs uppercase tracking-wide text-text-muted">Recommendations</Text>
+              <Text className="text-xs uppercase tracking-wide text-text-muted">
+                Recommendations
+              </Text>
               {analysis.recommendations.map((rec) => (
                 <View key={`${rec.title}-${rec.description.slice(0, 24)}`} className="mt-3">
                   <Text className="text-base text-text-body">{rec.title}</Text>
@@ -291,10 +293,7 @@ export default function ActivitySummaryScreen() {
   });
   const prevAnalysisPhase = useRef<AnalysisPhase | undefined>(undefined);
 
-  const coordinates = resolveActivityRouteCoordinates(
-    streams.data?.latlng,
-    data?.summaryPolyline
-  );
+  const coordinates = resolveActivityRouteCoordinates(streams.data?.latlng, data?.summaryPolyline);
 
   useEffect(() => {
     const phase = data?.analysis.phase;
@@ -346,13 +345,12 @@ export default function ActivitySummaryScreen() {
         </View>
       ) : data ? (
         <ScrollView className="flex-1 bg-surface" contentContainerClassName="px-6 pb-10 pt-4">
-          <OfflineBanner
-            visible={showCachedOffline}
-            lastUpdatedLabel={lastUpdatedLabel}
-          />
+          <OfflineBanner visible={showCachedOffline} lastUpdatedLabel={lastUpdatedLabel} />
           <View className="flex-row items-center gap-3">
             <SportIcon type={data.type} size={18} />
-            <Text className="min-w-0 flex-1 text-2xl font-semibold text-text-primary">{data.title}</Text>
+            <Text className="min-w-0 flex-1 text-2xl font-semibold text-text-primary">
+              {data.title}
+            </Text>
           </View>
           <Text className="mt-2 text-sm text-text-muted">
             {[formatActivityDate(data.date), humanizeWorkoutType(data.type)]

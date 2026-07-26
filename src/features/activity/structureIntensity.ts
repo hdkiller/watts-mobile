@@ -70,7 +70,7 @@ function isUnresolvedTarget(target: unknown): boolean {
 
 function finiteMidpoint(
   value: unknown,
-  range?: { start?: unknown; end?: unknown; min?: unknown; max?: unknown }
+  range?: { start?: unknown; end?: unknown; min?: unknown; max?: unknown },
 ): number | null {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
   if (!range) return null;
@@ -151,7 +151,7 @@ function paceToMps(value: unknown, unit: unknown): number | null {
 function zoneBounds(
   channel: 'power' | 'heartRate' | 'pace',
   zoneIndex: number,
-  snapshot?: ZoneProfileSnapshot
+  snapshot?: ZoneProfileSnapshot,
 ): { start: number; end: number } | null {
   const index = Math.max(1, Math.round(zoneIndex));
   const ranges = snapshot?.[channel]?.ranges;
@@ -168,7 +168,7 @@ export function resolveStepChartIntensity(
   step: Record<string, unknown>,
   metric: ChartMetric,
   refs: ChartTargetRefs,
-  snapshot?: ZoneProfileSnapshot
+  snapshot?: ZoneProfileSnapshot,
 ): number {
   if (metric === 'pace') {
     const pace = step.pace as Record<string, unknown> | undefined;
@@ -189,7 +189,7 @@ export function resolveStepChartIntensity(
           })()
         : paceToMps(
             finiteMidpoint(pace.value, pace.range as { start?: unknown; end?: unknown }),
-            pace.units || pace.sourceUnit
+            pace.units || pace.sourceUnit,
           );
     const threshold = Number(snapshot?.pace?.thresholdMps || refs.thresholdPace || 0);
     return mps != null && threshold > 0 ? mps / threshold : 0;
@@ -205,7 +205,8 @@ export function resolveStepChartIntensity(
       if (bounds && lthr > 0) return (bounds.start + bounds.end) / 2 / lthr;
       // Zone without LTHR: estimate mid of default band by zone index.
       const z = Math.max(1, Math.round(Number(hr.value)));
-      if (Number.isFinite(z)) return DEFAULT_ZONE_ENDS[Math.min(z - 1, DEFAULT_ZONE_ENDS.length - 1)]! * 0.9;
+      if (Number.isFinite(z))
+        return DEFAULT_ZONE_ENDS[Math.min(z - 1, DEFAULT_ZONE_ENDS.length - 1)]! * 0.9;
       return 0;
     }
     const mid = finiteMidpoint(hr.value, hr.range as { start?: unknown; end?: unknown });
@@ -262,7 +263,7 @@ function stepType(step: Record<string, unknown>): string {
 export function resolveChartStepIntensity(
   step: Record<string, unknown>,
   refs: ChartTargetRefs,
-  snapshot?: ZoneProfileSnapshot
+  snapshot?: ZoneProfileSnapshot,
 ): number | null {
   const metric = pickMetric(step);
   const resolved = resolveStepChartIntensity(step, metric, refs, snapshot);
@@ -304,13 +305,13 @@ function stepDurationSec(step: Record<string, unknown>): number | null {
 function readRampRange(
   step: Record<string, unknown>,
   refs: ChartTargetRefs,
-  snapshot?: ZoneProfileSnapshot
+  snapshot?: ZoneProfileSnapshot,
 ): { start: number; end: number } | null {
   const isRamp = Boolean(
     step.ramp === true ||
-      (step.power as { ramp?: boolean } | undefined)?.ramp ||
-      (step.heartRate as { ramp?: boolean } | undefined)?.ramp ||
-      (step.pace as { ramp?: boolean } | undefined)?.ramp
+    (step.power as { ramp?: boolean } | undefined)?.ramp ||
+    (step.heartRate as { ramp?: boolean } | undefined)?.ramp ||
+    (step.pace as { ramp?: boolean } | undefined)?.ramp,
   );
   if (!isRamp) return null;
 
@@ -324,8 +325,7 @@ function readRampRange(
   if (!target || isUnresolvedTarget(target)) return null;
 
   const range = target.range as
-    | { start?: unknown; end?: unknown; min?: unknown; max?: unknown }
-    | undefined;
+    { start?: unknown; end?: unknown; min?: unknown; max?: unknown } | undefined;
   if (!range) return null;
   const startRaw =
     typeof range.start === 'number'
@@ -343,7 +343,11 @@ function readRampRange(
       if (unitsLookLikeZone(units)) {
         const bounds = zoneBounds('power', raw, snapshot);
         if (bounds && refs.ftp > 0) return (bounds.start + bounds.end) / 2 / refs.ftp;
-        return DEFAULT_ZONE_ENDS[Math.min(Math.max(Math.round(raw) - 1, 0), DEFAULT_ZONE_ENDS.length - 1)]! * 0.9;
+        return (
+          DEFAULT_ZONE_ENDS[
+            Math.min(Math.max(Math.round(raw) - 1, 0), DEFAULT_ZONE_ENDS.length - 1)
+          ]! * 0.9
+        );
       }
       if (unitsLookLikePercentFtp(units) || (units !== 'w' && units !== 'watts' && raw <= 3)) {
         return toRelativePercent(raw);
@@ -354,7 +358,11 @@ function readRampRange(
       if (unitsLookLikeZone(units)) {
         const bounds = zoneBounds('heartRate', raw, snapshot);
         if (bounds && refs.lthr > 0) return (bounds.start + bounds.end) / 2 / refs.lthr;
-        return DEFAULT_ZONE_ENDS[Math.min(Math.max(Math.round(raw) - 1, 0), DEFAULT_ZONE_ENDS.length - 1)]! * 0.9;
+        return (
+          DEFAULT_ZONE_ENDS[
+            Math.min(Math.max(Math.round(raw) - 1, 0), DEFAULT_ZONE_ENDS.length - 1)
+          ]! * 0.9
+        );
       }
       if (units === 'bpm' || units === '') {
         return refs.lthr > 0 ? raw / refs.lthr : 0;
@@ -384,7 +392,7 @@ function extractSnapshot(structuredWorkout: unknown): ZoneProfileSnapshot | unde
 export function flattenStepsForChart(
   nodes: unknown[],
   out: Record<string, unknown>[] = [],
-  depth = 0
+  depth = 0,
 ): Record<string, unknown>[] {
   if (depth > MAX_CHART_DEPTH || out.length >= MAX_CHART_STEPS) return out;
   for (const node of nodes) {
@@ -428,7 +436,7 @@ export function hasStructuredWorkoutPreviewData(value: unknown): boolean {
  */
 export function buildStructureChartBlocks(
   structuredWorkout: unknown,
-  refs: ChartTargetRefs = emptyChartRefs()
+  refs: ChartTargetRefs = emptyChartRefs(),
 ): StructureChartBlock[] {
   if (!structuredWorkout || typeof structuredWorkout !== 'object') return [];
   const root = structuredWorkout as {
@@ -459,8 +467,7 @@ export function buildStructureChartBlocks(
 
     const intensity = resolveChartStepIntensity(step, refs, snapshot);
     const metric = pickMetric(step);
-    const zoneIndex =
-      intensity != null ? zoneIndexFromIntensity(intensity) : null;
+    const zoneIndex = intensity != null ? zoneIndexFromIntensity(intensity) : null;
     // Prefer explicit Z label when present on zone-unit targets.
     if (zoneIndex != null && metric !== 'pace') {
       const target =

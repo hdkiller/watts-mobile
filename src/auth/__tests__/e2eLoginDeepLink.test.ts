@@ -18,8 +18,8 @@ describe('parseE2eLoginDeepLink', () => {
   it('honors email and instance query overrides', () => {
     expect(
       parseE2eLoginDeepLink(
-        'coachwatts://e2e/login?email=other%40test.local&instance=http%3A%2F%2F10.0.2.2%3A3199'
-      )
+        'coachwatts://e2e/login?email=other%40test.local&instance=http%3A%2F%2F10.0.2.2%3A3199',
+      ),
     ).toEqual({
       email: 'other@test.local',
       instanceUrl: 'http://10.0.2.2:3199',
@@ -42,7 +42,7 @@ describe('parseE2eLoginDeepLink', () => {
 describe('e2eLoginDeepLinkUrl', () => {
   it('builds the canonical Maestro openLink target', () => {
     expect(e2eLoginDeepLinkUrl()).toBe(
-      'coachwatts://e2e/login?email=e2e-athlete%40coachwatts.test&instance=http%3A%2F%2F127.0.0.1%3A3199'
+      'coachwatts://e2e/login?email=e2e-athlete%40coachwatts.test&instance=http%3A%2F%2F127.0.0.1%3A3199',
     );
   });
 });

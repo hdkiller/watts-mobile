@@ -29,7 +29,7 @@ export default function ActivationConnectScreen() {
   useFocusEffect(
     useCallback(() => {
       if (connectionAttempted) void refetchActivation();
-    }, [connectionAttempted, refetchActivation])
+    }, [connectionAttempted, refetchActivation]),
   );
 
   const finishSkip = async () => {

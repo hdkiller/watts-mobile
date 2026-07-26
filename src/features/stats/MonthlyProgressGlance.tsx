@@ -23,7 +23,10 @@ export function MonthlyProgressGlance() {
     return (
       // key forces a remount when swapping to content: reusing the native view keeps
       // the skeleton's fixed height and the loaded card overflows into the next section.
-      <View key="skeleton" className="mt-6 h-20 animate-pulse rounded-xl border border-border bg-card/40" />
+      <View
+        key="skeleton"
+        className="mt-6 h-20 animate-pulse rounded-xl border border-border bg-card/40"
+      />
     );
   }
 

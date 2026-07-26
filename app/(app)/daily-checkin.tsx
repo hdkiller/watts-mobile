@@ -49,13 +49,7 @@ export default function DailyCheckinScreen() {
         },
       });
     }
-  }, [
-    checkin,
-    generateCheckin,
-    generateMutation.isError,
-    generateMutation.isPending,
-    isLoading,
-  ]);
+  }, [checkin, generateCheckin, generateMutation.isError, generateMutation.isPending, isLoading]);
 
   // 2. Poll today check-in while generating; cap ~75s then offer Retry / Open web
   useEffect(() => {
@@ -132,7 +126,7 @@ export default function DailyCheckinScreen() {
 
     if (timedOut && isGenerating) {
       return (
-        <View className="flex-1 items-center justify-center p-6 bg-surface">
+        <View className="flex-1 items-center justify-center bg-surface p-6">
           <Text className="text-lg font-semibold text-text-primary">Still preparing…</Text>
           <Text className="mt-2 text-center text-sm text-red-400">
             Check-in generation timed out. Retry or continue in Coach Watts.
@@ -148,10 +142,9 @@ export default function DailyCheckinScreen() {
 
     if (generateMutation.isError || isError) {
       const displayErr = generateMutation.error || error;
-      const isQuota =
-        displayErr instanceof Error && displayErr.message.includes('Quota');
+      const isQuota = displayErr instanceof Error && displayErr.message.includes('Quota');
       return (
-        <View className="flex-1 items-center justify-center p-6 bg-surface">
+        <View className="flex-1 items-center justify-center bg-surface p-6">
           <Text className="text-lg font-semibold text-text-primary">
             {isQuota ? 'Check-in limit reached' : 'Could not prepare check-in'}
           </Text>
@@ -159,15 +152,9 @@ export default function DailyCheckinScreen() {
             {friendlyError(displayErr, 'An error occurred during generation.')}
           </Text>
           <View className="mt-6 w-full gap-3">
-            {!isQuota ? (
-              <Button label="Try Again" onPress={handleRetryGenerate} />
-            ) : null}
+            {!isQuota ? <Button label="Try Again" onPress={handleRetryGenerate} /> : null}
             <Button label="Open Coach Watts" variant="secondary" onPress={openWeb} />
-            <Button
-              label="Go Back"
-              variant="secondary"
-              onPress={() => router.back()}
-            />
+            <Button label="Go Back" variant="secondary" onPress={() => router.back()} />
           </View>
         </View>
       );
@@ -194,8 +181,10 @@ export default function DailyCheckinScreen() {
 
     if (!checkin?.questions || checkin.questions.length === 0) {
       return (
-        <View className="flex-1 items-center justify-center p-6 bg-surface">
-          <Text className="text-base font-semibold text-text-primary">Nothing to check in today</Text>
+        <View className="flex-1 items-center justify-center bg-surface p-6">
+          <Text className="text-base font-semibold text-text-primary">
+            Nothing to check in today
+          </Text>
           <Text className="mt-2 text-center text-sm text-text-muted">
             Coach will ask when it matters.
           </Text>
@@ -224,19 +213,14 @@ export default function DailyCheckinScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {isDailyCheckinCompleted(checkin) ? (
-          <Text className="mb-2 text-xs text-brand">
-            Already completed — you can edit answers.
-          </Text>
+          <Text className="mb-2 text-xs text-brand">Already completed — you can edit answers.</Text>
         ) : null}
 
         <View className="mt-2 gap-4">
           {checkin.questions.map((q) => {
             const currentAnswer = answers[q.id];
             return (
-              <View
-                key={q.id}
-                className="rounded-xl border border-border bg-card/40 p-4"
-              >
+              <View key={q.id} className="rounded-xl border border-border bg-card/40 p-4">
                 <Text className="text-base leading-6 text-text-body">{q.text}</Text>
                 <View className="mt-4 flex-row gap-3">
                   <Pressable
@@ -245,7 +229,7 @@ export default function DailyCheckinScreen() {
                     accessibilityLabel={`Yes: ${q.text}`}
                     accessibilityState={{ selected: currentAnswer === 'YES' }}
                     onPress={() => onAnswer(q.id, 'YES')}
-                    className={`flex-1 items-center justify-center py-2.5 rounded-lg border ${
+                    className={`flex-1 items-center justify-center rounded-lg border py-2.5 ${
                       currentAnswer === 'YES'
                         ? 'border-brand bg-brand/10'
                         : 'border-border bg-card/60'
@@ -265,7 +249,7 @@ export default function DailyCheckinScreen() {
                     accessibilityLabel={`No: ${q.text}`}
                     accessibilityState={{ selected: currentAnswer === 'NO' }}
                     onPress={() => onAnswer(q.id, 'NO')}
-                    className={`flex-1 items-center justify-center py-2.5 rounded-lg border ${
+                    className={`flex-1 items-center justify-center rounded-lg border py-2.5 ${
                       currentAnswer === 'NO'
                         ? 'border-red-500 bg-red-500/10'
                         : 'border-border bg-card/60'
@@ -286,12 +270,12 @@ export default function DailyCheckinScreen() {
         </View>
 
         <View className="mt-6">
-          <Text className="text-xs uppercase tracking-wide text-text-muted mb-2">
+          <Text className="mb-2 text-xs uppercase tracking-wide text-text-muted">
             Notes for Coach (Optional)
           </Text>
           <TextInput
             testID="daily-checkin-notes"
-            className="w-full min-h-[80px] rounded-lg border border-border bg-card/40 px-3 py-2 text-base text-text-primary"
+            className="min-h-[80px] w-full rounded-lg border border-border bg-card/40 px-3 py-2 text-base text-text-primary"
             placeholder="Add context about how you feel, soreness, stress..."
             placeholderTextColor="#71717a"
             multiline
@@ -302,10 +286,7 @@ export default function DailyCheckinScreen() {
           />
         </View>
 
-        {actionError ? (
-          <Text className="mt-4 text-sm text-red-400">{actionError}</Text>
-        ) : null}
-
+        {actionError ? <Text className="mt-4 text-sm text-red-400">{actionError}</Text> : null}
       </ScrollView>
     );
   };

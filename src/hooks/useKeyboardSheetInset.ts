@@ -37,7 +37,7 @@ export function useKeyboardSheetInset() {
     };
 
     const changeSub = Keyboard.addListener('keyboardWillChangeFrame', (event) =>
-      update(event, event.endCoordinates.height)
+      update(event, event.endCoordinates.height),
     );
     const hideSub = Keyboard.addListener('keyboardWillHide', (event) => update(event, 0));
     return () => {

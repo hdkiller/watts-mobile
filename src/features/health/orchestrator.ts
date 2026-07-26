@@ -24,12 +24,14 @@ import {
 import { matchRemoteWorkout, workoutHistoryTitle } from './matchRemoteWorkout';
 import { readPlatformWellness, readPlatformWorkouts } from './readers';
 import { isUnsyncedRecentStatus } from './recentWorkoutRows';
-import {
-  findPlatformWorkoutSession,
-  listRecentPlatformWorkoutsWithStatus,
-} from './recentWorkouts';
+import { findPlatformWorkoutSession, listRecentPlatformWorkoutsWithStatus } from './recentWorkouts';
 import { loadHealthSyncPreferences, markHealthSyncSuccess } from './syncPreferences';
-import type { DailyWellnessSample, HealthPlatform, PlatformWorkoutSession, SyncLedgerItem } from './types';
+import type {
+  DailyWellnessSample,
+  HealthPlatform,
+  PlatformWorkoutSession,
+  SyncLedgerItem,
+} from './types';
 import { LOOKBACK_DAYS } from './types';
 import { uploadWellnessPayload } from './uploadWellness';
 import { uploadPlatformWorkout } from './uploadWorkout';
@@ -95,7 +97,7 @@ function currentPlatform(): HealthPlatform | null {
 
 async function syncWellnessSample(
   sample: DailyWellnessSample,
-  force = false
+  force = false,
 ): Promise<'synced' | 'failed' | 'skipped'> {
   if (!sampleHasMetrics(sample)) return 'skipped';
 
@@ -147,7 +149,7 @@ async function syncWellnessSample(
 async function syncWorkoutSession(
   session: PlatformWorkoutSession,
   remotes: Awaited<ReturnType<typeof fetchRemoteWorkoutsForMatch>>,
-  force = false
+  force = false,
 ): Promise<'synced' | 'pending' | 'failed' | 'skipped'> {
   const id = workoutLedgerId(session.platformSessionId);
   const existing = await getLedgerItem(id);
@@ -168,7 +170,7 @@ async function syncWorkoutSession(
           title: workoutHistoryTitle(session),
           startedAt: session.startedAt,
         }),
-      { remoteWorkoutId: matched.id }
+      { remoteWorkoutId: matched.id },
     );
     await saveLedgerItem(item);
     await markHealthSyncSuccess(item.lastSuccessAt);
@@ -230,7 +232,7 @@ async function syncWorkoutSession(
  * backfills the lookback window. Recent wellness days are always re-read.
  */
 export async function runHealthSyncPass(
-  options: { force?: boolean; fullResync?: boolean } = {}
+  options: { force?: boolean; fullResync?: boolean } = {},
 ): Promise<SyncPassResult> {
   if (inFlight) return inFlight;
 
@@ -276,7 +278,10 @@ export async function runHealthSyncPass(
       }
     } catch (err) {
       result.wellnessPassError = true;
-      console.warn('[HealthSync] wellness pass error', err instanceof Error ? err.message : 'error');
+      console.warn(
+        '[HealthSync] wellness pass error',
+        err instanceof Error ? err.message : 'error',
+      );
     }
 
     if (prefs.syncWorkouts) {
@@ -299,7 +304,7 @@ export async function runHealthSyncPass(
                 platform: session.platform,
                 title: workoutHistoryTitle(session),
                 startedAt: session.startedAt,
-              })
+              }),
             );
           }
           if (existing?.status === 'synced' && existing.remoteWorkoutId && !force) continue;
@@ -315,7 +320,10 @@ export async function runHealthSyncPass(
         }
       } catch (err) {
         result.workoutPassError = true;
-        console.warn('[HealthSync] workout pass error', err instanceof Error ? err.message : 'error');
+        console.warn(
+          '[HealthSync] workout pass error',
+          err instanceof Error ? err.message : 'error',
+        );
       }
     }
 
@@ -392,7 +400,7 @@ export async function retryLedgerItem(id: string): Promise<void> {
  */
 export async function syncWorkoutByPlatformSessionId(
   platformSessionId: string,
-  options: { force?: boolean } = {}
+  options: { force?: boolean } = {},
 ): Promise<void> {
   await assertWorkoutSyncAllowed();
 

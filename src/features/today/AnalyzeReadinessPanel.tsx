@@ -39,7 +39,9 @@ export function AnalyzeReadinessPanel({
       {state === 'generating' ? (
         <View className="items-center py-2">
           <ActivityIndicator color={Colors.brand} size="small" />
-          <Text className="mt-3 text-base font-semibold text-text-primary">Analyzing readiness…</Text>
+          <Text className="mt-3 text-base font-semibold text-text-primary">
+            Analyzing readiness…
+          </Text>
           <Text className="mt-1 text-center text-sm leading-5 text-text-muted">
             Building today’s recommendation from your latest biometrics
           </Text>
@@ -48,8 +50,12 @@ export function AnalyzeReadinessPanel({
 
       {state === 'quota' ? (
         <View>
-          <Text className="text-xs uppercase tracking-wide text-modify font-semibold">Plan limit</Text>
-          <Text className="mt-2 text-lg font-semibold text-text-primary">Recommendation limit reached</Text>
+          <Text className="text-xs font-semibold uppercase tracking-wide text-modify">
+            Plan limit
+          </Text>
+          <Text className="mt-2 text-lg font-semibold text-text-primary">
+            Recommendation limit reached
+          </Text>
           <Text className="mt-2 text-sm leading-5 text-text-body">
             {errorMessage || 'Update your plan in Coach Watts to generate more recommendations.'}
           </Text>
@@ -62,8 +68,12 @@ export function AnalyzeReadinessPanel({
 
       {state === 'error' ? (
         <View>
-          <Text className="text-xs uppercase tracking-wide text-red-400/90 font-semibold">Analyze Readiness</Text>
-          <Text className="mt-2 text-lg font-semibold text-text-primary">Couldn’t analyze readiness</Text>
+          <Text className="text-xs font-semibold uppercase tracking-wide text-red-400/90">
+            Analyze Readiness
+          </Text>
+          <Text className="mt-2 text-lg font-semibold text-text-primary">
+            Couldn’t analyze readiness
+          </Text>
           <Text className="mt-2 text-sm leading-5 text-red-300">
             {errorMessage || 'Something went wrong. Try again, or continue in Coach Watts.'}
           </Text>
@@ -76,7 +86,7 @@ export function AnalyzeReadinessPanel({
 
       {state === 'idle' ? (
         <View>
-          <Text className="text-xs uppercase tracking-wide font-semibold text-brand">
+          <Text className="text-xs font-semibold uppercase tracking-wide text-brand">
             Today’s Recommendation
           </Text>
           <Text className="mt-1 text-xl font-semibold text-text-primary">Ready when you are</Text>
@@ -105,4 +115,3 @@ export function AnalyzeReadinessPanel({
     </View>
   );
 }
-

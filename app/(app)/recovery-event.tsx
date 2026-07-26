@@ -63,9 +63,15 @@ const TIME_PRESETS: { id: TimePresetId; label: string }[] = [
 
 const LIST_LAYOUT = {
   duration: 240,
-  create: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+  create: {
+    type: LayoutAnimation.Types.easeInEaseOut,
+    property: LayoutAnimation.Properties.opacity,
+  },
   update: { type: LayoutAnimation.Types.easeInEaseOut },
-  delete: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+  delete: {
+    type: LayoutAnimation.Types.easeInEaseOut,
+    property: LayoutAnimation.Properties.opacity,
+  },
 };
 
 function selectStyles(theme: ReturnType<typeof useThemeColors>) {
@@ -110,9 +116,7 @@ export default function RecoveryEventScreen() {
 
   const params = useLocalSearchParams<{ id?: string }>();
   const sourceRecordId =
-    typeof params.id === 'string' && params.id && params.id !== 'undefined'
-      ? params.id
-      : undefined;
+    typeof params.id === 'string' && params.id && params.id !== 'undefined' ? params.id : undefined;
   const isEdit = Boolean(sourceRecordId);
 
   const { data: recoveryItems, isLoading } = useRecoveryContextQuery();
@@ -122,13 +126,13 @@ export default function RecoveryEventScreen() {
 
   const existing = useMemo(
     () => recoveryItems?.find((item) => item.sourceRecordId === sourceRecordId) ?? null,
-    [recoveryItems, sourceRecordId]
+    [recoveryItems, sourceRecordId],
   );
 
   const { containerRef, overlap } = useKeyboardOverlap();
   // Seed from cache when present so edit does not flash empty defaults.
   const [values, setValues] = useState<RecoveryEventFormValues>(() =>
-    existing ? formFromRecoveryItem(existing) : emptyRecoveryEventForm()
+    existing ? formFromRecoveryItem(existing) : emptyRecoveryEventForm(),
   );
   const [error, setError] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(() => !isEdit || Boolean(existing));
@@ -137,7 +141,7 @@ export default function RecoveryEventScreen() {
   /** After first pick (or edit hydrate), severity / when / notes unlock. */
   const [detailsUnlocked, setDetailsUnlocked] = useState(isEdit);
   const lastHydratedKeyRef = useRef<string | null>(
-    isEdit && existing ? existing.id : isEdit ? null : 'create'
+    isEdit && existing ? existing.id : isEdit ? null : 'create',
   );
 
   useEffect(() => {
@@ -161,11 +165,13 @@ export default function RecoveryEventScreen() {
   }, [isEdit, existing]);
 
   const selectedOption = optionById(values.optionId);
-  const pending =
-    createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+  const pending = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
   const canSave = isDescriptionValid(values.description) && !pending;
 
-  const patch = <K extends keyof RecoveryEventFormValues>(key: K, value: RecoveryEventFormValues[K]) => {
+  const patch = <K extends keyof RecoveryEventFormValues>(
+    key: K,
+    value: RecoveryEventFormValues[K],
+  ) => {
     setError(null);
     setValues((prev) => ({ ...prev, [key]: value }));
   };
@@ -330,7 +336,9 @@ export default function RecoveryEventScreen() {
                   <View className="flex-row items-start">
                     <OptionGlyph sf={option.sf} active={active} />
                     <View className="min-w-0 flex-1">
-                      <Text className="text-sm font-semibold text-text-primary">{option.title}</Text>
+                      <Text className="text-sm font-semibold text-text-primary">
+                        {option.title}
+                      </Text>
                       <Text className="mt-1 text-xs text-text-muted">{option.subtitle}</Text>
                     </View>
                   </View>
@@ -369,7 +377,9 @@ export default function RecoveryEventScreen() {
                         <OptionGlyph sf={level.sf} active={active} />
                         <View className="min-w-0 flex-1">
                           <View className="flex-row items-center justify-between">
-                            <Text className="text-sm font-semibold text-text-primary">{level.label}</Text>
+                            <Text className="text-sm font-semibold text-text-primary">
+                              {level.label}
+                            </Text>
                             <Text className="text-xs text-text-muted">{level.value}/10</Text>
                           </View>
                           <Text className="mt-1 text-xs text-text-muted">{level.description}</Text>

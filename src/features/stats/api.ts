@@ -3,9 +3,7 @@ import { apiFetch } from '@/src/api/client';
 import { mapMonthlyComparisonPayload } from './mapMonthlyComparison';
 import type { MonthlyComparisonPayload } from './types';
 
-export async function fetchMonthlyComparison(
-  sport = 'all'
-): Promise<MonthlyComparisonPayload> {
+export async function fetchMonthlyComparison(sport = 'all'): Promise<MonthlyComparisonPayload> {
   const params = new URLSearchParams({ sport });
   const response = await apiFetch(`/api/stats/monthly-comparison?${params.toString()}`);
   if (!response.ok) {

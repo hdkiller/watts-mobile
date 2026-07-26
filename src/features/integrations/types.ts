@@ -19,15 +19,7 @@ export type IntegrationsStatusResponse = {
 };
 
 export type CuratedProviderKey =
-  | 'garmin'
-  | 'whoop'
-  | 'oura'
-  | 'strava'
-  | 'intervals'
-  | 'polar'
-  | 'wahoo'
-  | 'fitbit'
-  | 'withings';
+  'garmin' | 'whoop' | 'oura' | 'strava' | 'intervals' | 'polar' | 'wahoo' | 'fitbit' | 'withings';
 
 export type ProviderRowState = 'not_connected' | 'connected' | 'error';
 

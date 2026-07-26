@@ -19,7 +19,7 @@ export function sortLedgerNewestFirst(items: SyncLedgerItem[]): SyncLedgerItem[]
 
 export function filterLedgerByAttention(
   items: SyncLedgerItem[],
-  filter: 'all' | 'failed' | 'needs_sync'
+  filter: 'all' | 'failed' | 'needs_sync',
 ): SyncLedgerItem[] {
   if (filter === 'failed') return items.filter((i) => i.status === 'failed');
   if (filter === 'needs_sync') return items.filter((i) => i.status === 'needs_sync');
@@ -30,19 +30,16 @@ export function filterLedgerByAttention(
 export function applyLedgerRetention(items: SyncLedgerItem[]): SyncLedgerItem[] {
   const wellness = sortLedgerNewestFirst(items.filter((i) => i.kind === 'wellness')).slice(
     0,
-    WELLNESS_LEDGER_MAX
+    WELLNESS_LEDGER_MAX,
   );
   const workouts = sortLedgerNewestFirst(items.filter((i) => i.kind === 'workout')).slice(
     0,
-    WORKOUT_LEDGER_MAX
+    WORKOUT_LEDGER_MAX,
   );
   return sortLedgerNewestFirst([...wellness, ...workouts]);
 }
 
-export function upsertLedgerItem(
-  items: SyncLedgerItem[],
-  patch: SyncLedgerItem
-): SyncLedgerItem[] {
+export function upsertLedgerItem(items: SyncLedgerItem[], patch: SyncLedgerItem): SyncLedgerItem[] {
   const idx = items.findIndex((i) => i.id === patch.id);
   if (idx === -1) return applyLedgerRetention([patch, ...items]);
   const next = [...items];
@@ -52,7 +49,7 @@ export function upsertLedgerItem(
 
 export function beginLedgerAttempt(
   item: SyncLedgerItem,
-  at: string = new Date().toISOString()
+  at: string = new Date().toISOString(),
 ): SyncLedgerItem {
   return {
     ...item,
@@ -65,7 +62,7 @@ export function beginLedgerAttempt(
 
 export function completeLedgerSuccess(
   item: SyncLedgerItem,
-  opts: { remoteWorkoutId?: string; contentFingerprint?: string; at?: string } = {}
+  opts: { remoteWorkoutId?: string; contentFingerprint?: string; at?: string } = {},
 ): SyncLedgerItem {
   const at = opts.at ?? new Date().toISOString();
   return {
@@ -82,7 +79,7 @@ export function completeLedgerSuccess(
 export function completeLedgerFailure(
   item: SyncLedgerItem,
   error: string,
-  at: string = new Date().toISOString()
+  at: string = new Date().toISOString(),
 ): SyncLedgerItem {
   return {
     ...item,
@@ -94,7 +91,7 @@ export function completeLedgerFailure(
 
 export function completeLedgerPending(
   item: SyncLedgerItem,
-  at: string = new Date().toISOString()
+  at: string = new Date().toISOString(),
 ): SyncLedgerItem {
   return {
     ...item,
@@ -106,7 +103,7 @@ export function completeLedgerPending(
 
 export function seedNeedsSync(
   kind: SyncLedgerKind,
-  base: Omit<SyncLedgerItem, 'status' | 'attemptCount'>
+  base: Omit<SyncLedgerItem, 'status' | 'attemptCount'>,
 ): SyncLedgerItem {
   return {
     ...base,

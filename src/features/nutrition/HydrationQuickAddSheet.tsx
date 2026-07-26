@@ -1,12 +1,6 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  Modal,
-  Pressable,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Modal, Pressable, Text, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
 import { AppSymbol } from '@/src/components/AppSymbol';
@@ -41,10 +35,7 @@ export function HydrationQuickAddSheet({
   const { data: settings } = useNutritionSettingsQuery({ enabled: visible });
 
   const presets = useMemo(() => {
-    const volumes = hydrationPresetVolumes(
-      settings?.quickAddVolumes,
-      DEFAULT_QUICK_ADD_VOLUMES
-    );
+    const volumes = hydrationPresetVolumes(settings?.quickAddVolumes, DEFAULT_QUICK_ADD_VOLUMES);
     return volumes.map((ml) => ({
       ml,
       label: formatVolumeLabel(ml),
@@ -73,19 +64,19 @@ export function HydrationQuickAddSheet({
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent
-      onRequestClose={onClose}
-    >
-      <Pressable className="flex-1 bg-black/60 justify-end" onPress={onClose}>
-        <Pressable className="rounded-t-3xl bg-surface px-6 pt-4 pb-10">
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      <Pressable className="flex-1 justify-end bg-black/60" onPress={onClose}>
+        <Pressable className="rounded-t-3xl bg-surface px-6 pb-10 pt-4">
           <View className="mb-4 h-1 w-10 self-center rounded-full bg-border-strong" />
 
-          <View className="flex-row items-center justify-between mb-2">
+          <View className="mb-2 flex-row items-center justify-between">
             <View className="flex-row items-center gap-2">
-              <AppSymbol sf="drop.fill" size={20} tintColor={NutritionAccents.hydration} fallback="ml" />
+              <AppSymbol
+                sf="drop.fill"
+                size={20}
+                tintColor={NutritionAccents.hydration}
+                fallback="ml"
+              />
               <Text className="text-lg font-semibold text-text-primary">Add water</Text>
             </View>
             <Pressable hitSlop={8} onPress={onClose} className="p-1 active:opacity-70">
@@ -95,10 +86,13 @@ export function HydrationQuickAddSheet({
 
           {targetWaterMl != null ? (
             <Text className="mb-4 text-xs text-text-muted">
-              Current: {(currentWaterMl / 1000).toFixed(1)} L / {(targetWaterMl / 1000).toFixed(1)} L goal
+              Current: {(currentWaterMl / 1000).toFixed(1)} L / {(targetWaterMl / 1000).toFixed(1)}{' '}
+              L goal
             </Text>
           ) : (
-            <Text className="mb-4 text-xs text-text-muted">{"Select volume to add to today's hydration total"}</Text>
+            <Text className="mb-4 text-xs text-text-muted">
+              {"Select volume to add to today's hydration total"}
+            </Text>
           )}
 
           <View className="gap-2.5">

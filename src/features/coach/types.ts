@@ -8,12 +8,7 @@ export const ACTIVE_TURN_STATUSES = [
   'WAITING_FOR_TOOLS',
 ] as const;
 
-export const TERMINAL_TURN_STATUSES = [
-  'COMPLETED',
-  'FAILED',
-  'INTERRUPTED',
-  'CANCELLED',
-] as const;
+export const TERMINAL_TURN_STATUSES = ['COMPLETED', 'FAILED', 'INTERRUPTED', 'CANCELLED'] as const;
 
 export type ChatRoomLastMessage = {
   content?: string | null;

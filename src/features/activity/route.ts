@@ -58,7 +58,7 @@ export function decimatePoints<T>(points: T[], maxPoints = 500): T[] {
  */
 export function resolveActivityRouteCoordinates(
   streamsLatLng: { latitude: number; longitude: number }[] | null | undefined,
-  summaryPolyline: string | null | undefined
+  summaryPolyline: string | null | undefined,
 ): { latitude: number; longitude: number }[] {
   if (streamsLatLng && streamsLatLng.length > 0) {
     return decimatePoints(streamsLatLng, 500);

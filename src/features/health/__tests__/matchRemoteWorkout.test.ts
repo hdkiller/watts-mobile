@@ -18,7 +18,7 @@ describe('matchRemoteWorkout', () => {
           type: 'run',
           durationSec: 3500,
         },
-      ]
+      ],
     );
     expect(match?.id).toBe('remote-1');
   });
@@ -32,7 +32,7 @@ describe('matchRemoteWorkout', () => {
         startedAt,
         durationSec: 3600,
       },
-      [{ id: 'remote-1', date: '2026-07-20', type: 'run', durationSec: 3500 }]
+      [{ id: 'remote-1', date: '2026-07-20', type: 'run', durationSec: 3500 }],
     );
     expect(match?.id).toBe('remote-1');
   });
@@ -46,7 +46,7 @@ describe('matchRemoteWorkout', () => {
         startedAt,
         durationSec: 3600,
       },
-      [{ id: 'remote-1', date: '2026-07-20', type: 'run', durationSec: 600 }]
+      [{ id: 'remote-1', date: '2026-07-20', type: 'run', durationSec: 600 }],
     );
     expect(match).toBeNull();
   });
@@ -60,7 +60,7 @@ describe('matchRemoteWorkout', () => {
         startedAt,
         durationSec: 3600,
       },
-      [{ id: 'remote-1', date: '2026-07-19', type: 'run', durationSec: 3600 }]
+      [{ id: 'remote-1', date: '2026-07-19', type: 'run', durationSec: 3600 }],
     );
     expect(match).toBeNull();
   });
@@ -82,7 +82,7 @@ describe('matchRemoteWorkout', () => {
           type: 'run',
           durationSec: 3600,
         },
-      ]
+      ],
     );
     expect(match?.id).toBe('timestamped');
   });
@@ -102,7 +102,7 @@ describe('matchRemoteWorkout', () => {
           type: 'run',
           durationSec: 3600,
         },
-      ]
+      ],
     );
     expect(match).toBeNull();
   });
@@ -124,7 +124,7 @@ describe('matchRemoteWorkout', () => {
           type: 'cycling',
           durationSec: null,
         },
-      ]
+      ],
     );
     expect(match?.id).toBe('remote-1');
   });
@@ -145,7 +145,7 @@ describe('matchRemoteWorkout', () => {
           type: 'cycling',
           durationSec: 3600,
         },
-      ]
+      ],
     );
     expect(match).toBeNull();
   });
@@ -158,7 +158,7 @@ describe('matchRemoteWorkout', () => {
         startedAt: new Date(2026, 6, 20, 12, 0, 0).toISOString(),
         sportType: 'running',
       },
-      [{ id: 'remote-1', date: '2026-07-20', type: 'run', durationSec: null }]
+      [{ id: 'remote-1', date: '2026-07-20', type: 'run', durationSec: null }],
     );
     expect(match).toBeNull();
   });

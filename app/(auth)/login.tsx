@@ -14,10 +14,7 @@ import { friendlyError } from '@/src/api/errors';
 import { getRedirectUri, isExpoGoRuntime } from '@/src/auth/oauth';
 import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
-import {
-  PRIVACY_POLICY_URL,
-  TERMS_OF_SERVICE_URL,
-} from '@/src/features/account/paths';
+import { PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from '@/src/features/account/paths';
 import { AuthAtmosphere } from '@/src/features/auth/AuthAtmosphere';
 import { useReduceMotion } from '@/src/hooks/useReduceMotion';
 

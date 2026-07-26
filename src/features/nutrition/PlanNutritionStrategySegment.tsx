@@ -42,10 +42,7 @@ function BlockError({
   testID: string;
 }) {
   return (
-    <View
-      testID={testID}
-      className="rounded-xl border border-danger/40 bg-tint-error px-3 py-2.5"
-    >
+    <View testID={testID} className="rounded-xl border border-danger/40 bg-tint-error px-3 py-2.5">
       <Text className="text-sm text-danger">{message}</Text>
       <AnimatedPressable hitSlop={8} className="mt-2 self-start" onPress={onRetry}>
         <Text className="text-sm font-semibold text-brand">Retry</Text>
@@ -77,8 +74,7 @@ export function PlanNutritionStrategySegment({ enabled }: Props) {
   const confirmReset = () => {
     Alert.alert(
       'Reset hydration debt?',
-      standing?.hydrationFlushPrompt ??
-        'This sets today’s starting fluid deficit to zero.',
+      standing?.hydrationFlushPrompt ?? 'This sets today’s starting fluid deficit to zero.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -95,7 +91,7 @@ export function PlanNutritionStrategySegment({ enabled }: Props) {
             });
           },
         },
-      ]
+      ],
     );
   };
 
@@ -151,7 +147,7 @@ export function PlanNutritionStrategySegment({ enabled }: Props) {
               </Text>
               <Text
                 className={`mb-1 text-sm font-semibold ${hydrationStatusClass(
-                  standing.hydrationStatus
+                  standing.hydrationStatus,
                 )}`}
               >
                 {hydrationStatusLabel(standing.hydrationStatus)}

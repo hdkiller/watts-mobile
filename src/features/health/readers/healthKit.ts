@@ -40,7 +40,7 @@ async function avgQuantityForDay<T extends QuantityTypeIdentifier>(
   identifier: T,
   dayStart: Date,
   dayEnd: Date,
-  unit: UnitForIdentifier<T>
+  unit: UnitForIdentifier<T>,
 ): Promise<number | undefined> {
   try {
     const result = await HK.queryStatisticsForQuantity(identifier, ['discreteAverage'], {
@@ -65,7 +65,7 @@ async function sumQuantityForDay<T extends QuantityTypeIdentifier>(
   identifier: T,
   dayStart: Date,
   dayEnd: Date,
-  unit: UnitForIdentifier<T>
+  unit: UnitForIdentifier<T>,
 ): Promise<number | undefined> {
   try {
     // HealthKit statistics apply its source de-duplication rules. Summing raw
@@ -91,7 +91,7 @@ async function latestQuantityForDay<T extends QuantityTypeIdentifier>(
   identifier: T,
   dayStart: Date,
   dayEnd: Date,
-  unit: UnitForIdentifier<T>
+  unit: UnitForIdentifier<T>,
 ): Promise<number | undefined> {
   try {
     const samples = await HK.queryQuantitySamples(identifier, {
@@ -171,13 +171,19 @@ async function readDailyWellness(HK: HK, date: string): Promise<DailyWellnessSam
     floors,
   ] = await Promise.all([
     sleepPromise,
-    avgQuantityForDay(HK, 'HKQuantityTypeIdentifierRestingHeartRate', dayStart, dayEnd, 'count/min'),
+    avgQuantityForDay(
+      HK,
+      'HKQuantityTypeIdentifierRestingHeartRate',
+      dayStart,
+      dayEnd,
+      'count/min',
+    ),
     avgQuantityForDay(
       HK,
       'HKQuantityTypeIdentifierHeartRateVariabilitySDNN',
       dayStart,
       dayEnd,
-      'ms'
+      'ms',
     ),
     latestQuantityForDay(HK, 'HKQuantityTypeIdentifierBodyMass', dayStart, dayEnd, 'kg'),
     latestQuantityForDay(HK, 'HKQuantityTypeIdentifierBodyFatPercentage', dayStart, dayEnd, '%'),
@@ -189,8 +195,8 @@ async function readDailyWellness(HK: HK, date: string): Promise<DailyWellnessSam
     sumQuantityForDay(HK, 'HKQuantityTypeIdentifierStepCount', dayStart, dayEnd, 'count'),
     Promise.all(
       DAILY_DISTANCE_TYPES.map((identifier) =>
-        sumQuantityForDay(HK, identifier, dayStart, dayEnd, 'm')
-      )
+        sumQuantityForDay(HK, identifier, dayStart, dayEnd, 'm'),
+      ),
     ),
     // Apple Exercise Time is already in minutes.
     sumQuantityForDay(HK, 'HKQuantityTypeIdentifierAppleExerciseTime', dayStart, dayEnd, 'min'),
@@ -227,7 +233,7 @@ async function readDailyWellness(HK: HK, date: string): Promise<DailyWellnessSam
 
   const distanceTotal = distances.reduce<number | undefined>(
     (total, value) => (value != null ? (total ?? 0) + value : total),
-    undefined
+    undefined,
   );
   if (distanceTotal != null && distanceTotal > 0) {
     sample.distanceMeters = Math.round(distanceTotal);
@@ -239,7 +245,7 @@ async function readDailyWellness(HK: HK, date: string): Promise<DailyWellnessSam
 }
 
 export async function readHealthKitWellness(
-  window: HealthReadWindow = { lookbackDays: LOOKBACK_DAYS }
+  window: HealthReadWindow = { lookbackDays: LOOKBACK_DAYS },
 ): Promise<DailyWellnessSample[]> {
   if (Platform.OS !== 'ios') return [];
 
@@ -266,7 +272,7 @@ async function readHkQuantitySeries<T extends QuantityTypeIdentifier>(
   workout: WorkoutProxyTyped,
   start: Date,
   end: Date,
-  unit: UnitForIdentifier<T>
+  unit: UnitForIdentifier<T>,
 ): Promise<{ t: number; v: number }[]> {
   const query = async (scoped: boolean) => {
     const samples = await HK.queryQuantitySamples(identifier, {
@@ -321,7 +327,7 @@ type WorkoutStatistic = {
 async function statisticFor(
   workout: WorkoutProxyTyped,
   identifier: QuantityTypeIdentifier,
-  unit: string
+  unit: string,
 ): Promise<WorkoutStatistic> {
   const finite = (value?: number) =>
     typeof value === 'number' && Number.isFinite(value) ? value : undefined;
@@ -346,7 +352,7 @@ const WORKOUT_DISTANCE_TYPES = [
 ] as const satisfies readonly QuantityTypeIdentifier[];
 
 export async function readHealthKitWorkouts(
-  window: HealthReadWindow = { lookbackDays: LOOKBACK_DAYS }
+  window: HealthReadWindow = { lookbackDays: LOOKBACK_DAYS },
 ): Promise<PlatformWorkoutSession[]> {
   if (Platform.OS !== 'ios') return [];
 
@@ -401,19 +407,45 @@ export async function readHealthKitWorkouts(
         hrStat,
         distanceStats,
       ] = await Promise.all([
-        readHkQuantitySeries(HK, 'HKQuantityTypeIdentifierHeartRate', w, start, windowEnd, 'count/min'),
+        readHkQuantitySeries(
+          HK,
+          'HKQuantityTypeIdentifierHeartRate',
+          w,
+          start,
+          windowEnd,
+          'count/min',
+        ),
         readHkQuantitySeries(HK, 'HKQuantityTypeIdentifierCyclingPower', w, start, windowEnd, 'W'),
         readHkQuantitySeries(HK, 'HKQuantityTypeIdentifierRunningPower', w, start, windowEnd, 'W'),
-        readHkQuantitySeries(HK, 'HKQuantityTypeIdentifierCyclingCadence', w, start, windowEnd, 'count/min'),
-        readHkQuantitySeries(HK, 'HKQuantityTypeIdentifierRunningSpeed', w, start, windowEnd, 'm/s'),
-        readHkQuantitySeries(HK, 'HKQuantityTypeIdentifierCyclingSpeed', w, start, windowEnd, 'm/s'),
+        readHkQuantitySeries(
+          HK,
+          'HKQuantityTypeIdentifierCyclingCadence',
+          w,
+          start,
+          windowEnd,
+          'count/min',
+        ),
+        readHkQuantitySeries(
+          HK,
+          'HKQuantityTypeIdentifierRunningSpeed',
+          w,
+          start,
+          windowEnd,
+          'm/s',
+        ),
+        readHkQuantitySeries(
+          HK,
+          'HKQuantityTypeIdentifierCyclingSpeed',
+          w,
+          start,
+          windowEnd,
+          'm/s',
+        ),
         // `totalEnergyBurned` / `totalDistance` are deprecated in favour of the
         // workout's statistics; keep them only as the fallback.
         statisticFor(w, 'HKQuantityTypeIdentifierActiveEnergyBurned', 'kcal'),
         statisticFor(w, 'HKQuantityTypeIdentifierHeartRate', 'count/min'),
-        Promise.all(
-          WORKOUT_DISTANCE_TYPES.map((identifier) => statisticFor(w, identifier, 'm'))
-        ),
+        Promise.all(WORKOUT_DISTANCE_TYPES.map((identifier) => statisticFor(w, identifier, 'm'))),
       ]);
 
       const activeCalories = energyStat.sum ?? kilocalories(w.totalEnergyBurned);
@@ -423,12 +455,10 @@ export async function readHealthKitWorkouts(
 
       const hr = summarizeHeartRate(hrRaw.map((s) => ({ t: s.t, bpm: s.v })));
       const power = summarizePower(
-        [...cyclingPower, ...runningPower].map((s) => ({ t: s.t, watts: s.v }))
+        [...cyclingPower, ...runningPower].map((s) => ({ t: s.t, watts: s.v })),
       );
       const cadence = summarizeCadence(cadenceRaw.map((s) => ({ t: s.t, rpm: s.v })));
-      const speed = summarizeSpeed(
-        [...runSpeed, ...cycleSpeed].map((s) => ({ t: s.t, mps: s.v }))
-      );
+      const speed = summarizeSpeed([...runSpeed, ...cycleSpeed].map((s) => ({ t: s.t, mps: s.v })));
 
       let routePoints = summarizeRoute([]).samples;
       try {

@@ -1,14 +1,7 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, Pressable, Text, TextInput, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
@@ -135,7 +128,10 @@ function GoalBar({ pct, barClassName }: { pct: number | null; barClassName: stri
   if (pct == null) return null;
   return (
     <View className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-border">
-      <View className={`h-full rounded-full ${barClassName}`} style={{ width: `${Math.min(100, pct)}%` }} />
+      <View
+        className={`h-full rounded-full ${barClassName}`}
+        style={{ width: `${Math.min(100, pct)}%` }}
+      />
     </View>
   );
 }
@@ -180,11 +176,7 @@ function MacroTile({
   );
 
   if (!onPress) {
-    return (
-      <View className="flex-1 rounded-xl border border-border bg-card p-3">
-        {body}
-      </View>
-    );
+    return <View className="flex-1 rounded-xl border border-border bg-card p-3">{body}</View>;
   }
 
   return (
@@ -251,13 +243,7 @@ export function NutritionSection({ entriesMode = 'full' }: NutritionSectionProps
     return localDateYmd(d);
   }, [todayYmd]);
 
-  const {
-    data: today,
-    isLoading,
-    isError,
-    error,
-    refetch,
-  } = useTodayNutritionQuery(selectedDate);
+  const { data: today, isLoading, isError, error, refetch } = useTodayNutritionQuery(selectedDate);
   const logMutation = useLogNutritionItem();
   const hydrationMutation = useQuickAddHydration();
   const deleteItem = useDeleteNutritionItem();
@@ -273,9 +259,7 @@ export function NutritionSection({ entriesMode = 'full' }: NutritionSectionProps
 
   const allItems = today?.items ?? [];
   const visibleItems =
-    entriesMode === 'collapsed' && !entriesExpanded
-      ? allItems.slice(-COLLAPSED_ENTRIES)
-      : allItems;
+    entriesMode === 'collapsed' && !entriesExpanded ? allItems.slice(-COLLAPSED_ENTRIES) : allItems;
   const hiddenCount =
     entriesMode === 'collapsed' && !entriesExpanded
       ? Math.max(0, allItems.length - COLLAPSED_ENTRIES)
@@ -286,13 +270,11 @@ export function NutritionSection({ entriesMode = 'full' }: NutritionSectionProps
     setExplainLabel(label);
   };
 
-  const update =
-    (key: keyof NutritionQuickLogForm) =>
-    (text: string) => {
-      setSaved(false);
-      setFormError(null);
-      setForm((prev) => ({ ...prev, [key]: text }));
-    };
+  const update = (key: keyof NutritionQuickLogForm) => (text: string) => {
+    setSaved(false);
+    setFormError(null);
+    setForm((prev) => ({ ...prev, [key]: text }));
+  };
 
   const setMeal = (meal: MealSlot) => {
     hapticLight();
@@ -340,36 +322,29 @@ export function NutritionSection({ entriesMode = 'full' }: NutritionSectionProps
 
   const confirmDeleteItem = (item: NutritionLoggedItem) => {
     if (!item.id) return;
-    Alert.alert(
-      'Delete this item?',
-      `"${item.name}" will be removed from this day's log.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            void (async () => {
-              try {
-                await deleteItem.mutateAsync({
-                  nutritionId: nutritionPatchId,
-                  mealType: item.mealType,
-                  itemId: item.id!,
-                  date: selectedDate,
-                });
-                hapticSuccess();
-              } catch (err) {
-                hapticError();
-                Alert.alert(
-                  'Delete failed',
-                  friendlyError(err, 'Could not delete this item')
-                );
-              }
-            })();
-          },
+    Alert.alert('Delete this item?', `"${item.name}" will be removed from this day's log.`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => {
+          void (async () => {
+            try {
+              await deleteItem.mutateAsync({
+                nutritionId: nutritionPatchId,
+                mealType: item.mealType,
+                itemId: item.id!,
+                date: selectedDate,
+              });
+              hapticSuccess();
+            } catch (err) {
+              hapticError();
+              Alert.alert('Delete failed', friendlyError(err, 'Could not delete this item'));
+            }
+          })();
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const onEntryPress = (item: NutritionLoggedItem) => {
@@ -406,7 +381,7 @@ export function NutritionSection({ entriesMode = 'full' }: NutritionSectionProps
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Previous day"
-          className="p-1 text-text-secondary"
+          className="text-text-secondary p-1"
           onPress={() => {
             hapticLight();
             const d = new Date(selectedDate + 'T00:00:00');
@@ -414,7 +389,7 @@ export function NutritionSection({ entriesMode = 'full' }: NutritionSectionProps
             setSelectedDate(localDateYmd(d));
           }}
         >
-          <Text className="text-sm font-semibold text-text-secondary">‹ Prev</Text>
+          <Text className="text-text-secondary text-sm font-semibold">‹ Prev</Text>
         </Pressable>
 
         <Pressable
@@ -427,11 +402,7 @@ export function NutritionSection({ entriesMode = 'full' }: NutritionSectionProps
           }}
         >
           <Text className="text-xs font-bold text-text-primary">
-            {isToday
-              ? 'Today'
-              : selectedDate === yesterdayYmd
-              ? 'Yesterday'
-              : selectedDate}
+            {isToday ? 'Today' : selectedDate === yesterdayYmd ? 'Yesterday' : selectedDate}
           </Text>
           <Text className="text-[10px] text-text-muted">{selectedDate}</Text>
         </Pressable>
@@ -453,9 +424,7 @@ export function NutritionSection({ entriesMode = 'full' }: NutritionSectionProps
         </Pressable>
       </View>
 
-      {isLoading && !today ? (
-        <ActivityIndicator className="mt-4" color={Colors.brand} />
-      ) : null}
+      {isLoading && !today ? <ActivityIndicator className="mt-4" color={Colors.brand} /> : null}
 
       {isError ? (
         <View className="mt-3 rounded-xl border border-danger/40 bg-tint-error p-3">
@@ -523,7 +492,12 @@ export function NutritionSection({ entriesMode = 'full' }: NutritionSectionProps
                     <Text className="text-[10px] font-bold uppercase tracking-wide text-text-muted">
                       Hydration
                     </Text>
-                    <AppSymbol sf="drop.fill" size={14} tintColor={NutritionAccents.hydration} fallback="ml" />
+                    <AppSymbol
+                      sf="drop.fill"
+                      size={14}
+                      tintColor={NutritionAccents.hydration}
+                      fallback="ml"
+                    />
                   </View>
                   <Text className="mt-2 text-2xl font-semibold text-text-primary">
                     {(today.waterMl / 1000).toFixed(1)}
@@ -561,9 +535,7 @@ export function NutritionSection({ entriesMode = 'full' }: NutritionSectionProps
                   accentClassName="text-macro-protein"
                   barClassName="bg-macro-protein"
                   onPress={
-                    canExplainMetric(today, 'Protein')
-                      ? () => openExplain('Protein')
-                      : undefined
+                    canExplainMetric(today, 'Protein') ? () => openExplain('Protein') : undefined
                   }
                 />
                 <MacroTile
@@ -593,9 +565,7 @@ export function NutritionSection({ entriesMode = 'full' }: NutritionSectionProps
       {!isError ? (
         <View className="mt-6" testID="nutrition-entries-list">
           <Text className="text-sm font-semibold text-text-primary">Logged items</Text>
-          <Text className="mt-1 text-xs text-text-muted">
-            Tap an item to edit or delete.
-          </Text>
+          <Text className="mt-1 text-xs text-text-muted">Tap an item to edit or delete.</Text>
 
           {allItems.length === 0 ? (
             <View className="mt-3 rounded-xl border border-border bg-card px-4 py-4">
@@ -612,15 +582,11 @@ export function NutritionSection({ entriesMode = 'full' }: NutritionSectionProps
                   <Pressable
                     key={key}
                     testID={
-                      item.id
-                        ? `nutrition-entry-${item.id}`
-                        : `nutrition-entry-noid-${index}`
+                      item.id ? `nutrition-entry-${item.id}` : `nutrition-entry-noid-${index}`
                     }
                     accessibilityRole={canAct ? 'button' : undefined}
                     accessibilityLabel={
-                      canAct
-                        ? `${item.name}, ${apiMealTypeLabel(item.mealType)}`
-                        : undefined
+                      canAct ? `${item.name}, ${apiMealTypeLabel(item.mealType)}` : undefined
                     }
                     disabled={!canAct}
                     className={`rounded-xl border border-border bg-card px-3 py-3 ${
@@ -635,12 +601,10 @@ export function NutritionSection({ entriesMode = 'full' }: NutritionSectionProps
                         </Text>
                         <Text className="mt-0.5 text-xs text-text-muted">
                           {apiMealTypeLabel(item.mealType)}
-                          {item.amount != null && item.unit
-                            ? ` · ${item.amount}${item.unit}`
-                            : ''}
+                          {item.amount != null && item.unit ? ` · ${item.amount}${item.unit}` : ''}
                         </Text>
                       </View>
-                      <Text className="text-xs font-semibold text-text-secondary">
+                      <Text className="text-text-secondary text-xs font-semibold">
                         {item.calories} kcal
                       </Text>
                     </View>
@@ -707,13 +671,11 @@ export function NutritionSection({ entriesMode = 'full' }: NutritionSectionProps
               key={btn.ml}
               accessibilityRole="button"
               accessibilityLabel={`Add ${btn.ml} ml hydration`}
-              className="flex-1 min-w-[45%] flex-row items-center justify-center gap-1.5 rounded-xl border border-border-strong bg-surface py-2.5 active:opacity-80"
+              className="min-w-[45%] flex-1 flex-row items-center justify-center gap-1.5 rounded-xl border border-border-strong bg-surface py-2.5 active:opacity-80"
               onPress={() => void onHydration(btn.ml)}
               disabled={hydrationMutation.isPending}
             >
-              <Text className="text-xs font-semibold text-text-primary">
-                +{btn.ml} ml
-              </Text>
+              <Text className="text-xs font-semibold text-text-primary">+{btn.ml} ml</Text>
             </Pressable>
           ))}
         </View>
@@ -721,7 +683,9 @@ export function NutritionSection({ entriesMode = 'full' }: NutritionSectionProps
         {hydrationMutation.isPending ? (
           <ActivityIndicator className="mt-2" color={Colors.brand} />
         ) : null}
-        {hydrationError ? <Text className="mt-2 text-xs text-red-400">{hydrationError}</Text> : null}
+        {hydrationError ? (
+          <Text className="mt-2 text-xs text-red-400">{hydrationError}</Text>
+        ) : null}
         {hydrationSaved ? (
           <Text className="mt-2 text-xs font-semibold text-green-400">{hydrationSaved}</Text>
         ) : null}
@@ -730,7 +694,9 @@ export function NutritionSection({ entriesMode = 'full' }: NutritionSectionProps
       {/* Quick Meal Logger Card */}
       <View className="mt-6 rounded-xl border border-border bg-card p-4">
         <Text className="text-sm font-semibold text-text-primary">Quick Log Meal</Text>
-        <Text className="mt-1 text-xs text-text-muted">Select meal type and enter items or macros</Text>
+        <Text className="mt-1 text-xs text-text-muted">
+          Select meal type and enter items or macros
+        </Text>
 
         {/* Meal Slot Selector */}
         <View className="mt-3 flex-row gap-2">
@@ -744,9 +710,7 @@ export function NutritionSection({ entriesMode = 'full' }: NutritionSectionProps
                 accessibilityLabel={option.label}
                 accessibilityState={{ selected }}
                 className={`flex-1 items-center justify-center rounded-xl border py-2.5 ${
-                  selected
-                    ? 'border-brand bg-brand/10'
-                    : 'border-border bg-surface'
+                  selected ? 'border-brand bg-brand/10' : 'border-border bg-surface'
                 }`}
                 onPress={() => setMeal(option.value)}
               >
@@ -806,7 +770,9 @@ export function NutritionSection({ entriesMode = 'full' }: NutritionSectionProps
 
         {formError ? <Text className="mt-3 text-xs text-red-400">{formError}</Text> : null}
         {saved ? (
-          <Text className="mt-3 text-xs font-semibold text-green-400">Logged — totals updated.</Text>
+          <Text className="mt-3 text-xs font-semibold text-green-400">
+            Logged — totals updated.
+          </Text>
         ) : null}
 
         <Button

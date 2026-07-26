@@ -1,15 +1,4 @@
-const ACRONYMS = new Set([
-  'ftp',
-  'hr',
-  'hrv',
-  'rpe',
-  'tss',
-  'if',
-  'vo2',
-  'mtb',
-  'xc',
-  'tt',
-]);
+const ACRONYMS = new Set(['ftp', 'hr', 'hrv', 'rpe', 'tss', 'if', 'vo2', 'mtb', 'xc', 'tt']);
 
 /**
  * Athlete-facing workout type from server enums like `WeightTraining` / `VirtualRun`.

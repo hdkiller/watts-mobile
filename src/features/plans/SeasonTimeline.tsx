@@ -7,11 +7,7 @@ import { AnimatedPressable } from '@/src/components/AnimatedPressable';
 import { hapticLight } from '@/src/lib/haptics';
 import { blockTypeColor } from '@/src/theme/colors';
 
-import {
-  formatVolumeHours,
-  humanizeBlockType,
-  timelineBlockLabels,
-} from './formatPlanCopy';
+import { formatVolumeHours, humanizeBlockType, timelineBlockLabels } from './formatPlanCopy';
 import type { PlanBlockShell, PlanWeekShell } from './types';
 
 const MIN_PHASE_WIDTH = 48;
@@ -36,11 +32,7 @@ export function SeasonTimeline({
   const totalWeeks = blocks.reduce((sum, b) => sum + Math.max(1, b.durationWeeks), 0);
   const scrollDense = blocks.length > 6 || totalWeeks > 24;
   // Only label “Today” when the needle is actually drawable inside the season.
-  const showToday =
-    todayPercent != null &&
-    todayPercent > 0 &&
-    todayPercent < 100 &&
-    !scrollDense;
+  const showToday = todayPercent != null && todayPercent > 0 && todayPercent < 100 && !scrollDense;
   const labels = timelineBlockLabels(blocks);
 
   return (
@@ -144,9 +136,7 @@ function PhaseSegment({
     >
       <View>
         <Text
-          className={`text-xs font-semibold ${
-            selected ? 'text-text-primary' : 'text-text-muted'
-          }`}
+          className={`text-xs font-semibold ${selected ? 'text-text-primary' : 'text-text-muted'}`}
           numberOfLines={1}
         >
           {label}

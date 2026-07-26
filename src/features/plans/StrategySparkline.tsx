@@ -11,12 +11,7 @@ type Props = {
 };
 
 /** Mini strategy trend matching web PlanWizard SVG sparklines. */
-export function StrategySparkline({
-  strategy,
-  color,
-  width = 120,
-  height = 28,
-}: Props) {
+export function StrategySparkline({ strategy, color, width = 120, height = 28 }: Props) {
   const d = STRATEGY_SPARKLINE_PATHS[strategy];
   return (
     <Svg

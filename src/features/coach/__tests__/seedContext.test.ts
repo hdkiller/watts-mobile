@@ -76,7 +76,7 @@ describe('buildCoachSeedContext', () => {
 
   it('prefixes the athlete question once', () => {
     expect(withSeedPrefix('Why this?', 'Context line')).toBe(
-      'Context line\n\nAthlete question: Why this?'
+      'Context line\n\nAthlete question: Why this?',
     );
     expect(withSeedPrefix('Why this?', null)).toBe('Why this?');
   });
@@ -107,7 +107,7 @@ describe('buildSessionCoachSeedContext', () => {
         kind: 'planned',
         id: 'pw-1',
         title: '   ',
-      })
+      }),
     ).toBeNull();
   });
 });
@@ -116,7 +116,7 @@ describe('displayAthleteText', () => {
   it('strips the seed block and keeps the athlete question', () => {
     const seeded = withSeedPrefix(
       "What's the intent of today's planned session?",
-      buildCoachSeedContext({ today: baseToday() })
+      buildCoachSeedContext({ today: baseToday() }),
     );
     expect(displayAthleteText(seeded)).toBe("What's the intent of today's planned session?");
   });
@@ -129,14 +129,14 @@ describe('displayAthleteText', () => {
         id: 'pw-1',
         title: 'Threshold',
         type: 'Ride',
-      })
+      }),
     );
     expect(displayAthleteText(seeded)).toBe('What should I focus on?');
   });
 
   it('leaves ordinary user text unchanged', () => {
     expect(displayAthleteText('Athlete question: just kidding, real text')).toBe(
-      'Athlete question: just kidding, real text'
+      'Athlete question: just kidding, real text',
     );
     expect(displayAthleteText('How hard should I go?')).toBe('How hard should I go?');
   });

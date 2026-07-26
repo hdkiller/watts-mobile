@@ -90,7 +90,7 @@ describe('toSportThresholdPatch', () => {
 
   it('rejects invalid numbers', () => {
     expect(
-      toSportThresholdPatch({ ftp: 'x', lthr: '1', maxHr: '2', thresholdPace: '' }, false)
+      toSportThresholdPatch({ ftp: 'x', lthr: '1', maxHr: '2', thresholdPace: '' }, false),
     ).toBeNull();
   });
 });

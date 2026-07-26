@@ -30,7 +30,7 @@ export interface HealthStatusResult {
 
 function hasRead(
   granted: readonly { recordType?: string; accessType?: string }[],
-  recordType: string
+  recordType: string,
 ): boolean {
   return granted.some((p) => p.recordType === recordType && p.accessType === 'read');
 }

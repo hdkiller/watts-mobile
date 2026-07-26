@@ -43,9 +43,7 @@ describe('mapGoals', () => {
     expect(detail.metric).toBe('FTP');
     expect(detail.targetValue).toBe(280);
     expect(detail.priorityLabel).toBe('High');
-    expect(detail.linkedEvents).toEqual([
-      expect.objectContaining({ id: 'e1', title: 'Local TT' }),
-    ]);
+    expect(detail.linkedEvents).toEqual([expect.objectContaining({ id: 'e1', title: 'Local TT' })]);
   });
 
   it('sorts by target date then title', () => {

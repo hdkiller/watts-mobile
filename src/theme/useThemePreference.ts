@@ -13,7 +13,7 @@ export function useThemePreference() {
   const preference = useSyncExternalStore(
     subscribeThemePreference,
     getThemePreferenceSync,
-    getThemePreferenceSync
+    getThemePreferenceSync,
   );
   const [ready, setReady] = useState(isThemePreferenceHydrated());
 

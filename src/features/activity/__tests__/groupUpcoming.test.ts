@@ -23,7 +23,7 @@ describe('groupUpcomingByDay', () => {
         plan({ id: '2', date: '2026-07-20T10:00:00', title: 'B' }),
         plan({ id: '3', date: '2026-07-23T10:00:00', title: 'C' }),
       ],
-      now
+      now,
     );
     expect(sections.map((s) => s.title)).toEqual([
       'Today',

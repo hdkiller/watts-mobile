@@ -91,7 +91,9 @@ export default function PlanTabScreen() {
       <PlanModeSegment mode={mode} onChange={setMode} />
       <ScrollView
         className="flex-1"
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refetchAll()} />}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={() => void refetchAll()} />
+        }
       >
         {mode === 'training' ? (
           <PlanTrainingSegment

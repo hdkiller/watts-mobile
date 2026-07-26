@@ -1,13 +1,6 @@
 import type { ActivationStatus, MobileActivationStepId, OnboardingStatusApi } from './types';
 
-const STEPS: MobileActivationStepId[] = [
-  'consent',
-  'goal',
-  'plan',
-  'insight',
-  'connect',
-  'done',
-];
+const STEPS: MobileActivationStepId[] = ['consent', 'goal', 'plan', 'insight', 'connect', 'done'];
 
 function isStep(value: unknown): value is MobileActivationStepId {
   return typeof value === 'string' && (STEPS as string[]).includes(value);
@@ -62,7 +55,7 @@ export function activationStepRank(step: string | undefined | null): number {
 /** Merge an optimistic wizard advance without regressing past a newer server step. */
 export function mergeActivationAdvance(
   prev: ActivationStatus,
-  patch: Partial<ActivationStatus>
+  patch: Partial<ActivationStatus>,
 ): ActivationStatus {
   const patchedStep = patch.mobileActivationStep;
   const step =

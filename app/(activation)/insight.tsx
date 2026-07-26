@@ -80,8 +80,12 @@ export default function ActivationInsightScreen() {
             ) : (
               items.slice(0, 5).map((w, i) => (
                 <View key={w.id ?? `${i}`} className="rounded-xl border border-border bg-card p-3">
-                  <Text className="text-base text-text-primary">{w.title || w.type || 'Session'}</Text>
-                  {w.date ? <Text className="mt-1 text-sm text-text-muted">{String(w.date)}</Text> : null}
+                  <Text className="text-base text-text-primary">
+                    {w.title || w.type || 'Session'}
+                  </Text>
+                  {w.date ? (
+                    <Text className="mt-1 text-sm text-text-muted">{String(w.date)}</Text>
+                  ) : null}
                 </View>
               ))
             )}
@@ -90,7 +94,12 @@ export default function ActivationInsightScreen() {
 
         {error ? <Text className="mt-4 text-sm text-red-400">{error}</Text> : null}
 
-        <Button className="mt-8" label="Continue" loading={busy} onPress={() => void onContinue()} />
+        <Button
+          className="mt-8"
+          label="Continue"
+          loading={busy}
+          onPress={() => void onContinue()}
+        />
       </ScrollView>
     </SafeAreaView>
   );

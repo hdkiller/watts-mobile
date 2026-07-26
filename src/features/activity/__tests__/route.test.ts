@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  decodePolyline,
-  decimatePoints,
-  resolveActivityRouteCoordinates,
-} from '../route';
+import { decodePolyline, decimatePoints, resolveActivityRouteCoordinates } from '../route';
 
 describe('route utilities', () => {
   describe('decodePolyline', () => {
@@ -23,7 +19,10 @@ describe('route utilities', () => {
 
   describe('decimatePoints', () => {
     it('returns same array if under maxPoints limit', () => {
-      const arr = [{ latitude: 1, longitude: 2 }, { latitude: 3, longitude: 4 }];
+      const arr = [
+        { latitude: 1, longitude: 2 },
+        { latitude: 3, longitude: 4 },
+      ];
       expect(decimatePoints(arr, 5)).toEqual(arr);
     });
 

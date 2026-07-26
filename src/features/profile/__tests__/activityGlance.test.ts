@@ -12,7 +12,7 @@ import {
 } from '../activityGlance';
 
 function activity(
-  partial: Partial<ActivityListItem> & { date: string; id?: string }
+  partial: Partial<ActivityListItem> & { date: string; id?: string },
 ): ActivityListItem {
   return {
     id: partial.id ?? 'a1',
@@ -27,7 +27,7 @@ function activity(
 }
 
 function planned(
-  partial: Partial<PlannedListItem> & { date: string; id?: string }
+  partial: Partial<PlannedListItem> & { date: string; id?: string },
 ): PlannedListItem {
   return {
     id: partial.id ?? 'p1',
@@ -64,7 +64,7 @@ describe('activityGlance', () => {
         planned({ id: 'future-plan', date: '2026-07-16' }),
         planned({ id: 'today-plan', date: '2026-07-15' }),
       ],
-      now
+      now,
     );
 
     expect(glance.weeks).toHaveLength(12);
@@ -87,7 +87,7 @@ describe('activityGlance', () => {
         planned({ id: 'd1', date: '2026-07-20' }),
         planned({ id: 'd2', date: '2026-07-21T00:00:00.000Z' }),
       ],
-      now
+      now,
     );
     const flat = glance.weeks.flatMap((w) => w.days);
     expect(flat.find((d) => d.dateKey === '2026-07-20')?.hasPlanned).toBe(true);
@@ -99,7 +99,7 @@ describe('activityGlance', () => {
     const glance = computeActivityGlance(
       [activity({ id: 'a', date: '2026-07-16T12:00:00' })],
       [planned({ id: 'p', date: '2026-07-16' })],
-      now
+      now,
     );
     const day = glance.weeks.flatMap((w) => w.days).find((d) => d.dateKey === '2026-07-16')!;
     expect(day.hasDone).toBe(true);
@@ -118,11 +118,7 @@ describe('activityGlance', () => {
 
   it('computes nutrition logged vs gap days for a page', () => {
     const now = new Date(2026, 6, 15, 12, 0, 0);
-    const glance = computeNutritionGlance(
-      ['2026-07-14', '2026-07-15', '2026-04-01'],
-      now,
-      0
-    );
+    const glance = computeNutritionGlance(['2026-07-14', '2026-07-15', '2026-04-01'], now, 0);
     expect(glance.loggedDayCount).toBe(2);
     expect(glance.summaryLine).toContain('logged');
     expect(glance.summaryLine).toContain('gaps');
@@ -143,7 +139,7 @@ describe('activityGlance', () => {
         isFuture: false,
         activityIds: ['a1'],
         plannedIds: [],
-      })
+      }),
     ).toEqual({ kind: 'activity', id: 'a1' });
 
     expect(
@@ -155,7 +151,7 @@ describe('activityGlance', () => {
         isFuture: true,
         activityIds: [],
         plannedIds: ['p1'],
-      })
+      }),
     ).toEqual({ kind: 'planned', id: 'p1' });
 
     expect(
@@ -167,7 +163,7 @@ describe('activityGlance', () => {
         isFuture: false,
         activityIds: ['a1', 'a2'],
         plannedIds: [],
-      })
+      }),
     ).toEqual({ kind: 'recent' });
 
     expect(
@@ -179,7 +175,7 @@ describe('activityGlance', () => {
         isFuture: true,
         activityIds: [],
         plannedIds: [],
-      })
+      }),
     ).toEqual({ kind: 'upcoming' });
   });
 });

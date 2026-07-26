@@ -19,7 +19,7 @@ describe('isDailyCheckinCompleted', () => {
           { id: 'a', text: 'Q1', answer: 'YES' },
           { id: 'b', text: 'Q2', answer: null },
         ],
-      })
+      }),
     ).toBe(false);
   });
 
@@ -30,7 +30,7 @@ describe('isDailyCheckinCompleted', () => {
           { id: 'a', text: 'Q1', answer: 'YES' },
           { id: 'b', text: 'Q2', answer: 'NO' },
         ],
-      })
+      }),
     ).toBe(true);
   });
 });

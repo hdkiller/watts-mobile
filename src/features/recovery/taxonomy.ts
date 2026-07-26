@@ -156,10 +156,10 @@ export function optionById(id: JourneyEventOptionId): JourneyEventOption {
 
 export function findOptionForCategoryType(
   category: string | null | undefined,
-  eventType: string | null | undefined
+  eventType: string | null | undefined,
 ): JourneyEventOption {
   const exact = JOURNEY_EVENT_OPTIONS.find(
-    (o) => o.category === category && o.eventType === eventType
+    (o) => o.category === category && o.eventType === eventType,
   );
   if (exact) return exact;
   const byCategory = JOURNEY_EVENT_OPTIONS.find((o) => o.category === category);

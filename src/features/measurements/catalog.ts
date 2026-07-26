@@ -46,10 +46,7 @@ export function findMetricOption(metricKey: string): MeasurementMetricOption | u
   return MEASUREMENT_METRICS.find((m) => m.key === metricKey);
 }
 
-export function metricCategoryFor(
-  metricKey: string,
-  canonicalUnit?: string
-): MetricCategory {
+export function metricCategoryFor(metricKey: string, canonicalUnit?: string): MetricCategory {
   if (metricKey === 'custom' || metricKey.startsWith('custom:')) {
     if (canonicalUnit === 'kg') return 'mass';
     if (canonicalUnit === 'pct') return 'percent';

@@ -17,7 +17,6 @@ export type WorkoutStreamsApi = {
   dataSource?: string | null;
 };
 
-
 export type PowerCurvePointApi = {
   duration?: number;
   durationLabel?: string;

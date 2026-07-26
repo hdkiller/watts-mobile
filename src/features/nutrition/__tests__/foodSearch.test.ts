@@ -1,10 +1,6 @@
 import { apiFetch } from '@/src/api/client';
 import { describe, expect, it, vi } from 'vitest';
-import {
-  lookupFoodBarcode,
-  searchFoodDatabase,
-  type FoodItemResult,
-} from '../api';
+import { lookupFoodBarcode, searchFoodDatabase, type FoodItemResult } from '../api';
 import {
   defaultPortionGrams,
   foodItemKey,
@@ -99,7 +95,6 @@ describe('Food Database API Client', () => {
     const notFound = await lookupFoodBarcode('99999999');
     expect(notFound).toBeNull();
   });
-
 });
 
 describe('portionMath', () => {

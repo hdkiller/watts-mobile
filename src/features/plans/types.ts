@@ -1,12 +1,7 @@
 export type VolumePreference = 'LOW' | 'MID' | 'HIGH';
 
 export type PlanStrategy =
-  | 'LINEAR'
-  | 'UNDULATING'
-  | 'BLOCK'
-  | 'POLARIZED'
-  | 'REVERSE'
-  | 'MAINTENANCE';
+  'LINEAR' | 'UNDULATING' | 'BLOCK' | 'POLARIZED' | 'REVERSE' | 'MAINTENANCE';
 
 export type StartingPhase = 'BASE' | 'BUILD' | 'PEAK';
 

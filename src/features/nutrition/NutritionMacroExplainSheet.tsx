@@ -86,15 +86,8 @@ export function NutritionMacroExplainSheet({
         <ScrollView className="flex-1" contentContainerClassName="px-6 pb-8 pt-5">
           <View className="flex-row items-center justify-between">
             <View className="min-w-0 flex-1 flex-row items-center gap-2 pr-3">
-              <AppSymbol
-                sf={accent.sf}
-                size={22}
-                tintColor={accent.color}
-                fallback="·"
-              />
-              <Text className="text-lg font-semibold text-text-primary">
-                {label} analysis
-              </Text>
+              <AppSymbol sf={accent.sf} size={22} tintColor={accent.color} fallback="·" />
+              <Text className="text-lg font-semibold text-text-primary">{label} analysis</Text>
             </View>
             <Text className="text-2xl font-semibold" style={{ color: accent.color }}>
               {Math.round(model.actual)}
@@ -158,9 +151,7 @@ export function NutritionMacroExplainSheet({
 
           <View className="mt-5 rounded-xl border border-border bg-card px-4 py-3.5">
             <Text className="text-sm font-semibold text-text-primary">Coach insight</Text>
-            <Text className="mt-1.5 text-sm leading-6 text-text-body">
-              {model.coachTip}
-            </Text>
+            <Text className="mt-1.5 text-sm leading-6 text-text-body">{model.coachTip}</Text>
           </View>
 
           <Button className="mt-6" label="Close" variant="secondary" onPress={onClose} />

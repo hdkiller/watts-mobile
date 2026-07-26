@@ -1,0 +1,29 @@
+# Generated and dependency directories
+node_modules/
+.expo/
+dist/
+web-build/
+coverage/
+ios/
+android/
+
+# Local agent, editor, and generated tool state
+.agents/
+.claude/
+.cursor/
+.gemini/
+.hallmark/
+.vscode/
+.mcp.json
+opencode.json
+
+# Generated or tool-managed files
+pnpm-lock.yaml
+expo-env.d.ts
+
+# Keep this first pass focused on executable code and configuration. Documentation,
+# OpenSpec artifacts, and Maestro flows retain their existing hand-authored layout.
+docs/
+openspec/
+maestro/
+**/*.md

@@ -185,9 +185,7 @@ function PickerBody({
               }}
             >
               <Text className="text-sm font-semibold text-text-primary">{option.title}</Text>
-              {macros ? (
-                <Text className="mt-1 text-xs text-text-muted">{macros}</Text>
-              ) : null}
+              {macros ? <Text className="mt-1 text-xs text-text-muted">{macros}</Text> : null}
             </Pressable>
           );
         })}

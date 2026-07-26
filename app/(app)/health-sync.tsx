@@ -1,15 +1,7 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack, type Href, router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import {
-  AppState,
-  Platform,
-  Pressable,
-  ScrollView,
-  Switch,
-  Text,
-  View,
-} from 'react-native';
+import { AppState, Platform, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import * as Linking from 'expo-linking';
 import { SafeAreaView } from 'react-native-screens/experimental';
 
@@ -55,7 +47,7 @@ function StatusBadge({ status }: { status: string }) {
 
   return (
     <View className={`flex-row items-center rounded-full px-2.5 py-1 ${bg}`}>
-      <View className={`h-1.5 w-1.5 rounded-full mr-1.5 ${dotBg}`} />
+      <View className={`mr-1.5 h-1.5 w-1.5 rounded-full ${dotBg}`} />
       <Text className={`text-xs font-semibold ${text}`}>{label}</Text>
     </View>
   );
@@ -67,14 +59,14 @@ function PermissionRow({ title, granted }: { title: string; granted: boolean }) 
       <Text className="text-sm font-medium text-text-primary">{title}</Text>
       <View className="flex-row items-center">
         <View
-          className={`h-4.5 w-4.5 items-center justify-center rounded-full mr-2 ${
+          className={`h-4.5 w-4.5 mr-2 items-center justify-center rounded-full ${
             granted ? 'bg-success/15' : 'bg-border-strong'
           }`}
         >
           {granted ? (
-            <Text className="text-xs text-success font-bold">✓</Text>
+            <Text className="text-xs font-bold text-success">✓</Text>
           ) : (
-            <Text className="text-xs text-text-muted font-bold">×</Text>
+            <Text className="text-xs font-bold text-text-muted">×</Text>
           )}
         </View>
         <Text className={`text-sm font-medium ${granted ? 'text-success' : 'text-text-muted'}`}>
@@ -179,7 +171,7 @@ export default function HealthSyncSettingsScreen() {
   const handleInstallHealthConnect = async () => {
     hapticLight();
     await Linking.openURL(
-      'https://play.google.com/store/apps/details?id=com.google.android.apps.healthdata'
+      'https://play.google.com/store/apps/details?id=com.google.android.apps.healthdata',
     );
   };
 
@@ -254,9 +246,9 @@ export default function HealthSyncSettingsScreen() {
           <DetailSkeleton />
         ) : (
           <ScrollView className="flex-1 bg-surface" contentContainerClassName="px-6 pb-12 pt-4">
-            <Text className="text-sm text-text-muted leading-5">
-              Connect {isIOS ? 'Apple Health' : 'Health Connect'} to prefill check-ins and optionally
-              sync wellness metrics and workouts to your Coach Watts instance.
+            <Text className="text-sm leading-5 text-text-muted">
+              Connect {isIOS ? 'Apple Health' : 'Health Connect'} to prefill check-ins and
+              optionally sync wellness metrics and workouts to your Coach Watts instance.
             </Text>
 
             <View className="mt-6 rounded-xl border border-border bg-card/60 p-5">
@@ -283,7 +275,7 @@ export default function HealthSyncSettingsScreen() {
               </View>
 
               {isIOS && (
-                <View className="mt-6 border-t border-border/80 pt-5 gap-3">
+                <View className="mt-6 gap-3 border-t border-border/80 pt-5">
                   {authStatus.status === 'should_request' ? (
                     <Button
                       label="Connect Apple Health"
@@ -292,11 +284,11 @@ export default function HealthSyncSettingsScreen() {
                     />
                   ) : (
                     <>
-                      <View className="rounded-lg bg-surface/40 p-4 border border-border/50">
-                        <Text className="text-xs font-semibold uppercase text-brand tracking-wider mb-2">
+                      <View className="rounded-lg border border-border/50 bg-surface/40 p-4">
+                        <Text className="mb-2 text-xs font-semibold uppercase tracking-wider text-brand">
                           Permissions Info
                         </Text>
-                        <Text className="text-xs text-text-muted leading-4.5">
+                        <Text className="leading-4.5 text-xs text-text-muted">
                           iOS usually shows the consent sheet only once. If you denied something,
                           turn it back on in Health → Profile → Apps → Coach Watts. Request access
                           again can still help when Coach Watts adds new data types.
@@ -322,7 +314,7 @@ export default function HealthSyncSettingsScreen() {
                 <View className="mt-4">
                   {authStatus.status === 'not_available' ? (
                     <View className="mt-2 border-t border-border/80 pt-4">
-                      <Text className="text-sm text-red-400 mb-4 leading-5">
+                      <Text className="mb-4 text-sm leading-5 text-red-400">
                         Health Connect is required but currently unavailable or not installed.
                       </Text>
                       <Button
@@ -332,14 +324,8 @@ export default function HealthSyncSettingsScreen() {
                     </View>
                   ) : (
                     <View className="mt-2">
-                      <PermissionRow
-                        title="Sleep"
-                        granted={!!authStatus.details?.sleepGranted}
-                      />
-                      <PermissionRow
-                        title="Weight"
-                        granted={!!authStatus.details?.weightGranted}
-                      />
+                      <PermissionRow title="Sleep" granted={!!authStatus.details?.sleepGranted} />
+                      <PermissionRow title="Weight" granted={!!authStatus.details?.weightGranted} />
                       <PermissionRow
                         title="Workouts"
                         granted={!!authStatus.details?.workoutsGranted}
@@ -352,13 +338,10 @@ export default function HealthSyncSettingsScreen() {
                         title="Calories"
                         granted={!!authStatus.details?.caloriesGranted}
                       />
-                      <PermissionRow
-                        title="Steps"
-                        granted={!!authStatus.details?.stepsGranted}
-                      />
+                      <PermissionRow title="Steps" granted={!!authStatus.details?.stepsGranted} />
 
                       {authStatus.status === 'partially_connected' ? (
-                        <Text className="mt-3 text-xs text-modify leading-4.5">
+                        <Text className="leading-4.5 mt-3 text-xs text-modify">
                           Some required permissions are missing. Grant them again below, or manage
                           access in Health Connect.
                         </Text>
@@ -398,13 +381,13 @@ export default function HealthSyncSettingsScreen() {
               )}
             </View>
 
-            <View className="mt-6 rounded-xl border border-border bg-card/60 overflow-hidden">
+            <View className="mt-6 overflow-hidden rounded-xl border border-border bg-card/60">
               <View className="flex-row items-center justify-between px-4 py-4">
                 <View className="mr-4 flex-1">
                   <Text className="text-base font-semibold text-text-primary">
                     Sync to Coach Watts
                   </Text>
-                  <Text className="mt-1 text-sm text-text-muted leading-5">
+                  <Text className="mt-1 text-sm leading-5 text-text-muted">
                     Automatically upload daily wellness metrics (sleep, RHR, HRV, weight, and more)
                     to your instance. Off by default.
                   </Text>
@@ -422,7 +405,7 @@ export default function HealthSyncSettingsScreen() {
                 <View className="flex-row items-center justify-between border-t border-border/80 px-4 py-4">
                   <View className="mr-4 flex-1">
                     <Text className="text-base font-semibold text-text-primary">Sync workouts</Text>
-                    <Text className="mt-1 text-sm text-text-muted leading-5">
+                    <Text className="mt-1 text-sm leading-5 text-text-muted">
                       Upload exercise sessions not already in Coach Watts. Turn off to keep wellness
                       sync only.
                     </Text>
@@ -442,7 +425,7 @@ export default function HealthSyncSettingsScreen() {
                   Last successful sync: {formatLastSync(preferences.lastSuccessAt)}
                 </Text>
                 {syncError && (
-                  <Text className="mt-2 text-xs text-red-400 leading-4.5">{syncError}</Text>
+                  <Text className="leading-4.5 mt-2 text-xs text-red-400">{syncError}</Text>
                 )}
               </View>
             </View>
@@ -457,7 +440,7 @@ export default function HealthSyncSettingsScreen() {
                     variant="secondary"
                   />
                   {noDataFound && (
-                    <Text className="text-xs text-modify leading-4.5">
+                    <Text className="leading-4.5 text-xs text-modify">
                       {isIOS
                         ? 'No Health data was found on this device. If you granted access recently, open Health → Profile → Apps → Coach Watts and check that read access is on.'
                         : 'No Health Connect data was found on this device. Check that your fitness apps write to Health Connect and that Coach Watts has read access.'}
@@ -471,7 +454,7 @@ export default function HealthSyncSettingsScreen() {
                   hapticLight();
                   router.push(APP_HREFS.healthWorkouts as Href);
                 }}
-                className="rounded-xl border border-border bg-card/60 px-4 py-4 flex-row items-center justify-between"
+                className="flex-row items-center justify-between rounded-xl border border-border bg-card/60 px-4 py-4"
               >
                 <View>
                   <Text className="text-base font-semibold text-text-primary">Recent workouts</Text>
@@ -479,7 +462,7 @@ export default function HealthSyncSettingsScreen() {
                     On this phone vs synced to Coach Watts
                   </Text>
                 </View>
-                <Text className="text-text-muted text-lg">›</Text>
+                <Text className="text-lg text-text-muted">›</Text>
               </Pressable>
 
               {preferences.syncEnabled ? (
@@ -488,7 +471,7 @@ export default function HealthSyncSettingsScreen() {
                     hapticLight();
                     router.push(APP_HREFS.healthHistory as Href);
                   }}
-                  className="rounded-xl border border-border bg-card/60 px-4 py-4 flex-row items-center justify-between"
+                  className="flex-row items-center justify-between rounded-xl border border-border bg-card/60 px-4 py-4"
                 >
                   <View>
                     <Text className="text-base font-semibold text-text-primary">Sync history</Text>
@@ -496,19 +479,20 @@ export default function HealthSyncSettingsScreen() {
                       See what was sent, retry failures
                     </Text>
                   </View>
-                  <Text className="text-text-muted text-lg">›</Text>
+                  <Text className="text-lg text-text-muted">›</Text>
                 </Pressable>
               ) : null}
             </View>
 
             <View className="mt-6 rounded-xl border border-border bg-surface/20 p-5">
               <Text className="text-sm font-semibold text-text-primary">Privacy</Text>
-              <Text className="mt-2 text-xs text-text-muted leading-4.5">
-                When Sync to Coach Watts is off, health readings stay on your device until you save a
-                check-in. When sync is on, Coach Watts uploads objective health metrics
-                {preferences.syncWorkouts ? ' and workouts' : ''} to your Coach Watts instance in the
-                background. We do not write data back to {isIOS ? 'Apple Health' : 'Health Connect'},
-                and we do not include health metric values in crash logs.
+              <Text className="leading-4.5 mt-2 text-xs text-text-muted">
+                When Sync to Coach Watts is off, health readings stay on your device until you save
+                a check-in. When sync is on, Coach Watts uploads objective health metrics
+                {preferences.syncWorkouts ? ' and workouts' : ''} to your Coach Watts instance in
+                the background. We do not write data back to{' '}
+                {isIOS ? 'Apple Health' : 'Health Connect'}, and we do not include health metric
+                values in crash logs.
               </Text>
             </View>
           </ScrollView>

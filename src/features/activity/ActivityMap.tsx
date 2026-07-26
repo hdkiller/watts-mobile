@@ -55,9 +55,7 @@ export function ActivityMap({ coordinates }: Props) {
   }
 
   if (!MapView || !Polyline || !Marker) {
-    return (
-      <MapUnavailable message="A native binary rebuild is required to link map modules." />
-    );
+    return <MapUnavailable message="A native binary rebuild is required to link map modules." />;
   }
 
   // Google Maps SDK crashes on attach when the Android manifest key is missing.
@@ -87,7 +85,7 @@ export function ActivityMap({ coordinates }: Props) {
 
   return (
     <View className="mt-6">
-      <Text className="text-xs uppercase tracking-wide text-text-muted mb-3">Route Map</Text>
+      <Text className="mb-3 text-xs uppercase tracking-wide text-text-muted">Route Map</Text>
       <View className="h-[200px] w-full overflow-hidden rounded-xl border border-border bg-card/50">
         <MapView
           ref={mapRef}
@@ -101,25 +99,9 @@ export function ActivityMap({ coordinates }: Props) {
           rotateEnabled={false}
           pitchEnabled={false}
         >
-          <Polyline
-            coordinates={coordinates}
-            strokeColor={Colors.brand}
-            strokeWidth={3}
-          />
-          {startPoint ? (
-            <Marker
-              coordinate={startPoint}
-              title="Start"
-              pinColor="green"
-            />
-          ) : null}
-          {endPoint ? (
-            <Marker
-              coordinate={endPoint}
-              title="End"
-              pinColor="red"
-            />
-          ) : null}
+          <Polyline coordinates={coordinates} strokeColor={Colors.brand} strokeWidth={3} />
+          {startPoint ? <Marker coordinate={startPoint} title="Start" pinColor="green" /> : null}
+          {endPoint ? <Marker coordinate={endPoint} title="End" pinColor="red" /> : null}
         </MapView>
       </View>
     </View>

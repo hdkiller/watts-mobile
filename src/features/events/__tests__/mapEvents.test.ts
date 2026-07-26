@@ -24,7 +24,7 @@ describe('mapEvents', () => {
         { id: '2', title: 'Gran Fondo', date: '2026-08-11T12:00:00' },
         { id: '3', title: 'Crit', date: '2026-07-22T12:00:00' },
       ],
-      now
+      now,
     );
     expect(list.map((e) => e.id)).toEqual(['3', '2']);
     expect(list[0]?.countdownLabel).toBe('3 days');
@@ -46,7 +46,7 @@ describe('mapEvents', () => {
         subType: 'Gran Fondo',
         city: 'Nice',
         country: 'France',
-      })
+      }),
     ).toBe('Gran Fondo · Nice, France');
 
     expect(
@@ -55,7 +55,7 @@ describe('mapEvents', () => {
         title: 'Local',
         type: 'Life',
         location: 'Home course',
-      })
+      }),
     ).toBe('Life · Home course');
 
     expect(formatEventMeta({ id: '3', title: 'Bare', type: 'Race' })).toBe('Race');
@@ -75,7 +75,7 @@ describe('mapEvents', () => {
           priority: 'A',
         },
       ],
-      now
+      now,
     );
     expect(list[0]).toMatchObject({
       id: 'e1',
@@ -113,7 +113,7 @@ describe('mapEvents', () => {
           { id: 'g2', title: '  ' },
         ],
       },
-      now
+      now,
     );
 
     expect(detail).toMatchObject({
@@ -139,7 +139,7 @@ describe('mapEvents', () => {
 
     const sparse = mapEventDetail(
       { id: 'e2', title: 'Coffee ride', date: '2026-07-25T09:00:00', type: 'Life' },
-      now
+      now,
     );
     expect(sparse?.distanceKm).toBeNull();
     expect(sparse?.elevationM).toBeNull();

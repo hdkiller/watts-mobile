@@ -152,10 +152,10 @@ describe('mapMessages', () => {
     };
     const outcomes = toolOutcomeSummaries(message);
     expect(outcomes.find((o) => o.toolName === 'record_wellness_event')?.message).toMatch(
-      /Recovery event logged/i
+      /Recovery event logged/i,
     );
     expect(outcomes.find((o) => o.toolName === 'get_wellness_metrics')?.message).toMatch(
-      /recovery metrics/i
+      /recovery metrics/i,
     );
     expect(outcomes.find((o) => o.toolName === 'record_wellness_event')?.domain).toBe('wellness');
   });
@@ -315,7 +315,7 @@ describe('mapMessages', () => {
 
   it('builds approval preview from common args', () => {
     expect(approvalPreviewLine({ title: 'Threshold intervals', date: '2026-07-21' })).toBe(
-      'Threshold intervals'
+      'Threshold intervals',
     );
     expect(approvalPreviewLine({ name: 'Oatmeal' })).toBe('Oatmeal');
     expect(approvalPreviewLine({ date: '2026-07-21' })).toBe('2026-07-21');

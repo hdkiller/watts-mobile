@@ -38,8 +38,16 @@ import { useThemeColors } from '@/src/theme/useThemeColors';
 const METRIC_CATEGORIES = [
   { id: 'all', label: 'All Metrics' },
   { id: 'body', label: 'Body Comp', keys: ['weight', 'body_fat_pct', 'muscle_mass_kg'] },
-  { id: 'vitals', label: 'Vitals', keys: ['resting_hr', 'hrv_sdnn_ms', 'blood_pressure_sys', 'blood_glucose_mg_dl', 'spo2_pct'] },
-  { id: 'dimensions', label: 'Dimensions', keys: ['waist_cm', 'chest_cm', 'thigh_cm', 'arm_cm', 'hips_cm'] },
+  {
+    id: 'vitals',
+    label: 'Vitals',
+    keys: ['resting_hr', 'hrv_sdnn_ms', 'blood_pressure_sys', 'blood_glucose_mg_dl', 'spo2_pct'],
+  },
+  {
+    id: 'dimensions',
+    label: 'Dimensions',
+    keys: ['waist_cm', 'chest_cm', 'thigh_cm', 'arm_cm', 'hips_cm'],
+  },
 ];
 
 interface MeasurementSheetProps {
@@ -54,15 +62,10 @@ export function MeasurementSheet({ visible, onClose }: MeasurementSheetProps) {
 
   const weightUnits = profile?.weightUnits ?? 'Kilograms';
   const distanceUnits = profile?.distanceUnits ?? 'Kilometers';
-  const unitOpts = useMemo(
-    () => ({ weightUnits, distanceUnits }),
-    [weightUnits, distanceUnits]
-  );
+  const unitOpts = useMemo(() => ({ weightUnits, distanceUnits }), [weightUnits, distanceUnits]);
 
   const [activeCategory, setActiveCategory] = useState('all');
-  const [form, setForm] = useState<MeasurementFormValues>(
-    emptyMeasurementForm(DEFAULT_METRIC_KEY)
-  );
+  const [form, setForm] = useState<MeasurementFormValues>(emptyMeasurementForm(DEFAULT_METRIC_KEY));
   const [error, setError] = useState<string | null>(null);
 
   const [prevVisible, setPrevVisible] = useState(visible);
@@ -81,7 +84,7 @@ export function MeasurementSheet({ visible, onClose }: MeasurementSheetProps) {
   const unitLabel = displayUnitLabel(
     form.metricKey === 'custom' ? `custom:${form.customName || 'x'}` : form.metricKey,
     canonicalUnit,
-    unitOpts
+    unitOpts,
   );
 
   const filteredMetrics = useMemo(() => {
@@ -120,26 +123,21 @@ export function MeasurementSheet({ visible, onClose }: MeasurementSheetProps) {
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       {/* KeyboardAvoidingView takes a plain style, never className: NativeWind registers it
           with remapProps and RN composes its own paddingBottom in, so classes never resolve. */}
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
-        <Pressable className="flex-1 bg-black/60 justify-end" onPress={onClose}>
+        <Pressable className="flex-1 justify-end bg-black/60" onPress={onClose}>
           <Pressable
-            className="rounded-t-3xl bg-surface px-6 pt-4 pb-10"
+            className="rounded-t-3xl bg-surface px-6 pb-10 pt-4"
             style={{ maxHeight: '85%', minHeight: 0 }}
           >
             <View className="mb-4 h-1 w-10 self-center rounded-full bg-border-strong" />
 
-            <View className="flex-row items-center justify-between mb-3">
+            <View className="mb-3 flex-row items-center justify-between">
               <Text className="text-xl font-bold text-text-primary">Add Measurement</Text>
               <Pressable hitSlop={8} onPress={onClose} className="p-1 active:opacity-70">
                 <Text className="text-base font-semibold text-text-muted">Cancel</Text>
@@ -150,7 +148,11 @@ export function MeasurementSheet({ visible, onClose }: MeasurementSheetProps) {
                 (default flexShrink is 0 in Yoga, which would overflow instead). */}
             <ScrollView keyboardShouldPersistTaps="handled" style={{ flexShrink: 1 }}>
               {/* Category Selector */}
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-3 flex-row">
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="mb-3 flex-row"
+              >
                 <View className="flex-row gap-2">
                   {METRIC_CATEGORIES.map((cat) => {
                     const active = activeCategory === cat.id;
@@ -180,7 +182,7 @@ export function MeasurementSheet({ visible, onClose }: MeasurementSheetProps) {
               </ScrollView>
 
               {/* Metric Option Grid */}
-              <View className="flex-row flex-wrap gap-2 mb-4">
+              <View className="mb-4 flex-row flex-wrap gap-2">
                 {filteredMetrics.map((metric) => {
                   const active = form.metricKey === metric.key;
                   return (
@@ -224,7 +226,7 @@ export function MeasurementSheet({ visible, onClose }: MeasurementSheetProps) {
                 <View className="mb-4">
                   <Text className="mb-1 text-xs text-text-muted">Custom Metric Name</Text>
                   <TextInput
-                    className="rounded-xl border border-border-strong bg-card px-4 py-3 text-base text-text-primary mb-3"
+                    className="mb-3 rounded-xl border border-border-strong bg-card px-4 py-3 text-base text-text-primary"
                     placeholderTextColor={theme.textMuted}
                     placeholder="e.g. Left bicep flexed"
                     value={form.customName}

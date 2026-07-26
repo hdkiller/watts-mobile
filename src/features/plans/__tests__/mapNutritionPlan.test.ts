@@ -85,7 +85,7 @@ describe('mapNutritionPlanDays', () => {
           },
         ],
       },
-      { start: '2026-07-20', end: '2026-07-26' }
+      { start: '2026-07-20', end: '2026-07-26' },
     );
     expect(days).toHaveLength(7);
     expect(days[0]?.windows).toHaveLength(2);
@@ -114,21 +114,21 @@ describe('mapNutritionPlanDays', () => {
   it('binds a legacy bare-type meal to the first window of that type only', () => {
     const legacy = { id: 'm', windowType: 'PRE_WORKOUT' };
 
-    expect(
-      matchesMealToWindow(legacy, { type: 'PRE_WORKOUT', windowKey: 'PRE_WORKOUT#1' })
-    ).toBe(true);
-    expect(
-      matchesMealToWindow(legacy, { type: 'PRE_WORKOUT', windowKey: 'PRE_WORKOUT#2' })
-    ).toBe(false);
+    expect(matchesMealToWindow(legacy, { type: 'PRE_WORKOUT', windowKey: 'PRE_WORKOUT#1' })).toBe(
+      true,
+    );
+    expect(matchesMealToWindow(legacy, { type: 'PRE_WORKOUT', windowKey: 'PRE_WORKOUT#2' })).toBe(
+      false,
+    );
   });
 
   it('resolves window keys, falling back for payloads without one', () => {
     expect(resolveWindowKey({ type: 'PRE_WORKOUT', windowKey: 'PRE_WORKOUT#2' })).toBe(
-      'PRE_WORKOUT#2'
+      'PRE_WORKOUT#2',
     );
     expect(resolveWindowKey({ type: 'PRE_WORKOUT' })).toBe('PRE_WORKOUT#1');
     expect(resolveWindowKey({ type: 'DAILY_BASE', slotName: 'Breakfast' })).toBe(
-      'DAILY_BASE:breakfast'
+      'DAILY_BASE:breakfast',
     );
   });
 
@@ -179,7 +179,7 @@ describe('mapNutritionPlanDays', () => {
           },
         ],
       },
-      { start: '2026-07-20', end: '2026-07-20' }
+      { start: '2026-07-20', end: '2026-07-20' },
     );
 
     const windows = days[0]?.windows ?? [];
@@ -201,14 +201,14 @@ describe('mapNutritionPlanDays', () => {
     expect(
       matchesMealToWindow(
         { id: 'm', windowType: 'DAILY_BASE:lunch' },
-        { type: 'DAILY_BASE', slotName: 'Lunch' }
-      )
+        { type: 'DAILY_BASE', slotName: 'Lunch' },
+      ),
     ).toBe(true);
     expect(
       matchesMealToWindow(
         { id: 'm', windowType: 'PRE_WORKOUT' },
-        { type: 'DAILY_BASE', slotName: 'Lunch' }
-      )
+        { type: 'DAILY_BASE', slotName: 'Lunch' },
+      ),
     ).toBe(false);
   });
 });

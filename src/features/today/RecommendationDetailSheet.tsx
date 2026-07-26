@@ -12,10 +12,7 @@ import {
   formatDriverRowText,
   mapRecommendationDrivers,
 } from '@/src/features/today/mapRecommendationDrivers';
-import {
-  heroToneForAction,
-  type HeroTone,
-} from '@/src/features/today/mapTodayPayload';
+import { heroToneForAction, type HeroTone } from '@/src/features/today/mapTodayPayload';
 import type { RecommendationDetailViewModel } from '@/src/features/today/types';
 
 const BADGE_CLASSES: Record<HeroTone, string> = {
@@ -173,7 +170,9 @@ export function RecommendationDetailSheet({
                         className="rounded-xl border border-border bg-card/80 px-3 py-3"
                       >
                         <View className="flex-row flex-wrap items-center gap-2">
-                          <Text className="text-sm font-medium text-text-primary">{item.label}</Text>
+                          <Text className="text-sm font-medium text-text-primary">
+                            {item.label}
+                          </Text>
                           <View
                             className={`rounded-full border px-2 py-0.5 ${sourceBadgeClass(item.sourceType)}`}
                           >
@@ -218,7 +217,9 @@ export function RecommendationDetailSheet({
 
               {detail.originalPlan ? (
                 <View>
-                  <Text className="mb-2 text-base font-semibold text-text-primary">Original Plan</Text>
+                  <Text className="mb-2 text-base font-semibold text-text-primary">
+                    Original Plan
+                  </Text>
                   <PlanCard
                     title={detail.originalPlan.title}
                     durationMin={detail.originalPlan.durationMin}

@@ -1,13 +1,6 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import type { ReactNode } from 'react';
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  View,
-} from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, View } from 'react-native';
 
 type Props = {
   visible: boolean;
@@ -40,7 +33,11 @@ export function BottomSheet({
       className="max-h-[85%] rounded-t-3xl border-t border-border-strong bg-surface px-6 pb-10 pt-3"
       testID={testID}
     >
-      <View className="mb-3 items-center" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <View
+        className="mb-3 items-center"
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      >
         <View className="h-1 w-10 rounded-full bg-border-strong" />
       </View>
       {scroll ? (

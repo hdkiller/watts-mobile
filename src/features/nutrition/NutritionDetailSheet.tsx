@@ -10,22 +10,17 @@ interface NutritionDetailSheetProps {
 
 export function NutritionDetailSheet({ visible, onClose }: NutritionDetailSheetProps) {
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent
-      onRequestClose={onClose}
-    >
-      <Pressable className="flex-1 bg-black/60 justify-end" onPress={onClose}>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      <Pressable className="flex-1 justify-end bg-black/60" onPress={onClose}>
         <Pressable
-          className="rounded-t-3xl bg-surface px-6 pt-4 pb-10"
+          className="rounded-t-3xl bg-surface px-6 pb-10 pt-4"
           style={{ maxHeight: '90%' }}
         >
           {/* Sheet Handle */}
           <View className="mb-4 h-1 w-10 self-center rounded-full bg-border-strong" />
 
           {/* Header */}
-          <View className="flex-row items-center justify-between mb-2">
+          <View className="mb-2 flex-row items-center justify-between">
             <View>
               <Text className="text-lg font-semibold text-text-primary">Nutrition & Hydration</Text>
               <Text className="text-xs text-text-muted">Daily macro breakdown and targets</Text>

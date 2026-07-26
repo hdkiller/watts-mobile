@@ -80,9 +80,7 @@ describe('buildMacroExplainModel — calories', () => {
             activityCalories: 400,
             adjustmentCalories: null,
             fuelState: 1,
-            workoutCalories: [
-              { title: 'Morning Ride', calories: 400, sourceType: 'actual' },
-            ],
+            workoutCalories: [{ title: 'Morning Ride', calories: 400, sourceType: 'actual' }],
           },
           windows: [],
         },
@@ -107,9 +105,7 @@ describe('buildMacroExplainModel — calories', () => {
       },
     });
 
-    expect(model.rows.find((r) => r.label === 'Base Calories (Auto)')?.value).toBe(
-      '2480 kcal'
-    );
+    expect(model.rows.find((r) => r.label === 'Base Calories (Auto)')?.value).toBe('2480 kcal');
   });
 });
 

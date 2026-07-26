@@ -62,15 +62,14 @@ export function showActionSheet(payload: SheetPayload) {
         message: payload.message,
         options: labels,
         cancelButtonIndex: cancelButtonIndex >= 0 ? cancelButtonIndex : undefined,
-        destructiveButtonIndex:
-          destructiveButtonIndex >= 0 ? destructiveButtonIndex : undefined,
+        destructiveButtonIndex: destructiveButtonIndex >= 0 ? destructiveButtonIndex : undefined,
       },
       (buttonIndex) => {
         const opt = options[buttonIndex];
         if (!opt || opt.style === 'cancel') return;
         // Defer so nested showActionSheet (Adjust → This week) can present cleanly.
         setTimeout(() => opt.onPress?.(), 0);
-      }
+      },
     );
     return;
   }
@@ -92,12 +91,7 @@ export function ActionSheetPortal() {
   };
 
   return (
-    <Modal
-      visible={sheet.open}
-      transparent
-      animationType="slide"
-      onRequestClose={close}
-    >
+    <Modal visible={sheet.open} transparent animationType="slide" onRequestClose={close}>
       <Pressable className="flex-1 justify-end bg-black/50" onPress={close}>
         <Pressable
           className="rounded-t-3xl border-t border-border-strong bg-card px-5 pb-10 pt-4"

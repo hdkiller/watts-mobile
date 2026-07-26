@@ -1,13 +1,7 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Stack } from 'expo-router';
 import { useMemo, useState } from 'react';
-import {
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { friendlyError } from '@/src/api/errors';
@@ -19,10 +13,7 @@ import {
   weightUnitLabel,
 } from '@/src/features/profile/mapProfile';
 import { deviceTimeZone, filterTimeZones, listTimeZones } from '@/src/features/profile/timezones';
-import {
-  useAthleteProfileQuery,
-  usePatchUnitsLocale,
-} from '@/src/features/profile/useProfile';
+import { useAthleteProfileQuery, usePatchUnitsLocale } from '@/src/features/profile/useProfile';
 import type {
   AthleteProfile,
   DistanceUnits,
@@ -97,7 +88,7 @@ export default function UnitsLocaleScreen() {
   const allZones = useMemo(() => listTimeZones(), []);
   const filteredZones = useMemo(
     () => filterTimeZones(timezoneQuery, allZones).slice(0, 40),
-    [allZones, timezoneQuery]
+    [allZones, timezoneQuery],
   );
 
   // Guarded render-time sync from query data (React derived-state pattern).
@@ -132,17 +123,12 @@ export default function UnitsLocaleScreen() {
   return (
     <>
       <Stack.Screen options={{ title: 'Units & locale', headerShown: true }} />
-      <SafeAreaView
-        edges={{ bottom: true }}
-        style={{ flex: 1, backgroundColor: theme.surface }}
-      >
+      <SafeAreaView edges={{ bottom: true }} style={{ flex: 1, backgroundColor: theme.surface }}>
         {isLoading && !data ? (
           <DetailSkeleton />
         ) : isError && !data ? (
           <View className="flex-1 bg-surface px-6 pt-6">
-            <Text className="text-danger">
-              {friendlyError(error, 'Failed to load units')}
-            </Text>
+            <Text className="text-danger">{friendlyError(error, 'Failed to load units')}</Text>
             <Button className="mt-4" label="Try again" onPress={() => void refetch()} />
           </View>
         ) : (

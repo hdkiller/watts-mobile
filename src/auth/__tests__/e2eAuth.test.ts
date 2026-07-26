@@ -133,7 +133,7 @@ describe('mintE2eToken', () => {
     vi.stubEnv('EXPO_PUBLIC_E2E_ALLOWED_HOSTS', '');
     const { mintE2eToken } = await import('../e2eAuth');
     await expect(
-      mintE2eToken('https://coachwatts.com', 'e2e-athlete@coachwatts.test')
+      mintE2eToken('https://coachwatts.com', 'e2e-athlete@coachwatts.test'),
     ).rejects.toThrow(/refused instance host/);
   });
 
@@ -151,7 +151,7 @@ describe('mintE2eToken', () => {
 
     const { mintE2eToken } = await import('../e2eAuth');
     await expect(
-      mintE2eToken('http://localhost:3199', 'e2e-athlete@coachwatts.test')
+      mintE2eToken('http://localhost:3199', 'e2e-athlete@coachwatts.test'),
     ).resolves.toEqual({
       accessToken: 'minted-access',
       refreshToken: 'minted-refresh',
@@ -162,8 +162,7 @@ describe('mintE2eToken', () => {
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({ email: 'e2e-athlete@coachwatts.test' }),
-      })
+      }),
     );
   });
 });
-

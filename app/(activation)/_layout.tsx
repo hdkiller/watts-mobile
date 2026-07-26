@@ -66,8 +66,7 @@ export default function ActivationLayout() {
       const requiredRank = activationStepRank(requiredStep);
       // Resume when behind (or on a non-step route like the activation index).
       // Allow ahead so optimistic advances are not bounced while status lags.
-      const shouldRedirect =
-        currentRank < 0 || (requiredRank >= 0 && currentRank < requiredRank);
+      const shouldRedirect = currentRank < 0 || (requiredRank >= 0 && currentRank < requiredRank);
       if (shouldRedirect) {
         return <Redirect href={requiredHref as Href} />;
       }

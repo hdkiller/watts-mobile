@@ -8,7 +8,7 @@ import {
 import type { PlatformWorkoutSession, SyncLedgerItem } from '../types';
 
 function session(
-  partial: Partial<PlatformWorkoutSession> & Pick<PlatformWorkoutSession, 'platformSessionId'>
+  partial: Partial<PlatformWorkoutSession> & Pick<PlatformWorkoutSession, 'platformSessionId'>,
 ): PlatformWorkoutSession {
   return {
     platform: 'healthkit',
@@ -21,7 +21,7 @@ function session(
 }
 
 function ledger(
-  partial: Partial<SyncLedgerItem> & Pick<SyncLedgerItem, 'id' | 'status'>
+  partial: Partial<SyncLedgerItem> & Pick<SyncLedgerItem, 'id' | 'status'>,
 ): SyncLedgerItem {
   return {
     kind: 'workout',
@@ -35,7 +35,7 @@ function ledger(
 describe('resolveRecentWorkoutStatus', () => {
   it('marks on-device-only workouts as needs_sync', () => {
     expect(resolveRecentWorkoutStatus(session({ platformSessionId: 'a' }), undefined, [])).toBe(
-      'needs_sync'
+      'needs_sync',
     );
   });
 
@@ -59,7 +59,7 @@ describe('resolveRecentWorkoutStatus', () => {
         status: 'synced',
         remoteWorkoutId: 'cw-1',
       }),
-      []
+      [],
     );
     expect(status).toBe('synced');
   });
@@ -68,7 +68,7 @@ describe('resolveRecentWorkoutStatus', () => {
     const status = resolveRecentWorkoutStatus(
       session({ platformSessionId: 'a' }),
       ledger({ id: 'workout:a', status: 'failed', lastError: 'Upload failed' }),
-      []
+      [],
     );
     expect(status).toBe('failed');
   });
@@ -77,7 +77,7 @@ describe('resolveRecentWorkoutStatus', () => {
     const status = resolveRecentWorkoutStatus(
       session({ platformSessionId: 'a' }),
       ledger({ id: 'workout:a', status: 'syncing' }),
-      []
+      [],
     );
     expect(status).toBe('syncing');
   });
@@ -98,7 +98,7 @@ describe('buildRecentWorkoutRows', () => {
           remoteWorkoutId: 'r1',
           startedAt: '2026-07-18T08:00:00.000Z',
         }),
-      ]
+      ],
     );
     expect(rows.map((r) => r.platformSessionId)).toEqual(['new', 'old']);
     expect(rows[0]?.status).toBe('needs_sync');

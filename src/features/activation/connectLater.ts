@@ -8,7 +8,7 @@ const hydrated = new Set<string>();
 
 export function activationIdentity(
   instanceUrl: string | null | undefined,
-  user: { sub?: string; email?: string | null } | null | undefined
+  user: { sub?: string; email?: string | null } | null | undefined,
 ): string | null {
   const account = user?.sub || user?.email;
   if (!instanceUrl || !account) return null;
@@ -65,7 +65,7 @@ export async function clearConnectLater(identity?: string | null): Promise<void>
 
   const keys = await AsyncStorage.getAllKeys();
   const activationKeys = keys.filter(
-    (key) => key === LEGACY_STORAGE_KEY || key.startsWith(STORAGE_PREFIX)
+    (key) => key === LEGACY_STORAGE_KEY || key.startsWith(STORAGE_PREFIX),
   );
   if (activationKeys.length > 0) {
     await AsyncStorage.multiRemove(activationKeys);

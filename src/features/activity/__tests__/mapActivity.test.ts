@@ -165,21 +165,17 @@ describe('mapPlannedStructure', () => {
       'Split Squat',
     ]);
     expect(steps.find((s) => s.name === 'Band Pull-Aparts')?.intensityLabel).toBe(
-      '2×15 · 45s rest'
+      '2×15 · 45s rest',
     );
     expect(steps.find((s) => s.name === 'Back Squat')?.intensityLabel).toBe(
-      '3×5 · 80kg, 85kg, 90kg · 90s rest'
+      '3×5 · 80kg, 85kg, 90kg · 90s rest',
     );
-    expect(steps.find((s) => s.name === 'Split Squat')?.intensityLabel).toBe(
-      '2×8/side · 20kg'
-    );
+    expect(steps.find((s) => s.name === 'Split Squat')?.intensityLabel).toBe('2×8/side · 20kg');
   });
 
   it('falls back to legacy exercises when blocks are absent', () => {
     const { steps, isStrength } = mapPlannedStructure({
-      exercises: [
-        { name: 'Deadlift', sets: 3, reps: '5', weight: '100kg', rest: '2m' },
-      ],
+      exercises: [{ name: 'Deadlift', sets: 3, reps: '5', weight: '100kg', rest: '2m' }],
     });
     expect(isStrength).toBe(true);
     expect(steps).toEqual([
@@ -430,7 +426,7 @@ describe('mapWorkoutSummaryMetrics', () => {
         distanceMeters: null,
         averageWatts: 0,
         intensity: 3,
-      })
+      }),
     ).toEqual([]);
   });
 
@@ -467,7 +463,7 @@ describe('mapPlanAdherence', () => {
           summary: 'Solid execution on the tempo blocks.',
           analysisStatus: 'COMPLETED',
         },
-      })
+      }),
     ).toEqual({
       plannedWorkoutId: 'pw-1',
       overallScore: 82,
@@ -482,7 +478,7 @@ describe('mapPlanAdherence', () => {
       mapPlanAdherence({
         id: 'w2',
         planAdherence: { analysisStatus: 'PENDING', plannedWorkoutId: 'pw-2' },
-      })
+      }),
     ).toMatchObject({
       plannedWorkoutId: 'pw-2',
       overallScore: null,
@@ -510,7 +506,7 @@ describe('mapCompletedExercises', () => {
             ],
           },
         ],
-      })
+      }),
     ).toEqual([
       {
         name: 'Back squat',
@@ -534,8 +530,8 @@ describe('mapFuelingPrepGlance', () => {
             notes: ['Prioritize carbs in the pre-workout window.'],
           },
         },
-        'TRAIN_LOW'
-      )
+        'TRAIN_LOW',
+      ),
     ).toEqual({
       carbsLabel: '320 g carbs',
       caloriesLabel: '2800 kcal',
@@ -610,7 +606,7 @@ describe('mapActivityAnalysis', () => {
 
   it('marks analyzing and empty not_started states', () => {
     expect(mapActivityAnalysis({ id: 'w7', aiAnalysisStatus: 'PROCESSING' }).phase).toBe(
-      'analyzing'
+      'analyzing',
     );
     const idle = mapActivityAnalysis({ id: 'w8', aiAnalysisStatus: 'NOT_STARTED' });
     expect(idle.phase).toBe('not_started');
@@ -640,7 +636,7 @@ describe('formatIntensityFactor / formatDistanceMeters', () => {
 describe('mapCoachInstructions', () => {
   it('returns trimmed string and truncates long cues', () => {
     expect(mapCoachInstructions({ coachInstructions: '  Keep cadence high.  ' })).toBe(
-      'Keep cadence high.'
+      'Keep cadence high.',
     );
     const long = 'x'.repeat(450);
     const mapped = mapCoachInstructions({ coachInstructions: long });
@@ -734,4 +730,3 @@ describe('formatActivityDate', () => {
     expect(formatActivityDate('2026-07-23T00:00:00Z')).toContain('Jul 23');
   });
 });
-

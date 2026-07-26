@@ -5,12 +5,7 @@ export type AthleteScoreChip = {
 };
 
 export type AthleteReportSectionKind =
-  | 'fitness'
-  | 'training'
-  | 'recovery'
-  | 'nutrition'
-  | 'recent'
-  | 'recommendations';
+  'fitness' | 'training' | 'recovery' | 'nutrition' | 'recent' | 'recommendations';
 
 export type AthleteReportBadgeTone = 'success' | 'recovery' | 'modify' | 'muted';
 
@@ -49,13 +44,7 @@ export type AthleteProfileReport = {
   createdAt: string | null;
 };
 
-const FITNESS_STATUS_KEYS = new Set([
-  'excellent',
-  'good',
-  'moderate',
-  'developing',
-  'recovering',
-]);
+const FITNESS_STATUS_KEYS = new Set(['excellent', 'good', 'moderate', 'developing', 'recovering']);
 
 const TREND_STATUS_KEYS = new Set(['improving', 'stable', 'declining', 'variable']);
 
@@ -77,14 +66,12 @@ function asString(value: unknown): string | null {
 
 function asStringList(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
-  return value
-    .map((item) => asString(item))
-    .filter((item): item is string => item != null);
+  return value.map((item) => asString(item)).filter((item): item is string => item != null);
 }
 
 function fieldsFrom(
   obj: Record<string, unknown>,
-  entries: { key: string; label: string }[]
+  entries: { key: string; label: string }[],
 ): AthleteReportField[] {
   const fields: AthleteReportField[] = [];
   for (const entry of entries) {
@@ -166,9 +153,12 @@ function makeBadge(label: string | null, statusKey: string | null): AthleteRepor
   const chip = statusKey || label;
   if (!chip) return null;
   // Prefer the short enum for the chip ("Developing") when the API also sends a longer status_label.
-  const knownKey = statusKey && (FITNESS_STATUS_KEYS.has(statusKey.toLowerCase()) || TREND_STATUS_KEYS.has(statusKey.toLowerCase()))
-    ? statusKey
-    : chip;
+  const knownKey =
+    statusKey &&
+    (FITNESS_STATUS_KEYS.has(statusKey.toLowerCase()) ||
+      TREND_STATUS_KEYS.has(statusKey.toLowerCase()))
+      ? statusKey
+      : chip;
   return { label: displayLabel(knownKey), tone: badgeToneForStatus(statusKey || label) };
 }
 
@@ -227,9 +217,7 @@ export function mapAthleteProfileReport(json: unknown): AthleteProfileReport | n
   const recommendations = asRecord(analysis?.recommendations_summary);
 
   const recommendationsSummary =
-    asString(analysis?.recommendations_summary) ||
-    asString(recommendations?.summary) ||
-    null;
+    asString(analysis?.recommendations_summary) || asString(recommendations?.summary) || null;
 
   const sections: AthleteReportSection[] = [];
 
@@ -362,8 +350,7 @@ export function mapAthleteProfileReport(json: unknown): AthleteProfileReport | n
     id: root.id,
     status: typeof root.status === 'string' ? root.status : 'UNKNOWN',
     executiveSummary: asString(analysis?.executive_summary),
-    fitnessStatusLabel:
-      asString(fitness?.status_label) || asString(fitness?.status),
+    fitnessStatusLabel: asString(fitness?.status_label) || asString(fitness?.status),
     fitnessStatusBadge,
     recommendationsSummary,
     scores,

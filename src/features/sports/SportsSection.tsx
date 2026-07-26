@@ -19,9 +19,7 @@ import { useSportProfilesQuery } from './useSports';
 
 function Chevron() {
   const theme = useThemeColors();
-  return (
-    <AppSymbol sf="chevron.right" size={14} tintColor={theme.textMuted} fallback="›" />
-  );
+  return <AppSymbol sf="chevron.right" size={14} tintColor={theme.textMuted} fallback="›" />;
 }
 
 export function SportsSection() {
@@ -54,7 +52,11 @@ export function SportsSection() {
             <Text className="font-semibold text-brand">Retry</Text>
           </Pressable>
         </View>
-        <Pressable className="mt-4 py-1 active:opacity-70" hitSlop={8} onPress={() => void openWeb()}>
+        <Pressable
+          className="mt-4 py-1 active:opacity-70"
+          hitSlop={8}
+          onPress={() => void openWeb()}
+        >
           <Text className="text-sm font-semibold text-brand">Open Sport Settings</Text>
         </Pressable>
       </View>
@@ -83,14 +85,15 @@ export function SportsSection() {
                 accessibilityRole="button"
                 accessibilityLabel={displaySportName(profile)}
                 className="rounded-xl border border-border bg-card/80 px-4 py-3 active:opacity-80"
-                onPress={() =>
-                  router.push(APP_HREFS.sportProfile(profile.id) as Href)
-                }
+                onPress={() => router.push(APP_HREFS.sportProfile(profile.id) as Href)}
               >
                 <View className="flex-row items-center gap-2">
                   <View className="min-w-0 flex-1">
                     <View className="flex-row items-center justify-between gap-2">
-                      <Text className="flex-1 text-base font-semibold text-text-primary" numberOfLines={1}>
+                      <Text
+                        className="flex-1 text-base font-semibold text-text-primary"
+                        numberOfLines={1}
+                      >
                         {displaySportName(profile)}
                       </Text>
                       {profile.isDefault ? (

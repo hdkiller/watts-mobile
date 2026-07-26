@@ -88,19 +88,14 @@ export async function transcribeChatAudio(file: {
   filename: string;
 }): Promise<string> {
   const mediaType =
-    file.mediaType && file.mediaType !== 'application/octet-stream'
-      ? file.mediaType
-      : 'audio/mp4';
+    file.mediaType && file.mediaType !== 'application/octet-stream' ? file.mediaType : 'audio/mp4';
 
   const form = new FormData();
-  form.append(
-    'audio',
-    {
-      uri: file.uri,
-      type: mediaType,
-      name: file.filename,
-    } as unknown as Blob
-  );
+  form.append('audio', {
+    uri: file.uri,
+    type: mediaType,
+    name: file.filename,
+  } as unknown as Blob);
 
   // Do not set Content-Type — fetch must add the multipart boundary.
   const response = await apiFetch('/api/chat/transcribe', {
@@ -137,19 +132,14 @@ export async function uploadChatImage(file: {
 }): Promise<StorageUploadResponse> {
   // RN multipart: always send a concrete image/* type — Android pickers often omit mimeType.
   const mediaType =
-    file.mediaType && file.mediaType !== 'application/octet-stream'
-      ? file.mediaType
-      : 'image/jpeg';
+    file.mediaType && file.mediaType !== 'application/octet-stream' ? file.mediaType : 'image/jpeg';
 
   const form = new FormData();
-  form.append(
-    'file',
-    {
-      uri: file.uri,
-      type: mediaType,
-      name: file.filename,
-    } as unknown as Blob
-  );
+  form.append('file', {
+    uri: file.uri,
+    type: mediaType,
+    name: file.filename,
+  } as unknown as Blob);
 
   // Do not set Content-Type — fetch must add the multipart boundary.
   const response = await apiFetch('/api/storage/upload', {

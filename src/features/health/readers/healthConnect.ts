@@ -52,7 +52,7 @@ async function readHcRecords(
   recordType: string,
   start: Date,
   end: Date,
-  pageSize = 100
+  pageSize = 100,
 ): Promise<unknown[]> {
   const out: unknown[] = [];
   let pageToken: string | undefined;
@@ -82,7 +82,7 @@ async function readHcRecords(
     }
     if (!exhausted) {
       console.warn(
-        `[HealthSync] ${recordType} hit the page ceiling (${HC_MAX_PAGES}) — window truncated`
+        `[HealthSync] ${recordType} hit the page ceiling (${HC_MAX_PAGES}) — window truncated`,
       );
     }
   } catch {
@@ -95,7 +95,7 @@ async function readHcAggregate(
   HC: typeof import('react-native-health-connect'),
   recordType: string,
   start: Date,
-  end: Date
+  end: Date,
 ): Promise<Record<string, unknown> | undefined> {
   try {
     return (await HC.aggregateRecord({
@@ -112,7 +112,7 @@ async function readHcAggregate(
 }
 
 export async function readHealthConnectWellness(
-  window: HealthReadWindow = { lookbackDays: LOOKBACK_DAYS }
+  window: HealthReadWindow = { lookbackDays: LOOKBACK_DAYS },
 ): Promise<DailyWellnessSample[]> {
   if (Platform.OS !== 'android') return [];
 
@@ -128,25 +128,17 @@ export async function readHealthConnectWellness(
   rangeStart.setDate(rangeStart.getDate() - 1);
   rangeStart.setHours(12, 0, 0, 0);
 
-  const [
-    sleepRecs,
-    weightRecs,
-    rhrRecs,
-    hrvRecs,
-    bodyFatRecs,
-    spo2Recs,
-    respRecs,
-    vo2Recs,
-  ] = await Promise.all([
-    readHcRecords(HC, 'SleepSession', rangeStart, today, 40),
-    readHcRecords(HC, 'Weight', rangeStart, today, 40),
-    readHcRecords(HC, 'RestingHeartRate', rangeStart, today, 40),
-    readHcRecords(HC, 'HeartRateVariabilityRmssd', rangeStart, today, 40),
-    readHcRecords(HC, 'BodyFat', rangeStart, today, 40),
-    readHcRecords(HC, 'OxygenSaturation', rangeStart, today, 40),
-    readHcRecords(HC, 'RespiratoryRate', rangeStart, today, 40),
-    readHcRecords(HC, 'Vo2Max', rangeStart, today, 20),
-  ]);
+  const [sleepRecs, weightRecs, rhrRecs, hrvRecs, bodyFatRecs, spo2Recs, respRecs, vo2Recs] =
+    await Promise.all([
+      readHcRecords(HC, 'SleepSession', rangeStart, today, 40),
+      readHcRecords(HC, 'Weight', rangeStart, today, 40),
+      readHcRecords(HC, 'RestingHeartRate', rangeStart, today, 40),
+      readHcRecords(HC, 'HeartRateVariabilityRmssd', rangeStart, today, 40),
+      readHcRecords(HC, 'BodyFat', rangeStart, today, 40),
+      readHcRecords(HC, 'OxygenSaturation', rangeStart, today, 40),
+      readHcRecords(HC, 'RespiratoryRate', rangeStart, today, 40),
+      readHcRecords(HC, 'Vo2Max', rangeStart, today, 20),
+    ]);
 
   const samples: DailyWellnessSample[] = [];
 
@@ -281,8 +273,9 @@ export async function readHealthConnectWellness(
     const basal = (basalAgg?.BASAL_CALORIES_TOTAL as { inKilocalories?: number } | undefined)
       ?.inKilocalories;
     if (typeof basal === 'number' && basal > 0) sample.restingCaloriesBurned = Math.round(basal);
-    const exerciseSeconds = (exerciseAgg?.EXERCISE_DURATION_TOTAL as { inSeconds?: number } | undefined)
-      ?.inSeconds;
+    const exerciseSeconds = (
+      exerciseAgg?.EXERCISE_DURATION_TOTAL as { inSeconds?: number } | undefined
+    )?.inSeconds;
     if (typeof exerciseSeconds === 'number' && exerciseSeconds > 0) {
       sample.exerciseMinutes = Math.round(exerciseSeconds / 60);
     }
@@ -294,7 +287,7 @@ export async function readHealthConnectWellness(
 }
 
 export async function readHealthConnectWorkouts(
-  window: HealthReadWindow = { lookbackDays: LOOKBACK_DAYS }
+  window: HealthReadWindow = { lookbackDays: LOOKBACK_DAYS },
 ): Promise<PlatformWorkoutSession[]> {
   if (Platform.OS !== 'android') return [];
 
@@ -305,15 +298,14 @@ export async function readHealthConnectWorkouts(
 
   const today = new Date();
   const from = resolveFrom(window, today);
-  const [recs, hrRecs, powerRecs, speedRecs, cadenceRecs, stepsCadenceRecs] =
-    await Promise.all([
-      readHcRecords(HC, 'ExerciseSession', from, today, 50),
-      readHcRecords(HC, 'HeartRate', from, today, 500),
-      readHcRecords(HC, 'Power', from, today, 500),
-      readHcRecords(HC, 'Speed', from, today, 500),
-      readHcRecords(HC, 'CyclingPedalingCadence', from, today, 500),
-      readHcRecords(HC, 'StepsCadence', from, today, 500),
-    ]);
+  const [recs, hrRecs, powerRecs, speedRecs, cadenceRecs, stepsCadenceRecs] = await Promise.all([
+    readHcRecords(HC, 'ExerciseSession', from, today, 50),
+    readHcRecords(HC, 'HeartRate', from, today, 500),
+    readHcRecords(HC, 'Power', from, today, 500),
+    readHcRecords(HC, 'Speed', from, today, 500),
+    readHcRecords(HC, 'CyclingPedalingCadence', from, today, 500),
+    readHcRecords(HC, 'StepsCadence', from, today, 500),
+  ]);
 
   const hrSamples: { t: number; bpm: number }[] = [];
   for (const rec of hrRecs) {
@@ -407,16 +399,16 @@ export async function readHealthConnectWorkouts(
       calorieAgg?.ACTIVE_CALORIES_TOTAL as { inKilocalories?: number } | undefined
     )?.inKilocalories;
     const sessionHr = summarizeHeartRate(
-      hrSamples.filter((s) => s.t >= start.getTime() && s.t <= windowEnd)
+      hrSamples.filter((s) => s.t >= start.getTime() && s.t <= windowEnd),
     );
     const sessionPower = summarizePower(
-      powerSamples.filter((s) => s.t >= start.getTime() && s.t <= windowEnd)
+      powerSamples.filter((s) => s.t >= start.getTime() && s.t <= windowEnd),
     );
     const sessionCadence = summarizeCadence(
-      cadenceSamples.filter((s) => s.t >= start.getTime() && s.t <= windowEnd)
+      cadenceSamples.filter((s) => s.t >= start.getTime() && s.t <= windowEnd),
     );
     const sessionSpeed = summarizeSpeed(
-      speedSamples.filter((s) => s.t >= start.getTime() && s.t <= windowEnd)
+      speedSamples.filter((s) => s.t >= start.getTime() && s.t <= windowEnd),
     );
 
     // Bulk route read via READ_EXERCISE_ROUTES. Deliberately no

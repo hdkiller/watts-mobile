@@ -72,7 +72,7 @@ export async function acquireExpoPushToken(): Promise<string | null> {
   try {
     const projectId = resolveEasProjectId();
     const tokenResponse = await Notifications.getExpoPushTokenAsync(
-      projectId ? { projectId } : undefined
+      projectId ? { projectId } : undefined,
     );
     const token = tokenResponse.data?.trim();
     return token || null;

@@ -62,7 +62,7 @@ export type HkWorkoutShape = {
 export function lapsFromWorkout(
   workout: HkWorkoutShape,
   start: Date,
-  end: Date
+  end: Date,
 ): WorkoutLap[] | undefined {
   const ms = (d: Date | string) => new Date(d).getTime();
   const iso = (t: number) => new Date(t).toISOString();
@@ -94,7 +94,7 @@ export function lapsFromWorkout(
       events
         .filter((e) => e.type === HK_EVENT_LAP)
         .map((e) => ms(e.startDate))
-        .filter((t) => Number.isFinite(t) && t > startMs && t < endMs)
+        .filter((t) => Number.isFinite(t) && t > startMs && t < endMs),
     ),
   ].sort((a, b) => a - b);
   if (!markers.length) return undefined;

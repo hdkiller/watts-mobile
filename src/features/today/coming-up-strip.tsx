@@ -4,10 +4,7 @@ import { useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { StructureProfile } from '@/src/features/activity/charts/StructureProfile';
-import {
-  formatActivityDate,
-  formatDuration,
-} from '@/src/features/activity/mapActivity';
+import { formatActivityDate, formatDuration } from '@/src/features/activity/mapActivity';
 import { SportIcon } from '@/src/components/SportIcon';
 import { humanizeWorkoutType } from '@/src/lib/humanizeWorkoutType';
 import type { PlannedListItem } from '@/src/features/activity/types';
@@ -38,7 +35,7 @@ export function ComingUpStrip({ excludePlannedId }: ComingUpStripProps) {
         .filter((item) => isOnOrAfterToday(item.date))
         .filter((item) => !excludePlannedId || item.id !== excludePlannedId)
         .slice(0, TEASER_LIMIT),
-    [data, excludePlannedId]
+    [data, excludePlannedId],
   );
 
   if (isError) return null;

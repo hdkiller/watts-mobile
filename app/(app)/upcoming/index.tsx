@@ -1,14 +1,7 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { router, Stack, type Href } from 'expo-router';
 import { useMemo, useState } from 'react';
-import {
-  Platform,
-  Pressable,
-  RefreshControl,
-  SectionList,
-  Text,
-  View,
-} from 'react-native';
+import { Platform, Pressable, RefreshControl, SectionList, Text, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
 import { AppSymbol } from '@/src/components/AppSymbol';
@@ -41,13 +34,7 @@ function goBackFromUpcomingList() {
   router.replace(APP_HREFS.today as Href);
 }
 
-function PlannedRow({
-  item,
-  mark,
-}: {
-  item: PlannedListItem;
-  mark: ComplianceMark | undefined;
-}) {
+function PlannedRow({ item, mark }: { item: PlannedListItem; mark: ComplianceMark | undefined }) {
   // Date lives in the section header — keep type · duration · TSS only.
   const meta = [
     humanizeWorkoutType(item.type),
@@ -84,8 +71,7 @@ function PlannedRow({
 
 export default function UpcomingPlannedScreen() {
   const theme = useThemeColors();
-  const { data, isLoading, isError, error, refetch, dataUpdatedAt } =
-    useUpcomingPlannedQuery();
+  const { data, isLoading, isError, error, refetch, dataUpdatedAt } = useUpcomingPlannedQuery();
   const recent = useRecentActivityQuery();
   const { showCachedOffline, lastUpdatedLabel } = useOfflineCached({
     data,
@@ -111,13 +97,10 @@ export default function UpcomingPlannedScreen() {
         const todayKey = localDateKey(new Date())!;
         return itemKey >= todayKey;
       }),
-    [data]
+    [data],
   );
   const sections = useMemo(() => groupUpcomingByDay(futurePlanned), [futurePlanned]);
-  const compliance = useMemo(
-    () => buildComplianceIndex(recent.data, data),
-    [recent.data, data]
-  );
+  const compliance = useMemo(() => buildComplianceIndex(recent.data, data), [recent.data, data]);
 
   return (
     <>
@@ -139,12 +122,7 @@ export default function UpcomingPlannedScreen() {
                 marginLeft: Platform.OS === 'ios' ? -6 : 0,
               }}
             >
-              <AppSymbol
-                sf="chevron.left"
-                size={22}
-                tintColor={theme.textPrimary}
-                fallback="←"
-              />
+              <AppSymbol sf="chevron.left" size={22} tintColor={theme.textPrimary} fallback="←" />
             </Pressable>
           ),
         }}

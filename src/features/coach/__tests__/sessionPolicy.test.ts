@@ -56,7 +56,7 @@ describe('sessionPolicy', () => {
 
   it('creates when index is missing and the room has history', () => {
     expect(
-      decideSessionOpen([room({ roomId: 'a', lastMessage: { content: 'hi' } })], Date.now())
+      decideSessionOpen([room({ roomId: 'a', lastMessage: { content: 'hi' } })], Date.now()),
     ).toEqual({
       action: 'create',
     });

@@ -37,7 +37,7 @@ export async function fetchDashboardProfile(): Promise<DashboardProfile> {
 
 export async function fetchWellnessTrend(
   startDate: string,
-  endDate: string
+  endDate: string,
 ): Promise<WellnessTrendDay[]> {
   const params = new URLSearchParams({ startDate, endDate });
   const response = await apiFetch(`/api/wellness/trend?${params.toString()}`);

@@ -62,7 +62,7 @@ export function isE2eInstanceHostAllowed(instanceUrl: string): boolean {
 function rewriteLoopbackInstanceUrl(instanceUrlInput: string): string {
   return normalizeInstanceUrl(instanceUrlInput).replace(
     /^(https?:\/\/)localhost(?=[:/]|$)/i,
-    '$1127.0.0.1'
+    '$1127.0.0.1',
   );
 }
 
@@ -72,11 +72,11 @@ function rewriteLoopbackInstanceUrl(instanceUrlInput: string): string {
  */
 export async function mintE2eToken(
   instanceUrlInput: string,
-  email: string
+  email: string,
 ): Promise<MintedE2eToken> {
   if (!isE2eInstanceHostAllowed(instanceUrlInput)) {
     throw new Error(
-      `E2E login refused instance host for ${instanceUrlInput}. Use localhost / 127.0.0.1 / 10.0.2.2, or set EXPO_PUBLIC_E2E_ALLOWED_HOSTS / EXPO_PUBLIC_E2E_ALLOW_ANY_HOST=1`
+      `E2E login refused instance host for ${instanceUrlInput}. Use localhost / 127.0.0.1 / 10.0.2.2, or set EXPO_PUBLIC_E2E_ALLOWED_HOSTS / EXPO_PUBLIC_E2E_ALLOW_ANY_HOST=1`,
     );
   }
 
@@ -100,8 +100,7 @@ export async function mintE2eToken(
       access_token?: unknown;
       refresh_token?: unknown;
     };
-    const accessToken =
-      typeof body.access_token === 'string' ? body.access_token.trim() : '';
+    const accessToken = typeof body.access_token === 'string' ? body.access_token.trim() : '';
     if (!accessToken) {
       throw new Error('E2E token mint returned no access_token');
     }
@@ -152,13 +151,13 @@ export async function applyE2eAuthSeed(): Promise<E2eAuthSeedResult | null> {
   const instanceInput = E2E_INSTANCE_URL.trim();
   if (!instanceInput) {
     throw new Error(
-      'E2E auth enabled but EXPO_PUBLIC_E2E_INSTANCE_URL (or EXPO_PUBLIC_DEFAULT_INSTANCE_URL) is empty'
+      'E2E auth enabled but EXPO_PUBLIC_E2E_INSTANCE_URL (or EXPO_PUBLIC_DEFAULT_INSTANCE_URL) is empty',
     );
   }
 
   if (!isE2eInstanceHostAllowed(instanceInput)) {
     throw new Error(
-      `E2E auth refused instance host for ${instanceInput}. Use localhost / 127.0.0.1 / 10.0.2.2, or set EXPO_PUBLIC_E2E_ALLOWED_HOSTS / EXPO_PUBLIC_E2E_ALLOW_ANY_HOST=1`
+      `E2E auth refused instance host for ${instanceInput}. Use localhost / 127.0.0.1 / 10.0.2.2, or set EXPO_PUBLIC_E2E_ALLOWED_HOSTS / EXPO_PUBLIC_E2E_ALLOW_ANY_HOST=1`,
     );
   }
 

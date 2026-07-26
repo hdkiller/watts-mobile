@@ -16,7 +16,7 @@ function isThemePreference(value: unknown): value is ThemePreference {
 
 /** Map stored preference → React Native Appearance override. */
 export function appearanceSchemeForPreference(
-  preference: ThemePreference
+  preference: ThemePreference,
 ): 'light' | 'dark' | 'unspecified' {
   if (preference === 'light') return 'light';
   if (preference === 'dark') return 'dark';

@@ -13,7 +13,7 @@ export type ActivationAnalyticsEvent =
 /** Funnel breadcrumbs only — never attach health metric values. */
 export function trackActivationEvent(
   event: ActivationAnalyticsEvent,
-  extras?: Record<string, string | number | boolean | null | undefined>
+  extras?: Record<string, string | number | boolean | null | undefined>,
 ): void {
   const safe: Record<string, string | number | boolean> = {};
   if (extras) {

@@ -20,7 +20,7 @@ function localTodayKey(): string {
 
 function staleCaption(
   hasCurrentDayWellness: boolean,
-  latestWellnessDate: string | null
+  latestWellnessDate: string | null,
 ): string | null {
   if (hasCurrentDayWellness || !latestWellnessDate) return null;
   const day = latestWellnessDate.slice(0, 10);
@@ -83,12 +83,7 @@ function WellnessTile({
   return (
     <View className="flex-1">
       <View className="flex-row items-center gap-1.5">
-        <AppSymbol
-          sf={sfIcon}
-          size={13}
-          tintColor={theme.textMuted}
-          fallback={emojiIcon}
-        />
+        <AppSymbol sf={sfIcon} size={13} tintColor={theme.textMuted} fallback={emojiIcon} />
         <Text className="text-[10px] font-bold uppercase tracking-wide text-text-muted">
           {label}
         </Text>
@@ -180,9 +175,7 @@ export function WellnessSection({
         </Pressable>
       ) : (
         <>
-          {caption ? (
-            <Text className="mt-1 text-[11px] text-text-muted">{caption}</Text>
-          ) : null}
+          {caption ? <Text className="mt-1 text-[11px] text-text-muted">{caption}</Text> : null}
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Open wellness overview"
@@ -249,12 +242,8 @@ export function WellnessSection({
             >
               <Text className="text-sm text-text-body">
                 {recoveryItems![0]!.label}
-                {recoveryItems![0]!.severity != null
-                  ? ` · ${recoveryItems![0]!.severity}/10`
-                  : ''}
-                {recoveryItems!.length > 1
-                  ? ` · +${recoveryItems!.length - 1} more`
-                  : ''}
+                {recoveryItems![0]!.severity != null ? ` · ${recoveryItems![0]!.severity}/10` : ''}
+                {recoveryItems!.length > 1 ? ` · +${recoveryItems!.length - 1} more` : ''}
               </Text>
             </Pressable>
           ) : null}

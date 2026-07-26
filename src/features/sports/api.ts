@@ -1,6 +1,9 @@
 import { apiFetch } from '@/src/api/client';
 
-import { buildSportSettingsUpsertPayload, parseSportProfilesFromProfileResponse } from './mapSports';
+import {
+  buildSportSettingsUpsertPayload,
+  parseSportProfilesFromProfileResponse,
+} from './mapSports';
 import type { SportProfile, SportThresholdPatch } from './types';
 
 async function readErrorMessage(response: Response, fallback: string): Promise<string> {
@@ -15,7 +18,9 @@ async function readErrorMessage(response: Response, fallback: string): Promise<s
 export async function fetchSportProfiles(): Promise<SportProfile[]> {
   const response = await apiFetch('/api/profile');
   if (!response.ok) {
-    throw new Error(await readErrorMessage(response, `Failed to load sport profiles (${response.status})`));
+    throw new Error(
+      await readErrorMessage(response, `Failed to load sport profiles (${response.status})`),
+    );
   }
   const json = await response.json();
   return parseSportProfilesFromProfileResponse(json);
@@ -23,7 +28,7 @@ export async function fetchSportProfiles(): Promise<SportProfile[]> {
 
 export async function patchSportProfileThresholds(
   profile: SportProfile,
-  patch: SportThresholdPatch
+  patch: SportThresholdPatch,
 ): Promise<SportProfile[]> {
   const sportSettings = buildSportSettingsUpsertPayload(profile, patch);
   const response = await apiFetch('/api/profile', {
@@ -32,7 +37,9 @@ export async function patchSportProfileThresholds(
     body: JSON.stringify({ sportSettings }),
   });
   if (!response.ok) {
-    throw new Error(await readErrorMessage(response, `Failed to save sport profile (${response.status})`));
+    throw new Error(
+      await readErrorMessage(response, `Failed to save sport profile (${response.status})`),
+    );
   }
   const json = await response.json();
   // Prefer returned sportSettings; otherwise re-fetch semantics via parse of PATCH body.

@@ -30,7 +30,6 @@ SplashScreen.preventAutoHideAsync();
 initSentry();
 hideDevMenuFab();
 
-
 function RootNavigator() {
   const { status } = useAuth();
   const theme = useThemeColors();

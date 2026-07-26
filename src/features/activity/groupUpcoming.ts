@@ -32,7 +32,7 @@ function sectionTitleForKey(dateKey: string, todayKey: string, tomorrowKey: stri
 /** Group planned rows under Today / Tomorrow / weekday headers (local calendar). */
 export function groupUpcomingByDay(
   items: PlannedListItem[] | undefined,
-  now = new Date()
+  now = new Date(),
 ): UpcomingSection[] {
   const today = startOfLocalDay(now);
   const todayKey = localDateKey(today)!;

@@ -18,8 +18,8 @@ describe('fetchActivationStatus', () => {
           softActivated: false,
           fullyActivated: false,
         }),
-        { status: 200 }
-      )
+        { status: 200 },
+      ),
     );
 
     await fetchActivationStatus('instance|user');
@@ -37,7 +37,7 @@ describe('fetchActivationStatus', () => {
 
   it('degrades open for payloads without activation fields', async () => {
     apiFetch.mockResolvedValueOnce(
-      new Response(JSON.stringify({ hasUsableData: true }), { status: 200 })
+      new Response(JSON.stringify({ hasUsableData: true }), { status: 200 }),
     );
 
     await expect(fetchActivationStatus('instance|user')).resolves.toMatchObject({

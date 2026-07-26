@@ -56,10 +56,9 @@ export function AthleteProfileOverview({
     ((reportQuery.error as { status?: number } | null)?.status === 401 ||
       (reportQuery.error as { status?: number } | null)?.status === 403);
 
-  const completedReport =
-    reportQuery.data?.status === 'COMPLETED' ? reportQuery.data : null;
+  const completedReport = reportQuery.data?.status === 'COMPLETED' ? reportQuery.data : null;
   const canOpenLiteSheet = Boolean(
-    completedReport?.executiveSummary || (completedReport?.sections.length ?? 0) > 0
+    completedReport?.executiveSummary || (completedReport?.sections.length ?? 0) > 0,
   );
 
   const onSync = async () => {
@@ -83,7 +82,7 @@ export function AthleteProfileOverview({
       const status = (err as { status?: number } | null)?.status;
       if (status === 401 || status === 403) {
         setSyncError(
-          'This session cannot generate AI reports. Sign out and sign in again to refresh permissions.'
+          'This session cannot generate AI reports. Sign out and sign in again to refresh permissions.',
         );
       } else {
         setSyncError(friendlyError(err, 'Could not sync athlete profile'));
@@ -103,9 +102,7 @@ export function AthleteProfileOverview({
               {displayName}
             </Text>
           </View>
-          {age != null ? (
-            <Text className="mt-1 text-sm text-text-muted">{age} yrs</Text>
-          ) : null}
+          {age != null ? <Text className="mt-1 text-sm text-text-muted">{age} yrs</Text> : null}
         </View>
         {!reportForbidden ? (
           <AnimatedPressable
@@ -125,11 +122,7 @@ export function AthleteProfileOverview({
         ) : null}
       </View>
 
-      <HrMetrics
-        maxHr={profile.maxHr}
-        restingHr={profile.restingHr}
-        lthr={profile.lthr}
-      />
+      <HrMetrics maxHr={profile.maxHr} restingHr={profile.restingHr} lthr={profile.lthr} />
 
       <ActivityGlanceStrip />
 
@@ -183,8 +176,7 @@ export function AthleteProfileOverview({
               <Text className="text-sm font-semibold text-brand">Retry</Text>
             </AnimatedPressable>
           </View>
-        ) : reportQuery.data?.status === 'PENDING' ||
-          reportQuery.data?.status === 'PROCESSING' ? (
+        ) : reportQuery.data?.status === 'PENDING' || reportQuery.data?.status === 'PROCESSING' ? (
           <Text className="text-sm text-text-muted">Generating your athlete profile…</Text>
         ) : completedReport?.executiveSummary ? (
           <AnimatedPressable

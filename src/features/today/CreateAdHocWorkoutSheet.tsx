@@ -55,9 +55,7 @@ function ChipRow<T extends string>({
               selected ? 'bg-brand' : 'border border-border-strong bg-card'
             }`}
           >
-            <Text
-              className={`text-xs font-semibold ${selected ? 'text-ink' : 'text-text-body'}`}
-            >
+            <Text className={`text-xs font-semibold ${selected ? 'text-ink' : 'text-text-body'}`}>
               {labelFor ? labelFor(option) : option}
             </Text>
           </Pressable>
@@ -125,12 +123,19 @@ export function CreateAdHocWorkoutSheet({
         <View className="flex-1" style={{ paddingBottom: keyboardInset }}>
           <View className="flex-row items-start justify-between border-b border-border px-5 py-4">
             <View className="min-w-0 flex-1 pr-3">
-              <Text className="text-xl font-semibold text-text-primary">Generate Ad-Hoc Workout</Text>
+              <Text className="text-xl font-semibold text-text-primary">
+                Generate Ad-Hoc Workout
+              </Text>
               <Text className="mt-1 text-sm leading-5 text-text-muted">
                 Create a custom workout for today instantly.
               </Text>
             </View>
-            <Pressable onPress={onClose} className="active:opacity-70" hitSlop={8} disabled={submitting}>
+            <Pressable
+              onPress={onClose}
+              className="active:opacity-70"
+              hitSlop={8}
+              disabled={submitting}
+            >
               <Text className="text-sm font-semibold text-brand">Cancel</Text>
             </Pressable>
           </View>
@@ -188,7 +193,9 @@ export function CreateAdHocWorkoutSheet({
               onChangeText={(notes) => setForm((prev) => ({ ...prev, notes }))}
               // KeyboardAvoidingView shrinks the scroll area but does not scroll the focused
               // field into view; this is the last field, so pin it to the end.
-              onFocus={() => requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }))}
+              onFocus={() =>
+                requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }))
+              }
               editable={!submitting}
               placeholder="e.g. 'Focus on high cadence', 'Hill repeats', 'Upper body focus'"
               placeholderTextColor={theme.textMuted}

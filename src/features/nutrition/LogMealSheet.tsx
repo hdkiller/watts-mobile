@@ -56,7 +56,11 @@ import {
   type LogMealSheetMode,
 } from '@/src/features/nutrition/logMealSheetMode';
 import { resolvePickerPhoto } from '@/src/features/nutrition/resolvePickerPhoto';
-import { MEAL_OPTIONS, type MealSlot, type NutritionQuickLogForm } from '@/src/features/nutrition/types';
+import {
+  MEAL_OPTIONS,
+  type MealSlot,
+  type NutritionQuickLogForm,
+} from '@/src/features/nutrition/types';
 import { useLogNutritionItem, useTodayNutritionQuery } from '@/src/features/nutrition/useNutrition';
 import { usePhotoMealSettings } from '@/src/features/nutrition/usePhotoMealSettings';
 import { NutritionTargetsCard } from '@/src/features/nutrition/NutritionTargetsCard';
@@ -94,7 +98,7 @@ function MacroRatioBar({ form }: { form: NutritionQuickLogForm }) {
 
   return (
     <View className="mb-4 rounded-xl border border-border bg-card p-3">
-      <View className="flex-row items-center justify-between mb-2">
+      <View className="mb-2 flex-row items-center justify-between">
         <Text className="text-xs font-semibold text-text-primary">Macro Distribution</Text>
         <Text className="text-[11px] text-text-muted">{Math.round(total)} kcal</Text>
       </View>
@@ -216,7 +220,7 @@ function MacroFields({
   update: (key: keyof NutritionQuickLogForm) => (text: string) => void;
 }) {
   return (
-    <View className="rounded-xl border border-border bg-card p-4 mb-4 gap-3">
+    <View className="mb-4 gap-3 rounded-xl border border-border bg-card p-4">
       <View className="flex-row gap-2">
         <View className="flex-1">
           <Text className="mb-1 text-xs text-text-muted">Calories (kcal)</Text>
@@ -278,7 +282,7 @@ function MealSlotPicker({
   onSelect: (meal: MealSlot) => void;
 }) {
   return (
-    <View className="flex-row gap-2 mb-4">
+    <View className="mb-4 flex-row gap-2">
       {MEAL_OPTIONS.map((option) => {
         const selected = value === option.value;
         const meta = MEAL_ICONS[option.value];
@@ -398,11 +402,11 @@ function LoggedMealSuccess({
     markScale.value = withTiming(1, { duration });
     headingOpacity.value = withDelay(
       reduceMotion ? 0 : 120,
-      withTiming(1, { duration: reduceMotion ? 100 : 300 })
+      withTiming(1, { duration: reduceMotion ? 100 : 300 }),
     );
     headingTranslateY.value = withDelay(
       reduceMotion ? 0 : 120,
-      withTiming(0, { duration: reduceMotion ? 100 : 300 })
+      withTiming(0, { duration: reduceMotion ? 100 : 300 }),
     );
   }, [headingOpacity, headingTranslateY, markOpacity, markScale, reduceMotion]);
 
@@ -824,7 +828,7 @@ export function LogMealSheet({
 
   const beginAnalyzeFromPickerAsset = async (
     asset: { uri?: string | null; base64?: string | null; mimeType?: string | null },
-    options?: { saveCapturedToLibrary?: boolean }
+    options?: { saveCapturedToLibrary?: boolean },
   ) => {
     const photo = await resolvePickerPhoto(asset);
     if (!photo) {
@@ -957,7 +961,7 @@ export function LogMealSheet({
           void loadHistory();
           if (autoOpenPicker) handleChoosePhotoSource();
         },
-        autoOpenPicker ? AUTO_OPEN_PICKER_DELAY_MS : 0
+        autoOpenPicker ? AUTO_OPEN_PICKER_DELAY_MS : 0,
       );
     });
 
@@ -1001,11 +1005,7 @@ export function LogMealSheet({
 
   const confidenceCopy = confidenceLabel(estimateConfidence);
   const title =
-    mode === 'logged'
-      ? 'Meal logged'
-      : presentation === 'screen'
-        ? 'Photo Meal'
-        : 'Log Meal';
+    mode === 'logged' ? 'Meal logged' : presentation === 'screen' ? 'Photo Meal' : 'Log Meal';
 
   const content = (
     <>
@@ -1013,7 +1013,7 @@ export function LogMealSheet({
         <View className="mb-4 h-1 w-10 self-center rounded-full bg-border-strong" />
       ) : null}
 
-      <View className="flex-row items-center justify-between mb-3">
+      <View className="mb-3 flex-row items-center justify-between">
         <View className="flex-1 pr-3">
           <Text className="text-xl font-bold text-text-primary">{title}</Text>
           <Text className="text-xs text-text-muted">{subtitle}</Text>
@@ -1058,456 +1058,497 @@ export function LogMealSheet({
           />
         ) : null}
 
-            {mode === 'analyzing' ? (
-              <View className="mb-2 items-center rounded-xl border border-border bg-card p-5">
-                {capturedPhoto?.uri ? (
-                  <View className="relative mb-4 h-40 w-full overflow-hidden rounded-xl">
-                    <Image
-                      source={{ uri: capturedPhoto.uri }}
-                      style={{ width: '100%', height: '100%' }}
-                      resizeMode="cover"
-                      accessibilityLabel="Captured meal photo"
-                    />
-                    <View className="absolute inset-0 rounded-xl border-2 border-brand/40 bg-brand/10" />
-                  </View>
-                ) : null}
-                <ActivityIndicator size="large" color={theme.brand} />
-                <Text className="mt-3 text-base font-semibold text-text-primary">
-                  {ANALYZING_MESSAGES[analyzingStep]}
-                </Text>
-                <Text className="mt-1 text-center text-xs text-text-muted">
-                  Coach Watts AI is evaluating your meal photo
-                </Text>
+        {mode === 'analyzing' ? (
+          <View className="mb-2 items-center rounded-xl border border-border bg-card p-5">
+            {capturedPhoto?.uri ? (
+              <View className="relative mb-4 h-40 w-full overflow-hidden rounded-xl">
+                <Image
+                  source={{ uri: capturedPhoto.uri }}
+                  style={{ width: '100%', height: '100%' }}
+                  resizeMode="cover"
+                  accessibilityLabel="Captured meal photo"
+                />
+                <View className="absolute inset-0 rounded-xl border-2 border-brand/40 bg-brand/10" />
+              </View>
+            ) : null}
+            <ActivityIndicator size="large" color={theme.brand} />
+            <Text className="mt-3 text-base font-semibold text-text-primary">
+              {ANALYZING_MESSAGES[analyzingStep]}
+            </Text>
+            <Text className="mt-1 text-center text-xs text-text-muted">
+              Coach Watts AI is evaluating your meal photo
+            </Text>
+          </View>
+        ) : null}
+
+        {mode === 'review' ? (
+          <View>
+            {capturedPhoto?.uri ? (
+              <Image
+                source={{ uri: capturedPhoto.uri }}
+                style={{ width: '100%', height: 144, borderRadius: 12, marginBottom: 16 }}
+                resizeMode="cover"
+                accessibilityLabel="Meal photo used for estimate"
+              />
+            ) : null}
+
+            {estimateInsight ? (
+              <View className="mb-3 rounded-xl border border-brand/40 bg-tint-success px-4 py-3.5">
+                <View className="flex-row items-center gap-2">
+                  <AppSymbol sf="bolt.fill" size={16} tintColor={theme.brand} fallback="⚡️" />
+                  <Text className="text-sm font-bold text-brand">Coach Insight</Text>
+                </View>
+                <Text className="mt-1.5 text-sm leading-5 text-text-body">{estimateInsight}</Text>
               </View>
             ) : null}
 
-            {mode === 'review' ? (
-              <View>
-                {capturedPhoto?.uri ? (
-                  <Image
-                    source={{ uri: capturedPhoto.uri }}
-                    style={{ width: '100%', height: 144, borderRadius: 12, marginBottom: 16 }}
-                    resizeMode="cover"
-                    accessibilityLabel="Meal photo used for estimate"
-                  />
-                ) : null}
+            <DetectedItemsChips items={estimateItems} onRemoveItem={handleRemoveDetectedItem} />
 
-                {estimateInsight ? (
-                  <View className="mb-3 rounded-xl border border-brand/40 bg-tint-success px-4 py-3.5">
-                    <View className="flex-row items-center gap-2">
-                      <AppSymbol sf="bolt.fill" size={16} tintColor={theme.brand} fallback="⚡️" />
-                      <Text className="text-sm font-bold text-brand">Coach Insight</Text>
-                    </View>
-                    <Text className="mt-1.5 text-sm leading-5 text-text-body">
-                      {estimateInsight}
-                    </Text>
-                  </View>
-                ) : null}
+            <Text className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-muted">
+              Meal Slot
+            </Text>
+            <MealSlotPicker value={form.meal} onSelect={setMeal} />
 
-                <DetectedItemsChips items={estimateItems} onRemoveItem={handleRemoveDetectedItem} />
-
-                <Text className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-muted">
-                  Meal Slot
+            <View className="mb-4">
+              <Text className="mb-1 text-xs font-semibold text-text-muted">Item / Description</Text>
+              <TextInput
+                className={`rounded-xl border bg-card px-4 py-3 text-base text-text-primary ${
+                  estimateConfidence === 'HIGH'
+                    ? 'border-success'
+                    : estimateConfidence === 'MEDIUM'
+                      ? 'border-modify'
+                      : estimateConfidence === 'LOW'
+                        ? 'border-danger'
+                        : 'border-brand/50'
+                }`}
+                placeholderTextColor={theme.textMuted}
+                placeholder="Meal name"
+                value={form.name}
+                onChangeText={update('name')}
+              />
+              {confidenceCopy ? (
+                <Text
+                  className={`mt-1.5 text-xs font-medium ${
+                    estimateConfidence === 'HIGH'
+                      ? 'text-brand'
+                      : estimateConfidence === 'MEDIUM'
+                        ? 'text-modify'
+                        : 'text-danger'
+                  }`}
+                >
+                  {confidenceCopy}
                 </Text>
-                <MealSlotPicker value={form.meal} onSelect={setMeal} />
+              ) : null}
+            </View>
 
-                <View className="mb-4">
-                  <Text className="mb-1 text-xs font-semibold text-text-muted">Item / Description</Text>
-                  <TextInput
-                    className={`rounded-xl border bg-card px-4 py-3 text-base text-text-primary ${
-                      estimateConfidence === 'HIGH'
-                        ? 'border-success'
-                        : estimateConfidence === 'MEDIUM'
-                          ? 'border-modify'
-                          : estimateConfidence === 'LOW'
-                            ? 'border-danger'
-                            : 'border-brand/50'
-                    }`}
-                    placeholderTextColor={theme.textMuted}
-                    placeholder="Meal name"
-                    value={form.name}
-                    onChangeText={update('name')}
-                  />
-                  {confidenceCopy ? (
-                    <Text
-                      className={`mt-1.5 text-xs font-medium ${
-                        estimateConfidence === 'HIGH'
-                          ? 'text-brand'
-                          : estimateConfidence === 'MEDIUM'
-                            ? 'text-modify'
-                            : 'text-danger'
-                      }`}
-                    >
-                      {confidenceCopy}
-                    </Text>
-                  ) : null}
-                </View>
+            <MacroRatioBar form={form} />
 
-                <MacroRatioBar form={form} />
+            <MacroFields form={form} themeMuted={theme.textMuted} update={update} />
 
-                <MacroFields form={form} themeMuted={theme.textMuted} update={update} />
+            {error ? <Text className="mb-3 text-xs text-red-400">{error}</Text> : null}
 
-                {error ? <Text className="mb-3 text-xs text-red-400">{error}</Text> : null}
+            <Button
+              className="mt-1"
+              label={`Save Meal for ${saveMealDateLabel(selectedDateYmd)}`}
+              onPress={() => void onSubmit()}
+              loading={logMutation.isPending}
+              disabled={!quickLogHasContent(form)}
+            />
+            <Button
+              variant="secondary"
+              className="mt-2.5"
+              label="Retake or change photo"
+              onPress={handleRetake}
+              disabled={logMutation.isPending}
+            />
+            <Pressable
+              className="mt-3 self-center py-2 active:opacity-70"
+              onPress={clearEstimate}
+              disabled={logMutation.isPending}
+            >
+              <Text className="text-xs font-semibold text-text-muted">Clear estimate</Text>
+            </Pressable>
+          </View>
+        ) : null}
 
+        {mode === 'compose' ? (
+          presentation === 'screen' ? (
+            <View className="flex-1 items-center justify-center px-2 py-12">
+              <View className="h-16 w-16 items-center justify-center rounded-full border border-border bg-card">
+                <AppSymbol sf="camera.fill" size={26} tintColor={theme.brand} fallback="📷" />
+              </View>
+              <Text className="mt-5 text-xl font-semibold text-text-primary">Add a meal photo</Text>
+              <Text className="mt-2 max-w-sm text-center text-sm leading-5 text-text-muted">
+                Coach will estimate the meal, then you can review every value before saving.
+              </Text>
+              {error ? (
+                <Text className="mt-4 text-center text-sm text-red-400">{error}</Text>
+              ) : null}
+              <View className="mt-6 w-full">
                 <Button
-                  className="mt-1"
-                  label={`Save Meal for ${saveMealDateLabel(selectedDateYmd)}`}
-                  onPress={() => void onSubmit()}
-                  loading={logMutation.isPending}
-                  disabled={!quickLogHasContent(form)}
+                  label={
+                    sourceMode === 'camera'
+                      ? 'Take meal photo'
+                      : sourceMode === 'library'
+                        ? 'Choose meal photo'
+                        : 'Choose photo source'
+                  }
+                  onPress={handleChoosePhotoSource}
                 />
                 <Button
+                  label="Cancel"
                   variant="secondary"
                   className="mt-2.5"
-                  label="Retake or change photo"
-                  onPress={handleRetake}
-                  disabled={logMutation.isPending}
+                  onPress={handleClose}
                 />
+              </View>
+            </View>
+          ) : (
+            <View>
+              <View className="mb-4">
+                <NutritionTargetsCard
+                  day={dayNutrition}
+                  isLoading={isNutritionLoading}
+                  showHydration={false}
+                  selectedDate={selectedDateYmd}
+                  showDateHeader={true}
+                  onPrevDate={handlePrevDate}
+                  onNextDate={handleNextDate}
+                  canGoNext={canGoNext}
+                />
+              </View>
+
+              {/* Mode Selector Tabs */}
+              <View className="mb-4 flex-row rounded-xl border border-border bg-card p-1">
                 <Pressable
-                  className="mt-3 self-center py-2 active:opacity-70"
-                  onPress={clearEstimate}
-                  disabled={logMutation.isPending}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: composeTab === 'quick' }}
+                  onPress={() => {
+                    hapticLight();
+                    setComposeTab('quick');
+                  }}
+                  className={`flex-1 items-center rounded-lg py-2 ${
+                    composeTab === 'quick' ? 'border border-border bg-surface' : ''
+                  }`}
                 >
-                  <Text className="text-xs font-semibold text-text-muted">Clear estimate</Text>
+                  <Text
+                    className={`text-xs font-semibold ${
+                      composeTab === 'quick' ? 'text-text-primary' : 'text-text-muted'
+                    }`}
+                  >
+                    Quick Log
+                  </Text>
+                </Pressable>
+
+                <Pressable
+                  testID="log-meal-search-tab"
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: composeTab === 'search' }}
+                  onPress={() => {
+                    hapticLight();
+                    setComposeTab('search');
+                  }}
+                  className={`flex-1 items-center rounded-lg py-2 ${
+                    composeTab === 'search' ? 'border border-border bg-surface' : ''
+                  }`}
+                >
+                  <Text
+                    className={`text-xs font-semibold ${
+                      composeTab === 'search' ? 'text-text-primary' : 'text-text-muted'
+                    }`}
+                  >
+                    Search Food
+                  </Text>
+                </Pressable>
+
+                <Pressable
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: composeTab === 'photo' }}
+                  onPress={() => {
+                    hapticLight();
+                    setComposeTab('photo');
+                  }}
+                  className={`flex-1 items-center rounded-lg py-2 ${
+                    composeTab === 'photo' ? 'border border-border bg-surface' : ''
+                  }`}
+                >
+                  <Text
+                    className={`text-xs font-semibold ${
+                      composeTab === 'photo' ? 'text-text-primary' : 'text-text-muted'
+                    }`}
+                  >
+                    Photo Log
+                  </Text>
                 </Pressable>
               </View>
-            ) : null}
 
-            {mode === 'compose' ? (
-              presentation === 'screen' ? (
-                <View className="flex-1 items-center justify-center px-2 py-12">
-                  <View className="h-16 w-16 items-center justify-center rounded-full border border-border bg-card">
-                    <AppSymbol sf="camera.fill" size={26} tintColor={theme.brand} fallback="📷" />
-                  </View>
-                  <Text className="mt-5 text-xl font-semibold text-text-primary">Add a meal photo</Text>
-                  <Text className="mt-2 max-w-sm text-center text-sm leading-5 text-text-muted">
-                    Coach will estimate the meal, then you can review every value before saving.
-                  </Text>
-                  {error ? <Text className="mt-4 text-center text-sm text-red-400">{error}</Text> : null}
-                  <View className="mt-6 w-full">
-                    <Button
-                      label={
-                        sourceMode === 'camera'
-                          ? 'Take meal photo'
-                          : sourceMode === 'library'
-                            ? 'Choose meal photo'
-                            : 'Choose photo source'
-                      }
-                      onPress={handleChoosePhotoSource}
-                    />
-                    <Button
-                      label="Cancel"
-                      variant="secondary"
-                      className="mt-2.5"
-                      onPress={handleClose}
-                    />
-                  </View>
-                </View>
-              ) : (
-              <View>
+              {composeTab === 'search' ? (
                 <View className="mb-4">
-                  <NutritionTargetsCard
-                    day={dayNutrition}
-                    isLoading={isNutritionLoading}
-                    showHydration={false}
-                    selectedDate={selectedDateYmd}
-                    showDateHeader={true}
-                    onPrevDate={handlePrevDate}
-                    onNextDate={handleNextDate}
-                    canGoNext={canGoNext}
-                  />
-                </View>
-
-                {/* Mode Selector Tabs */}
-                <View className="mb-4 flex-row rounded-xl border border-border bg-card p-1">
-                  <Pressable
-                    accessibilityRole="tab"
-                    accessibilityState={{ selected: composeTab === 'quick' }}
-                    onPress={() => {
-                      hapticLight();
-                      setComposeTab('quick');
-                    }}
-                    className={`flex-1 py-2 items-center rounded-lg ${
-                      composeTab === 'quick' ? 'bg-surface border border-border' : ''
-                    }`}
-                  >
-                    <Text
-                      className={`text-xs font-semibold ${
-                        composeTab === 'quick' ? 'text-text-primary' : 'text-text-muted'
-                      }`}
-                    >
-                      Quick Log
-                    </Text>
-                  </Pressable>
-
-                  <Pressable
-                    testID="log-meal-search-tab"
-                    accessibilityRole="tab"
-                    accessibilityState={{ selected: composeTab === 'search' }}
-                    onPress={() => {
-                      hapticLight();
-                      setComposeTab('search');
-                    }}
-                    className={`flex-1 py-2 items-center rounded-lg ${
-                      composeTab === 'search' ? 'bg-surface border border-border' : ''
-                    }`}
-                  >
-                    <Text
-                      className={`text-xs font-semibold ${
-                        composeTab === 'search' ? 'text-text-primary' : 'text-text-muted'
-                      }`}
-                    >
-                      Search Food
-                    </Text>
-                  </Pressable>
-
-                  <Pressable
-                    accessibilityRole="tab"
-                    accessibilityState={{ selected: composeTab === 'photo' }}
-                    onPress={() => {
-                      hapticLight();
-                      setComposeTab('photo');
-                    }}
-                    className={`flex-1 py-2 items-center rounded-lg ${
-                      composeTab === 'photo' ? 'bg-surface border border-border' : ''
-                    }`}
-                  >
-                    <Text
-                      className={`text-xs font-semibold ${
-                        composeTab === 'photo' ? 'text-text-primary' : 'text-text-muted'
-                      }`}
-                    >
-                      Photo Log
-                    </Text>
-                  </Pressable>
-                </View>
-
-                {composeTab === 'search' ? (
-                  <View className="mb-4">
-                    {/* Search bar & Scan Barcode trigger */}
-                    <View className="mb-3 flex-row items-center gap-2">
-                      <View className="flex-1 flex-row items-center rounded-xl border border-border-strong bg-card px-3 py-2.5">
-                        <AppSymbol sf="magnifyingglass" size={16} tintColor={theme.textMuted} fallback="🔍" />
-                        <TextInput
-                          className="ml-2 flex-1 text-sm text-text-primary"
-                          placeholder="Search food by name..."
-                          placeholderTextColor={theme.textMuted}
-                          value={searchQuery}
-                          onChangeText={setSearchQuery}
-                          returnKeyType="search"
-                          autoCapitalize="none"
-                        />
-                        {searchQuery ? (
-                          <Pressable onPress={() => setSearchQuery('')} hitSlop={8}>
-                            <AppSymbol sf="xmark.circle.fill" size={16} tintColor={theme.textMuted} fallback="✕" />
-                          </Pressable>
-                        ) : null}
-                      </View>
-
-                      <Pressable
-                        testID="log-meal-scan-barcode"
-                        accessibilityRole="button"
-                        accessibilityLabel="Scan barcode"
-                        onPress={openBarcodeScanner}
-                        className="flex-row items-center gap-1.5 rounded-xl border border-brand bg-tint-success px-3.5 py-2.5 active:opacity-80"
-                      >
-                        <AppSymbol sf="barcode.viewfinder" size={18} tintColor={theme.brand} fallback="📷" />
-                        <Text className="text-xs font-semibold text-brand">Scan</Text>
-                      </Pressable>
-                    </View>
-
-                    {/* Search Loading State */}
-                    {isSearchingFood ? (
-                      <View className="py-8 items-center justify-center">
-                        <ActivityIndicator size="small" color={theme.brand} />
-                        <Text className="mt-2 text-xs font-medium text-text-muted">
-                          Searching global food database...
-                        </Text>
-                      </View>
-                    ) : null}
-
-                    {/* Search Error State */}
-                    {searchError ? (
-                      <View className="mb-3 rounded-xl border border-danger/40 bg-card p-3">
-                        <Text className="text-xs text-danger">{searchError}</Text>
-                      </View>
-                    ) : null}
-
-                    {/* Empty Search State */}
-                    {!isSearchingFood && !searchError && searchQuery.trim().length >= 2 && searchResults.length === 0 ? (
-                      <View className="py-8 items-center justify-center rounded-xl border border-border bg-card p-4">
-                        <Text className="text-sm font-semibold text-text-primary">No foods found</Text>
-                        <Text className="mt-1 text-center text-xs text-text-muted">
-                          No results for &quot;{searchQuery}&quot;. Try searching by a different name or scan the product barcode.
-                        </Text>
-                        <Button
-                          label="Scan Product Barcode"
-                          variant="secondary"
-                          className="mt-4"
-                          onPress={openBarcodeScanner}
-                        />
-                      </View>
-                    ) : null}
-
-                    {/* Initial Prompt State */}
-                    {!isSearchingFood && searchQuery.trim().length < 2 && searchResults.length === 0 ? (
-                      <View className="py-6 items-center justify-center rounded-xl border border-border bg-card p-4">
-                        <Text className="text-sm font-semibold text-text-primary">Search or Scan</Text>
-                        <Text className="mt-1 text-center text-xs text-text-muted">
-                          Type a food name above or tap Scan to use your camera for barcodes.
-                        </Text>
-                      </View>
-                    ) : null}
-
-                    {/* Search Results List — hidden while a new query is in flight so the
-                        previous query's cards don't sit under the spinner. */}
-                    {!isSearchingFood && searchResults.length > 0 ? (
-                      <View>
-                        <Text className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-muted">
-                          Results ({searchResults.length})
-                        </Text>
-                        {searchResults.map((item, idx) => (
-                          <Pressable
-                            key={`${item.name}-${item.barcode || idx}`}
-                            accessibilityRole="button"
-                            accessibilityLabel={`Select ${item.name}`}
-                            className="mb-2.5 rounded-xl border border-border bg-card p-3.5 active:opacity-80"
-                            onPress={() => openPortionCalculator(item)}
-                          >
-                            <View className="flex-row items-start justify-between">
-                              <View className="flex-1 pr-2">
-                                <Text className="text-sm font-bold text-text-primary">{item.name}</Text>
-                                {item.brand ? (
-                                  <Text className="text-xs font-semibold text-brand">{item.brand}</Text>
-                                ) : null}
-                                <Text className="mt-0.5 text-xs text-text-muted">
-                                  {item.serving_description || (item.serving_size_g ? `${item.serving_size_g}g serving` : '100g base')}
-                                </Text>
-                              </View>
-                              <View className="items-end">
-                                <Text className="text-sm font-extrabold text-text-primary">
-                                  {item.nutrients_per_100g.calories_kcal}{' '}
-                                  <Text className="text-xs text-text-muted font-normal">kcal/100g</Text>
-                                </Text>
-                              </View>
-                            </View>
-
-                            <View className="mt-2.5 flex-row items-center gap-2 pt-2 border-t border-border/50">
-                              <Text className="text-[11px] font-semibold text-macro-carbs bg-macro-carbs/10 px-2 py-0.5 rounded">
-                                Carbs: {item.nutrients_per_100g.carbs_g}g
-                              </Text>
-                              <Text className="text-[11px] font-semibold text-macro-protein bg-macro-protein/10 px-2 py-0.5 rounded">
-                                Protein: {item.nutrients_per_100g.protein_g}g
-                              </Text>
-                              <Text className="text-[11px] font-semibold text-macro-fat bg-macro-fat/10 px-2 py-0.5 rounded">
-                                Fat: {item.nutrients_per_100g.fat_g}g
-                              </Text>
-                            </View>
-                          </Pressable>
-                        ))}
-                      </View>
-                    ) : null}
-                  </View>
-                ) : composeTab === 'photo' ? (
-                  <View className="mb-4 rounded-xl border border-border bg-card p-5 items-center">
-                    <View className="h-12 w-12 items-center justify-center rounded-full bg-border-strong mb-3">
-                      <AppSymbol sf="camera.fill" size={22} tintColor={theme.brand} fallback="📷" />
-                    </View>
-                    <Text className="text-base font-bold text-text-primary">Photo Estimate with AI</Text>
-                    <Text className="mt-1 text-center text-xs text-text-muted leading-4">
-                      Snap a meal photo or choose from library. Coach Watts will estimate the portion and macros.
-                    </Text>
-                    <Button
-                      label="Choose Photo Source"
-                      className="mt-4 w-full"
-                      onPress={handleChoosePhotoSource}
-                    />
-                  </View>
-                ) : (
-                  <>
-                    {historyItems.length > 0 ? (
-                      <>
-                        <Text className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-muted">
-                          Your Recent Food History
-                        </Text>
-                        <ScrollView
-                          horizontal
-                          showsHorizontalScrollIndicator={false}
-                          className="mb-4 flex-row"
-                        >
-                          <View className="flex-row gap-2">
-                            {historyItems.map((item) => (
-                              <Pressable
-                                key={item.id}
-                                accessibilityRole="button"
-                                accessibilityLabel={`Add ${item.name}`}
-                                className="flex-row items-center gap-1.5 rounded-full border border-border-strong bg-card px-3.5 py-2 active:opacity-80"
-                                onPress={() => handleSelectHistoryItem(item)}
-                              >
-                                <Text className="text-sm">{item.emoji ?? '🍽️'}</Text>
-                                <Text className="text-xs font-semibold text-text-primary">{item.name}</Text>
-                                {item.calories > 0 ? (
-                                  <Text className="text-[10px] font-bold text-brand">
-                                    {item.calories} kcal
-                                  </Text>
-                                ) : null}
-                                {item.count > 1 ? (
-                                  <View className="rounded bg-border-strong px-1.5 py-0.5">
-                                    <Text className="text-[9px] font-bold text-text-muted">
-                                      {item.count}x
-                                    </Text>
-                                  </View>
-                                ) : null}
-                              </Pressable>
-                            ))}
-                          </View>
-                        </ScrollView>
-                      </>
-                    ) : null}
-
-                    <Text className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-muted">
-                      Meal Slot
-                    </Text>
-                    <MealSlotPicker value={form.meal} onSelect={setMeal} />
-
-                    <View className="mb-4">
-                      <Text className="mb-1 text-xs font-semibold text-text-muted">Item / Description</Text>
-                      <TextInput
-                        className="rounded-xl border border-border-strong bg-card px-4 py-3 text-base text-text-primary"
-                        placeholderTextColor={theme.textMuted}
-                        placeholder="e.g. Banana, Greek yogurt, or custom meal"
-                        value={form.name}
-                        onChangeText={update('name')}
+                  {/* Search bar & Scan Barcode trigger */}
+                  <View className="mb-3 flex-row items-center gap-2">
+                    <View className="flex-1 flex-row items-center rounded-xl border border-border-strong bg-card px-3 py-2.5">
+                      <AppSymbol
+                        sf="magnifyingglass"
+                        size={16}
+                        tintColor={theme.textMuted}
+                        fallback="🔍"
                       />
+                      <TextInput
+                        className="ml-2 flex-1 text-sm text-text-primary"
+                        placeholder="Search food by name..."
+                        placeholderTextColor={theme.textMuted}
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                        returnKeyType="search"
+                        autoCapitalize="none"
+                      />
+                      {searchQuery ? (
+                        <Pressable onPress={() => setSearchQuery('')} hitSlop={8}>
+                          <AppSymbol
+                            sf="xmark.circle.fill"
+                            size={16}
+                            tintColor={theme.textMuted}
+                            fallback="✕"
+                          />
+                        </Pressable>
+                      ) : null}
                     </View>
 
                     <Pressable
-                      className="mb-3 self-start py-1"
-                      hitSlop={8}
-                      onPress={() => {
-                        hapticLight();
-                        setShowMacros((prev) => !prev);
-                      }}
+                      testID="log-meal-scan-barcode"
+                      accessibilityRole="button"
+                      accessibilityLabel="Scan barcode"
+                      onPress={openBarcodeScanner}
+                      className="flex-row items-center gap-1.5 rounded-xl border border-brand bg-tint-success px-3.5 py-2.5 active:opacity-80"
                     >
-                      <Text className="text-xs font-semibold text-brand">
-                        {showMacros ? '− Hide macro values' : '+ Edit calories & macros'}
-                      </Text>
+                      <AppSymbol
+                        sf="barcode.viewfinder"
+                        size={18}
+                        tintColor={theme.brand}
+                        fallback="📷"
+                      />
+                      <Text className="text-xs font-semibold text-brand">Scan</Text>
                     </Pressable>
+                  </View>
 
-                    {showMacros ? (
-                      <MacroFields form={form} themeMuted={theme.textMuted} update={update} />
-                    ) : null}
+                  {/* Search Loading State */}
+                  {isSearchingFood ? (
+                    <View className="items-center justify-center py-8">
+                      <ActivityIndicator size="small" color={theme.brand} />
+                      <Text className="mt-2 text-xs font-medium text-text-muted">
+                        Searching global food database...
+                      </Text>
+                    </View>
+                  ) : null}
 
-                    {error ? <Text className="mb-3 text-xs text-red-400">{error}</Text> : null}
-                  </>
-                )}
-              </View>
-              )
-            ) : null}
+                  {/* Search Error State */}
+                  {searchError ? (
+                    <View className="mb-3 rounded-xl border border-danger/40 bg-card p-3">
+                      <Text className="text-xs text-danger">{searchError}</Text>
+                    </View>
+                  ) : null}
+
+                  {/* Empty Search State */}
+                  {!isSearchingFood &&
+                  !searchError &&
+                  searchQuery.trim().length >= 2 &&
+                  searchResults.length === 0 ? (
+                    <View className="items-center justify-center rounded-xl border border-border bg-card p-4 py-8">
+                      <Text className="text-sm font-semibold text-text-primary">
+                        No foods found
+                      </Text>
+                      <Text className="mt-1 text-center text-xs text-text-muted">
+                        No results for &quot;{searchQuery}&quot;. Try searching by a different name
+                        or scan the product barcode.
+                      </Text>
+                      <Button
+                        label="Scan Product Barcode"
+                        variant="secondary"
+                        className="mt-4"
+                        onPress={openBarcodeScanner}
+                      />
+                    </View>
+                  ) : null}
+
+                  {/* Initial Prompt State */}
+                  {!isSearchingFood &&
+                  searchQuery.trim().length < 2 &&
+                  searchResults.length === 0 ? (
+                    <View className="items-center justify-center rounded-xl border border-border bg-card p-4 py-6">
+                      <Text className="text-sm font-semibold text-text-primary">
+                        Search or Scan
+                      </Text>
+                      <Text className="mt-1 text-center text-xs text-text-muted">
+                        Type a food name above or tap Scan to use your camera for barcodes.
+                      </Text>
+                    </View>
+                  ) : null}
+
+                  {/* Search Results List — hidden while a new query is in flight so the
+                        previous query's cards don't sit under the spinner. */}
+                  {!isSearchingFood && searchResults.length > 0 ? (
+                    <View>
+                      <Text className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-muted">
+                        Results ({searchResults.length})
+                      </Text>
+                      {searchResults.map((item, idx) => (
+                        <Pressable
+                          key={`${item.name}-${item.barcode || idx}`}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Select ${item.name}`}
+                          className="mb-2.5 rounded-xl border border-border bg-card p-3.5 active:opacity-80"
+                          onPress={() => openPortionCalculator(item)}
+                        >
+                          <View className="flex-row items-start justify-between">
+                            <View className="flex-1 pr-2">
+                              <Text className="text-sm font-bold text-text-primary">
+                                {item.name}
+                              </Text>
+                              {item.brand ? (
+                                <Text className="text-xs font-semibold text-brand">
+                                  {item.brand}
+                                </Text>
+                              ) : null}
+                              <Text className="mt-0.5 text-xs text-text-muted">
+                                {item.serving_description ||
+                                  (item.serving_size_g
+                                    ? `${item.serving_size_g}g serving`
+                                    : '100g base')}
+                              </Text>
+                            </View>
+                            <View className="items-end">
+                              <Text className="text-sm font-extrabold text-text-primary">
+                                {item.nutrients_per_100g.calories_kcal}{' '}
+                                <Text className="text-xs font-normal text-text-muted">
+                                  kcal/100g
+                                </Text>
+                              </Text>
+                            </View>
+                          </View>
+
+                          <View className="mt-2.5 flex-row items-center gap-2 border-t border-border/50 pt-2">
+                            <Text className="rounded bg-macro-carbs/10 px-2 py-0.5 text-[11px] font-semibold text-macro-carbs">
+                              Carbs: {item.nutrients_per_100g.carbs_g}g
+                            </Text>
+                            <Text className="rounded bg-macro-protein/10 px-2 py-0.5 text-[11px] font-semibold text-macro-protein">
+                              Protein: {item.nutrients_per_100g.protein_g}g
+                            </Text>
+                            <Text className="rounded bg-macro-fat/10 px-2 py-0.5 text-[11px] font-semibold text-macro-fat">
+                              Fat: {item.nutrients_per_100g.fat_g}g
+                            </Text>
+                          </View>
+                        </Pressable>
+                      ))}
+                    </View>
+                  ) : null}
+                </View>
+              ) : composeTab === 'photo' ? (
+                <View className="mb-4 items-center rounded-xl border border-border bg-card p-5">
+                  <View className="mb-3 h-12 w-12 items-center justify-center rounded-full bg-border-strong">
+                    <AppSymbol sf="camera.fill" size={22} tintColor={theme.brand} fallback="📷" />
+                  </View>
+                  <Text className="text-base font-bold text-text-primary">
+                    Photo Estimate with AI
+                  </Text>
+                  <Text className="mt-1 text-center text-xs leading-4 text-text-muted">
+                    Snap a meal photo or choose from library. Coach Watts will estimate the portion
+                    and macros.
+                  </Text>
+                  <Button
+                    label="Choose Photo Source"
+                    className="mt-4 w-full"
+                    onPress={handleChoosePhotoSource}
+                  />
+                </View>
+              ) : (
+                <>
+                  {historyItems.length > 0 ? (
+                    <>
+                      <Text className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-muted">
+                        Your Recent Food History
+                      </Text>
+                      <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        className="mb-4 flex-row"
+                      >
+                        <View className="flex-row gap-2">
+                          {historyItems.map((item) => (
+                            <Pressable
+                              key={item.id}
+                              accessibilityRole="button"
+                              accessibilityLabel={`Add ${item.name}`}
+                              className="flex-row items-center gap-1.5 rounded-full border border-border-strong bg-card px-3.5 py-2 active:opacity-80"
+                              onPress={() => handleSelectHistoryItem(item)}
+                            >
+                              <Text className="text-sm">{item.emoji ?? '🍽️'}</Text>
+                              <Text className="text-xs font-semibold text-text-primary">
+                                {item.name}
+                              </Text>
+                              {item.calories > 0 ? (
+                                <Text className="text-[10px] font-bold text-brand">
+                                  {item.calories} kcal
+                                </Text>
+                              ) : null}
+                              {item.count > 1 ? (
+                                <View className="rounded bg-border-strong px-1.5 py-0.5">
+                                  <Text className="text-[9px] font-bold text-text-muted">
+                                    {item.count}x
+                                  </Text>
+                                </View>
+                              ) : null}
+                            </Pressable>
+                          ))}
+                        </View>
+                      </ScrollView>
+                    </>
+                  ) : null}
+
+                  <Text className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-muted">
+                    Meal Slot
+                  </Text>
+                  <MealSlotPicker value={form.meal} onSelect={setMeal} />
+
+                  <View className="mb-4">
+                    <Text className="mb-1 text-xs font-semibold text-text-muted">
+                      Item / Description
+                    </Text>
+                    <TextInput
+                      className="rounded-xl border border-border-strong bg-card px-4 py-3 text-base text-text-primary"
+                      placeholderTextColor={theme.textMuted}
+                      placeholder="e.g. Banana, Greek yogurt, or custom meal"
+                      value={form.name}
+                      onChangeText={update('name')}
+                    />
+                  </View>
+
+                  <Pressable
+                    className="mb-3 self-start py-1"
+                    hitSlop={8}
+                    onPress={() => {
+                      hapticLight();
+                      setShowMacros((prev) => !prev);
+                    }}
+                  >
+                    <Text className="text-xs font-semibold text-brand">
+                      {showMacros ? '− Hide macro values' : '+ Edit calories & macros'}
+                    </Text>
+                  </Pressable>
+
+                  {showMacros ? (
+                    <MacroFields form={form} themeMuted={theme.textMuted} update={update} />
+                  ) : null}
+
+                  {error ? <Text className="mb-3 text-xs text-red-400">{error}</Text> : null}
+                </>
+              )}
+            </View>
+          )
+        ) : null}
       </ScrollView>
 
       {mode === 'compose' && presentation === 'sheet' ? (
-        <View className="pt-3 border-t border-border bg-surface">
+        <View className="border-t border-border bg-surface pt-3">
           <Button
             label={`Save Meal for ${saveMealDateLabel(selectedDateYmd)}`}
             onPress={() => void onSubmit()}
@@ -1553,7 +1594,7 @@ export function LogMealSheet({
           />
           <View
             testID="log-meal-sheet"
-            className="rounded-t-3xl bg-surface px-6 pt-4 pb-10"
+            className="rounded-t-3xl bg-surface px-6 pb-10 pt-4"
             style={{ maxHeight: '88%', minHeight: 0 }}
           >
             {content}

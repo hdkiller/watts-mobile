@@ -84,7 +84,11 @@ describe('bucketHealthConnectSleep', () => {
         stage(4, 0, 3),
         { stage: 5, startTime: undefined, endTime: undefined },
         { stage: 6, startTime: 'not-a-date', endTime: 'nope' },
-        { stage: 4, startTime: new Date(base).toISOString(), endTime: new Date(base).toISOString() },
+        {
+          stage: 4,
+          startTime: new Date(base).toISOString(),
+          endTime: new Date(base).toISOString(),
+        },
       ] as ReturnType<typeof stage>[]),
     ]);
 
@@ -120,11 +124,7 @@ describe('bucketHealthKitSleep', () => {
   });
 
   it('merges awake segments written by two sources rather than summing', () => {
-    const bucket = bucketHealthKitSleep([
-      hkSample(4, 0, 6),
-      hkSample(2, 6, 7),
-      hkSample(2, 6, 7),
-    ]);
+    const bucket = bucketHealthKitSleep([hkSample(4, 0, 6), hkSample(2, 6, 7), hkSample(2, 6, 7)]);
 
     expect(bucket?.sleepAwakeSecs).toBe(1 * 3600);
   });

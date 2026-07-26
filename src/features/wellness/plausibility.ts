@@ -15,7 +15,7 @@ export function isPlausibleRestingHr(bpm: number | null | undefined): boolean {
 /** Reject day-to-day weight jumps over 10% (almost always a unit/sync glitch). */
 export function isPlausibleWeightKg(
   weight: number | null | undefined,
-  previous: number | null | undefined
+  previous: number | null | undefined,
 ): boolean {
   if (typeof weight !== 'number' || !Number.isFinite(weight) || weight <= 0) return false;
   if (typeof previous !== 'number' || !Number.isFinite(previous) || previous <= 0) return true;
@@ -23,14 +23,10 @@ export function isPlausibleWeightKg(
 }
 
 /** Filter history used for trend baselines so garbage days don't skew %. */
-export function plausibleSleepHistory(
-  history: (number | null | undefined)[]
-): number[] {
+export function plausibleSleepHistory(history: (number | null | undefined)[]): number[] {
   return history.filter((v): v is number => isPlausibleSleepHours(v));
 }
 
-export function plausibleRestingHrHistory(
-  history: (number | null | undefined)[]
-): number[] {
+export function plausibleRestingHrHistory(history: (number | null | undefined)[]): number[] {
   return history.filter((v): v is number => isPlausibleRestingHr(v));
 }

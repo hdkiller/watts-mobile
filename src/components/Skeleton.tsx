@@ -76,7 +76,7 @@ export function CoachChatSkeleton() {
           <Skeleton className="h-16 w-[68%] self-start rounded-2xl" />
           <Skeleton className="h-12 w-[60%] self-end rounded-2xl" />
         </View>
-        <View className="mt-3 mb-2 flex-row items-center gap-2 px-1 pb-3">
+        <View className="mb-2 mt-3 flex-row items-center gap-2 px-1 pb-3">
           <Skeleton className="h-11 flex-1 rounded-xl" />
           <Skeleton className="h-11 w-11 rounded-xl" />
         </View>

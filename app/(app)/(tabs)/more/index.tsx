@@ -51,9 +51,7 @@ function RowIcon({ sf, isDestructive = false }: { sf: SFSymbol; isDestructive?: 
 
 function Chevron() {
   const theme = useThemeColors();
-  return (
-    <AppSymbol sf="chevron.right" size={14} tintColor={theme.textMuted} fallback="›" />
-  );
+  return <AppSymbol sf="chevron.right" size={14} tintColor={theme.textMuted} fallback="›" />;
 }
 
 function AthleteAvatar({ name }: { name?: string | null }) {
@@ -67,7 +65,7 @@ function AthleteAvatar({ name }: { name?: string | null }) {
       .toUpperCase() || 'A';
 
   return (
-    <View className="h-12 w-12 items-center justify-center rounded-full bg-brand/20 border border-brand/40">
+    <View className="h-12 w-12 items-center justify-center rounded-full border border-brand/40 bg-brand/20">
       <Text className="text-base font-bold text-brand">{initials}</Text>
     </View>
   );
@@ -105,16 +103,12 @@ function MenuRow({
 }) {
   const body = (
     <View
-      className={`flex-row items-center px-4 py-3.5 ${
-        isLast ? '' : 'border-b border-border/80'
-      }`}
+      className={`flex-row items-center px-4 py-3.5 ${isLast ? '' : 'border-b border-border/80'}`}
     >
       <RowIcon sf={sf} isDestructive={isDestructive} />
       <View className="min-w-0 flex-1">
         <Text
-          className={`text-base font-medium ${
-            isDestructive ? 'text-danger' : 'text-text-primary'
-          }`}
+          className={`text-base font-medium ${isDestructive ? 'text-danger' : 'text-text-primary'}`}
         >
           {title}
         </Text>
@@ -350,4 +344,3 @@ export default function MoreScreen() {
     </SafeAreaView>
   );
 }
-

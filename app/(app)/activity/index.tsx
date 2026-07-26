@@ -1,14 +1,7 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { router, Stack, type Href } from 'expo-router';
 import { useMemo, useState } from 'react';
-import {
-  FlatList,
-  Platform,
-  Pressable,
-  RefreshControl,
-  Text,
-  View,
-} from 'react-native';
+import { FlatList, Platform, Pressable, RefreshControl, Text, View } from 'react-native';
 import { FadeInDown } from 'react-native-reanimated';
 
 import { friendlyError } from '@/src/api/errors';
@@ -17,10 +10,7 @@ import { AppSymbol } from '@/src/components/AppSymbol';
 import { OfflineBanner } from '@/src/components/OfflineBanner';
 import { ListSkeleton } from '@/src/components/Skeleton';
 import { SportIcon } from '@/src/components/SportIcon';
-import {
-  formatActivityDate,
-  formatDuration,
-} from '@/src/features/activity/mapActivity';
+import { formatActivityDate, formatDuration } from '@/src/features/activity/mapActivity';
 import { buildComplianceIndex, type ComplianceMark } from '@/src/features/activity/compliance';
 import { ComplianceMarkView } from '@/src/features/activity/ComplianceMark';
 import type { ActivityListItem } from '@/src/features/activity/types';
@@ -103,8 +93,7 @@ function ActivityRow({
 
 export default function RecentActivityScreen() {
   const theme = useThemeColors();
-  const { data, isLoading, isError, error, refetch, dataUpdatedAt } =
-    useRecentActivityQuery();
+  const { data, isLoading, isError, error, refetch, dataUpdatedAt } = useRecentActivityQuery();
   const upcoming = useUpcomingPlannedQuery();
   const { showCachedOffline, lastUpdatedLabel } = useOfflineCached({
     data,
@@ -113,7 +102,7 @@ export default function RecentActivityScreen() {
   });
   const compliance = useMemo(
     () => buildComplianceIndex(data, upcoming.data),
-    [data, upcoming.data]
+    [data, upcoming.data],
   );
 
   const [manualRefreshing, setManualRefreshing] = useState(false);
@@ -146,12 +135,7 @@ export default function RecentActivityScreen() {
                 marginLeft: Platform.OS === 'ios' ? -6 : 0,
               }}
             >
-              <AppSymbol
-                sf="chevron.left"
-                size={22}
-                tintColor={theme.textPrimary}
-                fallback="←"
-              />
+              <AppSymbol sf="chevron.left" size={22} tintColor={theme.textPrimary} fallback="←" />
             </Pressable>
           ),
         }}
@@ -193,11 +177,7 @@ export default function RecentActivityScreen() {
             </View>
           }
           renderItem={({ item, index }) => (
-            <ActivityRow
-              item={item}
-              index={index}
-              mark={compliance.forActivity.get(item.id)}
-            />
+            <ActivityRow item={item} index={index} mark={compliance.forActivity.get(item.id)} />
           )}
         />
       )}

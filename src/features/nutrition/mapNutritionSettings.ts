@@ -146,10 +146,12 @@ export function toNutritionSettingsPayload(form: NutritionSettingsForm): Nutriti
   };
 }
 
-export function computeTdee(form: Pick<
-  NutritionSettingsForm,
-  'baseCaloriesMode' | 'nonExerciseBaseCalories' | 'bmr' | 'activityLevel'
->): number {
+export function computeTdee(
+  form: Pick<
+    NutritionSettingsForm,
+    'baseCaloriesMode' | 'nonExerciseBaseCalories' | 'bmr' | 'activityLevel'
+  >,
+): number {
   if (form.baseCaloriesMode === 'MANUAL_NON_EXERCISE') {
     return Math.round(form.nonExerciseBaseCalories || 0);
   }
@@ -170,12 +172,14 @@ export function defaultAdjustmentForGoal(goal: GoalProfile): number {
 
 export function hydrationPresetVolumes(
   quickAddVolumes: unknown,
-  fallback: [number, number, number] = DEFAULT_QUICK_ADD_VOLUMES
+  fallback: [number, number, number] = DEFAULT_QUICK_ADD_VOLUMES,
 ): [number, number, number] {
   if (quickAddVolumes == null) return fallback;
   return normalizeQuickAddVolumes(quickAddVolumes);
 }
 
 export function settingsFormEquals(a: NutritionSettingsForm, b: NutritionSettingsForm): boolean {
-  return JSON.stringify(toNutritionSettingsPayload(a)) === JSON.stringify(toNutritionSettingsPayload(b));
+  return (
+    JSON.stringify(toNutritionSettingsPayload(a)) === JSON.stringify(toNutritionSettingsPayload(b))
+  );
 }

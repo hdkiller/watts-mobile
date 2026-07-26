@@ -71,10 +71,7 @@ export function LineSeriesChart({
   const yTicks = [maxY, (maxY + minY) / 2, minY];
 
   return (
-    <View
-      onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
-      style={{ width: '100%' }}
-    >
+    <View onLayout={(e) => setWidth(e.nativeEvent.layout.width)} style={{ width: '100%' }}>
       {width > 0 ? (
         <Svg width={width} height={height}>
           {showGrid
@@ -111,13 +108,7 @@ export function LineSeriesChart({
             const last = s.points[s.points.length - 1];
             if (!last) return null;
             return (
-              <Circle
-                key={`${s.key}-end`}
-                cx={toX(last.x)}
-                cy={toY(last.y)}
-                r={3}
-                fill={s.color}
-              />
+              <Circle key={`${s.key}-end`} cx={toX(last.x)} cy={toY(last.y)} r={3} fill={s.color} />
             );
           })}
         </Svg>

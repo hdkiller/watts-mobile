@@ -128,16 +128,14 @@ function toSemicircles(degrees: number | undefined): number {
 function defMessage(
   localNum: number,
   globalMsg: number,
-  fields: { defNum: number; size: number; baseType: number }[]
+  fields: { defNum: number; size: number; baseType: number }[],
 ): Uint8Array {
   const header = new Uint8Array([0x40 | (localNum & 0x0f)]);
   const reserved = new Uint8Array([0]);
   const arch = new Uint8Array([0]); // little endian
   const global = u16(globalMsg);
   const fieldCount = new Uint8Array([fields.length]);
-  const fieldDefs = concat(
-    ...fields.map((f) => new Uint8Array([f.defNum, f.size, f.baseType]))
-  );
+  const fieldDefs = concat(...fields.map((f) => new Uint8Array([f.defNum, f.size, f.baseType])));
   return concat(header, reserved, arch, global, fieldCount, fieldDefs);
 }
 
@@ -151,7 +149,10 @@ export function buildMinimalFit(session: PlatformWorkoutSession): Uint8Array {
   const endFit = fitTimestamp(endIso);
   const duration =
     session.durationSec ??
-    Math.max(0, Math.floor(new Date(endIso).getTime() / 1000 - new Date(session.startedAt).getTime() / 1000));
+    Math.max(
+      0,
+      Math.floor(new Date(endIso).getTime() / 1000 - new Date(session.startedAt).getTime() / 1000),
+    );
   const sport = fitSportCode(session.sportType);
 
   // File Id (global 0)
@@ -161,10 +162,7 @@ export function buildMinimalFit(session: PlatformWorkoutSession): Uint8Array {
     { defNum: 2, size: 2, baseType: 0x84 }, // product uint16
     { defNum: 4, size: 4, baseType: 0x86 }, // time_created uint32
   ]);
-  const fileIdData = dataMessage(
-    0,
-    concat(new Uint8Array([4]), u16(255), u16(0), u32(startFit))
-  );
+  const fileIdData = dataMessage(0, concat(new Uint8Array([4]), u16(255), u16(0), u32(startFit)));
 
   const merged = mergeWorkoutStreams({
     heartRate: session.heartRateSamples,
@@ -211,14 +209,12 @@ export function buildMinimalFit(session: PlatformWorkoutSession): Uint8Array {
               ...(hasCadence ? [u8(cadenceByte(s.rpm))] : []),
               ...(hasSpeed ? [u16(speedU16(s.mps))] : []),
               ...(hasPower ? [u16(powerU16(s.watts))] : []),
-              ...(hasRoute
-                ? [i32(toSemicircles(s.lat)), i32(toSemicircles(s.lon))]
-                : []),
+              ...(hasRoute ? [i32(toSemicircles(s.lat)), i32(toSemicircles(s.lon))] : []),
               ...(hasAltitude ? [u16(altitudeU16(s.altitudeMeters))] : []),
-              ...(hasDistance ? [u32(distanceU32(s.distanceMeters))] : [])
-            )
-          )
-        )
+              ...(hasDistance ? [u32(distanceU32(s.distanceMeters))] : []),
+            ),
+          ),
+        ),
       )
     : new Uint8Array(0);
 
@@ -240,9 +236,7 @@ export function buildMinimalFit(session: PlatformWorkoutSession): Uint8Array {
           const lapEnd = fitTimestamp(lap.endedAt);
           const lapDurMs = Math.max(
             0,
-            Math.round(
-              (new Date(lap.endedAt).getTime() - new Date(lap.startedAt).getTime())
-            )
+            Math.round(new Date(lap.endedAt).getTime() - new Date(lap.startedAt).getTime()),
           );
           const dist =
             lap.distanceMeters != null && lap.distanceMeters >= 0
@@ -250,9 +244,9 @@ export function buildMinimalFit(session: PlatformWorkoutSession): Uint8Array {
               : FIT_UINT32_INVALID;
           return dataMessage(
             4,
-            concat(u32(lapEnd), u32(lapStart), u32(lapDurMs), u32(lapDurMs), u32(dist))
+            concat(u32(lapEnd), u32(lapStart), u32(lapDurMs), u32(lapDurMs), u32(dist)),
           );
-        })
+        }),
       )
     : new Uint8Array(0);
 
@@ -304,8 +298,8 @@ export function buildMinimalFit(session: PlatformWorkoutSession): Uint8Array {
       u16(speedU16(average(session.speedSamples?.map((s) => s.mps) ?? []))),
       u16(speedU16(maximum(session.speedSamples?.map((s) => s.mps) ?? []))),
       u16(powerU16(totalAscentMeters(session))),
-      new Uint8Array([sport])
-    )
+      new Uint8Array([sport]),
+    ),
   );
 
   // Activity (global 34)
@@ -325,8 +319,8 @@ export function buildMinimalFit(session: PlatformWorkoutSession): Uint8Array {
       u16(1),
       new Uint8Array([0]),
       new Uint8Array([0]),
-      new Uint8Array([0])
-    )
+      new Uint8Array([0]),
+    ),
   );
 
   const dataRecords = concat(
@@ -339,7 +333,7 @@ export function buildMinimalFit(session: PlatformWorkoutSession): Uint8Array {
     sessionDef,
     sessionData,
     activityDef,
-    activityData
+    activityData,
   );
 
   const headerSize = 14;

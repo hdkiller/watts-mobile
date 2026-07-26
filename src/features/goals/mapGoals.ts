@@ -130,8 +130,12 @@ export function mapGoalDetail(goal: GoalApi): GoalDetail {
 
 export function sortGoalsForList(goals: GoalApi[]): GoalApi[] {
   return [...goals].sort((a, b) => {
-    const aDate = a.targetDate ? new Date(String(a.targetDate)).getTime() : Number.POSITIVE_INFINITY;
-    const bDate = b.targetDate ? new Date(String(b.targetDate)).getTime() : Number.POSITIVE_INFINITY;
+    const aDate = a.targetDate
+      ? new Date(String(a.targetDate)).getTime()
+      : Number.POSITIVE_INFINITY;
+    const bDate = b.targetDate
+      ? new Date(String(b.targetDate)).getTime()
+      : Number.POSITIVE_INFINITY;
     if (aDate !== bDate) return aDate - bDate;
     return (a.title || '').localeCompare(b.title || '');
   });
@@ -157,11 +161,13 @@ function createdAtMs(value: unknown): number {
 
 export function pickPrimaryGoal(goals: GoalApi[] | undefined): GoalApi | null {
   if (!goals?.length) return null;
-  return [...goals].sort((a, b) => {
-    const rankDiff = priorityRank(b.priority) - priorityRank(a.priority);
-    if (rankDiff !== 0) return rankDiff;
-    return createdAtMs(a.createdAt) - createdAtMs(b.createdAt);
-  })[0] ?? null;
+  return (
+    [...goals].sort((a, b) => {
+      const rankDiff = priorityRank(b.priority) - priorityRank(a.priority);
+      if (rankDiff !== 0) return rankDiff;
+      return createdAtMs(a.createdAt) - createdAtMs(b.createdAt);
+    })[0] ?? null
+  );
 }
 
 export function pickGoalById(goals: GoalApi[] | undefined, id: string | undefined): GoalApi | null {

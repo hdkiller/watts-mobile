@@ -121,13 +121,11 @@ function ToolOutcomeCard({ outcome }: { outcome: ToolOutcomeSummary }) {
         ? 'text-text-muted'
         : 'text-red-300';
   const iconTint =
-    outcome.status === 'success'
-      ? glyph.tint
-      : outcome.status === 'denied'
-        ? '#94a3b8'
-        : '#f87171';
+    outcome.status === 'success' ? glyph.tint : outcome.status === 'denied' ? '#94a3b8' : '#f87171';
   return (
-    <View className={`mt-2 flex-row items-start gap-2 rounded-xl border px-3 py-2 ${containerClass}`}>
+    <View
+      className={`mt-2 flex-row items-start gap-2 rounded-xl border px-3 py-2 ${containerClass}`}
+    >
       <View className="mt-0.5">
         <ChatGlyph sf={glyph.sf} emoji={glyph.emoji} size={14} tint={iconTint} />
       </View>
@@ -374,7 +372,7 @@ export function CoachChat({
         (buttonIndex) => {
           if (buttonIndex === 1) void chat.attachFromCamera();
           if (buttonIndex === 2) void chat.attachFromLibrary();
-        }
+        },
       );
       return;
     }
@@ -389,7 +387,11 @@ export function CoachChat({
     return (
       <View className="flex-1 items-center justify-center bg-surface px-6">
         <Text className="text-center text-base text-text-primary">{chat.error}</Text>
-        <Button className="mt-4 self-stretch" label="Try again" onPress={() => void chat.refresh()} />
+        <Button
+          className="mt-4 self-stretch"
+          label="Try again"
+          onPress={() => void chat.refresh()}
+        />
       </View>
     );
   }
@@ -402,9 +404,7 @@ export function CoachChat({
     (Boolean(chat.input.trim()) || chat.pendingAttachments.length > 0);
   // Stop must stay tappable while recording even if a send/stream flips `sending`.
   const canDictate =
-    !chat.isReadOnly &&
-    !dictation.isTranscribing &&
-    (dictation.isRecording || !chat.sending);
+    !chat.isReadOnly && !dictation.isTranscribing && (dictation.isRecording || !chat.sending);
   const composerEmpty =
     !chat.input.trim() && chat.pendingAttachments.length === 0 && !dictation.isRecording;
 
@@ -419,11 +419,7 @@ export function CoachChat({
       : null);
 
   return (
-    <View
-      ref={containerRef}
-      className="flex-1 bg-surface"
-      style={{ paddingBottom: overlap }}
-    >
+    <View ref={containerRef} className="flex-1 bg-surface" style={{ paddingBottom: overlap }}>
       <View className="border-b border-border px-5 pb-3 pt-2">
         <View className="flex-row items-center justify-between gap-3">
           <Pressable
@@ -444,14 +440,15 @@ export function CoachChat({
                   chat.isRealtimeConnected ? 'Live connection' : 'Polling connection'
                 }
               />
-              <Text className="min-w-0 flex-shrink text-2xl font-semibold text-text-primary" numberOfLines={1}>
+              <Text
+                className="min-w-0 flex-shrink text-2xl font-semibold text-text-primary"
+                numberOfLines={1}
+              >
                 {chat.roomName || 'Coach Watts'}
               </Text>
               <ChatGlyph sf="chevron.down" emoji="▾" size={14} tint={theme.textMuted} />
             </View>
-            {statusLine ? (
-              <Text className="mt-1 text-sm text-text-muted">{statusLine}</Text>
-            ) : null}
+            {statusLine ? <Text className="mt-1 text-sm text-text-muted">{statusLine}</Text> : null}
           </Pressable>
           <Pressable
             className="rounded-xl border border-border-strong px-3 py-2 active:opacity-80"
@@ -462,9 +459,7 @@ export function CoachChat({
         </View>
       </View>
 
-      {chat.notice ? (
-        <Text className="px-5 pt-2 text-sm text-modify">{chat.notice}</Text>
-      ) : null}
+      {chat.notice ? <Text className="px-5 pt-2 text-sm text-modify">{chat.notice}</Text> : null}
 
       {chat.isReadOnly ? (
         <View className="mx-5 mt-3 rounded-xl border border-border-strong bg-card px-4 py-3">
@@ -484,8 +479,8 @@ export function CoachChat({
           keyboardShouldPersistTaps="handled"
         >
           <Text className="text-base text-text-muted">
-            Ask Coach Watts about today’s recommendation or how you feel. Short questions work
-            best — or attach a meal photo to log nutrition.
+            Ask Coach Watts about today’s recommendation or how you feel. Short questions work best
+            — or attach a meal photo to log nutrition.
           </Text>
           <View className="mt-5">
             {COACH_STARTER_PROMPTS.map((prompt) => (
@@ -632,11 +627,7 @@ export function CoachChat({
               emoji={dictation.isRecording ? '■' : '🎙'}
               size={18}
               tint={
-                dictation.isRecording
-                  ? '#ffffff'
-                  : composerEmpty
-                    ? theme.ink
-                    : theme.textPrimary
+                dictation.isRecording ? '#ffffff' : composerEmpty ? theme.ink : theme.textPrimary
               }
             />
           )}

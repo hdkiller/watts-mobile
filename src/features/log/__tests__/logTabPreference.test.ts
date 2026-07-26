@@ -8,12 +8,7 @@ import {
 
 describe('logTabOrder', () => {
   it('puts nutrition first when enabled and includes measurements', () => {
-    expect(logTabOrder(true)).toEqual([
-      'nutrition',
-      'recovery',
-      'wellness',
-      'measurements',
-    ]);
+    expect(logTabOrder(true)).toEqual(['nutrition', 'recovery', 'wellness', 'measurements']);
   });
 
   it('omits nutrition when disabled but keeps measurements', () => {

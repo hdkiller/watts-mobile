@@ -79,9 +79,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         process.env.EXPO_PUBLIC_SENTRY_ENVIRONMENT ??
         (process.env.EAS_BUILD === 'true' ? 'production' : 'development'),
       sentryRelease:
-        process.env.EXPO_PUBLIC_SENTRY_RELEASE ??
-        process.env.EAS_BUILD_ID ??
-        undefined,
+        process.env.EXPO_PUBLIC_SENTRY_RELEASE ?? process.env.EAS_BUILD_ID ?? undefined,
       sentryDist: process.env.EXPO_PUBLIC_SENTRY_DIST ?? process.env.EAS_BUILD_NUMBER ?? undefined,
       /** Mirrored for runtime guards; native MapView still needs a rebuild with the key. */
       googleMapsApiKey,
