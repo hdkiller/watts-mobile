@@ -30,9 +30,8 @@ describe('isOfficialHostedInstance', () => {
 
 describe('canAcquireNativeSubscription', () => {
   it('checks both NATIVE_SUBSCRIPTIONS_ENABLED and isOfficialHostedInstance', () => {
-    // Under default test config, NATIVE_SUBSCRIPTIONS_ENABLED is boolean
-    const result = canAcquireNativeSubscription('https://coachwatts.com');
-    expect(typeof result).toBe('boolean');
+    // Under default config, NATIVE_SUBSCRIPTIONS_ENABLED is true
+    expect(canAcquireNativeSubscription('https://coachwatts.com')).toBe(true);
 
     expect(canAcquireNativeSubscription('https://selfhosted.example.com')).toBe(false);
     expect(canAcquireNativeSubscription(null)).toBe(false);
