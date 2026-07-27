@@ -109,6 +109,11 @@ export function resolveDeepLinkPath(pathname: string): ResolvedDeepLink {
     return { kind: 'app', href: APP_HREFS.upcoming, canonicalPath: path };
   }
 
+  // `/paywall?feature=…` so a limit notification can open the contextual upgrade.
+  if (path === '/paywall' || path === '/upgrade') {
+    return { kind: 'app', href: APP_HREFS.paywall, canonicalPath: path };
+  }
+
   if (path === '/plan' || path === '/plans') {
     return { kind: 'app', href: APP_HREFS.plan, canonicalPath: path };
   }

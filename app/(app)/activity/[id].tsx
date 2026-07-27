@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
+import { QuotaLimitCard } from '@/src/features/subscriptions/QuotaLimitCard';
+import { parseQuotaError, type QuotaInfo } from '@/src/features/subscriptions/quota';
 import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
 import { HeroStatTiles, type HeroStat } from '@/src/components/HeroStatTiles';
@@ -69,14 +71,17 @@ function AnalysisGlance({
   analysis,
   analyzing,
   analyzeError,
+  analyzeQuota,
   onAnalyze,
 }: {
   analysis: ActivityAnalysis;
   analyzing: boolean;
   analyzeError: string | null;
+  analyzeQuota: QuotaInfo | null;
   onAnalyze: () => void;
 }) {
   const waiting = analyzing || analysis.phase === 'analyzing';
+  const limited = analysis.phase === 'quota' || analyzeQuota !== null;
   const ctaLabel =
     analysis.phase === 'ready' || analysis.hasContent ? 'Regenerate analysis' : 'Analyze workout';
   const showCta = !waiting;
@@ -124,15 +129,20 @@ function AnalysisGlance({
         </Text>
       ) : null}
 
-      {!waiting && analysis.phase === 'quota' ? (
-        <Text className="mt-3 text-sm text-red-400">
-          Analysis quota exceeded. Open Coach Watts to review plan limits.
-        </Text>
+      {!waiting && limited ? (
+        <QuotaLimitCard
+          className="mt-3"
+          compact
+          info={analyzeQuota ?? { feature: 'ACTIVITY_ANALYSIS' }}
+          surface="activity_analysis"
+        />
       ) : null}
 
-      {analyzeError ? <Text className="mt-3 text-sm text-red-400">{analyzeError}</Text> : null}
+      {analyzeError && !limited ? (
+        <Text className="mt-3 text-sm text-red-400">{analyzeError}</Text>
+      ) : null}
 
-      {showCta ? (
+      {showCta && !limited ? (
         <Button className="mt-4" label={ctaLabel} onPress={onAnalyze} loading={analyzing} />
       ) : null}
     </View>
@@ -324,9 +334,13 @@ export default function ActivitySummaryScreen() {
     });
   };
 
-  const analyzeError = analyzeMutation.error
-    ? friendlyError(analyzeMutation.error, 'Failed to start analysis')
+  const analyzeQuota = analyzeMutation.error
+    ? parseQuotaError(analyzeMutation.error, 'ACTIVITY_ANALYSIS')
     : null;
+  const analyzeError =
+    analyzeMutation.error && !analyzeQuota
+      ? friendlyError(analyzeMutation.error, 'Failed to start analysis')
+      : null;
 
   return (
     <>
@@ -404,6 +418,7 @@ export default function ActivitySummaryScreen() {
             analysis={data.analysis}
             analyzing={analyzeMutation.isPending}
             analyzeError={analyzeError}
+            analyzeQuota={analyzeQuota}
             onAnalyze={onAnalyze}
           />
 

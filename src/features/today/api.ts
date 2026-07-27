@@ -1,5 +1,6 @@
 import { apiFetch } from '@/src/api/client';
 import { ApiError } from '@/src/api/errors';
+import { withRetryAfter } from '@/src/features/subscriptions/quota';
 
 import { mapTodayPayload } from './mapTodayPayload';
 import type { ActivityRecommendationApi, TodayViewModel } from './types';
@@ -66,7 +67,7 @@ export async function generateTodayRecommendation(userFeedback?: string): Promis
       throw new ApiError(
         err.message || 'Quota exceeded for activity recommendation.',
         429,
-        err.body,
+        withRetryAfter(response, err.body),
       );
     }
     throw err;

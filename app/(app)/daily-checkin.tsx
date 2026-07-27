@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Keyboard, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
+import { QuotaLimitCard } from '@/src/features/subscriptions/QuotaLimitCard';
+import { parseQuotaError } from '@/src/features/subscriptions/quota';
 import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
 import { DetailSkeleton, Skeleton } from '@/src/components/Skeleton';
@@ -142,17 +144,24 @@ export default function DailyCheckinScreen() {
 
     if (generateMutation.isError || isError) {
       const displayErr = generateMutation.error || error;
-      const isQuota = displayErr instanceof Error && displayErr.message.includes('Quota');
+      const quota = parseQuotaError(displayErr, 'DAILY_CHECKIN');
+      if (quota) {
+        return (
+          <View className="flex-1 justify-center bg-surface p-6">
+            <QuotaLimitCard info={quota} surface="daily_checkin" onDismiss={() => router.back()} />
+          </View>
+        );
+      }
       return (
         <View className="flex-1 items-center justify-center bg-surface p-6">
           <Text className="text-lg font-semibold text-text-primary">
-            {isQuota ? 'Check-in limit reached' : 'Could not prepare check-in'}
+            Could not prepare check-in
           </Text>
           <Text className="mt-2 text-center text-sm text-red-400">
             {friendlyError(displayErr, 'An error occurred during generation.')}
           </Text>
           <View className="mt-6 w-full gap-3">
-            {!isQuota ? <Button label="Try Again" onPress={handleRetryGenerate} /> : null}
+            <Button label="Try Again" onPress={handleRetryGenerate} />
             <Button label="Open Coach Watts" variant="secondary" onPress={openWeb} />
             <Button label="Go Back" variant="secondary" onPress={() => router.back()} />
           </View>

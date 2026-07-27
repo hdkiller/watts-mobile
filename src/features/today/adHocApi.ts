@@ -1,5 +1,6 @@
 import { apiFetch } from '@/src/api/client';
 import { ApiError } from '@/src/api/errors';
+import { withRetryAfter } from '@/src/features/subscriptions/quota';
 
 export type AdHocWorkoutRequest = {
   type: 'Ride' | 'Run' | 'Swim' | 'WeightTraining';
@@ -40,7 +41,11 @@ export async function generateAdHocWorkout(
   if (!response.ok) {
     const err = await readApiError(response, `Ad-hoc generation failed (${response.status})`);
     if (response.status === 429) {
-      throw new ApiError(err.message || 'Quota exceeded for workout generation.', 429, err.body);
+      throw new ApiError(
+        err.message || 'Quota exceeded for workout generation.',
+        429,
+        withRetryAfter(response, err.body),
+      );
     }
     throw err;
   }

@@ -36,6 +36,10 @@ export const APP_HREFS = {
   settingsHealth: '/(app)/health-sync',
   settingsConnectedApps: '/(app)/connected-apps',
   settingsSubscription: '/(app)/(tabs)/more/settings/subscription',
+  /** Contextual upgrade sheet — root stack so Back returns to the blocked screen. */
+  paywall: '/(app)/paywall',
+  paywallForQuota: (feature: string, source = 'quota') =>
+    `/(app)/paywall?source=${encodeURIComponent(source)}&feature=${encodeURIComponent(feature)}` as const,
   settingsUnits: '/(app)/(tabs)/more/settings/units',
   settingsLog: '/(app)/(tabs)/more/settings/log',
   settingsNutrition: '/(app)/(tabs)/more/settings/nutrition',
