@@ -1,4 +1,5 @@
 import { Redirect, Stack } from 'expo-router';
+import { Platform } from 'react-native';
 
 import { useAuth } from '@/src/auth/AuthContext';
 import { ActivationGate } from '@/src/features/activation/ActivationGate';
@@ -7,6 +8,9 @@ import { HealthSyncRunner } from '@/src/features/health/HealthSyncRunner';
 import { OfflineWellnessFlush } from '@/src/features/log/OfflineWellnessFlush';
 import { ScanMealQuickActionBridge } from '@/src/linking/ScanMealQuickActionBridge';
 import { useThemeColors } from '@/src/theme/useThemeColors';
+
+/** The health screen is named for the platform integration the athlete recognises. */
+const HEALTH_PLATFORM_TITLE = Platform.OS === 'ios' ? 'Apple Health' : 'Health Connect';
 
 export default function AppLayout() {
   const { status } = useAuth();
@@ -59,18 +63,18 @@ export default function AppLayout() {
           }}
         />
         <Stack.Screen name="athlete" options={{ headerShown: true, title: 'Athlete' }} />
-        <Stack.Screen name="invite" options={{ headerShown: false, title: 'Invite friends' }} />
+        <Stack.Screen name="invite" options={{ headerShown: false, title: 'Invite a friend' }} />
         <Stack.Screen
           name="activity/index"
-          options={{ headerShown: true, title: 'Recent activity' }}
+          options={{ headerShown: true, title: 'Activity history' }}
         />
         <Stack.Screen name="activity/[id]" options={{ headerShown: true, title: 'Activity' }} />
         <Stack.Screen name="planned/[id]" options={{ headerShown: true, title: 'Workout' }} />
-        <Stack.Screen name="upcoming/index" options={{ headerShown: true, title: 'Upcoming' }} />
         <Stack.Screen
-          name="events/index"
-          options={{ headerShown: true, title: 'Upcoming Events' }}
+          name="upcoming/index"
+          options={{ headerShown: true, title: 'Upcoming workouts' }}
         />
+        <Stack.Screen name="events/index" options={{ headerShown: true, title: 'Events' }} />
         <Stack.Screen
           name="events/new"
           options={{ headerShown: true, title: 'New event', presentation: 'modal' }}
@@ -88,7 +92,10 @@ export default function AppLayout() {
         />
         <Stack.Screen name="plan/blocks" options={{ headerShown: true, title: 'Edit blocks' }} />
         <Stack.Screen name="plan/grocery" options={{ headerShown: true, title: 'Grocery list' }} />
-        <Stack.Screen name="health-sync" options={{ headerShown: true, title: 'Health Sync' }} />
+        <Stack.Screen
+          name="health-sync"
+          options={{ headerShown: true, title: HEALTH_PLATFORM_TITLE }}
+        />
         <Stack.Screen
           name="health-history"
           options={{ headerShown: true, title: 'Sync history' }}
@@ -99,13 +106,16 @@ export default function AppLayout() {
         />
         <Stack.Screen
           name="connected-apps"
-          options={{ headerShown: true, title: 'Connected Apps' }}
+          options={{ headerShown: true, title: 'Connected apps' }}
         />
         <Stack.Screen
           name="paywall"
           options={{ headerShown: true, title: 'Upgrade', presentation: 'modal' }}
         />
-        <Stack.Screen name="sports/index" options={{ headerShown: true, title: 'Sports' }} />
+        <Stack.Screen
+          name="sports/index"
+          options={{ headerShown: true, title: 'Sports & thresholds' }}
+        />
         <Stack.Screen name="sports/[id]" options={{ headerShown: true, title: 'Sport profile' }} />
       </Stack>
     </ActivationGate>

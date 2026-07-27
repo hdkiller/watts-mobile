@@ -118,7 +118,7 @@ export default function RecentActivityScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Recent activity',
+          title: 'Activity history',
           headerShown: true,
           headerLeft: () => (
             <Pressable

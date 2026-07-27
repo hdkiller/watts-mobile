@@ -13,7 +13,7 @@ export default function SportsSettingsScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Sports',
+          title: 'Sports & thresholds',
           headerShown: true,
         }}
       />
