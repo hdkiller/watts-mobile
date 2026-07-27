@@ -77,7 +77,6 @@ import { WeekGlanceStrip } from '@/src/features/today/week-glance-strip';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { humanizeWorkoutType } from '@/src/lib/humanizeWorkoutType';
 import { APP_HREFS } from '@/src/linking/appHrefs';
-import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
 function openPlannedWorkout(id: string) {
@@ -609,7 +608,7 @@ export default function TodayScreen() {
 
         {hardError ? (
           <View className="mt-6 rounded-xl border border-danger/40 bg-tint-error p-4">
-            <Text className="text-base text-red-400">
+            <Text className="text-base text-danger">
               {friendlyError(error, 'Could not load today')}
             </Text>
             <Pressable className="mt-3" hitSlop={8} onPress={() => void refetch()}>
@@ -687,7 +686,7 @@ export default function TodayScreen() {
             <Text className="text-lg font-semibold text-text-primary">
               Couldn’t generate workout
             </Text>
-            <Text className="mt-2 text-sm leading-5 text-red-400">
+            <Text className="mt-2 text-sm leading-5 text-danger">
               {adhocError || 'Something went wrong. Try again, or continue in Coach Watts.'}
             </Text>
             <View className="mt-5 gap-3">
@@ -743,7 +742,7 @@ export default function TodayScreen() {
           </EnterSection>
         ) : null}
 
-        {actionError ? <Text className="mt-4 text-sm text-red-400">{actionError}</Text> : null}
+        {actionError ? <Text className="mt-4 text-sm text-danger">{actionError}</Text> : null}
 
         {hasRecommendation ? (
           <EnterSection order={3}>
@@ -756,14 +755,24 @@ export default function TodayScreen() {
                     className="flex-row items-center justify-center gap-2 rounded-xl border border-border-strong bg-card/80 px-4 py-3.5 active:opacity-70"
                     onPress={() => openPlannedWorkout(planned.id)}
                   >
-                    <AppSymbol sf="checkmark" size={16} tintColor={Colors.success} fallback="ok" />
+                    <AppSymbol
+                      sf="checkmark"
+                      size={16}
+                      tintColor={theme.successOnSurface}
+                      fallback="ok"
+                    />
                     <Text className="text-base font-semibold text-success">
                       Accepted — view workout
                     </Text>
                   </Pressable>
                 ) : (
                   <View className="flex-row items-center justify-center gap-2 rounded-xl border border-border-strong bg-card/80 px-4 py-3.5">
-                    <AppSymbol sf="checkmark" size={16} tintColor={Colors.success} fallback="ok" />
+                    <AppSymbol
+                      sf="checkmark"
+                      size={16}
+                      tintColor={theme.successOnSurface}
+                      fallback="ok"
+                    />
                     <Text className="text-base font-semibold text-success">
                       {data.action === 'rest' ? 'Rest day accepted' : 'Accepted'}
                     </Text>

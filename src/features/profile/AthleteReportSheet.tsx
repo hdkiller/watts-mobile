@@ -109,13 +109,13 @@ function SecondarySection({ section }: { section: AthleteReportSection }) {
             title="Strengths"
             titleClass="text-success"
             items={section.strengths}
-            tint={theme.success}
+            tint={theme.successOnSurface}
           />
           <LabeledList
             title="Areas for development"
             titleClass="text-recovery"
             items={section.development}
-            tint={theme.recovery}
+            tint={theme.recoveryOnSurface}
           />
         </View>
       ) : null}

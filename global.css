@@ -18,11 +18,22 @@
   --color-tint-error: 254 242 242; /* red-50 */
   --color-tint-success: 240 253 244; /* green-50 */
   /*
-   * Brand green as FOREGROUND (text / icons) only — the fill stays #00DC82.
-   * #00DC82 on #fafafa is 1.74:1, far under the 4.5:1 AA floor, so light mode
-   * drops to the same hue at a darker lightness: 4.5:1 on #fafafa, 4.7:1 on #fff.
+   * Accents as FOREGROUND (text / icon tint) — fills keep the vivid accent.
+   * The whole accent palette was tuned for dark surfaces, so on light #fafafa
+   * every one of them lands between 1.6:1 and 3.8:1 as text, under the 4.5:1 AA
+   * floor. Light mode uses the same hue one step darker (Tailwind ~700); the
+   * ratio after each value is against #fafafa. See docs/DESIGN.md.
    */
-  --color-brand-on-surface: 0 133 78; /* #00854E */
+  --color-brand-on-surface: 0 133 78; /* #00854E — 4.51 */
+  --color-modify-on-surface: 180 83 9; /* amber-700  #b45309 — 4.81 */
+  --color-recovery-on-surface: 3 105 161; /* sky-700    #0369a1 — 5.68 */
+  --color-hydration-on-surface: 3 105 161; /* sky-700    #0369a1 — 5.68 */
+  --color-danger-on-surface: 185 28 28; /* red-700    #b91c1c — 6.20 */
+  --color-success-on-surface: 21 128 61; /* green-700  #15803d — 4.81 */
+  --color-macro-calories-on-surface: 194 65 12; /* orange-700 #c2410c — 4.96 */
+  --color-macro-carbs-on-surface: 161 98 7; /* yellow-700 #a16207 — 4.72 */
+  --color-macro-protein-on-surface: 29 78 216; /* blue-700   #1d4ed8 — 6.42 */
+  --color-macro-fat-on-surface: 109 40 217; /* violet-700 #6d28d9 — 6.81 */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -36,7 +47,21 @@
     --color-text-muted: 113 113 122; /* #71717a */
     --color-tint-error: 69 10 10; /* red-950 */
     --color-tint-success: 5 46 22; /* green-950 */
-    /* Dark surfaces already give the brand green 10.95:1 — keep it vivid. */
+    /*
+     * Dark surfaces already give the accents 5.8:1–11.9:1, so the foreground
+     * value is the vivid accent itself. Danger is the one exception: red-400 is
+     * lighter than the danger accent and reads better on the tinted error card
+     * (5.84 vs 4.29 on #450a0a).
+     */
     --color-brand-on-surface: 0 220 130; /* #00DC82 */
+    --color-modify-on-surface: 245 158 11; /* #f59e0b */
+    --color-recovery-on-surface: 56 189 248; /* #38bdf8 */
+    --color-hydration-on-surface: 56 189 248; /* #38bdf8 */
+    --color-danger-on-surface: 248 113 113; /* red-400 #f87171 */
+    --color-success-on-surface: 34 197 94; /* #22c55e */
+    --color-macro-calories-on-surface: 251 146 60; /* #fb923c */
+    --color-macro-carbs-on-surface: 251 191 36; /* #fbbf24 */
+    --color-macro-protein-on-surface: 96 165 250; /* #60a5fa */
+    --color-macro-fat-on-surface: 167 139 250; /* #a78bfa */
   }
 }

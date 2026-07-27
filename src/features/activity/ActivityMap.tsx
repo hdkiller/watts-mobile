@@ -26,7 +26,7 @@ type Props = {
 function MapUnavailable({ message }: { message: string }) {
   return (
     <View className="mt-6 h-[200px] w-full items-center justify-center rounded-xl border border-border bg-card/40 p-4">
-      <Text className="text-sm font-medium text-red-400">Route map preview unavailable</Text>
+      <Text className="text-sm font-medium text-danger">Route map preview unavailable</Text>
       <Text className="mt-1 text-center text-xs text-text-muted">{message}</Text>
     </View>
   );

@@ -72,7 +72,7 @@ export default function UpcomingEventsListScreen() {
         <ListSkeleton />
       ) : isError && !data ? (
         <View className="flex-1 bg-surface px-6 pt-6">
-          <Text className="text-red-400">
+          <Text className="text-danger">
             {friendlyError(error, 'Failed to load upcoming events')}
           </Text>
           <AnimatedPressable className="mt-4" hitSlop={8} onPress={() => void refetch()}>

@@ -53,14 +53,25 @@ const accents = {
 
 type SemanticNeutrals = {
   /**
-   * Brand green as a FOREGROUND (text / icon tint) on the theme's own surface.
-   * The fill (`brand`) stays #00DC82 on both themes because a brand fill always
-   * carries ink text (10.95:1). As a foreground on light #fafafa that same green
-   * is only 1.74:1 — under the 4.5:1 AA floor — so light drops to a darker step
-   * of the identical hue. Use this for `tintColor` on glyphs and for text.
-   * Mirrors `--color-brand-on-surface` in global.css / `textColor.brand`.
+   * Accents as a FOREGROUND (text / icon tint) on the theme's own surface.
+   *
+   * The `*` fills stay invariant — a brand fill always carries ink text
+   * (10.95:1), and chart fills are judged as graphics. As foregrounds the accent
+   * palette was tuned for dark surfaces and lands at 1.6:1–3.8:1 on light
+   * #fafafa, under the 4.5:1 AA floor, so light mode uses the same hue one step
+   * darker. Use these for `tintColor` on glyphs and for text.
+   * Mirror `--color-*-on-surface` in global.css / `textColor.*` in tailwind.
    */
   brandOnSurface: string;
+  modifyOnSurface: string;
+  recoveryOnSurface: string;
+  hydrationOnSurface: string;
+  dangerOnSurface: string;
+  successOnSurface: string;
+  macroCaloriesOnSurface: string;
+  macroCarbsOnSurface: string;
+  macroProteinOnSurface: string;
+  macroFatOnSurface: string;
   surface: string;
   card: string;
   border: string;
@@ -80,6 +91,17 @@ type SemanticNeutrals = {
 
 const darkNeutrals: SemanticNeutrals = {
   brandOnSurface: '#00DC82', // 10.95:1 on #09090b — AAA
+  modifyOnSurface: '#f59e0b',
+  recoveryOnSurface: '#38bdf8',
+  hydrationOnSurface: '#38bdf8',
+  // red-400, not the danger accent: lighter, so it also clears the tinted
+  // error card (5.84 vs 4.29 on #450a0a).
+  dangerOnSurface: '#f87171',
+  successOnSurface: '#22c55e',
+  macroCaloriesOnSurface: '#fb923c',
+  macroCarbsOnSurface: '#fbbf24',
+  macroProteinOnSurface: '#60a5fa',
+  macroFatOnSurface: '#a78bfa',
   surface: '#09090b',
   card: '#18181b',
   border: '#27272a',
@@ -95,7 +117,17 @@ const darkNeutrals: SemanticNeutrals = {
 };
 
 const lightNeutrals: SemanticNeutrals = {
-  brandOnSurface: '#00854E', // 4.51:1 on #fafafa — AA (brand hue, darker step)
+  // Same hue as each accent, one step darker (~Tailwind 700); ratios vs #fafafa.
+  brandOnSurface: '#00854E', // 4.51 — AA
+  modifyOnSurface: '#b45309', // 4.81 — amber-700
+  recoveryOnSurface: '#0369a1', // 5.68 — sky-700
+  hydrationOnSurface: '#0369a1', // 5.68 — sky-700
+  dangerOnSurface: '#b91c1c', // 6.20 — red-700
+  successOnSurface: '#15803d', // 4.81 — green-700
+  macroCaloriesOnSurface: '#c2410c', // 4.96 — orange-700
+  macroCarbsOnSurface: '#a16207', // 4.72 — yellow-700
+  macroProteinOnSurface: '#1d4ed8', // 6.42 — blue-700
+  macroFatOnSurface: '#6d28d9', // 6.81 — violet-700
   surface: '#fafafa',
   card: '#ffffff',
   border: '#e4e4e7',

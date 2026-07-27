@@ -184,7 +184,7 @@ export default function NewEventScreen() {
 
           {error ? (
             <View className="mt-4 rounded-xl border border-danger/40 bg-tint-error p-3">
-              <Text className="text-sm text-red-400">{error}</Text>
+              <Text className="text-sm text-danger">{error}</Text>
               <AnimatedPressable
                 hitSlop={8}
                 onPress={() => {

@@ -11,7 +11,6 @@ import { AppSymbol } from '@/src/components/AppSymbol';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
-import { Colors } from '@/src/theme/colors';
 import { NutritionAccents } from '@/src/theme/nutritionAccents';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
@@ -430,7 +429,7 @@ export function NutritionSection({ entriesMode = 'full' }: NutritionSectionProps
 
       {isError ? (
         <View className="mt-3 rounded-xl border border-danger/40 bg-tint-error p-3">
-          <Text className="text-sm text-red-300">
+          <Text className="text-sm text-danger">
             {friendlyError(error, 'Could not load nutrition')}
           </Text>
           <Pressable className="mt-2" onPress={() => void refetch()}>
@@ -460,7 +459,12 @@ export function NutritionSection({ entriesMode = 'full' }: NutritionSectionProps
                       <Text className="text-[10px] font-bold uppercase tracking-wide text-text-muted">
                         Calories
                       </Text>
-                      <AppSymbol sf="flame" size={14} tintColor={Colors.modify} fallback="🔥" />
+                      <AppSymbol
+                        sf="flame"
+                        size={14}
+                        tintColor={theme.modifyOnSurface}
+                        fallback="🔥"
+                      />
                     </View>
                     <Text className="mt-2 text-2xl font-semibold text-text-primary">
                       {today.calories}
@@ -479,7 +483,12 @@ export function NutritionSection({ entriesMode = 'full' }: NutritionSectionProps
                       <Text className="text-[10px] font-bold uppercase tracking-wide text-text-muted">
                         Calories
                       </Text>
-                      <AppSymbol sf="flame" size={14} tintColor={Colors.modify} fallback="🔥" />
+                      <AppSymbol
+                        sf="flame"
+                        size={14}
+                        tintColor={theme.modifyOnSurface}
+                        fallback="🔥"
+                      />
                     </View>
                     <Text className="mt-2 text-2xl font-semibold text-text-primary">
                       {today.calories}
@@ -685,11 +694,9 @@ export function NutritionSection({ entriesMode = 'full' }: NutritionSectionProps
         {hydrationMutation.isPending ? (
           <ActivityIndicator className="mt-2" color={theme.brandOnSurface} />
         ) : null}
-        {hydrationError ? (
-          <Text className="mt-2 text-xs text-red-400">{hydrationError}</Text>
-        ) : null}
+        {hydrationError ? <Text className="mt-2 text-xs text-danger">{hydrationError}</Text> : null}
         {hydrationSaved ? (
-          <Text className="mt-2 text-xs font-semibold text-green-400">{hydrationSaved}</Text>
+          <Text className="mt-2 text-xs font-semibold text-success">{hydrationSaved}</Text>
         ) : null}
       </View>
 
@@ -770,11 +777,9 @@ export function NutritionSection({ entriesMode = 'full' }: NutritionSectionProps
           />
         </View>
 
-        {formError ? <Text className="mt-3 text-xs text-red-400">{formError}</Text> : null}
+        {formError ? <Text className="mt-3 text-xs text-danger">{formError}</Text> : null}
         {saved ? (
-          <Text className="mt-3 text-xs font-semibold text-green-400">
-            Logged — totals updated.
-          </Text>
+          <Text className="mt-3 text-xs font-semibold text-success">Logged — totals updated.</Text>
         ) : null}
 
         <Button

@@ -338,7 +338,7 @@ export function NutritionSettingsForm({ initial }: { initial: NutritionSettingsS
         />
       </View>
 
-      {formError ? <Text className="mt-3 text-sm text-red-400">{formError}</Text> : null}
+      {formError ? <Text className="mt-3 text-sm text-danger">{formError}</Text> : null}
       {successMessage ? <Text className="mt-3 text-sm text-brand">{successMessage}</Text> : null}
       {saveMutation.isPending ? (
         <View className="mt-3 flex-row items-center gap-2">

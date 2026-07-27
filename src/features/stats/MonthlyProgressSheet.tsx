@@ -152,7 +152,7 @@ export function MonthlyProgressSheet({
           {query.isLoading && !query.data ? (
             <Spinner className="mt-10" />
           ) : query.isError ? (
-            <Text className="mt-6 text-sm text-red-400">
+            <Text className="mt-6 text-sm text-danger">
               {friendlyError(query.error, 'Could not load monthly progress')}
             </Text>
           ) : chart && summary && query.data ? (

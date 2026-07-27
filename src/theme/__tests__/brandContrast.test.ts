@@ -34,28 +34,68 @@ describe('contrastRatio', () => {
   });
 });
 
-describe('brand as foreground', () => {
-  it('clears AA for normal text on both themes', () => {
-    expect(contrastRatio(Themes.light.brandOnSurface, Themes.light.surface)).toBeGreaterThanOrEqual(
-      AA_NORMAL,
-    );
-    expect(contrastRatio(Themes.light.brandOnSurface, Themes.light.card)).toBeGreaterThanOrEqual(
-      AA_NORMAL,
-    );
-    expect(contrastRatio(Themes.dark.brandOnSurface, Themes.dark.surface)).toBeGreaterThanOrEqual(
-      AA_NORMAL,
-    );
-    expect(contrastRatio(Themes.dark.brandOnSurface, Themes.dark.card)).toBeGreaterThanOrEqual(
-      AA_NORMAL,
-    );
+/** Every accent exposed as a per-theme foreground token. */
+const FOREGROUND_TOKENS = [
+  'brandOnSurface',
+  'modifyOnSurface',
+  'recoveryOnSurface',
+  'hydrationOnSurface',
+  'dangerOnSurface',
+  'successOnSurface',
+  'macroCaloriesOnSurface',
+  'macroCarbsOnSurface',
+  'macroProteinOnSurface',
+  'macroFatOnSurface',
+] as const;
+
+describe('every accent foreground', () => {
+  it.each(FOREGROUND_TOKENS)('%s clears AA for normal text on both themes', (token) => {
+    for (const theme of [Themes.light, Themes.dark]) {
+      expect(contrastRatio(theme[token], theme.surface)).toBeGreaterThanOrEqual(AA_NORMAL);
+      expect(contrastRatio(theme[token], theme.card)).toBeGreaterThanOrEqual(AA_NORMAL);
+    }
   });
 
+  it('keeps error and success text readable on their tinted cards', () => {
+    for (const theme of [Themes.light, Themes.dark]) {
+      expect(contrastRatio(theme.dangerOnSurface, theme.tintError)).toBeGreaterThanOrEqual(
+        AA_NORMAL,
+      );
+      expect(contrastRatio(theme.successOnSurface, theme.tintSuccess)).toBeGreaterThanOrEqual(
+        AA_NORMAL,
+      );
+    }
+  });
+
+  it('leaves the dark palette on its original vivid accents', () => {
+    // Danger is the deliberate exception — red-400 reads better on #450a0a.
+    expect(Themes.dark.modifyOnSurface).toBe(Themes.dark.modify);
+    expect(Themes.dark.recoveryOnSurface).toBe(Themes.dark.recovery);
+    expect(Themes.dark.successOnSurface).toBe(Themes.dark.success);
+    expect(Themes.dark.macroCarbsOnSurface).toBe(Themes.dark.macroCarbs);
+  });
+
+  it('documents that the raw accents fail as light-mode text', () => {
+    // The regression these tokens exist to prevent — all were under AA.
+    for (const accent of [
+      Themes.light.brand,
+      Themes.light.modify,
+      Themes.light.recovery,
+      Themes.light.success,
+      Themes.light.macroCarbs,
+    ]) {
+      expect(contrastRatio(accent, Themes.light.surface)).toBeLessThan(AA_NORMAL);
+    }
+  });
+});
+
+describe('brand as foreground', () => {
   it('keeps the vivid brand on dark, where it already passes', () => {
     expect(Themes.dark.brandOnSurface).toBe(Themes.dark.brand);
   });
 
   it('documents why light mode cannot reuse the fill colour', () => {
-    // The regression this whole token exists to prevent.
+    // Under even the relaxed large-text floor, not just AA normal.
     expect(contrastRatio(Themes.light.brand, Themes.light.surface)).toBeLessThan(AA_LARGE);
   });
 });
@@ -72,11 +112,12 @@ describe('brand as fill', () => {
 describe('token sources agree', () => {
   const css = readFileSync('global.css', 'utf8');
 
-  /** `--color-brand-on-surface: R G B;` → `#rrggbb`, per theme block. */
-  function cssBrand(block: string): string {
+  /** `--color-<name>-on-surface: R G B;` → `#RRGGBB`, within one theme block. */
+  function cssVar(block: string, cssName: string): string {
     const scope = css.split(block)[1] ?? '';
-    const m = /--color-brand-on-surface:\s*(\d+)\s+(\d+)\s+(\d+)/.exec(scope);
-    if (!m) throw new Error(`no --color-brand-on-surface after "${block}"`);
+    const re = new RegExp(`--color-${cssName}-on-surface:\\s*(\\d+)\\s+(\\d+)\\s+(\\d+)`);
+    const m = re.exec(scope);
+    if (!m) throw new Error(`no --color-${cssName}-on-surface after "${block}"`);
     return (
       '#' +
       [m[1], m[2], m[3]]
@@ -86,15 +127,32 @@ describe('token sources agree', () => {
     );
   }
 
-  it('keeps global.css in sync with the TS theme map', () => {
-    expect(cssBrand(':root {')).toBe(Themes.light.brandOnSurface.toUpperCase());
-    expect(cssBrand('prefers-color-scheme: dark')).toBe(Themes.dark.brandOnSurface.toUpperCase());
+  /** `macroCarbsOnSurface` → `macro-carbs` */
+  function cssNameFor(token: string): string {
+    return token
+      .replace(/OnSurface$/, '')
+      .replace(/([a-z])([A-Z])/g, '$1-$2')
+      .toLowerCase();
+  }
+
+  it.each(FOREGROUND_TOKENS)('keeps global.css in sync with the TS map for %s', (token) => {
+    const name = cssNameFor(token);
+    expect(cssVar(':root {', name)).toBe(Themes.light[token].toUpperCase());
+    expect(cssVar('prefers-color-scheme: dark', name)).toBe(Themes.dark[token].toUpperCase());
   });
 
-  it('points tailwind text-brand at the variable, not a literal', () => {
+  it('points every tailwind text accent at its variable, not a literal', () => {
     const config = readFileSync('tailwind.config.js', 'utf8');
     const textColor = config.split('textColor:')[1] ?? '';
     expect(textColor).toContain('var(--color-brand-on-surface)');
+    for (const token of FOREGROUND_TOKENS) {
+      expect(textColor).toContain(
+        `var(--color-${token
+          .replace(/OnSurface$/, '')
+          .replace(/([a-z])([A-Z])/g, '$1-$2')
+          .toLowerCase()}-on-surface)`,
+      );
+    }
     // bg-brand / border-brand must keep the invariant fill.
     expect(config).toContain("DEFAULT: '#00DC82'");
   });

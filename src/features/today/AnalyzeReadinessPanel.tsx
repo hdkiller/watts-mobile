@@ -64,13 +64,13 @@ export function AnalyzeReadinessPanel({
 
       {state === 'error' ? (
         <View>
-          <Text className="text-xs font-semibold uppercase tracking-wide text-red-400/90">
+          <Text className="text-xs font-semibold uppercase tracking-wide text-danger/90">
             Analyze Readiness
           </Text>
           <Text className="mt-2 text-lg font-semibold text-text-primary">
             Couldn’t analyze readiness
           </Text>
-          <Text className="mt-2 text-sm leading-5 text-red-300">
+          <Text className="mt-2 text-sm leading-5 text-danger">
             {errorMessage || 'Something went wrong. Try again, or continue in Coach Watts.'}
           </Text>
           <View className="mt-5 gap-3">

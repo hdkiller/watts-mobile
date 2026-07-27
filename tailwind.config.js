@@ -65,19 +65,31 @@ module.exports = {
         },
       },
       /**
-       * `text-brand` resolves per theme; `bg-brand` / `border-brand` do not.
-       * Tailwind's `textColor` scale only feeds text utilities, so the two can
-       * diverge without touching a single call site.
-       *   dark  → #00DC82 on #09090b = 10.95:1 (AAA)
-       *   light → #00854E on #fafafa =  4.51:1 (AA)
-       * Splitting them matters because brand-on-light fails at 1.74:1 as text
-       * while a brand fill with ink text is 10.95:1 on either theme.
+       * Accents resolve per theme as TEXT; as fills (`bg-*` / `border-*`) they
+       * stay the vivid invariant value. Tailwind's `textColor` scale only feeds
+       * text utilities, so the two diverge without touching a single call site.
+       *
+       * The accent palette was designed against dark surfaces: on light #fafafa
+       * every accent lands between 1.6:1 and 3.8:1 as text, under the 4.5:1 AA
+       * floor. Light mode therefore uses the same hue one step darker.
+       * Values + ratios live in global.css; docs/DESIGN.md explains the rule.
        */
       textColor: {
         brand: {
           DEFAULT: 'rgb(var(--color-brand-on-surface) / <alpha-value>)',
           action: '#00C16A',
           deep: '#00A155',
+        },
+        modify: 'rgb(var(--color-modify-on-surface) / <alpha-value>)',
+        recovery: 'rgb(var(--color-recovery-on-surface) / <alpha-value>)',
+        hydration: 'rgb(var(--color-hydration-on-surface) / <alpha-value>)',
+        danger: 'rgb(var(--color-danger-on-surface) / <alpha-value>)',
+        success: 'rgb(var(--color-success-on-surface) / <alpha-value>)',
+        macro: {
+          calories: 'rgb(var(--color-macro-calories-on-surface) / <alpha-value>)',
+          carbs: 'rgb(var(--color-macro-carbs-on-surface) / <alpha-value>)',
+          protein: 'rgb(var(--color-macro-protein-on-surface) / <alpha-value>)',
+          fat: 'rgb(var(--color-macro-fat-on-surface) / <alpha-value>)',
         },
       },
     },

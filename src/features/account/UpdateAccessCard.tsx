@@ -43,7 +43,7 @@ export function UpdateAccessCard({
       <Text className="mt-2 text-sm text-text-muted">
         New permissions are available for this — a quick access update unlocks it.
       </Text>
-      {error ? <Text className="mt-2 text-sm text-red-400">{error}</Text> : null}
+      {error ? <Text className="mt-2 text-sm text-danger">{error}</Text> : null}
       <View className="mt-3 flex-row flex-wrap items-center gap-4">
         <Pressable
           accessibilityRole="button"

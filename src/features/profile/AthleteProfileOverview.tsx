@@ -171,7 +171,7 @@ export function AthleteProfileOverview({
           </View>
         ) : reportQuery.isError ? (
           <View className="rounded-xl border border-danger/40 bg-tint-error px-4 py-3.5">
-            <Text className="text-sm text-red-400">
+            <Text className="text-sm text-danger">
               {friendlyError(reportQuery.error, 'Could not load AI profile')}
             </Text>
             <AnimatedPressable
@@ -241,7 +241,7 @@ export function AthleteProfileOverview({
 
         {syncError ? (
           <View className="mt-3 rounded-xl border border-danger/40 bg-tint-error px-4 py-3.5">
-            <Text className="text-sm text-red-400">{syncError}</Text>
+            <Text className="text-sm text-danger">{syncError}</Text>
           </View>
         ) : null}
 

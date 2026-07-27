@@ -330,9 +330,9 @@ function SuccessContributionTile({
   const icon = NUTRIENT_ICONS[label as keyof typeof NUTRIENT_ICONS] ?? NUTRIENT_ICONS.Energy;
   const tintColor =
     label === 'Energy'
-      ? theme.modify
+      ? theme.modifyOnSurface
       : label === 'Protein'
-        ? theme.recovery
+        ? theme.recoveryOnSurface
         : label === 'Carbs'
           ? theme.brandOnSurface
           : theme.zones[5];
@@ -1150,7 +1150,7 @@ export function LogMealSheet({
 
             <MacroFields form={form} themeMuted={theme.textMuted} update={update} />
 
-            {error ? <Text className="mb-3 text-xs text-red-400">{error}</Text> : null}
+            {error ? <Text className="mb-3 text-xs text-danger">{error}</Text> : null}
 
             <Button
               className="mt-1"
@@ -1191,9 +1191,7 @@ export function LogMealSheet({
               <Text className="mt-2 max-w-sm text-center text-sm leading-5 text-text-muted">
                 Coach will estimate the meal, then you can review every value before saving.
               </Text>
-              {error ? (
-                <Text className="mt-4 text-center text-sm text-red-400">{error}</Text>
-              ) : null}
+              {error ? <Text className="mt-4 text-center text-sm text-danger">{error}</Text> : null}
               <View className="mt-6 w-full">
                 <Button
                   label={
@@ -1554,7 +1552,7 @@ export function LogMealSheet({
                     <MacroFields form={form} themeMuted={theme.textMuted} update={update} />
                   ) : null}
 
-                  {error ? <Text className="mb-3 text-xs text-red-400">{error}</Text> : null}
+                  {error ? <Text className="mb-3 text-xs text-danger">{error}</Text> : null}
                 </>
               )}
             </View>

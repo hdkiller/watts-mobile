@@ -115,10 +115,10 @@ export function HydrationQuickAddSheet({
           </View>
 
           {hydrationMutation.isPending ? <Spinner className="mt-4" /> : null}
-          {error ? <Text className="mt-3 text-xs text-red-400">{error}</Text> : null}
+          {error ? <Text className="mt-3 text-xs text-danger">{error}</Text> : null}
           {lastAddedMl ? (
             <View className="mt-4 rounded-xl border border-success/40 bg-tint-success p-3">
-              <Text className="text-center text-xs font-bold text-green-400">
+              <Text className="text-center text-xs font-bold text-success">
                 {`✓ Added ${lastAddedMl} ml to today's total`}
               </Text>
             </View>

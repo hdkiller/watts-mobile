@@ -314,7 +314,7 @@ export default function HealthSyncSettingsScreen() {
                 <View className="mt-4">
                   {authStatus.status === 'not_available' ? (
                     <View className="mt-2 border-t border-border/80 pt-4">
-                      <Text className="mb-4 text-sm leading-5 text-red-400">
+                      <Text className="mb-4 text-sm leading-5 text-danger">
                         Health Connect is required but currently unavailable or not installed.
                       </Text>
                       <Button
@@ -425,7 +425,7 @@ export default function HealthSyncSettingsScreen() {
                   Last successful sync: {formatLastSync(preferences.lastSuccessAt)}
                 </Text>
                 {syncError && (
-                  <Text className="leading-4.5 mt-2 text-xs text-red-400">{syncError}</Text>
+                  <Text className="leading-4.5 mt-2 text-xs text-danger">{syncError}</Text>
                 )}
               </View>
             </View>

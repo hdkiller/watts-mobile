@@ -448,7 +448,7 @@ export default function RecoveryEventScreen() {
                 {values.description.length}/{DESCRIPTION_MAX}
               </Text>
 
-              {error ? <Text className="mt-4 text-sm text-red-400">{error}</Text> : null}
+              {error ? <Text className="mt-4 text-sm text-danger">{error}</Text> : null}
 
               <Button
                 className="mt-6"
@@ -467,7 +467,7 @@ export default function RecoveryEventScreen() {
                   {deleteMutation.isPending ? (
                     <ActivityIndicator color="#f87171" />
                   ) : (
-                    <Text className="text-base font-semibold text-red-400">Delete</Text>
+                    <Text className="text-base font-semibold text-danger">Delete</Text>
                   )}
                 </Pressable>
               ) : null}
