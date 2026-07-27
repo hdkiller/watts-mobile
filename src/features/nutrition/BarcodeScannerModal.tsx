@@ -98,7 +98,7 @@ function NativeScannerContent({
       {!permission?.granted ? (
         <View className="flex-1 items-center justify-center bg-surface px-6">
           <View className="mb-4 h-16 w-16 items-center justify-center rounded-full border border-border bg-card">
-            <AppSymbol sf="camera.fill" size={28} tintColor={theme.brand} fallback="📷" />
+            <AppSymbol sf="camera.fill" size={28} tintColor={theme.brandOnSurface} fallback="📷" />
           </View>
           <Text className="text-center text-xl font-bold text-text-primary">
             Camera Access Required
@@ -166,7 +166,7 @@ function NativeScannerContent({
             {/* Status Banner */}
             {isSearching ? (
               <View className="mt-6 flex-row items-center gap-2 rounded-xl bg-black/80 px-4 py-2.5">
-                <ActivityIndicator size="small" color={theme.brand} />
+                <ActivityIndicator size="small" color={theme.brandOnSurface} />
                 <Text className="text-sm font-medium" style={{ color: '#ffffff' }}>
                   Looking up barcode...
                 </Text>
@@ -242,7 +242,7 @@ export function BarcodeScannerModal({
           className="flex-1 items-center justify-center bg-surface px-6"
         >
           <View className="mb-4 h-16 w-16 items-center justify-center rounded-full border border-border bg-card">
-            <AppSymbol sf="camera.fill" size={28} tintColor={theme.brand} fallback="📷" />
+            <AppSymbol sf="camera.fill" size={28} tintColor={theme.brandOnSurface} fallback="📷" />
           </View>
           <Text className="text-center text-xl font-bold text-text-primary">
             Rebuild Dev Client Required

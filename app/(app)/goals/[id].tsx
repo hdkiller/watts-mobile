@@ -63,7 +63,7 @@ export default function GoalDetailScreen() {
         <DetailSkeleton />
       ) : isError && !data ? (
         <View className="flex-1 bg-surface px-6 pt-6">
-          <Text className="text-red-400">{friendlyError(error, 'Failed to load goal')}</Text>
+          <Text className="text-danger">{friendlyError(error, 'Failed to load goal')}</Text>
           <AnimatedPressable className="mt-4" hitSlop={8} onPress={() => void refetch()}>
             <Text className="text-sm font-semibold text-brand">Try again</Text>
           </AnimatedPressable>

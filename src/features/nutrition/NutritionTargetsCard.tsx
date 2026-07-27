@@ -5,7 +5,6 @@ import { ActivityIndicator, PanResponder, Pressable, Text, View } from 'react-na
 import { AppSymbol } from '@/src/components/AppSymbol';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { hapticLight } from '@/src/lib/haptics';
-import { Colors } from '@/src/theme/colors';
 import { NutritionAccents } from '@/src/theme/nutritionAccents';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
@@ -160,7 +159,7 @@ export function NutritionTargetsCard({
       <View
         className={`items-center justify-center rounded-xl border border-border bg-card p-4 ${className}`}
       >
-        <ActivityIndicator color={Colors.brand} />
+        <ActivityIndicator color={theme.brandOnSurface} />
       </View>
     );
   }
@@ -185,12 +184,12 @@ export function NutritionTargetsCard({
               onPrevDate?.();
             }}
           >
-            <AppSymbol sf="chevron.left" size={13} tintColor={theme.brand} fallback="‹" />
+            <AppSymbol sf="chevron.left" size={13} tintColor={theme.brandOnSurface} fallback="‹" />
             <Text className="text-xs font-semibold text-brand">Prev</Text>
           </Pressable>
 
           <View className="flex-row items-center gap-1.5">
-            <AppSymbol sf="calendar" size={13} tintColor={theme.brand} fallback="📅" />
+            <AppSymbol sf="calendar" size={13} tintColor={theme.brandOnSurface} fallback="📅" />
             <Text className="text-sm font-bold text-text-primary">{dateLabel}</Text>
           </View>
 
@@ -214,7 +213,7 @@ export function NutritionTargetsCard({
             <AppSymbol
               sf="chevron.right"
               size={13}
-              tintColor={canGoNext ? theme.brand : theme.textMuted}
+              tintColor={canGoNext ? theme.brandOnSurface : theme.textMuted}
               fallback="›"
             />
           </Pressable>
@@ -263,7 +262,10 @@ export function NutritionTargetsCard({
           </Pressable>
 
           {/* Main Calorie Bar */}
-          <GoalBar pct={goalProgressPct(day.calories, day.caloriesGoal)} color={Colors.brand} />
+          <GoalBar
+            pct={goalProgressPct(day.calories, day.caloriesGoal)}
+            color={theme.brandOnSurface}
+          />
 
           {/* Macros Row (Tappable for Carbs, Protein, Fat Analysis) */}
           <View className="mt-4 flex-row gap-3">

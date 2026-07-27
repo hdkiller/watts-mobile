@@ -47,7 +47,7 @@ export function RecoveryEventCard({ item, onPress }: RecoveryEventCardProps) {
             <AppSymbol
               sf={iconSf as any}
               size={18}
-              tintColor={Colors.modify}
+              tintColor={theme.modifyOnSurface}
               fallback={iconEmoji}
             />
           </View>
@@ -77,7 +77,11 @@ export function RecoveryEventCard({ item, onPress }: RecoveryEventCardProps) {
           style={{
             width: `${severityPct}%`,
             backgroundColor:
-              severity > 7 ? Colors.danger : severity > 4 ? Colors.modify : Colors.brand,
+              severity > 7
+                ? theme.dangerOnSurface
+                : severity > 4
+                  ? theme.modifyOnSurface
+                  : Colors.brand,
           }}
         />
       </View>
