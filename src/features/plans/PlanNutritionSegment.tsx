@@ -202,8 +202,8 @@ export function PlanNutritionSegment() {
               {!hasMeals ? (
                 <View className="gap-3" testID="plan-nutrition-empty">
                   <Text className="text-sm text-text-muted">
-                    No meals selected this week yet. Generate a draft to fill fueling windows from your
-                    catalog.
+                    No meals selected this week yet. Generate a draft to fill fueling windows from
+                    your catalog.
                   </Text>
                   <Button
                     label="Generate draft"
@@ -279,7 +279,9 @@ export function PlanNutritionSegment() {
                               {day.targetCarbsTotal}g carbs
                             </Text>
                             <Text className="text-xs text-text-muted">
-                              {day.plannedCarbsTotal ? `${day.plannedCarbsTotal}g planned` : '0g planned'}
+                              {day.plannedCarbsTotal
+                                ? `${day.plannedCarbsTotal}g planned`
+                                : '0g planned'}
                             </Text>
                           </View>
                         ) : null}
@@ -372,12 +374,7 @@ function WindowCirclesIndicator({ windows }: { windows: NutritionPlanWindowView[
         const isPrePost = w.windowType.includes('PRE') || w.windowType.includes('POST');
 
         if (isDone) {
-          return (
-            <View
-              key={`${w.key}-${index}`}
-              className="h-2.5 w-2.5 rounded-full bg-success"
-            />
-          );
+          return <View key={`${w.key}-${index}`} className="h-2.5 w-2.5 rounded-full bg-success" />;
         }
 
         if (isSkipped) {
@@ -390,19 +387,16 @@ function WindowCirclesIndicator({ windows }: { windows: NutritionPlanWindowView[
         }
 
         if (isLocked) {
-          return (
-            <View
-              key={`${w.key}-${index}`}
-              className="h-2.5 w-2.5 rounded-full bg-brand"
-            />
-          );
+          return <View key={`${w.key}-${index}`} className="h-2.5 w-2.5 rounded-full bg-brand" />;
         }
 
         return (
           <View
             key={`${w.key}-${index}`}
             className={`h-2.5 w-2.5 rounded-full border ${
-              isPrePost ? 'border-amber-400/80 bg-amber-400/10' : 'border-text-muted/60 bg-transparent'
+              isPrePost
+                ? 'border-amber-400/80 bg-amber-400/10'
+                : 'border-text-muted/60 bg-transparent'
             }`}
           />
         );

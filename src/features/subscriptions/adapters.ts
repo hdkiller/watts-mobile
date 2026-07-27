@@ -84,4 +84,3 @@ export function formatRenewalNotice(
   }
   return `Access through ${dateStr}`;
 }
-

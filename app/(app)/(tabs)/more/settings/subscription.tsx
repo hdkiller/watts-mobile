@@ -401,7 +401,6 @@ export default function SubscriptionScreen() {
                 </View>
               ) : null}
 
-
               {offerings.data?.map((item) => {
                 const isCurrentPlan = currentTier === item.tier;
                 const isUpgrade = currentTier === 'SUPPORTER' && item.tier === 'PRO';

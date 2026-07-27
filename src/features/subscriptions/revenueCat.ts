@@ -45,7 +45,6 @@ function setupLogLevel(): void {
   }
 }
 
-
 export function synchronizeRevenueCatIdentity(userId: string | null): Promise<void> {
   identityOperation = identityOperation
     .then(async () => {
@@ -70,7 +69,6 @@ export function synchronizeRevenueCatIdentity(userId: string | null): Promise<vo
     });
   return identityOperation;
 }
-
 
 export function mapStorePackages(packages: readonly PurchasesPackage[]): StorePackage[] {
   return packages.flatMap((item) => {
@@ -135,7 +133,6 @@ export async function fetchStorePackages(): Promise<StorePackage[]> {
     if (key) {
       setupLogLevel();
       Purchases.configure({ apiKey: key });
-
     } else {
       return [];
     }
@@ -143,7 +140,6 @@ export async function fetchStorePackages(): Promise<StorePackage[]> {
   const offerings = await Purchases.getOfferings();
   return mapStorePackages(offerings.current?.availablePackages ?? []);
 }
-
 
 export type PurchaseOutcome = 'purchased' | 'cancelled' | 'pending';
 
@@ -168,4 +164,3 @@ export async function restoreStorePurchases(): Promise<boolean> {
   const info = await Purchases.restorePurchases();
   return Object.keys(info.entitlements.active).length > 0;
 }
-

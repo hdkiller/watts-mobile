@@ -6,7 +6,6 @@ import type { AthleteProfile } from '@/src/features/profile/types';
 import { ATHLETE_PROFILE_KEY } from '@/src/features/profile/useProfile';
 import { TODAY_QUERY_KEY } from '@/src/features/today/types';
 
-
 import {
   completePlannedWorkout,
   fetchActivityPowerCurve,

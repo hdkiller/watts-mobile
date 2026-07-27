@@ -365,7 +365,9 @@ function toDayView(
       d &&
       typeof d === 'object' &&
       String((d as { date?: unknown }).date ?? '').slice(0, 10) === dateKey,
-  ) as { fuelingPlan?: { windows?: unknown; workouts?: unknown }; targets?: { carbs?: number } } | undefined;
+  ) as
+    | { fuelingPlan?: { windows?: unknown; workouts?: unknown }; targets?: { carbs?: number } }
+    | undefined;
 
   const targetCarbsTotal =
     typeof daySummary?.targets?.carbs === 'number' && daySummary.targets.carbs > 0
@@ -379,7 +381,9 @@ function toDayView(
   const rawWorkouts = daySummary?.fuelingPlan?.workouts;
   const workoutTitles = Array.isArray(rawWorkouts)
     ? rawWorkouts
-        .map((w) => (w && typeof w === 'object' ? String((w as { title?: unknown }).title || '') : ''))
+        .map((w) =>
+          w && typeof w === 'object' ? String((w as { title?: unknown }).title || '') : '',
+        )
         .filter(Boolean)
     : [];
 
