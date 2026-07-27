@@ -96,10 +96,11 @@ Keep this table honest when you add or remove IDs.
 | `coach-composer` / `coach-send` | Chat composer | `flow-coach-compose` |
 | `more-screen` | More tab | shell, more hubs |
 | `more-athlete-profile` / `more-settings` / `more-health-sync` | More / Settings hubs | `flow-more-hubs` |
-| `more-invite-friends` | More → Invite friends (hosted/local) | `more-invite` |
-| `today-greeting-name` | Today greeting → Athlete | `today-invite`, `flow-more-hubs` |
-| `athlete-invite-friends` | Athlete profile → Invite friends (hosted/local) | `today-invite` |
-| `invite-screen` / `invite-qr` / `invite-code` / `invite-share` | Invite friends share surface | `more-invite`, `today-invite` |
+| `more-subscription` | More → Account → Subscription | (reserved) |
+| `more-invite-friends` | More → Account → Invite a friend (hosted/local) | `more-invite` |
+| `today-greeting-name` | Today greeting → Athlete | `today-athlete`, `flow-more-hubs` |
+| `athlete-sports` / `settings-sports` | Sports & thresholds entries (Athlete + Settings) | `today-athlete` |
+| `invite-screen` / `invite-qr` / `invite-code` / `invite-share` | Invite share surface | `more-invite` |
 | `athlete-screen` / `settings-screen` | Stack screens | `flow-more-hubs` |
 | `finish-setup-card` | Activation card on Today | (reserved; incomplete-activation fixture) |
 
@@ -392,9 +393,9 @@ OpenSpec: `openspec/changes/e2e-deeplink-login/`.
 | `maestro/scenarios/log-checkin-open.yaml` | Wellness check-in sheet open | On | Scenario |
 | `maestro/scenarios/log-meal-open.yaml` | Meal sheet → food search → barcode scanner open/cancel (nutrition on) | On | Scenario |
 | `maestro/scenarios/coach-compose.yaml` | Coach composer + send | On | Scenario |
-| `maestro/scenarios/more-hubs.yaml` | More → profile / Settings → Health Sync | On | Scenario |
-| `maestro/scenarios/today-invite.yaml` | Today name → Athlete → Invite friends | On | Scenario |
-| `maestro/scenarios/more-invite.yaml` | More → Invite friends QR / share | On | Scenario |
+| `maestro/scenarios/more-hubs.yaml` | More → profile / Settings → health source | On | Scenario |
+| `maestro/scenarios/today-athlete.yaml` | Today name → Athlete → Sports & thresholds | On | Scenario |
+| `maestro/scenarios/more-invite.yaml` | More → Invite a friend QR / share | On | Scenario |
 | `maestro/scenarios/deeplink-*.yaml` | Scheme deep links | On | Scenario |
 | `maestro/flow-wellness-save.yaml` | Wellness save (mutation; reset after) | On | Isolated wipe |
 | `maestro/flow-recommendation-accept.yaml` | Accept recommendation when CTA present | On | Isolated wipe |

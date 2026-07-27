@@ -2,11 +2,13 @@
 import { router, type Href, Stack } from 'expo-router';
 import type { SFSymbol } from 'expo-symbols';
 import { useState, useEffect, type ReactNode } from 'react';
-import { Alert, AppState, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, AppState, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { useAuth } from '@/src/auth/AuthContext';
 import { AppSymbol } from '@/src/components/AppSymbol';
+import { subscriptionRowDetail } from '@/src/features/account/menuDetails';
+import { useSubscriptionSummary } from '@/src/features/subscriptions/useSubscriptions';
 import { getHealthAuthStatus } from '@/src/features/log/healthAuth';
 import { logTabPreferenceLabel } from '@/src/features/log/logTabPreference';
 import { useLogTabPreference } from '@/src/features/log/useLogTabPreference';
@@ -17,18 +19,25 @@ import {
 } from '@/src/features/profile/mapProfile';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { themePreferenceLabel } from '@/src/theme/themePreference';
+import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 import { useThemePreference } from '@/src/theme/useThemePreference';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 import { connectedAppsHubDetail } from '@/src/features/integrations/mapCatalog';
 import { useIntegrationStatus } from '@/src/features/integrations/useIntegrationStatus';
+import { useTabScrollPadding } from '@/src/hooks/useTabScrollPadding';
 import { APP_HREFS } from '@/src/linking/appHrefs';
 
-function RowIcon({ sf }: { sf: SFSymbol }) {
+function RowIcon({ sf, isDestructive = false }: { sf: SFSymbol; isDestructive?: boolean }) {
   const theme = useThemeColors();
   return (
     <View className="mr-3 h-5 w-5 items-center justify-center">
-      <AppSymbol sf={sf} size={18} tintColor={theme.textMuted} fallback="" />
+      <AppSymbol
+        sf={sf}
+        size={18}
+        tintColor={isDestructive ? Colors.danger : theme.textMuted}
+        fallback=""
+      />
     </View>
   );
 }
@@ -36,6 +45,21 @@ function RowIcon({ sf }: { sf: SFSymbol }) {
 function Chevron() {
   const theme = useThemeColors();
   return <AppSymbol sf="chevron.right" size={14} tintColor={theme.textMuted} fallback="›" />;
+}
+
+/** Marks rows that hand off to the browser so leaving the app is never a surprise. */
+function ExternalMark() {
+  const theme = useThemeColors();
+  return <AppSymbol sf="arrow.up.right" size={13} tintColor={theme.textMuted} fallback="↗" />;
+}
+
+/** Only a handful of preferences are device-local; the rest follow the account. */
+function DeviceTag() {
+  return (
+    <Text className="ml-2 shrink-0 text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+      This device
+    </Text>
+  );
 }
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
@@ -56,6 +80,9 @@ function MenuRow({
   onPress,
   showChevron = true,
   isLast = false,
+  isExternal = false,
+  isDeviceLocal = false,
+  isDestructive = false,
   testID,
 }: {
   title: string;
@@ -64,25 +91,31 @@ function MenuRow({
   onPress?: () => void;
   showChevron?: boolean;
   isLast?: boolean;
+  isExternal?: boolean;
+  isDeviceLocal?: boolean;
+  isDestructive?: boolean;
   testID?: string;
 }) {
   const body = (
     <View
       className={`flex-row items-center px-4 py-3.5 ${isLast ? '' : 'border-b border-border/80'}`}
     >
-      <RowIcon sf={sf} />
+      <RowIcon sf={sf} isDestructive={isDestructive} />
       <View className="min-w-0 flex-1">
-        <Text className="text-base font-medium text-text-primary">{title}</Text>
+        <Text
+          className={`text-base font-medium ${isDestructive ? 'text-danger' : 'text-text-primary'}`}
+        >
+          {title}
+        </Text>
         {detail ? (
           <Text className="mt-0.5 text-sm text-text-muted" numberOfLines={1}>
             {detail}
           </Text>
         ) : null}
       </View>
-      {showChevron ? (
-        <View className="ml-2">
-          <Chevron />
-        </View>
+      {isDeviceLocal ? <DeviceTag /> : null}
+      {showChevron && !isDestructive ? (
+        <View className="ml-2">{isExternal ? <ExternalMark /> : <Chevron />}</View>
       ) : null}
     </View>
   );
@@ -121,7 +154,11 @@ export default function SettingsScreen() {
     isLoading: integrationsLoading,
     isError: integrationsError,
   });
+  const subscriptionQuery = useSubscriptionSummary();
+  const tabBottomPad = useTabScrollPadding();
   const [healthStatus, setHealthStatus] = useState<string>('Checking…');
+  // Name the platform the athlete actually recognises rather than our pipe name.
+  const healthPlatformLabel = Platform.OS === 'ios' ? 'Apple Health' : 'Health Connect';
 
   useEffect(() => {
     let active = true;
@@ -205,24 +242,26 @@ export default function SettingsScreen() {
           headerShown: true,
         }}
       />
-      <SafeAreaView
-        testID="settings-screen"
-        edges={{ bottom: true }}
-        style={{ flex: 1, backgroundColor: theme.surface }}
-      >
-        <ScrollView className="flex-1 bg-surface" contentContainerClassName="px-6 pb-12 pt-4">
-          <Text className="text-sm text-text-muted">Preferences for this device.</Text>
+      <SafeAreaView testID="settings-screen" style={{ flex: 1, backgroundColor: theme.surface }}>
+        <ScrollView
+          className="flex-1 bg-surface"
+          contentContainerClassName="px-6 pt-4"
+          contentContainerStyle={{ paddingBottom: tabBottomPad }}
+        >
+          <Text className="text-sm text-text-muted">
+            Preferences follow your account unless marked “This device”.
+          </Text>
 
-          <Section title="Integrations & Data">
+          <Section title="Data sources">
             <MenuRow
               testID="more-health-sync"
-              title="Health Sync"
+              title={healthPlatformLabel}
               detail={healthStatus}
               sf="heart"
               onPress={() => router.push(APP_HREFS.settingsHealth as Href)}
             />
             <MenuRow
-              title="Connected Apps"
+              title="Connected apps"
               detail={connectedAppsDetail}
               sf="link.circle"
               onPress={() => router.push(APP_HREFS.settingsConnectedApps as Href)}
@@ -230,18 +269,13 @@ export default function SettingsScreen() {
             />
           </Section>
 
-          <Section title="App Preferences">
+          <Section title="Preferences">
             <MenuRow
               title="Appearance"
               detail={themePreferenceLabel(themePreference)}
               sf="circle.lefthalf.filled"
               onPress={() => router.push('/(app)/(tabs)/more/settings/appearance' as Href)}
-            />
-            <MenuRow
-              title="Notification preferences"
-              detail="Push & email alerts"
-              sf="bell"
-              onPress={() => router.push('/(app)/(tabs)/more/settings/notifications' as Href)}
+              isDeviceLocal
             />
             <MenuRow
               title="Units & locale"
@@ -249,29 +283,37 @@ export default function SettingsScreen() {
               onPress={() => router.push('/(app)/(tabs)/more/settings/units' as Href)}
             />
             <MenuRow
-              title="Log defaults"
+              title="Notifications"
+              detail="Push & email alerts"
+              sf="bell"
+              onPress={() => router.push('/(app)/(tabs)/more/settings/notifications' as Href)}
+            />
+            <MenuRow
+              title="Default log view"
               detail={logTabPreferenceLabel(logTabPreference, nutritionEnabled)}
               sf="list.bullet.rectangle"
               onPress={() => router.push(APP_HREFS.settingsLog as Href)}
+              isDeviceLocal
             />
             <MenuRow
-              title="Nutrition"
-              detail={nutritionEnabled ? 'Tracking on' : 'Tracking off'}
+              title="Nutrition tracking"
+              detail={nutritionEnabled ? 'On' : 'Off'}
               sf="leaf"
               onPress={() => router.push(APP_HREFS.settingsNutrition as Href)}
               isLast
             />
           </Section>
 
-          <Section title="Coaching & Sport">
+          <Section title="Coaching">
             <MenuRow
-              title="Coach identity"
-              detail="Persona, nickname, About me"
+              title="Coach persona"
+              detail="Nickname, tone, About me"
               sf="bubble.left.and.bubble.right"
               onPress={() => router.push('/(app)/(tabs)/more/settings/coach' as Href)}
             />
             <MenuRow
-              title="Sports"
+              testID="settings-sports"
+              title="Sports & thresholds"
               detail="Per-sport FTP, LTHR, Max HR"
               sf="figure.run"
               onPress={() => router.push(APP_HREFS.settingsSports as Href)}
@@ -279,34 +321,41 @@ export default function SettingsScreen() {
             />
           </Section>
 
-          <Section title="Account & Billing">
+          <Section title="Account">
             <MenuRow
-              title="Subscription & Billing"
-              detail="Plan, billing provider, restore purchases"
+              title="Subscription"
+              detail={subscriptionRowDetail(subscriptionQuery.data, {
+                isLoading: subscriptionQuery.isLoading,
+                isError: subscriptionQuery.isError,
+              })}
               sf="creditcard"
               onPress={() => router.push(APP_HREFS.settingsSubscription as Href)}
             />
             <MenuRow
-              title="Instance"
+              title="Server"
               detail={instanceUrl ?? 'Not set'}
               sf="link"
               onPress={() => handleInstancePress()}
-              isLast
             />
-          </Section>
-
-          <Section title="Account Management">
             <MenuRow
-              title="Open Profile Settings"
+              title="Manage account on the web"
               sf="globe"
               onPress={() => void openWebPath(profileSettingsWebPath())}
+              isExternal
             />
             <MenuRow
               title="Export my data"
               sf="square.and.arrow.up"
               onPress={() => void openWebPath(dangerZoneWebPath())}
+              isExternal
             />
-            <MenuRow title="Delete account" sf="trash" onPress={handleDeleteAccount} isLast />
+            <MenuRow
+              title="Delete account"
+              sf="trash"
+              onPress={handleDeleteAccount}
+              isDestructive
+              isLast
+            />
           </Section>
         </ScrollView>
       </SafeAreaView>

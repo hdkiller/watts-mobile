@@ -63,6 +63,16 @@ const SF_TO_MD = {
   'exclamationmark.triangle': 'warning',
   'heart.text.square.fill': 'health_and_safety',
   qrcode: 'qr_code',
+  envelope: 'mail',
+  /** External-link marker: iOS leans on the arrow, Android on the open-in-new box. */
+  'arrow.up.right': 'open_in_new',
+  'camera.fill': 'photo_camera',
+  'barcode.viewfinder': 'barcode_scanner',
+  magnifyingglass: 'search',
+  xmark: 'close',
+  'xmark.circle.fill': 'cancel',
+  'bell.slash': 'notifications_off',
+  flame: 'local_fire_department',
 } as const satisfies Record<string, AndroidSymbol>;
 
 export type MappedSFSymbol = keyof typeof SF_TO_MD;

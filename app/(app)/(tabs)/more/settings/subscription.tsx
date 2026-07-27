@@ -33,6 +33,7 @@ import type { SubscriptionProvider } from '@/src/features/subscriptions/types';
 import { useStoreOfferings } from '@/src/features/subscriptions/useSubscriptions';
 import { usePurchaseFlow } from '@/src/features/subscriptions/usePurchaseFlow';
 import { useThemeColors } from '@/src/theme/useThemeColors';
+import { useTabScrollPadding } from '@/src/hooks/useTabScrollPadding';
 
 const providerLabels: Record<SubscriptionProvider, string> = {
   APPLE: 'Apple App Store',
@@ -42,6 +43,7 @@ const providerLabels: Record<SubscriptionProvider, string> = {
 
 export default function SubscriptionScreen() {
   const theme = useThemeColors();
+  const tabBottomPad = useTabScrollPadding();
   const { instanceUrl } = useAuth();
   const hosted = isOfficialHostedInstance(instanceUrl);
   const acquisitionEnabled = canAcquireNativeSubscription(instanceUrl);
@@ -81,12 +83,13 @@ export default function SubscriptionScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Subscription & Billing' }} />
-      <SafeAreaView edges={{ bottom: true }} style={{ flex: 1, backgroundColor: theme.surface }}>
+      <Stack.Screen options={{ title: 'Subscription' }} />
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.surface }}>
         <ScrollView
           ref={scrollRef}
           className="flex-1 bg-surface"
-          contentContainerClassName="px-6 pb-12 pt-5"
+          contentContainerClassName="px-6 pt-5"
+          contentContainerStyle={{ paddingBottom: tabBottomPad }}
           refreshControl={
             <RefreshControl
               refreshing={summary.isRefetching || offerings.isRefetching}
