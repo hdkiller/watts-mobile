@@ -25,6 +25,7 @@ import { useThemePreference } from '@/src/theme/useThemePreference';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 import { connectedAppsHubDetail } from '@/src/features/integrations/mapCatalog';
 import { useIntegrationStatus } from '@/src/features/integrations/useIntegrationStatus';
+import { useTabScrollPadding } from '@/src/hooks/useTabScrollPadding';
 import { APP_HREFS } from '@/src/linking/appHrefs';
 
 function RowIcon({ sf, isDestructive = false }: { sf: SFSymbol; isDestructive?: boolean }) {
@@ -154,6 +155,7 @@ export default function SettingsScreen() {
     isError: integrationsError,
   });
   const subscriptionQuery = useSubscriptionSummary();
+  const tabBottomPad = useTabScrollPadding();
   const [healthStatus, setHealthStatus] = useState<string>('Checking…');
   // Name the platform the athlete actually recognises rather than our pipe name.
   const healthPlatformLabel = Platform.OS === 'ios' ? 'Apple Health' : 'Health Connect';
@@ -240,12 +242,12 @@ export default function SettingsScreen() {
           headerShown: true,
         }}
       />
-      <SafeAreaView
-        testID="settings-screen"
-        edges={{ bottom: true }}
-        style={{ flex: 1, backgroundColor: theme.surface }}
-      >
-        <ScrollView className="flex-1 bg-surface" contentContainerClassName="px-6 pb-12 pt-4">
+      <SafeAreaView testID="settings-screen" style={{ flex: 1, backgroundColor: theme.surface }}>
+        <ScrollView
+          className="flex-1 bg-surface"
+          contentContainerClassName="px-6 pt-4"
+          contentContainerStyle={{ paddingBottom: tabBottomPad }}
+        >
           <Text className="text-sm text-text-muted">
             Preferences follow your account unless marked “This device”.
           </Text>
