@@ -1,11 +1,11 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
+import { Spinner } from '@/src/components/Spinner';
 import { Button } from '@/src/components/Button';
 import { AllowanceHint } from '@/src/features/subscriptions/AllowanceHint';
 import { QuotaLimitCard } from '@/src/features/subscriptions/QuotaLimitCard';
 import type { QuotaInfo } from '@/src/features/subscriptions/quota';
-import { Colors } from '@/src/theme/colors';
 
 export type AnalyzeReadinessState = 'idle' | 'generating' | 'error' | 'quota';
 
@@ -44,7 +44,7 @@ export function AnalyzeReadinessPanel({
     <View testID="today-readiness-panel" className={`mt-6 ${shellByState[state]}`}>
       {state === 'generating' ? (
         <View className="items-center py-2">
-          <ActivityIndicator color={Colors.brand} size="small" />
+          <Spinner size="small" />
           <Text className="mt-3 text-base font-semibold text-text-primary">
             Analyzing readiness…
           </Text>
@@ -64,13 +64,13 @@ export function AnalyzeReadinessPanel({
 
       {state === 'error' ? (
         <View>
-          <Text className="text-xs font-semibold uppercase tracking-wide text-red-400/90">
+          <Text className="text-xs font-semibold uppercase tracking-wide text-danger/90">
             Analyze Readiness
           </Text>
           <Text className="mt-2 text-lg font-semibold text-text-primary">
             Couldn’t analyze readiness
           </Text>
-          <Text className="mt-2 text-sm leading-5 text-red-300">
+          <Text className="mt-2 text-sm leading-5 text-danger">
             {errorMessage || 'Something went wrong. Try again, or continue in Coach Watts.'}
           </Text>
           <View className="mt-5 gap-3">

@@ -18,7 +18,6 @@ import { AuthAtmosphere } from '@/src/features/auth/AuthAtmosphere';
 import { useDeepLinkReturn } from '@/src/linking/useDeepLinkReturn';
 import { RevenueCatIdentityBridge } from '@/src/features/subscriptions/RevenueCatIdentityBridge';
 import { initSentry } from '@/src/sentry';
-import { Colors } from '@/src/theme/colors';
 import { ThemePreferenceBootstrap } from '@/src/theme/ThemePreferenceBootstrap';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
@@ -55,7 +54,7 @@ function RootNavigator() {
     return (
       <View className="flex-1 items-center justify-center bg-surface">
         <AuthAtmosphere />
-        <ActivityIndicator color={Colors.brand} size="large" />
+        <ActivityIndicator color={theme.brandOnSurface} size="large" />
       </View>
     );
   }

@@ -314,7 +314,7 @@ export default function HealthSyncSettingsScreen() {
                 <View className="mt-4">
                   {authStatus.status === 'not_available' ? (
                     <View className="mt-2 border-t border-border/80 pt-4">
-                      <Text className="mb-4 text-sm leading-5 text-red-400">
+                      <Text className="mb-4 text-sm leading-5 text-danger">
                         Health Connect is required but currently unavailable or not installed.
                       </Text>
                       <Button
@@ -339,6 +339,14 @@ export default function HealthSyncSettingsScreen() {
                         granted={!!authStatus.details?.caloriesGranted}
                       />
                       <PermissionRow title="Steps" granted={!!authStatus.details?.stepsGranted} />
+
+                      {authStatus.details?.workoutsGranted ? (
+                        <Text className="leading-4.5 mt-3 text-xs text-text-muted">
+                          GPS routes for your workouts can only be turned on inside Health Connect —
+                          open it below and allow “Exercise routes”. Everything else syncs without
+                          it.
+                        </Text>
+                      ) : null}
 
                       {authStatus.status === 'partially_connected' ? (
                         <Text className="leading-4.5 mt-3 text-xs text-modify">
@@ -425,7 +433,7 @@ export default function HealthSyncSettingsScreen() {
                   Last successful sync: {formatLastSync(preferences.lastSuccessAt)}
                 </Text>
                 {syncError && (
-                  <Text className="leading-4.5 mt-2 text-xs text-red-400">{syncError}</Text>
+                  <Text className="leading-4.5 mt-2 text-xs text-danger">{syncError}</Text>
                 )}
               </View>
             </View>

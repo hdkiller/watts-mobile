@@ -68,7 +68,7 @@ export function EnergyHorizonChart({ points, height = 96 }: Props) {
             />
             <Path
               d={d}
-              stroke={theme.brand}
+              stroke={theme.brandOnSurface}
               strokeWidth={2}
               fill="none"
               strokeLinecap="round"
