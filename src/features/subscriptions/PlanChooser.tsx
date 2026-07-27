@@ -46,7 +46,6 @@ type Props = {
   storeConfigured: boolean;
   onPurchase: (pkg: StorePackage, kind: PlanChangeKind) => void;
   onRetry: () => void;
-  onOpenWeb: () => void;
 };
 
 function PeriodToggle({
@@ -100,7 +99,6 @@ export function PlanChooser({
   storeConfigured,
   onPurchase,
   onRetry,
-  onOpenWeb,
 }: Props) {
   const hasAnnual = (packages ?? []).some((item) => item.period === 'ANNUAL');
   // Null until the athlete picks, so the annual default still applies to
@@ -140,23 +138,18 @@ export function PlanChooser({
         <Text className="mt-1 text-sm leading-5 text-text-body">
           {storeConfigured
             ? 'The App Store didn’t respond. Check your connection and try again.'
-            : 'In-app purchases aren’t available in this build. You can still subscribe on the web.'}
+            : 'In-app purchases aren’t available in this build yet.'}
         </Text>
         {__DEV__ ? (
           <Text className="mt-1 text-xs text-text-muted">
             {friendlyError(error, 'Store offerings request failed')}
           </Text>
         ) : null}
-        <View className="mt-3 flex-row gap-4">
-          {storeConfigured ? (
-            <Pressable hitSlop={8} onPress={onRetry}>
-              <Text className="text-sm font-semibold text-brand">Try again</Text>
-            </Pressable>
-          ) : null}
-          <Pressable hitSlop={8} onPress={onOpenWeb}>
-            <Text className="text-sm font-semibold text-brand">Subscribe on the web →</Text>
+        {storeConfigured ? (
+          <Pressable className="mt-3" hitSlop={8} onPress={onRetry}>
+            <Text className="text-sm font-semibold text-brand">Try again</Text>
           </Pressable>
-        </View>
+        ) : null}
       </View>
     );
   }
@@ -165,11 +158,9 @@ export function PlanChooser({
     return (
       <View className="mt-4 rounded-xl border border-border bg-card p-4">
         <Text className="text-sm leading-5 text-text-muted">
-          No store plans are available for this app build.
+          No plans are available for this app build yet. Pull down to refresh, or contact support if
+          this keeps happening.
         </Text>
-        <Pressable className="mt-3" hitSlop={8} onPress={onOpenWeb}>
-          <Text className="text-sm font-semibold text-brand">Subscribe on the web →</Text>
-        </Pressable>
       </View>
     );
   }

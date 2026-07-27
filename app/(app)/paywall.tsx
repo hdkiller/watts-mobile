@@ -5,13 +5,12 @@ import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { useAuth } from '@/src/auth/AuthContext';
-import { Button } from '@/src/components/Button';
 import { trackPaywallEvent } from '@/src/features/subscriptions/analytics';
 import {
   canAcquireNativeSubscription,
   isOfficialHostedInstance,
 } from '@/src/features/subscriptions/gating';
-import { openExternalUrl, webBillingUrl } from '@/src/features/subscriptions/links';
+import { openExternalUrl } from '@/src/features/subscriptions/links';
 import { PlanChooser } from '@/src/features/subscriptions/PlanChooser';
 import {
   parseQuotaFeature,
@@ -122,7 +121,6 @@ export default function PaywallScreen() {
                 storeConfigured={rcAvailable}
                 onPurchase={(pkg, kind) => void purchase(pkg, kind)}
                 onRetry={() => void offerings.refetch()}
-                onOpenWeb={() => void openLink(webBillingUrl(instanceUrl))}
               />
               <AutoRenewTerms />
             </>
@@ -137,14 +135,11 @@ export default function PaywallScreen() {
               </Text>
               <Text className="mt-2 text-sm leading-5 text-text-muted">
                 {summary.data?.acquisitionSuppressed
-                  ? 'Change your plan on coachwatts.com — in-app purchases stay disabled while web billing is active.'
-                  : 'You can review and change your plan on Coach Watts web.'}
+                  ? 'Your subscription is billed outside the app, so in-app purchases stay disabled. Sign in to your Coach Watts account in a web browser to change it.'
+                  : hosted
+                    ? 'In-app purchases will appear here once they are enabled for your account.'
+                    : 'Your plan is managed by the instance this app is connected to.'}
               </Text>
-              <Button
-                className="mt-4"
-                label="Open Coach Watts billing"
-                onPress={() => void openLink(webBillingUrl(instanceUrl))}
-              />
             </View>
           )}
 

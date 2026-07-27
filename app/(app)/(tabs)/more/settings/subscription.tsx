@@ -19,8 +19,7 @@ import {
 import {
   BILLING_SUPPORT_EMAIL,
   openExternalUrl,
-  providerManagementUrl,
-  webBillingUrl,
+  storeManagementUrl,
 } from '@/src/features/subscriptions/links';
 import { PlanChooser } from '@/src/features/subscriptions/PlanChooser';
 import { isRevenueCatAvailable } from '@/src/features/subscriptions/revenueCat';
@@ -75,9 +74,6 @@ export default function SubscriptionScreen() {
     const result = await openExternalUrl(url);
     if (!result.ok) setFeedback({ type: 'error', text: result.message });
   };
-
-  const manage = (provider: SubscriptionProvider, managementUrl: string | null) =>
-    openLink(providerManagementUrl(provider, managementUrl, instanceUrl));
 
   const currentTier = summary.data?.tier ?? 'FREE';
   const hasSubscriptions = (summary.data?.subscriptions.length ?? 0) > 0;
@@ -147,6 +143,7 @@ export default function SubscriptionScreen() {
                 {summary.data.subscriptions.map((item) => {
                   const statusInfo = formatProviderSubscriptionStatus(item.status);
                   const renewalNotice = formatRenewalNotice(item.autoRenew, item.entitlementEnd);
+                  const manageUrl = storeManagementUrl(item.provider, item.managementUrl);
                   return (
                     <View
                       key={`${item.provider}:${item.productId}`}
@@ -165,14 +162,21 @@ export default function SubscriptionScreen() {
                         <Text className="mt-1 text-sm text-text-muted">{renewalNotice}</Text>
                       ) : null}
 
-                      <Button
-                        className="mt-3"
-                        label={
-                          statusInfo.isUrgent ? 'Update payment method' : 'Manage subscription'
-                        }
-                        variant={statusInfo.isUrgent ? 'primary' : 'secondary'}
-                        onPress={() => void manage(item.provider, item.managementUrl)}
-                      />
+                      {manageUrl ? (
+                        <Button
+                          className="mt-3"
+                          label={
+                            statusInfo.isUrgent ? 'Update payment method' : 'Manage subscription'
+                          }
+                          variant={statusInfo.isUrgent ? 'primary' : 'secondary'}
+                          onPress={() => void openLink(manageUrl)}
+                        />
+                      ) : (
+                        <Text className="mt-2 text-sm leading-5 text-text-muted">
+                          This subscription is billed outside the app. Sign in to your Coach Watts
+                          account in a web browser to change or cancel it.
+                        </Text>
+                      )}
                     </View>
                   );
                 })}
@@ -182,15 +186,10 @@ export default function SubscriptionScreen() {
                   <View className="mt-4 border-t border-border pt-4">
                     <Text className="font-semibold text-text-primary">Coach Watts Web</Text>
                     <Text className="mt-1 text-sm leading-5 text-text-muted">
-                      Your subscription was activated directly on coachwatts.com. Billing and
-                      renewal options are managed on web.
+                      Your subscription was activated outside the app, so billing and renewal are
+                      handled there. Sign in to your Coach Watts account in a web browser to change
+                      or cancel it.
                     </Text>
-                    <Button
-                      className="mt-3"
-                      label="Manage web subscription"
-                      variant="secondary"
-                      onPress={() => void openLink(webBillingUrl(instanceUrl))}
-                    />
                   </View>
                 ) : null}
 
@@ -230,16 +229,9 @@ export default function SubscriptionScreen() {
                 Store subscriptions are not available yet
               </Text>
               <Text className="mt-2 text-sm leading-5 text-text-muted">
-                Existing access remains active. You can still manage or start a subscription on
-                Coach Watts web.
+                Existing access remains active. In-app purchases will appear here once they are
+                enabled for your account.
               </Text>
-              <Pressable
-                className="mt-3"
-                hitSlop={8}
-                onPress={() => void openLink(webBillingUrl(instanceUrl))}
-              >
-                <Text className="text-sm font-semibold text-brand">Open web billing →</Text>
-              </Pressable>
             </View>
           ) : null}
 
@@ -247,18 +239,9 @@ export default function SubscriptionScreen() {
             <View className="mt-6 rounded-xl border border-border bg-card p-4">
               <Text className="font-semibold text-text-primary">Web subscription active</Text>
               <Text className="mt-2 text-sm leading-5 text-text-muted">
-                In-app store purchases are disabled while your active subscription is managed on
-                Coach Watts web.
+                In-app purchases stay disabled while your subscription is billed outside the app.
+                Sign in to your Coach Watts account in a web browser to change or cancel it.
               </Text>
-              <Pressable
-                className="mt-3"
-                hitSlop={8}
-                onPress={() => void openLink(webBillingUrl(instanceUrl))}
-              >
-                <Text className="text-sm font-semibold text-brand">
-                  Manage on Coach Watts web →
-                </Text>
-              </Pressable>
             </View>
           ) : null}
 
@@ -282,7 +265,6 @@ export default function SubscriptionScreen() {
                 storeConfigured={rcAvailable}
                 onPurchase={(pkg, kind) => void purchase(pkg, kind)}
                 onRetry={() => void offerings.refetch()}
-                onOpenWeb={() => void openLink(webBillingUrl(instanceUrl))}
               />
 
               <AutoRenewTerms />

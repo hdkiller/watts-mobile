@@ -4,19 +4,24 @@ import type { SubscriptionProvider } from './types';
 
 export const BILLING_SUPPORT_EMAIL = 'support@coachwatts.com';
 
-export function webBillingUrl(instanceUrl: string | null | undefined): string {
-  return `${(instanceUrl || 'https://coachwatts.com').replace(/\/$/, '')}/profile/settings?tab=billing`;
-}
-
-export function providerManagementUrl(
+/**
+ * Store-owned management pages only.
+ *
+ * Coach Watts has no External Purchase Link entitlement, so the app must not
+ * link out to any page where a subscription can be bought, upgraded or
+ * re-started — web-billed subscriptions get explanatory text instead of a link.
+ * Apple's and Google's own subscription screens are exempt: they are the store's
+ * management surface, not an alternative purchasing mechanism.
+ */
+export function storeManagementUrl(
   provider: SubscriptionProvider,
   managementUrl: string | null,
-  instanceUrl: string | null | undefined,
-): string {
-  if (managementUrl) return managementUrl;
-  if (provider === 'APPLE') return 'https://apps.apple.com/account/subscriptions';
-  if (provider === 'GOOGLE') return 'https://play.google.com/store/account/subscriptions';
-  return webBillingUrl(instanceUrl);
+): string | null {
+  if (provider === 'APPLE') return managementUrl ?? 'https://apps.apple.com/account/subscriptions';
+  if (provider === 'GOOGLE') {
+    return managementUrl ?? 'https://play.google.com/store/account/subscriptions';
+  }
+  return null;
 }
 
 export type OpenLinkResult = { ok: true } | { ok: false; message: string };

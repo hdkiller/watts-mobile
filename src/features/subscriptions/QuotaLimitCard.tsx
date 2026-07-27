@@ -9,7 +9,6 @@ import { APP_HREFS } from '@/src/linking/appHrefs';
 
 import { trackPaywallEvent } from './analytics';
 import { canAcquireNativeSubscription } from './gating';
-import { openExternalUrl, webBillingUrl } from './links';
 import {
   quotaHeadline,
   quotaResetLine,
@@ -46,16 +45,12 @@ export function QuotaLimitCard({ info, surface, onDismiss, compact = false, clas
 
   const openUpgrade = () => {
     trackPaywallEvent('paywall_quota_cta_tapped', { surface, feature: info.feature });
-    if (canBuyInApp) {
-      router.push(
-        APP_HREFS.paywallForQuota(
-          info.feature,
-          info.requiredTier ? `quota_${info.requiredTier.toLowerCase()}` : 'quota',
-        ) as Href,
-      );
-      return;
-    }
-    void openExternalUrl(webBillingUrl(instanceUrl));
+    router.push(
+      APP_HREFS.paywallForQuota(
+        info.feature,
+        info.requiredTier ? `quota_${info.requiredTier.toLowerCase()}` : 'quota',
+      ) as Href,
+    );
   };
 
   return (
@@ -75,10 +70,13 @@ export function QuotaLimitCard({ info, surface, onDismiss, compact = false, clas
       <Text className="mt-2 text-sm leading-5 text-text-body">{quotaUpsellLine(info)}</Text>
 
       <View className={compact ? 'mt-4' : 'mt-5'}>
-        <Button
-          label={canBuyInApp ? 'See plans' : 'Open Coach Watts billing'}
-          onPress={openUpgrade}
-        />
+        {canBuyInApp ? (
+          <Button label="See plans" onPress={openUpgrade} />
+        ) : (
+          <Text className="text-sm leading-5 text-text-muted">
+            Plan changes are handled by the Coach Watts account this app is connected to.
+          </Text>
+        )}
         {onDismiss ? (
           <Pressable
             accessibilityRole="button"
