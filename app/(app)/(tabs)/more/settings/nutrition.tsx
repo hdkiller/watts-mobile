@@ -18,11 +18,11 @@ export default function NutritionSettingsScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Nutrition',
+          title: 'Nutrition tracking',
           headerShown: true,
         }}
       />
-      <SafeAreaView edges={{ bottom: true }} style={{ flex: 1, backgroundColor: theme.surface }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.surface }}>
         {isLoading && !data ? (
           <DetailSkeleton />
         ) : isError && !data ? (
