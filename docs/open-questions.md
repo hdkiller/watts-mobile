@@ -39,8 +39,10 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 30 | **Overlapping paid providers** | Auto-cancel one vs choose highest and flag | **Decided:** grant highest valid tier, expose both providers, flag for support; never silently cancel external billing |
 | 31 | **Store pricing + introductory trials** | Match web list price vs target equal net proceeds; share vs separate trial eligibility | Open — resolve before activating store products |
 | 32 | **RevenueCat restore transfer policy** | Transfer to current authenticated Coach Watts account vs keep original binding | Open — proposal starts with transfer-to-current, but requires explicit product/support sign-off |
+| 36 | **v1 Localization Policy & i18n Scaffold** | English UI chrome in v1; server-driven localized content (coach responses, AI analysis, workout steps in user locale) | **Decided:** English chrome v1, server-driven content |
 
 ## Decision log
+
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
@@ -118,5 +120,7 @@ Resolve before or during Phase 0–1. Record decisions in the table at the botto
 | 2026-07-27 | Account menu IA + wording | Three surfaces, three jobs: Athlete = who I am, More = where I can go, Settings = how the app behaves. One home per destination (Invite moves to More only), More regrouped into Your training / Account / Help / About / Sign out, Subscription promoted onto More with live status, Settings scoped to configuration with per-row “This device” tags — OpenSpec `account-menu-ia` |
 | 2026-07-25 | Plan session edit survives adapt | Content `PATCH` on planned workouts re-tags `managedBy` → `USER` so `RECALCULATE_WEEK` does not delete athlete edits; create/delete use Bearer `workout:write`; hard delete → confirm-only — OpenSpec `plan-session-edit` |
 | 2026-07-25 | Nutrition Strategy on Plan tab | Plan → Nutrition gains Strategy \| Plan; strategy/active-feed/extended-wave/hydration-reset via Bearer; mobile horizon `daysAhead=3` — OpenSpec `nutrition-strategy-segment` |
+| 2026-07-28 | v1 Localization Policy: English chrome + server-driven content | Mobile app chrome is English-first in v1 using `src/i18n` (`t()`, `en.ts`) as typed scaffold for future Tolgee/shared-locale extraction. Server-driven content (Coach chat, AI analysis, workout step titles/cues) is personalized per athlete locale by backend. Client chrome labels must not prefix/format dynamic server strings mid-sentence — issue 054 / CW-131. |
 
 When a row above is decided, move it here and update [product-baseline.md](./product-baseline.md) / [implementation-plan.md](./implementation-plan.md) if scope changes.
+
