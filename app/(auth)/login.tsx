@@ -138,7 +138,7 @@ export default function LoginScreen() {
                     }
                   }}
                 >
-                  <Text className="text-sm font-medium text-red-400">Use hosted default</Text>
+                  <Text className="text-sm font-medium text-danger">Use hosted default</Text>
                 </Pressable>
               </View>
             </View>
@@ -147,7 +147,7 @@ export default function LoginScreen() {
 
         {message ? (
           <EnterSection order={2} reduceMotion={reduceMotion}>
-            <Text className="mt-4 text-sm text-red-400">{message}</Text>
+            <Text className="mt-4 text-sm text-danger">{message}</Text>
           </EnterSection>
         ) : null}
 

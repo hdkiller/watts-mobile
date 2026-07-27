@@ -6,7 +6,7 @@ import {
 
 vi.mock('react-native', () => ({ Platform: { OS: 'ios' } }));
 
-const OPTIONAL = ['BackgroundAccessPermission', 'ExerciseRoute'];
+const OPTIONAL = ['BackgroundAccessPermission'];
 
 describe('hasRequiredHealthConnectPermissions', () => {
   const dataPermissions = HEALTH_CONNECT_SYNC_PERMISSIONS.filter(
@@ -21,19 +21,26 @@ describe('hasRequiredHealthConnectPermissions', () => {
     expect(hasRequiredHealthConnectPermissions(dataPermissions.slice(1))).toBe(false);
   });
 
-  it('does not require route access — declining routes must not block sync', () => {
-    const withoutRoutes = HEALTH_CONNECT_SYNC_PERMISSIONS.filter(
-      (permission) => permission.recordType !== 'ExerciseRoute',
+  it('does not require background access — declining it must not block sync', () => {
+    const withoutBackground = HEALTH_CONNECT_SYNC_PERMISSIONS.filter(
+      (permission) => permission.recordType !== 'BackgroundAccessPermission',
     );
-    expect(hasRequiredHealthConnectPermissions(withoutRoutes)).toBe(true);
+    expect(hasRequiredHealthConnectPermissions(withoutBackground)).toBe(true);
   });
+});
 
-  it('requests route access so bulk route reads are possible', () => {
-    expect(
-      HEALTH_CONNECT_SYNC_PERMISSIONS.some(
-        (permission) =>
-          permission.recordType === 'ExerciseRoute' && permission.accessType === 'read',
-      ),
-    ).toBe(true);
+describe('HEALTH_CONNECT_SYNC_PERMISSIONS', () => {
+  it('never requests read access to ExerciseRoute', () => {
+    // Only the *write* route permission is special-cased natively; a read entry
+    // throws InvalidRecordType and takes every other permission down with it, so
+    // a single bad entry means no Health Connect prompt at all.
+    //
+    // The real guard is the `satisfies readonly (Permission | BackgroundAccessPermission)[]`
+    // on the list itself, which makes this a compile error. This case just keeps
+    // the incident documented — and catches a re-introduced `as` cast, which is
+    // how it got past the compiler the first time.
+    const requested: readonly { accessType: string; recordType: string }[] =
+      HEALTH_CONNECT_SYNC_PERMISSIONS;
+    expect(requested.some((permission) => permission.recordType === 'ExerciseRoute')).toBe(false);
   });
 });

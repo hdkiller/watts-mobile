@@ -92,7 +92,7 @@ export default function ActivationInsightScreen() {
           </View>
         )}
 
-        {error ? <Text className="mt-4 text-sm text-red-400">{error}</Text> : null}
+        {error ? <Text className="mt-4 text-sm text-danger">{error}</Text> : null}
 
         <Button
           className="mt-8"

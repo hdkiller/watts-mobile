@@ -65,7 +65,7 @@ function FitnessLead({ section }: { section: AthleteReportSection }) {
       {section.bullets.length > 0 ? (
         <View className="mt-3 gap-2.5">
           {section.bullets.map((bullet, index) => (
-            <BulletRow key={`fitness-${index}`} text={bullet} tint={theme.brand} />
+            <BulletRow key={`fitness-${index}`} text={bullet} tint={theme.brandOnSurface} />
           ))}
         </View>
       ) : null}
@@ -109,13 +109,13 @@ function SecondarySection({ section }: { section: AthleteReportSection }) {
             title="Strengths"
             titleClass="text-success"
             items={section.strengths}
-            tint={theme.success}
+            tint={theme.successOnSurface}
           />
           <LabeledList
             title="Areas for development"
             titleClass="text-recovery"
             items={section.development}
-            tint={theme.recovery}
+            tint={theme.recoveryOnSurface}
           />
         </View>
       ) : null}
@@ -123,7 +123,7 @@ function SecondarySection({ section }: { section: AthleteReportSection }) {
       {section.bullets.length > 0 ? (
         <View className="mt-3 gap-2.5">
           {section.bullets.map((bullet, index) => (
-            <BulletRow key={`${section.key}-${index}`} text={bullet} tint={theme.brand} />
+            <BulletRow key={`${section.key}-${index}`} text={bullet} tint={theme.brandOnSurface} />
           ))}
         </View>
       ) : null}

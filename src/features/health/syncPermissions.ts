@@ -7,6 +7,12 @@ import type {
   ObjectTypeIdentifier,
   SampleTypeIdentifier,
 } from '@kingstinct/react-native-healthkit';
+// Same trick for Health Connect: type-only, so this stays importable on iOS and
+// in tests. `Permission['recordType']` is the exact set the native bridge can map
+// to a permission, which is what makes an unmappable entry (notably a *read* on
+// ExerciseRoute) a compile error instead of a runtime InvalidRecordType that
+// aborts the whole permission request.
+import type { BackgroundAccessPermission, Permission } from 'react-native-health-connect';
 
 /** HealthKit types for wellness + workout sync (read-only). */
 export const HEALTHKIT_SYNC_READ_TYPES = [
@@ -87,25 +93,27 @@ export const HEALTH_CONNECT_SYNC_PERMISSIONS = [
   { accessType: 'read', recordType: 'Speed' },
   { accessType: 'read', recordType: 'CyclingPedalingCadence' },
   { accessType: 'read', recordType: 'StepsCadence' },
-  // GPS workout routes — declared so `ExerciseSession.exerciseRoute` is populated
-  // in bulk reads instead of falling back to the per-record consent dialog.
-  { accessType: 'read', recordType: 'ExerciseRoute' },
+  // NOTE: no `{ read, ExerciseRoute }` entry. react-native-health-connect only
+  // special-cases the *write* route permission; a read entry falls through to
+  // `reactRecordTypeToClassMap`, which has no `ExerciseRoute` key, and the native
+  // `parsePermissions` throws InvalidRecordType. That throw aborts the whole
+  // request, so a single bad entry silently kills every Health Connect prompt.
+  // READ_EXERCISE_ROUTES stays declared in app.json; the athlete grants it from
+  // the Health Connect settings screen (see `openHealthSettings`), and until then
+  // `ExerciseSession.exerciseRoute` simply comes back empty.
   // Change-driven / background reads (best-effort; ignored if unsupported).
   { accessType: 'read', recordType: 'BackgroundAccessPermission' },
-] as const;
+] as const satisfies readonly (Permission | BackgroundAccessPermission)[];
 
 /**
  * Requested but never required to enable sync — declining these degrades the
- * data set (no routes / no background wake) rather than blocking sync.
+ * data set (no background wake) rather than blocking sync.
  */
-const OPTIONAL_HEALTH_CONNECT_RECORD_TYPES: readonly string[] = [
-  'BackgroundAccessPermission',
-  'ExerciseRoute',
-];
+const OPTIONAL_HEALTH_CONNECT_RECORD_TYPES: readonly string[] = ['BackgroundAccessPermission'];
 
 type HealthConnectPermissionLike = { accessType?: string; recordType?: string };
 
-/** Background access and route reads are best-effort; the remaining record reads are required. */
+/** Background access is best-effort; the remaining record reads are required. */
 export function hasRequiredHealthConnectPermissions(
   granted: readonly HealthConnectPermissionLike[],
 ): boolean {
@@ -134,9 +142,7 @@ export async function requestHealthSyncPermissions(): Promise<boolean> {
       const status = await HC.getSdkStatus();
       if (status !== 3) return false;
       await HC.initialize();
-      const granted = await HC.requestPermission([...HEALTH_CONNECT_SYNC_PERMISSIONS] as Parameters<
-        typeof HC.requestPermission
-      >[0]);
+      const granted = await HC.requestPermission([...HEALTH_CONNECT_SYNC_PERMISSIONS]);
       return Array.isArray(granted) && hasRequiredHealthConnectPermissions(granted);
     }
   } catch (err) {

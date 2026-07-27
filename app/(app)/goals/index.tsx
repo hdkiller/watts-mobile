@@ -18,10 +18,10 @@ import { useGoalsQuery } from '@/src/features/goals/useGoals';
 import { useOfflineCached } from '@/src/hooks/useOfflineCached';
 import { hapticLight } from '@/src/lib/haptics';
 import { APP_HREFS } from '@/src/linking/appHrefs';
-import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
 export default function GoalsListScreen() {
+  const theme = useThemeColors();
   const { instanceUrl } = useAuth();
   const { data, isLoading, isError, error, refetch, dataUpdatedAt } = useGoalsQuery();
   const { showCachedOffline, lastUpdatedLabel } = useOfflineCached({
@@ -73,7 +73,7 @@ export default function GoalsListScreen() {
         <ListSkeleton />
       ) : isError && !data ? (
         <View className="flex-1 bg-surface px-6 pt-6">
-          <Text className="text-red-400">{friendlyError(error, 'Failed to load goals')}</Text>
+          <Text className="text-danger">{friendlyError(error, 'Failed to load goals')}</Text>
           <AnimatedPressable className="mt-4" hitSlop={8} onPress={() => void refetch()}>
             <Text className="text-sm font-semibold text-brand">Try again</Text>
           </AnimatedPressable>
@@ -86,7 +86,7 @@ export default function GoalsListScreen() {
             <RefreshControl
               refreshing={manualRefreshing}
               onRefresh={() => void handleRefresh()}
-              tintColor={Colors.brand}
+              tintColor={theme.brandOnSurface}
             />
           }
         >

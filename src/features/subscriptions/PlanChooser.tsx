@@ -134,7 +134,7 @@ export function PlanChooser({
   if (error) {
     return (
       <View className="mt-4 rounded-xl border border-danger/40 bg-tint-error p-4">
-        <Text className="text-sm font-semibold text-red-400">Plans couldn’t be loaded</Text>
+        <Text className="text-sm font-semibold text-danger">Plans couldn’t be loaded</Text>
         <Text className="mt-1 text-sm leading-5 text-text-body">
           {storeConfigured
             ? 'The App Store didn’t respond. Check your connection and try again.'
@@ -195,7 +195,7 @@ export function PlanChooser({
                   </Text>
                   {item.savingsPercentage ? (
                     <View className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2.5 py-0.5">
-                      <Text className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">
+                      <Text className="text-[10px] font-bold uppercase tracking-wider text-success">
                         Save {item.savingsPercentage}%
                       </Text>
                     </View>

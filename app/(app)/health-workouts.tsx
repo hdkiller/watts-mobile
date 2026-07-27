@@ -29,7 +29,6 @@ import type { SyncLedgerStatus } from '@/src/features/health/types';
 import { useHealthSyncPreferences } from '@/src/features/health/useHealthSyncPreferences';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { APP_HREFS } from '@/src/linking/appHrefs';
-import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
 const RECENT_WORKOUTS_QUERY_KEY = ['health', 'recent-workouts'] as const;
@@ -211,7 +210,7 @@ export default function HealthRecentWorkoutsScreen() {
               <RefreshControl
                 refreshing={manualRefreshing}
                 onRefresh={() => void handleRefresh()}
-                tintColor={Colors.brand}
+                tintColor={theme.brandOnSurface}
               />
             }
           >
@@ -255,7 +254,7 @@ export default function HealthRecentWorkoutsScreen() {
                     </View>
                     <View className="mt-3">
                       {isBusy ? (
-                        <ActivityIndicator color={Colors.brand} />
+                        <ActivityIndicator color={theme.brandOnSurface} />
                       ) : unsynced ? (
                         <Button
                           label="Sync"

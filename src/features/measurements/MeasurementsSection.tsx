@@ -198,7 +198,7 @@ function LatestCard({
             hitSlop={8}
             onPress={onDelete}
           >
-            <Text className="text-xs font-semibold text-red-400">{deleting ? '…' : 'Delete'}</Text>
+            <Text className="text-xs font-semibold text-danger">{deleting ? '…' : 'Delete'}</Text>
           </Pressable>
         ) : null}
       </View>
@@ -320,11 +320,13 @@ export function MeasurementsSection() {
         </Pressable>
       </View>
 
-      {isLoading && !data ? <ActivityIndicator className="mt-4" color={Colors.brand} /> : null}
+      {isLoading && !data ? (
+        <ActivityIndicator className="mt-4" color={theme.brandOnSurface} />
+      ) : null}
 
       {isError ? (
         <View className="mt-3 rounded-xl border border-danger/40 bg-tint-error p-3">
-          <Text className="text-sm text-red-300">
+          <Text className="text-sm text-danger">
             {friendlyError(error, 'Could not load measurements')}
           </Text>
           <Pressable className="mt-2" hitSlop={8} onPress={() => void refetch()}>
@@ -458,7 +460,7 @@ export function MeasurementsSection() {
           />
         </View>
 
-        {formError ? <Text className="mt-3 text-xs text-red-400">{formError}</Text> : null}
+        {formError ? <Text className="mt-3 text-xs text-danger">{formError}</Text> : null}
 
         <Button
           className="mt-4"

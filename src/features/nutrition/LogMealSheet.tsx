@@ -330,11 +330,11 @@ function SuccessContributionTile({
   const icon = NUTRIENT_ICONS[label as keyof typeof NUTRIENT_ICONS] ?? NUTRIENT_ICONS.Energy;
   const tintColor =
     label === 'Energy'
-      ? theme.modify
+      ? theme.modifyOnSurface
       : label === 'Protein'
-        ? theme.recovery
+        ? theme.recoveryOnSurface
         : label === 'Carbs'
-          ? theme.brand
+          ? theme.brandOnSurface
           : theme.zones[5];
 
   useEffect(() => {
@@ -470,7 +470,7 @@ function LoggedMealSuccess({
       {meal.coachInsight ? (
         <View className="mb-4 rounded-xl border border-brand/40 bg-tint-success px-4 py-3.5">
           <View className="flex-row items-center gap-2">
-            <AppSymbol sf="bolt.fill" size={16} tintColor={theme.brand} fallback="⚡️" />
+            <AppSymbol sf="bolt.fill" size={16} tintColor={theme.brandOnSurface} fallback="⚡️" />
             <Text className="text-sm font-semibold text-brand">Coach Insight</Text>
           </View>
           <Text className="mt-2 text-sm leading-5 text-text-body">{meal.coachInsight}</Text>
@@ -1071,7 +1071,7 @@ export function LogMealSheet({
                 <View className="absolute inset-0 rounded-xl border-2 border-brand/40 bg-brand/10" />
               </View>
             ) : null}
-            <ActivityIndicator size="large" color={theme.brand} />
+            <ActivityIndicator size="large" color={theme.brandOnSurface} />
             <Text className="mt-3 text-base font-semibold text-text-primary">
               {ANALYZING_MESSAGES[analyzingStep]}
             </Text>
@@ -1095,7 +1095,12 @@ export function LogMealSheet({
             {estimateInsight ? (
               <View className="mb-3 rounded-xl border border-brand/40 bg-tint-success px-4 py-3.5">
                 <View className="flex-row items-center gap-2">
-                  <AppSymbol sf="bolt.fill" size={16} tintColor={theme.brand} fallback="⚡️" />
+                  <AppSymbol
+                    sf="bolt.fill"
+                    size={16}
+                    tintColor={theme.brandOnSurface}
+                    fallback="⚡️"
+                  />
                   <Text className="text-sm font-bold text-brand">Coach Insight</Text>
                 </View>
                 <Text className="mt-1.5 text-sm leading-5 text-text-body">{estimateInsight}</Text>
@@ -1145,7 +1150,7 @@ export function LogMealSheet({
 
             <MacroFields form={form} themeMuted={theme.textMuted} update={update} />
 
-            {error ? <Text className="mb-3 text-xs text-red-400">{error}</Text> : null}
+            {error ? <Text className="mb-3 text-xs text-danger">{error}</Text> : null}
 
             <Button
               className="mt-1"
@@ -1175,15 +1180,18 @@ export function LogMealSheet({
           presentation === 'screen' ? (
             <View className="flex-1 items-center justify-center px-2 py-12">
               <View className="h-16 w-16 items-center justify-center rounded-full border border-border bg-card">
-                <AppSymbol sf="camera.fill" size={26} tintColor={theme.brand} fallback="📷" />
+                <AppSymbol
+                  sf="camera.fill"
+                  size={26}
+                  tintColor={theme.brandOnSurface}
+                  fallback="📷"
+                />
               </View>
               <Text className="mt-5 text-xl font-semibold text-text-primary">Add a meal photo</Text>
               <Text className="mt-2 max-w-sm text-center text-sm leading-5 text-text-muted">
                 Coach will estimate the meal, then you can review every value before saving.
               </Text>
-              {error ? (
-                <Text className="mt-4 text-center text-sm text-red-400">{error}</Text>
-              ) : null}
+              {error ? <Text className="mt-4 text-center text-sm text-danger">{error}</Text> : null}
               <View className="mt-6 w-full">
                 <Button
                   label={
@@ -1324,7 +1332,7 @@ export function LogMealSheet({
                       <AppSymbol
                         sf="barcode.viewfinder"
                         size={18}
-                        tintColor={theme.brand}
+                        tintColor={theme.brandOnSurface}
                         fallback="📷"
                       />
                       <Text className="text-xs font-semibold text-brand">Scan</Text>
@@ -1334,7 +1342,7 @@ export function LogMealSheet({
                   {/* Search Loading State */}
                   {isSearchingFood ? (
                     <View className="items-center justify-center py-8">
-                      <ActivityIndicator size="small" color={theme.brand} />
+                      <ActivityIndicator size="small" color={theme.brandOnSurface} />
                       <Text className="mt-2 text-xs font-medium text-text-muted">
                         Searching global food database...
                       </Text>
@@ -1445,7 +1453,12 @@ export function LogMealSheet({
               ) : composeTab === 'photo' ? (
                 <View className="mb-4 items-center rounded-xl border border-border bg-card p-5">
                   <View className="mb-3 h-12 w-12 items-center justify-center rounded-full bg-border-strong">
-                    <AppSymbol sf="camera.fill" size={22} tintColor={theme.brand} fallback="📷" />
+                    <AppSymbol
+                      sf="camera.fill"
+                      size={22}
+                      tintColor={theme.brandOnSurface}
+                      fallback="📷"
+                    />
                   </View>
                   <Text className="text-base font-bold text-text-primary">
                     Photo Estimate with AI
@@ -1539,7 +1552,7 @@ export function LogMealSheet({
                     <MacroFields form={form} themeMuted={theme.textMuted} update={update} />
                   ) : null}
 
-                  {error ? <Text className="mb-3 text-xs text-red-400">{error}</Text> : null}
+                  {error ? <Text className="mb-3 text-xs text-danger">{error}</Text> : null}
                 </>
               )}
             </View>

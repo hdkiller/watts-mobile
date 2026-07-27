@@ -159,7 +159,7 @@ function TerrainStrip({
                 const startX = toX(profile[climb.startIndex]!.distanceM);
                 const endX = toX(profile[climb.endIndex]!.distanceM);
                 const selected = selectedClimb === climb.index;
-                const color = selected ? theme.brand : theme.textBody;
+                const color = selected ? theme.brandOnSurface : theme.textBody;
                 return (
                   <Line
                     key={`bracket-${climb.index}`}
@@ -181,7 +181,7 @@ function TerrainStrip({
                     key={`number-${climb.index}`}
                     x={(startX + endX) / 2}
                     y={10}
-                    fill={selected ? theme.brand : theme.textBody}
+                    fill={selected ? theme.brandOnSurface : theme.textBody}
                     fontSize={10}
                     fontWeight="600"
                     textAnchor="middle"
