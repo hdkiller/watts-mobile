@@ -81,7 +81,7 @@ export default function SubscriptionScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Subscription & Billing' }} />
+      <Stack.Screen options={{ title: 'Subscription' }} />
       <SafeAreaView edges={{ bottom: true }} style={{ flex: 1, backgroundColor: theme.surface }}>
         <ScrollView
           ref={scrollRef}

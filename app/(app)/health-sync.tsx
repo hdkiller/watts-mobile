@@ -237,7 +237,7 @@ export default function HealthSyncSettingsScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Health Sync',
+          title: isIOS ? 'Apple Health' : 'Health Connect',
           headerShown: true,
         }}
       />

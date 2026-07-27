@@ -106,7 +106,7 @@ export default function UpcomingPlannedScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Upcoming',
+          title: 'Upcoming workouts',
           headerShown: true,
           headerLeft: () => (
             <Pressable

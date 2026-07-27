@@ -72,7 +72,9 @@ export default function InviteFriendsScreen() {
         >
           <AppSymbol sf="chevron.left" size={20} tintColor={theme.textPrimary} fallback="‹" />
         </AnimatedPressable>
-        <Text className="ml-1 flex-1 text-2xl font-semibold text-text-primary">Invite friends</Text>
+        <Text className="ml-1 flex-1 text-2xl font-semibold text-text-primary">
+          Invite a friend
+        </Text>
       </View>
 
       <ScrollView
