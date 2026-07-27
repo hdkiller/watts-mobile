@@ -45,4 +45,3 @@ export type StorePackage = {
   title: string;
   nativePackage: import('react-native-purchases').PurchasesPackage;
 };
-

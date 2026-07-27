@@ -249,7 +249,7 @@ export default function SubscriptionScreen() {
                         : 'Free Plan'}
                   </Text>
                   {currentTier !== 'FREE' ? (
-                    <View className="rounded-full bg-brand/15 px-3 py-1 border border-brand/30">
+                    <View className="rounded-full border border-brand/30 bg-brand/15 px-3 py-1">
                       <Text className="text-xs font-semibold text-brand">Active Member</Text>
                     </View>
                   ) : null}
@@ -353,18 +353,12 @@ export default function SubscriptionScreen() {
           {/* Web Suppressed Notice */}
           {acquisitionEnabled && summary.data?.acquisitionSuppressed ? (
             <View className="mt-6 rounded-xl border border-border bg-card p-4">
-              <Text className="font-semibold text-text-primary">
-                Web subscription active
-              </Text>
+              <Text className="font-semibold text-text-primary">Web subscription active</Text>
               <Text className="mt-2 text-sm leading-5 text-text-muted">
                 In-app store purchases are disabled while your active subscription is managed on
                 Coach Watts web.
               </Text>
-              <Pressable
-                className="mt-3"
-                hitSlop={8}
-                onPress={() => void manage('STRIPE', null)}
-              >
+              <Pressable className="mt-3" hitSlop={8} onPress={() => void manage('STRIPE', null)}>
                 <Text className="text-sm font-semibold text-brand">
                   Manage on Coach Watts web →
                 </Text>
@@ -396,14 +390,16 @@ export default function SubscriptionScreen() {
                   <Text className="mt-1 text-xs text-red-300">
                     {!rcAvailable
                       ? 'RevenueCat API key is missing from environment config.'
-                      : friendlyError(offerings.error, 'Store service unavailable or unconfigured.')}
+                      : friendlyError(
+                          offerings.error,
+                          'Store service unavailable or unconfigured.',
+                        )}
                   </Text>
                   <Pressable className="mt-3" hitSlop={8} onPress={() => void offerings.refetch()}>
                     <Text className="text-sm font-semibold text-brand">Retry loading plans</Text>
                   </Pressable>
                 </View>
               ) : null}
-
 
               {offerings.data?.map((item) => {
                 const isCurrentPlan = currentTier === item.tier;
@@ -424,7 +420,7 @@ export default function SubscriptionScreen() {
                             {item.tier === 'PRO' ? 'Pro' : 'Supporter'}
                           </Text>
                           {item.period === 'ANNUAL' && item.savingsPercentage ? (
-                            <View className="rounded-full bg-emerald-500/20 px-2.5 py-0.5 border border-emerald-500/30">
+                            <View className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2.5 py-0.5">
                               <Text className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">
                                 Save 33%
                               </Text>
@@ -454,7 +450,7 @@ export default function SubscriptionScreen() {
                     </View>
 
                     {item.introOffer ? (
-                      <View className="mt-3 rounded-lg bg-surface px-3 py-1.5 border border-border">
+                      <View className="mt-3 rounded-lg border border-border bg-surface px-3 py-1.5">
                         <Text className="text-xs font-medium text-brand">
                           🎉 Includes {item.introOffer.priceString} ({item.introOffer.period})
                         </Text>
@@ -464,7 +460,7 @@ export default function SubscriptionScreen() {
                     {/* Features list */}
                     <View className="mt-4 gap-2 border-t border-border pt-4">
                       {features.map((feat) => (
-                        <Text key={feat} className="text-xs text-text-muted leading-4">
+                        <Text key={feat} className="text-xs leading-4 text-text-muted">
                           {feat}
                         </Text>
                       ))}
@@ -499,7 +495,7 @@ export default function SubscriptionScreen() {
           {/* Restore Purchases Section */}
           {acquisitionEnabled && rcAvailable ? (
             <View className="mt-8 items-center border-t border-border pt-6">
-              <Text className="text-xs text-text-muted text-center">
+              <Text className="text-center text-xs text-text-muted">
                 Already subscribed on Apple ID or Google Play?
               </Text>
               <Pressable
@@ -530,7 +526,9 @@ export default function SubscriptionScreen() {
           <View className="mt-6 items-center">
             <Pressable
               hitSlop={8}
-              onPress={() => void openUrlSafely('mailto:support@coachwatts.com?subject=Billing%20Support')}
+              onPress={() =>
+                void openUrlSafely('mailto:support@coachwatts.com?subject=Billing%20Support')
+              }
             >
               <Text className="text-xs text-text-muted underline">
                 Need help? Contact Billing Support

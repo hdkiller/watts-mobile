@@ -8,7 +8,6 @@ import { TODAY_QUERY_KEY } from './types';
 
 export { TODAY_QUERY_KEY };
 
-
 export function useTodayQuery() {
   return useQuery({
     queryKey: TODAY_QUERY_KEY,
