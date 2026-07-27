@@ -20,7 +20,6 @@ import {
 import { WellnessScoreCard } from '@/src/features/log/WellnessScoreCard';
 
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
-import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
 import type { WeightUnits } from '@/src/features/profile/types';
@@ -201,14 +200,14 @@ export function WellnessCheckinSheet({
               label="Mood"
               help={getMoodLabel(values.mood ?? 5)}
               value={values.mood}
-              tintColor={Colors.brand}
+              tintColor={theme.brandOnSurface}
               onChange={updateSubjective('mood')}
             />
             <WellnessScoreCard
               label="Stress"
               help={getStressLabel(values.stress ?? 5)}
               value={values.stress}
-              tintColor={Colors.modify}
+              tintColor={theme.modifyOnSurface}
               onChange={updateSubjective('stress')}
             />
             <WellnessScoreCard
@@ -222,7 +221,7 @@ export function WellnessCheckinSheet({
               label="Soreness"
               help={getSorenessHelp(values.soreness ?? 5)}
               value={values.soreness}
-              tintColor={Colors.danger}
+              tintColor={theme.dangerOnSurface}
               onChange={updateSubjective('soreness')}
             />
 
@@ -240,7 +239,7 @@ export function WellnessCheckinSheet({
               onChangeText={updateField('weight')}
             />
 
-            {error ? <Text className="mt-3 text-xs text-red-400">{error}</Text> : null}
+            {error ? <Text className="mt-3 text-xs text-danger">{error}</Text> : null}
             {saveNotice ? (
               <Text testID="wellness-checkin-saved" className="mt-3 text-xs text-brand">
                 {saveNotice}

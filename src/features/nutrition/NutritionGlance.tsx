@@ -8,7 +8,6 @@ import { Skeleton } from '@/src/components/Skeleton';
 import { isNutritionTrackingEnabled } from '@/src/features/profile/mapProfile';
 import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { hapticLight } from '@/src/lib/haptics';
-import { Colors } from '@/src/theme/colors';
 import { NutritionAccents } from '@/src/theme/nutritionAccents';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
@@ -178,7 +177,7 @@ export function NutritionGlance() {
               {/* Main Calorie Progress Bar */}
               <GoalBar
                 pct={goalProgressPct(today.calories, today.caloriesGoal)}
-                color={Colors.brand}
+                color={theme.brandOnSurface}
               />
 
               {/* Macros Breakdown Row (Tappable for Carbs, Protein, Fat) */}

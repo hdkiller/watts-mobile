@@ -10,7 +10,7 @@ import { BottomSheet } from '@/src/components/BottomSheet';
 import { Button } from '@/src/components/Button';
 import { addLocalMonthsYmd, isValidCalendarYmd, localDateYmd } from '@/src/features/log/mapLogForm';
 import { hapticLight } from '@/src/lib/haptics';
-import { Colors } from '@/src/theme/colors';
+import { useThemeColors } from '@/src/theme/useThemeColors';
 
 const PRESETS = [
   { months: 1, label: '+1 mo' },
@@ -53,6 +53,7 @@ export function DateYmdField({
   testID,
   disabled = false,
 }: Props) {
+  const theme = useThemeColors();
   const scheme = useColorScheme();
   const [open, setOpen] = useState(false);
   const [draftYmd, setDraftYmd] = useState(value);
@@ -139,7 +140,7 @@ export function DateYmdField({
           mode="date"
           presentation="dialog"
           minimumDate={minDate}
-          accentColor={Colors.brand}
+          accentColor={theme.brandOnSurface}
           onValueChange={(_event, selected) => {
             setOpen(false);
             if (selected) applyYmd(localDateYmd(selected));
@@ -161,7 +162,7 @@ export function DateYmdField({
             mode="date"
             display="inline"
             minimumDate={minDate}
-            accentColor={Colors.brand}
+            accentColor={theme.brandOnSurface}
             themeVariant={scheme === 'light' ? 'light' : 'dark'}
             onValueChange={(_event, selected) => {
               if (selected) setDraftYmd(localDateYmd(selected));

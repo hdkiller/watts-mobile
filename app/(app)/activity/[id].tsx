@@ -94,7 +94,7 @@ function AnalysisGlance({
       <Text
         className={`mt-2 text-sm ${
           analysis.phase === 'failed' || analysis.phase === 'quota'
-            ? 'text-red-400'
+            ? 'text-danger'
             : 'text-text-muted'
         }`}
       >
@@ -141,7 +141,7 @@ function AnalysisGlance({
       ) : null}
 
       {analyzeError && !limited ? (
-        <Text className="mt-3 text-sm text-red-400">{analyzeError}</Text>
+        <Text className="mt-3 text-sm text-danger">{analyzeError}</Text>
       ) : null}
 
       {showCta && !limited ? (
@@ -243,7 +243,7 @@ function PlanAdherenceBlock({ adherence }: { adherence: PlanAdherenceGlance }) {
       {adherence.phase === 'pending' || adherence.phase === 'failed' ? (
         <Text
           className={`mt-2 text-sm ${
-            adherence.phase === 'failed' ? 'text-red-400' : 'text-text-muted'
+            adherence.phase === 'failed' ? 'text-danger' : 'text-text-muted'
           }`}
         >
           {adherence.statusLabel}
@@ -382,7 +382,7 @@ export default function ActivitySummaryScreen() {
           <HeroStatTiles stats={activityHeroStats(data)} />
           <Text
             className={`mt-3 text-sm ${
-              data.status.kind === 'failed' ? 'text-red-400' : 'text-text-muted'
+              data.status.kind === 'failed' ? 'text-danger' : 'text-text-muted'
             }`}
           >
             {data.status.label}
