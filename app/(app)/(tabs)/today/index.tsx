@@ -38,6 +38,8 @@ import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { DASHBOARD_PROFILE_KEY } from '@/src/features/profile/useRecentWellness';
 import { useActiveRecoveryQuery } from '@/src/features/recovery/useRecovery';
 import { AnalysisReadyCard } from '@/src/features/today/analysis-ready-card';
+import { QuotaLimitCard } from '@/src/features/subscriptions/QuotaLimitCard';
+import { parseQuotaError, type QuotaInfo } from '@/src/features/subscriptions/quota';
 import { AnalyzeReadinessPanel } from '@/src/features/today/AnalyzeReadinessPanel';
 import { ComingUpStrip } from '@/src/features/today/coming-up-strip';
 import { MoreActionsSheet, type MoreAction } from '@/src/features/today/more-actions-sheet';
@@ -236,12 +238,14 @@ export default function TodayScreen() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [genState, setGenState] = useState<'idle' | 'generating' | 'error' | 'quota'>('idle');
   const [genError, setGenError] = useState<string | null>(null);
+  const [genQuota, setGenQuota] = useState<QuotaInfo | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [refineOpen, setRefineOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [adhocOpen, setAdhocOpen] = useState(false);
   const [adhocState, setAdhocState] = useState<'idle' | 'generating' | 'error' | 'quota'>('idle');
   const [adhocError, setAdhocError] = useState<string | null>(null);
+  const [adhocQuota, setAdhocQuota] = useState<QuotaInfo | null>(null);
   const generateMutation = useGenerateTodayRecommendation();
   const adhocMutation = useGenerateAdHocWorkout();
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -319,14 +323,10 @@ export default function TodayScreen() {
       }
     } catch (err: unknown) {
       hapticError();
-      const status =
-        typeof err === 'object' && err !== null && 'status' in err
-          ? (err as { status?: number }).status
-          : undefined;
-      const message = err instanceof Error ? err.message : '';
-      if (status === 429 || message.includes('Quota')) {
+      const quota = parseQuotaError(err, 'READINESS_RECOMMENDATION');
+      if (quota) {
         setGenState('quota');
-        setGenError(message || 'Quota exceeded for activity recommendation.');
+        setGenQuota(quota);
       } else {
         setGenState('error');
         setGenError(
@@ -421,14 +421,10 @@ export default function TodayScreen() {
       }, 2500);
     } catch (err: unknown) {
       hapticError();
-      const status =
-        typeof err === 'object' && err !== null && 'status' in err
-          ? (err as { status?: number }).status
-          : undefined;
-      const message = err instanceof Error ? err.message : '';
-      if (status === 429 || message.includes('Quota')) {
+      const quota = parseQuotaError(err, 'WORKOUT_GENERATION');
+      if (quota) {
         setAdhocState('quota');
-        setAdhocError(message || 'Quota exceeded for workout generation.');
+        setAdhocQuota(quota);
       } else {
         setAdhocState('error');
         setAdhocError(friendlyError(err, 'Couldn’t start ad-hoc workout generation.'));
@@ -641,6 +637,7 @@ export default function TodayScreen() {
           <AnalyzeReadinessPanel
             state={genState}
             errorMessage={genError}
+            quotaInfo={genQuota}
             generatingPending={generateMutation.isPending}
             onAnalyze={() => void onGenerate()}
             onOpenWeb={() => void openWeb()}
@@ -660,19 +657,12 @@ export default function TodayScreen() {
         ) : null}
 
         {adhocState === 'quota' ? (
-          <View className="mt-6 rounded-2xl border border-modify/40 bg-modify/10 p-5">
-            <Text className="text-xs uppercase tracking-wide text-modify">Plan limit</Text>
-            <Text className="mt-2 text-lg font-semibold text-text-primary">
-              Workout generation limit reached
-            </Text>
-            <Text className="mt-2 text-sm leading-5 text-text-body">
-              {adhocError || 'Update your plan in Coach Watts to generate more workouts.'}
-            </Text>
-            <View className="mt-5 gap-3">
-              <Button label="Open Coach Watts" onPress={() => void openWeb()} />
-              <Button label="Back" variant="secondary" onPress={() => setAdhocState('idle')} />
-            </View>
-          </View>
+          <QuotaLimitCard
+            className="mt-6"
+            info={adhocQuota ?? { feature: 'WORKOUT_GENERATION' }}
+            surface="today_adhoc"
+            onDismiss={() => setAdhocState('idle')}
+          />
         ) : null}
 
         {adhocState === 'error' ? (

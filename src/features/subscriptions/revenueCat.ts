@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import Purchases, {
   LOG_LEVEL,
+  PRORATION_MODE,
   PURCHASES_ERROR_CODE,
   type PurchasesError,
   type PurchasesPackage,
@@ -13,8 +14,14 @@ import {
   SUBSCRIPTION_SUPPORTER_PRODUCT_IDS,
 } from '@/src/config/env';
 
-import type { StorePackage } from './types';
-import { classifyProductTier, packagePeriod } from './adapters';
+import type { StoreIntroOffer, StorePackage } from './types';
+import {
+  classifyProductTier,
+  computeAnnualSavingsPercentage,
+  formatOfferPeriod,
+  monthlyEquivalentPrice,
+  packagePeriod,
+} from './adapters';
 
 let configuredUserId: string | null = null;
 let identityOperation = Promise.resolve();
@@ -70,8 +77,21 @@ export function synchronizeRevenueCatIdentity(userId: string | null): Promise<vo
   return identityOperation;
 }
 
+function mapIntroOffer(item: PurchasesPackage): StoreIntroOffer | null {
+  const raw = item.product.introPrice;
+  if (!raw) return null;
+  const isFree = raw.price === 0;
+  return {
+    priceString: raw.priceString || (isFree ? 'Free' : `${raw.price}`),
+    price: raw.price,
+    periodLabel: formatOfferPeriod(raw.periodUnit ?? 'month', raw.periodNumberOfUnits ?? 1),
+    cycles: raw.cycles > 0 ? raw.cycles : 1,
+    type: isFree ? 'FREE_TRIAL' : 'INTRODUCTORY',
+  };
+}
+
 export function mapStorePackages(packages: readonly PurchasesPackage[]): StorePackage[] {
-  return packages.flatMap((item) => {
+  const mapped = packages.flatMap<StorePackage>((item) => {
     const tier = classifyProductTier(
       item.product.identifier,
       SUBSCRIPTION_SUPPORTER_PRODUCT_IDS,
@@ -81,30 +101,7 @@ export function mapStorePackages(packages: readonly PurchasesPackage[]): StorePa
     if (!tier || !period) return [];
 
     const priceAmount = item.product.price;
-    const currencyCode = item.product.currencyCode;
-    let monthlyPriceString: string | undefined;
-    let savingsPercentage: number | undefined;
-
-    if (period === 'ANNUAL' && typeof priceAmount === 'number' && priceAmount > 0) {
-      const monthlyAmount = priceAmount / 12;
-      // Extract currency symbol or format from priceString
-      const symbolMatch = item.product.priceString.match(/^[^\d\s]+/);
-      const symbol = symbolMatch ? symbolMatch[0] : currencyCode || '$';
-      monthlyPriceString = `${symbol}${monthlyAmount.toFixed(2)}/mo`;
-      savingsPercentage = 33; // Default visual savings indicator for annual billing
-    }
-
-    const rawIntro = item.product.introPrice;
-    const introOffer = rawIntro
-      ? {
-          priceString:
-            rawIntro.priceString ?? (rawIntro.price === 0 ? 'Free trial' : `${rawIntro.price}`),
-          period: rawIntro.periodNumberOfUnits
-            ? `${rawIntro.periodNumberOfUnits} ${rawIntro.periodUnit.toLowerCase()}`
-            : 'trial',
-          type: rawIntro.price === 0 ? ('FREE_TRIAL' as const) : ('INTRODUCTORY' as const),
-        }
-      : null;
+    const priceString = item.product.priceString;
 
     return [
       {
@@ -112,17 +109,39 @@ export function mapStorePackages(packages: readonly PurchasesPackage[]): StorePa
         productId: item.product.identifier,
         tier,
         period,
-        price: item.product.priceString,
+        price: priceString,
         priceAmount,
-        currencyCode,
-        monthlyPriceString,
-        savingsPercentage,
-        introOffer,
+        currencyCode: item.product.currencyCode,
+        // Google reports a per-month string directly; derive it from the store's
+        // own formatting elsewhere so symbol placement and separators survive.
+        monthlyPriceString:
+          period === 'ANNUAL'
+            ? (item.product.pricePerMonthString ?? monthlyEquivalentPrice(priceString, priceAmount))
+            : undefined,
+        introOffer: mapIntroOffer(item),
         title: item.product.title,
         nativePackage: item,
       },
     ];
   });
+
+  // Savings are only claimable against a real monthly package of the same tier.
+  const monthlyByTier = new Map<string, number>();
+  for (const pkg of mapped) {
+    if (pkg.period === 'MONTHLY' && pkg.priceAmount) monthlyByTier.set(pkg.tier, pkg.priceAmount);
+  }
+
+  return mapped.map((pkg) =>
+    pkg.period === 'ANNUAL'
+      ? {
+          ...pkg,
+          savingsPercentage: computeAnnualSavingsPercentage(
+            pkg.priceAmount,
+            monthlyByTier.get(pkg.tier),
+          ),
+        }
+      : pkg,
+  );
 }
 
 export async function fetchStorePackages(): Promise<StorePackage[]> {
@@ -143,9 +162,24 @@ export async function fetchStorePackages(): Promise<StorePackage[]> {
 
 export type PurchaseOutcome = 'purchased' | 'cancelled' | 'pending';
 
-export async function purchaseStorePackage(item: StorePackage): Promise<PurchaseOutcome> {
+/**
+ * @param replacesProductId Store product the athlete already holds. Google Play
+ * requires it to replace a subscription rather than stack a second one; Apple
+ * handles same-group changes itself, so it is ignored on iOS.
+ */
+export async function purchaseStorePackage(
+  item: StorePackage,
+  replacesProductId?: string | null,
+): Promise<PurchaseOutcome> {
   try {
-    await Purchases.purchasePackage(item.nativePackage);
+    const productChange =
+      Platform.OS === 'android' && replacesProductId
+        ? {
+            oldProductIdentifier: replacesProductId,
+            prorationMode: PRORATION_MODE.IMMEDIATE_WITH_TIME_PRORATION,
+          }
+        : null;
+    await Purchases.purchasePackage(item.nativePackage, null, productChange);
     return 'purchased';
   } catch (error) {
     const purchaseError = error as PurchasesError;

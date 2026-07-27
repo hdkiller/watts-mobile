@@ -1,4 +1,6 @@
 import { apiFetch } from '@/src/api/client';
+import { ApiError } from '@/src/api/errors';
+import { withRetryAfter } from '@/src/features/subscriptions/quota';
 
 export type DailyCheckinQuestion = {
   id: string;
@@ -47,7 +49,11 @@ export async function generateDailyCheckin(force = false): Promise<DailyCheckin>
       // Non-JSON error bodies (proxy HTML, plain text) keep the status fallback.
     }
     if (response.status === 429) {
-      throw new Error(body?.message || 'Quota exceeded for daily check-in.');
+      throw new ApiError(
+        body?.message || 'Quota exceeded for daily check-in.',
+        429,
+        withRetryAfter(response, body),
+      );
     }
     throw new Error(body?.message || body?.statusMessage || message);
   }
