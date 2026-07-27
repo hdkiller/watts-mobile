@@ -22,10 +22,10 @@ export function scalePortion(per100g: Per100g | undefined, grams: number): Scale
   if (!per100g || !Number.isFinite(grams) || grams <= 0) return { ...EMPTY_PORTION };
   const factor = grams / 100;
   return {
-    calories: Math.round(per100g.calories_kcal * factor),
-    protein: round1(per100g.protein_g * factor),
-    carbs: round1(per100g.carbs_g * factor),
-    fat: round1(per100g.fat_g * factor),
+    calories: Math.round((per100g.calories_kcal ?? 0) * factor),
+    protein: round1((per100g.protein_g ?? 0) * factor),
+    carbs: round1((per100g.carbs_g ?? 0) * factor),
+    fat: round1((per100g.fat_g ?? 0) * factor),
     fiber: per100g.fiber_g ? round1(per100g.fiber_g * factor) : 0,
   };
 }

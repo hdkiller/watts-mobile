@@ -14,10 +14,12 @@ export const DEFAULT_INSTANCE_URL =
 export const OAUTH_CLIENT_ID =
   process.env.EXPO_PUBLIC_OAUTH_CLIENT_ID ?? (extraString('oauthClientId') || '');
 
-function envFlag(value: string | undefined): boolean {
-  if (!value) return false;
+function envFlag(value: string | undefined, defaultValue = false): boolean {
+  if (value === undefined || value.trim() === '') return defaultValue;
   const normalized = value.trim().toLowerCase();
-  return normalized === '1' || normalized === 'true' || normalized === 'yes';
+  if (normalized === '0' || normalized === 'false' || normalized === 'no') return false;
+  if (normalized === '1' || normalized === 'true' || normalized === 'yes') return true;
+  return defaultValue;
 }
 
 function envCsv(value: string | undefined): string[] {
@@ -77,7 +79,9 @@ export const APP_VERSION = Constants.expoConfig?.version ?? '0.1.0';
 
 export const NATIVE_SUBSCRIPTIONS_ENABLED = envFlag(
   process.env.EXPO_PUBLIC_NATIVE_SUBSCRIPTIONS_ENABLED,
+  true,
 );
+
 export const REVENUECAT_IOS_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY?.trim() ?? '';
 export const REVENUECAT_ANDROID_API_KEY =
   process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY?.trim() ?? '';

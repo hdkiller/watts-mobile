@@ -32,6 +32,7 @@ const REQUIRED = [
   'scenarios/coach-compose.yaml',
   'scenarios/more-hubs.yaml',
   'scenarios/more-invite.yaml',
+  'scenarios/settings-account-deletion.yaml',
   'scenarios/deeplink-today.yaml',
   'scenarios/deeplink-log.yaml',
   'scenarios/deeplink-coach.yaml',

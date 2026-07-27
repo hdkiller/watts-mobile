@@ -33,6 +33,15 @@ export type StorePackage = {
   tier: Exclude<SubscriptionTier, 'FREE'>;
   period: 'MONTHLY' | 'ANNUAL';
   price: string;
+  priceAmount?: number;
+  currencyCode?: string;
+  monthlyPriceString?: string;
+  savingsPercentage?: number;
+  introOffer?: {
+    priceString: string;
+    period: string;
+    type: 'FREE_TRIAL' | 'INTRODUCTORY';
+  } | null;
   title: string;
   nativePackage: import('react-native-purchases').PurchasesPackage;
 };

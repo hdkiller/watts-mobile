@@ -276,6 +276,35 @@ export function resolveToolDomain(toolName: string): ToolDomain {
   return 'other';
 }
 
+/**
+ * Verbs that mean the coach changed something rather than just looked it up.
+ * Allowlist, not a read-blocklist: an unrecognised tool stays silent, so a new
+ * read tool can never start buzzing the user on its own.
+ */
+const ACTION_TOOL_PREFIXES = [
+  'create_',
+  'update_',
+  'delete_',
+  'log_',
+  'patch_',
+  'record_',
+  'reschedule_',
+  'recommend_',
+];
+
+/** True when the tool writes data — `get_`/`list_`/`search_` reads are not actions. */
+export function isActionToolName(toolName: string): boolean {
+  const name = toolName.replace(/^tool-/, '');
+  return ACTION_TOOL_PREFIXES.some((prefix) => name.startsWith(prefix));
+}
+
+/** True when the message reports a write tool that actually succeeded. */
+export function messageCompletedAction(message: CoachUIMessage): boolean {
+  return toolOutcomeSummaries(message).some(
+    (outcome) => outcome.status === 'success' && isActionToolName(outcome.toolName),
+  );
+}
+
 /** One-line approval preview from common arg keys (`title` | `name` | `date`). */
 export function approvalPreviewLine(args: unknown): string | null {
   if (!args || typeof args !== 'object') return null;

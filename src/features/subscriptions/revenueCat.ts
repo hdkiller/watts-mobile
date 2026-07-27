@@ -31,14 +31,28 @@ export function isRevenueCatAvailable(): boolean {
   return (Platform.OS === 'ios' || Platform.OS === 'android') && Boolean(platformKey());
 }
 
+let logHandlerRegistered = false;
+
+function setupLogLevel(): void {
+  if (__DEV__ && !logHandlerRegistered) {
+    logHandlerRegistered = true;
+    Purchases.setLogLevel(LOG_LEVEL.WARN);
+    Purchases.setLogHandler((logLevel, message) => {
+      if (logLevel === LOG_LEVEL.ERROR || logLevel === LOG_LEVEL.WARN) {
+        console.warn('[RevenueCat]', message);
+      }
+    });
+  }
+}
+
 export function synchronizeRevenueCatIdentity(userId: string | null): Promise<void> {
   identityOperation = identityOperation
     .then(async () => {
       if (!isRevenueCatAvailable()) return;
+      setupLogLevel();
       const configured = await Purchases.isConfigured();
       if (userId) {
         if (!configured) {
-          if (__DEV__) Purchases.setLogLevel(LOG_LEVEL.DEBUG);
           Purchases.configure({ apiKey: platformKey(), appUserID: userId });
         } else if (configuredUserId !== userId) {
           if (configuredUserId) await Purchases.logOut();
@@ -65,6 +79,33 @@ export function mapStorePackages(packages: readonly PurchasesPackage[]): StorePa
     );
     const period = packagePeriod(item.identifier, item.packageType);
     if (!tier || !period) return [];
+
+    const priceAmount = item.product.price;
+    const currencyCode = item.product.currencyCode;
+    let monthlyPriceString: string | undefined;
+    let savingsPercentage: number | undefined;
+
+    if (period === 'ANNUAL' && typeof priceAmount === 'number' && priceAmount > 0) {
+      const monthlyAmount = priceAmount / 12;
+      // Extract currency symbol or format from priceString
+      const symbolMatch = item.product.priceString.match(/^[^\d\s]+/);
+      const symbol = symbolMatch ? symbolMatch[0] : currencyCode || '$';
+      monthlyPriceString = `${symbol}${monthlyAmount.toFixed(2)}/mo`;
+      savingsPercentage = 33; // Default visual savings indicator for annual billing
+    }
+
+    const rawIntro = item.product.introPrice;
+    const introOffer = rawIntro
+      ? {
+          priceString:
+            rawIntro.priceString ?? (rawIntro.price === 0 ? 'Free trial' : `${rawIntro.price}`),
+          period: rawIntro.periodNumberOfUnits
+            ? `${rawIntro.periodNumberOfUnits} ${rawIntro.periodUnit.toLowerCase()}`
+            : 'trial',
+          type: rawIntro.price === 0 ? ('FREE_TRIAL' as const) : ('INTRODUCTORY' as const),
+        }
+      : null;
+
     return [
       {
         id: item.identifier,
@@ -72,6 +113,11 @@ export function mapStorePackages(packages: readonly PurchasesPackage[]): StorePa
         tier,
         period,
         price: item.product.priceString,
+        priceAmount,
+        currencyCode,
+        monthlyPriceString,
+        savingsPercentage,
+        introOffer,
         title: item.product.title,
         nativePackage: item,
       },
@@ -81,6 +127,16 @@ export function mapStorePackages(packages: readonly PurchasesPackage[]): StorePa
 
 export async function fetchStorePackages(): Promise<StorePackage[]> {
   if (!isRevenueCatAvailable()) return [];
+  const configured = await Purchases.isConfigured();
+  if (!configured) {
+    const key = platformKey();
+    if (key) {
+      setupLogLevel();
+      Purchases.configure({ apiKey: key });
+    } else {
+      return [];
+    }
+  }
   const offerings = await Purchases.getOfferings();
   return mapStorePackages(offerings.current?.availablePackages ?? []);
 }
@@ -104,6 +160,7 @@ export async function purchaseStorePackage(item: StorePackage): Promise<Purchase
 }
 
 export async function restoreStorePurchases(): Promise<boolean> {
+  if (!isRevenueCatAvailable()) return false;
   const info = await Purchases.restorePurchases();
   return Object.keys(info.entitlements.active).length > 0;
 }
