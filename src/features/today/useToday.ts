@@ -5,9 +5,7 @@ import { UPCOMING_PLANNED_QUERY_KEY } from '@/src/features/activity/useActivity'
 import { generateAdHocWorkout, type AdHocWorkoutRequest } from './adHocApi';
 import { acceptRecommendation, fetchTodayView, generateTodayRecommendation } from './api';
 import { TODAY_QUERY_KEY } from './types';
-
 export { TODAY_QUERY_KEY };
-
 
 export function useTodayQuery() {
   return useQuery({

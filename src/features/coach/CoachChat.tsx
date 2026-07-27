@@ -13,9 +13,19 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  FadeInRight,
+  FadeOut,
+  LinearTransition,
+} from 'react-native-reanimated';
 import type { SFSymbol } from 'expo-symbols';
 import { Button } from '@/src/components/Button';
+import { AnimatedPressable } from '@/src/components/AnimatedPressable';
+import { AnimatedView } from '@/src/components/AnimatedView';
 import { AppSymbol } from '@/src/components/AppSymbol';
+import { hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { CoachChatSkeleton } from '@/src/components/Skeleton';
 import { useKeyboardOverlap } from '@/src/hooks/useKeyboardOverlap';
 import { Colors } from '@/src/theme/colors';
@@ -25,6 +35,8 @@ import {
   approvalPreviewLine,
   extractPendingApprovals,
   humanizeToolName,
+  isActiveTurnStatus,
+  messageCompletedAction,
   messageImageParts,
   displayMessageText,
   resolveToolDomain,
@@ -44,8 +56,10 @@ import type {
   ToolInProgressSummary,
   ToolOutcomeSummary,
 } from './types';
+import { TypingIndicator } from './TypingIndicator';
 import { useCoachChat } from './useCoachChat';
 import { useCoachDictation } from './useCoachDictation';
+import { useTypingFloor } from './useTypingFloor';
 
 function ChatGlyph({
   sf,
@@ -134,15 +148,34 @@ function ToolOutcomeCard({ outcome }: { outcome: ToolOutcomeSummary }) {
   );
 }
 
+/**
+ * Stable 0–1 jitter seed from the message id. Deterministic on purpose:
+ * `Math.random()` would reshuffle the spring on every re-render and make a
+ * streaming bubble twitch mid-flight.
+ */
+function jitterSeed(id: string): number {
+  let hash = 0;
+  for (let i = 0; i < id.length; i += 1) hash = (hash * 31 + id.charCodeAt(i)) | 0;
+  return ((hash >>> 0) % 1000) / 1000;
+}
+
 function Bubble({
   message,
+  isFresh,
   onApprove,
 }: {
   message: CoachUIMessage;
+  /** Arrived during this session — replayed history must not re-animate on open. */
+  isFresh: boolean;
   onApprove: (payload: { approvalId: string; approved: boolean }) => void;
 }) {
   const isUser = message.role === 'user';
+  const seed = jitterSeed(message.id);
   const typing = Boolean(message.metadata?.syntheticTyping);
+  // Only the live bubble morphs. Putting `layout` on every row makes FlatList's
+  // recycled rows animate between sizes when the data swaps wholesale (room
+  // change), which reads as the whole list flickering.
+  const morphing = typing || isActiveTurnStatus(message.metadata?.turnStatus);
   const text = displayMessageText(message).trim();
   const images = messageImageParts(message);
   const approvals = extractPendingApprovals(message);
@@ -150,16 +183,34 @@ function Bubble({
   const toolProgress = toolInProgressSummaries(message);
 
   return (
-    <View className={`mb-3 max-w-[88%] ${isUser ? 'self-end' : 'self-start'}`}>
-      <View
+    <AnimatedView
+      entering={
+        isFresh
+          ? (isUser ? FadeInRight : FadeInDown)
+              .springify()
+              // ±2 damping / ±20 stiffness — enough that consecutive bubbles
+              // don't land in lockstep, too little to read as inconsistent.
+              .damping(17 + seed * 2)
+              .stiffness(210 + seed * 20)
+          : undefined
+      }
+      className={`mb-3 max-w-[88%] ${isUser ? 'self-end' : 'self-start'}`}
+    >
+      <AnimatedView
+        // damping ≈ 2·√stiffness keeps the morph critically damped, so the growing
+        // edge settles instead of wobbling past its final width.
+        layout={morphing ? LinearTransition.springify().damping(28).stiffness(200) : undefined}
         className={`rounded-2xl px-4 py-3 ${
           isUser ? 'bg-brand' : 'border border-border-strong bg-card'
         }`}
       >
         {typing ? (
-          <Text className="text-sm text-text-muted">Coach is typing…</Text>
+          <AnimatedView exiting={FadeOut.duration(150)} className="flex-row items-center gap-2">
+            <Text className="text-sm text-text-muted">Coach is typing…</Text>
+            <TypingIndicator />
+          </AnimatedView>
         ) : (
-          <>
+          <Animated.View entering={isFresh ? FadeIn.duration(200) : undefined}>
             {images.map((image) => (
               <Image
                 key={image.url}
@@ -178,9 +229,9 @@ function Bubble({
             {!text && images.length === 0 && !typing ? (
               <Text className={`text-base ${isUser ? 'text-ink' : 'text-text-primary'}`}>…</Text>
             ) : null}
-          </>
+          </Animated.View>
         )}
-      </View>
+      </AnimatedView>
 
       {toolProgress.map((item) => (
         <ToolProgressChip key={item.id} item={item} />
@@ -228,7 +279,7 @@ function Bubble({
           </View>
         );
       })}
-    </View>
+    </AnimatedView>
   );
 }
 
@@ -301,9 +352,14 @@ export function CoachChat({
   const listRef = useRef<FlatList<CoachUIMessage>>(null);
   const autoAttachHandled = useRef(false);
   const discussHandled = useRef(false);
+  const historyIds = useRef<Set<string>>(new Set());
+  const historyCaptured = useRef(false);
+  const capturedRoomId = useRef<string | null | undefined>(undefined);
+  const wasStreaming = useRef(false);
   const [attachSheetOpen, setAttachSheetOpen] = useState(false);
   const { containerRef, overlap } = useKeyboardOverlap();
   const chat = useCoachChat({ targetRoomId });
+  const listMessages = useTypingFloor(chat.displayMessages);
   const dictation = useCoachDictation({
     canStart: !chat.isReadOnly && !chat.sending,
     input: chat.input,
@@ -311,12 +367,35 @@ export function CoachChat({
   });
 
   useEffect(() => {
-    if (chat.displayMessages.length === 0) return;
+    if (listMessages.length === 0) return;
     const timer = setTimeout(() => {
       listRef.current?.scrollToEnd({ animated: true });
     }, 50);
     return () => clearTimeout(timer);
-  }, [chat.displayMessages, chat.streaming]);
+  }, [listMessages, chat.streaming]);
+
+  // Snapshot the loaded history so only messages that arrive live animate in.
+  // Re-armed per room: without this, switching or creating a room would replay
+  // the entrance animation for every message in it, which reads as a flash.
+  useEffect(() => {
+    if (capturedRoomId.current === chat.roomId || chat.loading) return;
+    capturedRoomId.current = chat.roomId;
+    historyCaptured.current = true;
+    historyIds.current = new Set(chat.displayMessages.map((message) => message.id));
+  }, [chat.roomId, chat.loading, chat.displayMessages]);
+
+  // Reward only replies where the coach actually did something (logged, planned,
+  // rescheduled). Plain answers and read-only lookups stay silent so the haptic
+  // keeps meaning "that landed" instead of firing on every message.
+  useEffect(() => {
+    if (wasStreaming.current && !chat.streaming) {
+      const last = chat.displayMessages[chat.displayMessages.length - 1];
+      if (last && messageCompletedAction(last)) hapticSuccess();
+    }
+    wasStreaming.current = chat.streaming;
+    // Latest message is read only on the streaming edge, not tracked as a dep.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chat.streaming]);
 
   // Keep the newest messages visible above the composer when the keyboard opens.
   useEffect(() => {
@@ -502,18 +581,21 @@ export function CoachChat({
       ) : (
         <FlatList
           ref={listRef}
-          className="flex-1 px-4 pt-3"
-          data={chat.displayMessages}
+          className="flex-1 px-4"
+          data={listMessages}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <Bubble
               message={item}
+              isFresh={historyCaptured.current && !historyIds.current.has(item.id)}
               onApprove={(payload) => {
                 void chat.submitToolApproval(payload);
               }}
             />
           )}
-          contentContainerStyle={{ paddingBottom: 16 }}
+          // Top inset lives on the content, not the list, so the first bubble
+          // clears the header instead of sitting flush against it.
+          contentContainerStyle={{ paddingTop: 20, paddingBottom: 16 }}
           keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
           keyboardShouldPersistTaps="handled"
           onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
@@ -632,7 +714,7 @@ export function CoachChat({
             />
           )}
         </Pressable>
-        <Pressable
+        <AnimatedPressable
           testID="coach-send"
           className={`h-11 w-11 shrink-0 items-center justify-center rounded-full ${
             canSend ? 'bg-brand' : 'bg-border-strong'
@@ -640,7 +722,10 @@ export function CoachChat({
           disabled={!canSend}
           accessibilityRole="button"
           accessibilityLabel="Send message"
-          onPress={() => void chat.send()}
+          onPress={() => {
+            hapticLight();
+            void chat.send();
+          }}
         >
           {chat.sending ? (
             <ActivityIndicator color={theme.ink} />
@@ -652,7 +737,7 @@ export function CoachChat({
               tint={canSend ? theme.ink : theme.textMuted}
             />
           )}
-        </Pressable>
+        </AnimatedPressable>
       </View>
 
       <AttachSheet

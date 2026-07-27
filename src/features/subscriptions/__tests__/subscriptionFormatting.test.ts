@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  formatProviderSubscriptionStatus,
-  formatRenewalNotice,
-} from '../adapters';
+import { formatProviderSubscriptionStatus, formatRenewalNotice } from '../adapters';
 
 describe('subscription formatting helpers', () => {
   it('formats provider subscription statuses with urgency indicators', () => {

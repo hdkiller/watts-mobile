@@ -1418,7 +1418,7 @@ export function LogMealSheet({
                             </View>
                             <View className="items-end">
                               <Text className="text-sm font-extrabold text-text-primary">
-                                {item.nutrients_per_100g.calories_kcal}{' '}
+                                {item.nutrients_per_100g?.calories_kcal ?? 0}{' '}
                                 <Text className="text-xs font-normal text-text-muted">
                                   kcal/100g
                                 </Text>
@@ -1428,13 +1428,13 @@ export function LogMealSheet({
 
                           <View className="mt-2.5 flex-row items-center gap-2 border-t border-border/50 pt-2">
                             <Text className="rounded bg-macro-carbs/10 px-2 py-0.5 text-[11px] font-semibold text-macro-carbs">
-                              Carbs: {item.nutrients_per_100g.carbs_g}g
+                              Carbs: {item.nutrients_per_100g?.carbs_g ?? 0}g
                             </Text>
                             <Text className="rounded bg-macro-protein/10 px-2 py-0.5 text-[11px] font-semibold text-macro-protein">
-                              Protein: {item.nutrients_per_100g.protein_g}g
+                              Protein: {item.nutrients_per_100g?.protein_g ?? 0}g
                             </Text>
                             <Text className="rounded bg-macro-fat/10 px-2 py-0.5 text-[11px] font-semibold text-macro-fat">
-                              Fat: {item.nutrients_per_100g.fat_g}g
+                              Fat: {item.nutrients_per_100g?.fat_g ?? 0}g
                             </Text>
                           </View>
                         </Pressable>

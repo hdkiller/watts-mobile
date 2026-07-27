@@ -91,7 +91,7 @@ export function mapStorePackages(packages: readonly PurchasesPackage[]): StorePa
       const monthlyAmount = priceAmount / 12;
       // Extract currency symbol or format from priceString
       const symbolMatch = item.product.priceString.match(/^[^\d\s]+/);
-      const symbol = symbolMatch ? symbolMatch[0] : (currencyCode || '$');
+      const symbol = symbolMatch ? symbolMatch[0] : currencyCode || '$';
       monthlyPriceString = `${symbol}${monthlyAmount.toFixed(2)}/mo`;
       savingsPercentage = 33; // Default visual savings indicator for annual billing
     }
@@ -99,8 +99,11 @@ export function mapStorePackages(packages: readonly PurchasesPackage[]): StorePa
     const rawIntro = item.product.introPrice;
     const introOffer = rawIntro
       ? {
-          priceString: rawIntro.priceString ?? (rawIntro.price === 0 ? 'Free trial' : `${rawIntro.price}`),
-          period: rawIntro.periodNumberOfUnits ? `${rawIntro.periodNumberOfUnits} ${rawIntro.periodUnit.toLowerCase()}` : 'trial',
+          priceString:
+            rawIntro.priceString ?? (rawIntro.price === 0 ? 'Free trial' : `${rawIntro.price}`),
+          period: rawIntro.periodNumberOfUnits
+            ? `${rawIntro.periodNumberOfUnits} ${rawIntro.periodUnit.toLowerCase()}`
+            : 'trial',
           type: rawIntro.price === 0 ? ('FREE_TRIAL' as const) : ('INTRODUCTORY' as const),
         }
       : null;

@@ -32,7 +32,11 @@
     "release:major": "release-it major",
     "release:android:github": "node scripts/publish-android-github-release.mjs",
     "release:android:github:local": "node scripts/publish-android-github-release.mjs --local",
-    "release:android:internal": "node scripts/android-internal-release.mjs"
+    "release:android:internal": "node scripts/android-internal-release.mjs",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,json,md,yaml,yml}": "prettier --write"
   },
   "dependencies": {
     "@ai-sdk/react": "^4.0.18",
@@ -99,6 +103,8 @@
     "eslint": "^9.0.0",
     "eslint-config-expo": "~57.0.0",
     "googleapis": "^173.0.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.2.0",
     "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "release-it": "^19.2.2",

@@ -1,8 +1,4 @@
-import type {
-  ProviderSubscriptionStatus,
-  SubscriptionSummary,
-  SubscriptionTier,
-} from './types';
+import type { ProviderSubscriptionStatus, SubscriptionSummary, SubscriptionTier } from './types';
 
 export function classifyProductTier(
   productId: string,
@@ -46,11 +42,23 @@ export function formatProviderSubscriptionStatus(status: ProviderSubscriptionSta
     case 'ACTIVE':
       return { label: 'Active', isUrgent: false, colorClass: 'text-emerald-400' };
     case 'PAST_DUE':
-      return { label: 'Past Due — Action Required', isUrgent: true, colorClass: 'text-red-400 font-semibold' };
+      return {
+        label: 'Past Due — Action Required',
+        isUrgent: true,
+        colorClass: 'text-red-400 font-semibold',
+      };
     case 'BILLING_RETRY':
-      return { label: 'Billing Retry — Action Required', isUrgent: true, colorClass: 'text-amber-400 font-semibold' };
+      return {
+        label: 'Billing Retry — Action Required',
+        isUrgent: true,
+        colorClass: 'text-amber-400 font-semibold',
+      };
     case 'GRACE_PERIOD':
-      return { label: 'Grace Period — Update Payment Method', isUrgent: true, colorClass: 'text-amber-400 font-semibold' };
+      return {
+        label: 'Grace Period — Update Payment Method',
+        isUrgent: true,
+        colorClass: 'text-amber-400 font-semibold',
+      };
     case 'CANCELED':
       return { label: 'Canceled', isUrgent: false, colorClass: 'text-text-muted' };
     case 'EXPIRED':
