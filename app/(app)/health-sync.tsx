@@ -340,6 +340,14 @@ export default function HealthSyncSettingsScreen() {
                       />
                       <PermissionRow title="Steps" granted={!!authStatus.details?.stepsGranted} />
 
+                      {authStatus.details?.workoutsGranted ? (
+                        <Text className="leading-4.5 mt-3 text-xs text-text-muted">
+                          GPS routes for your workouts can only be turned on inside Health Connect —
+                          open it below and allow “Exercise routes”. Everything else syncs without
+                          it.
+                        </Text>
+                      ) : null}
+
                       {authStatus.status === 'partially_connected' ? (
                         <Text className="leading-4.5 mt-3 text-xs text-modify">
                           Some required permissions are missing. Grant them again below, or manage
