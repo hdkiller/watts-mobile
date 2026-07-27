@@ -53,6 +53,7 @@ export async function loginWithPkce(instanceBaseUrl: string): Promise<StoredToke
     scopes: [...COMPANION_SCOPES],
     usePKCE: true,
     responseType: AuthSession.ResponseType.Code,
+    prompt: AuthSession.Prompt.Login,
   });
 
   await request.makeAuthUrlAsync({
