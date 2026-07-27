@@ -17,10 +17,10 @@ import { useUpcomingEventsQuery } from '@/src/features/events/useEvents';
 import { useOfflineCached } from '@/src/hooks/useOfflineCached';
 import { hapticLight } from '@/src/lib/haptics';
 import { APP_HREFS } from '@/src/linking/appHrefs';
-import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
 export default function UpcomingEventsListScreen() {
+  const theme = useThemeColors();
   const { instanceUrl } = useAuth();
   const { data, isLoading, isError, error, refetch, dataUpdatedAt } = useUpcomingEventsQuery();
   const { showCachedOffline, lastUpdatedLabel } = useOfflineCached({
@@ -87,7 +87,7 @@ export default function UpcomingEventsListScreen() {
             <RefreshControl
               refreshing={manualRefreshing}
               onRefresh={() => void handleRefresh()}
-              tintColor={Colors.brand}
+              tintColor={theme.brandOnSurface}
             />
           }
         >

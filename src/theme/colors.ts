@@ -52,6 +52,15 @@ const accents = {
 } as const;
 
 type SemanticNeutrals = {
+  /**
+   * Brand green as a FOREGROUND (text / icon tint) on the theme's own surface.
+   * The fill (`brand`) stays #00DC82 on both themes because a brand fill always
+   * carries ink text (10.95:1). As a foreground on light #fafafa that same green
+   * is only 1.74:1 — under the 4.5:1 AA floor — so light drops to a darker step
+   * of the identical hue. Use this for `tintColor` on glyphs and for text.
+   * Mirrors `--color-brand-on-surface` in global.css / `textColor.brand`.
+   */
+  brandOnSurface: string;
   surface: string;
   card: string;
   border: string;
@@ -70,6 +79,7 @@ type SemanticNeutrals = {
 };
 
 const darkNeutrals: SemanticNeutrals = {
+  brandOnSurface: '#00DC82', // 10.95:1 on #09090b — AAA
   surface: '#09090b',
   card: '#18181b',
   border: '#27272a',
@@ -85,6 +95,7 @@ const darkNeutrals: SemanticNeutrals = {
 };
 
 const lightNeutrals: SemanticNeutrals = {
+  brandOnSurface: '#00854E', // 4.51:1 on #fafafa — AA (brand hue, darker step)
   surface: '#fafafa',
   card: '#ffffff',
   border: '#e4e4e7',
@@ -108,7 +119,9 @@ export type ThemeColors = (typeof Themes)['dark'];
 
 /**
  * Dark theme map (legacy export). Prefer `useThemeColors()` / `Themes` for
- * theme-aware surfaces; brand accents are identical on both maps.
+ * theme-aware surfaces. Brand *fills* are identical on both maps, but
+ * `brandOnSurface` is not — reading brand text/icon colour off this export
+ * pins it to the dark value and will fail contrast in light mode.
  */
 export const Colors: ThemeColors = Themes.dark;
 

@@ -94,7 +94,7 @@ export default function SubscriptionScreen() {
                 void summary.refetch();
                 if (showPlans) void offerings.refetch();
               }}
-              tintColor={theme.brand}
+              tintColor={theme.brandOnSurface}
             />
           }
         >

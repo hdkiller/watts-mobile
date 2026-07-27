@@ -320,7 +320,9 @@ export function MeasurementsSection() {
         </Pressable>
       </View>
 
-      {isLoading && !data ? <ActivityIndicator className="mt-4" color={Colors.brand} /> : null}
+      {isLoading && !data ? (
+        <ActivityIndicator className="mt-4" color={theme.brandOnSurface} />
+      ) : null}
 
       {isError ? (
         <View className="mt-3 rounded-xl border border-danger/40 bg-tint-error p-3">

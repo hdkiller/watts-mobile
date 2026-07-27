@@ -646,7 +646,7 @@ export function CoachChat({
               />
               {attachment.uploading ? (
                 <View className="absolute inset-0 items-center justify-center rounded-xl bg-black/50">
-                  <ActivityIndicator color={Colors.brand} />
+                  <ActivityIndicator color={theme.brandOnSurface} />
                 </View>
               ) : null}
               <Pressable

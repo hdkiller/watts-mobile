@@ -201,7 +201,7 @@ export function WellnessCheckinSheet({
               label="Mood"
               help={getMoodLabel(values.mood ?? 5)}
               value={values.mood}
-              tintColor={Colors.brand}
+              tintColor={theme.brandOnSurface}
               onChange={updateSubjective('mood')}
             />
             <WellnessScoreCard

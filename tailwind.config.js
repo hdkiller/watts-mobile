@@ -9,6 +9,11 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        /**
+         * Brand as a FILL (bg-brand / border-brand) — theme-invariant.
+         * Safe on both themes because brand fills carry `text-ink` (10.95:1).
+         * Brand as a FOREGROUND is theme-aware — see `textColor.brand` below.
+         */
         brand: {
           DEFAULT: '#00DC82',
           action: '#00C16A',
@@ -57,6 +62,22 @@ module.exports = {
           6: '#a855f7',
           7: '#52525b',
           neutral: '#52525b',
+        },
+      },
+      /**
+       * `text-brand` resolves per theme; `bg-brand` / `border-brand` do not.
+       * Tailwind's `textColor` scale only feeds text utilities, so the two can
+       * diverge without touching a single call site.
+       *   dark  → #00DC82 on #09090b = 10.95:1 (AAA)
+       *   light → #00854E on #fafafa =  4.51:1 (AA)
+       * Splitting them matters because brand-on-light fails at 1.74:1 as text
+       * while a brand fill with ink text is 10.95:1 on either theme.
+       */
+      textColor: {
+        brand: {
+          DEFAULT: 'rgb(var(--color-brand-on-surface) / <alpha-value>)',
+          action: '#00C16A',
+          deep: '#00A155',
         },
       },
     },

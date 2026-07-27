@@ -181,7 +181,7 @@ export function EventGoalWizard({ testID = 'event-goal-wizard', onCreated, onCre
                 className="w-[48%] rounded-xl border border-border bg-card/70 p-3"
               >
                 <View className="mb-2 h-9 w-9 items-center justify-center rounded-lg border border-border bg-card">
-                  <AppSymbol sf={TYPE_ICONS[opt.id]} size={18} tintColor={theme.brand} />
+                  <AppSymbol sf={TYPE_ICONS[opt.id]} size={18} tintColor={theme.brandOnSurface} />
                 </View>
                 <Text className="text-sm font-semibold text-text-primary">{opt.label}</Text>
                 <Text className="mt-1 text-xs leading-snug text-text-muted">{opt.description}</Text>

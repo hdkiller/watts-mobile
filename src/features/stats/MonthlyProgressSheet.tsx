@@ -1,13 +1,13 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Spinner } from '@/src/components/Spinner';
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { LineSeriesChart } from '@/src/features/activity/charts/LineSeriesChart';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
-import { Colors } from '@/src/theme/colors';
 
 import {
   dashboardWebPath,
@@ -150,7 +150,7 @@ export function MonthlyProgressSheet({
           </View>
 
           {query.isLoading && !query.data ? (
-            <ActivityIndicator className="mt-10" color={Colors.brand} />
+            <Spinner className="mt-10" />
           ) : query.isError ? (
             <Text className="mt-6 text-sm text-red-400">
               {friendlyError(query.error, 'Could not load monthly progress')}

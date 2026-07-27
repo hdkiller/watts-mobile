@@ -807,7 +807,7 @@ export function PlanGeneratorPanel({
             <View className="flex-row flex-wrap gap-2">
               {PLAN_STRATEGY_OPTIONS.map((opt) => {
                 const selected = strategy === opt.id;
-                const accent = selected ? theme.brand : theme.textMuted;
+                const accent = selected ? theme.brandOnSurface : theme.textMuted;
                 return (
                   <AnimatedPressable
                     key={opt.id}

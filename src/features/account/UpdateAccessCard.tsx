@@ -1,10 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
+import { Spinner } from '@/src/components/Spinner';
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
-import { Colors } from '@/src/theme/colors';
 
 /**
  * Quiet inline card for scope drift: the stored token predates a newly required
@@ -54,7 +54,7 @@ export function UpdateAccessCard({
           className="active:opacity-70"
         >
           {busy ? (
-            <ActivityIndicator color={Colors.brand} size="small" />
+            <Spinner size="small" />
           ) : (
             <Text className="text-sm font-semibold text-brand">Update access</Text>
           )}

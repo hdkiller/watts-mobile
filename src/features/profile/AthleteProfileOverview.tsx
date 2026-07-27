@@ -1,8 +1,9 @@
 /* Hallmark · genre: modern-minimal · macrostructure: Workbench · design-system: docs/DESIGN.md · designed-as-app */
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
+import { Spinner } from '@/src/components/Spinner';
 import { friendlyError } from '@/src/api/errors';
 import { QuotaLimitCard } from '@/src/features/subscriptions/QuotaLimitCard';
 import { parseQuotaError, type QuotaInfo } from '@/src/features/subscriptions/quota';
@@ -10,7 +11,6 @@ import { AnimatedPressable } from '@/src/components/AnimatedPressable';
 import { ScoreChip } from '@/src/components/ScoreChip';
 import { Skeleton } from '@/src/components/Skeleton';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
-import { Colors } from '@/src/theme/colors';
 
 import { ActivityGlanceStrip } from './ActivityGlanceStrip';
 import { AthleteReportSheet } from './AthleteReportSheet';
@@ -123,7 +123,7 @@ export function AthleteProfileOverview({
             className="min-h-11 min-w-11 items-center justify-center rounded-full border border-border-strong px-3"
           >
             {syncing ? (
-              <ActivityIndicator color={Colors.brand} size="small" />
+              <Spinner size="small" />
             ) : (
               <Text className="text-xs font-semibold text-brand">Sync</Text>
             )}

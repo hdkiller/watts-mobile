@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Platform, Text, useColorScheme, View } from 'react-native';
 
 import { GOOGLE_MAPS_API_KEY } from '@/src/config/env';
-import { Colors } from '@/src/theme/colors';
+import { useThemeColors } from '@/src/theme/useThemeColors';
 
 let MapView: any;
 let Polyline: any;
@@ -33,6 +33,7 @@ function MapUnavailable({ message }: { message: string }) {
 }
 
 export function ActivityMap({ coordinates }: Props) {
+  const theme = useThemeColors();
   const colorScheme = useColorScheme();
   const mapRef = useRef<any>(null);
   const [mapReady, setMapReady] = useState(false);
@@ -99,7 +100,7 @@ export function ActivityMap({ coordinates }: Props) {
           rotateEnabled={false}
           pitchEnabled={false}
         >
-          <Polyline coordinates={coordinates} strokeColor={Colors.brand} strokeWidth={3} />
+          <Polyline coordinates={coordinates} strokeColor={theme.brandOnSurface} strokeWidth={3} />
           {startPoint ? <Marker coordinate={startPoint} title="Start" pinColor="green" /> : null}
           {endPoint ? <Marker coordinate={endPoint} title="End" pinColor="red" /> : null}
         </MapView>

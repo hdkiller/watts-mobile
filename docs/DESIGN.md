@@ -13,7 +13,7 @@ UI conventions for this app. Brand tokens originate in coach-wattz `BRANDING.md`
 
 Source of truth: [`src/theme/colors.ts`](../src/theme/colors.ts) (JS access) and [`tailwind.config.js`](../tailwind.config.js) (className access). Keep them in sync.
 
-Brand/state accents (brand, recovery, modify, danger, zone ramp) are **theme-invariant**. Neutrals are **semantic** and resolve per theme:
+Brand/state accents (brand, recovery, modify, danger, zone ramp) are **theme-invariant as fills**. Neutrals are **semantic** and resolve per theme — as does **brand-on-surface**, the brand green used as text or an icon tint (see [Brand foreground vs fill](#brand-foreground-vs-fill)):
 
 | Semantic token | Dark value | Light value | Tailwind | Replaces |
 |----------------|-----------|-------------|----------|----------|
@@ -33,7 +33,8 @@ Wired via CSS variables in `global.css` (`:root` light + `prefers-color-scheme: 
 
 | Token | Value | Tailwind | Use |
 |-------|-------|----------|-----|
-| brand | `#00DC82` | `text-brand` / `bg-brand` | Accents, links, active states, spinner tint; train hero tone |
+| brand (fill) | `#00DC82` | `bg-brand` / `border-brand` | Fills, active states, train hero tone — theme-invariant |
+| brand on surface | `#00DC82` dark / `#00854E` light | `text-brand`, `theme.brandOnSurface` | Brand **text**, icon tints, spinners, chart strokes |
 | brand action | `#00C16A` | `bg-brand-action` | Primary button fill only |
 | brand deep | `#00A155` | `brand-deep` | Chart accent |
 | recovery | `#38bdf8` | `text-recovery` / `bg-recovery` | Rest-day hero accent (sky on dark; not violet) |
@@ -75,6 +76,17 @@ Season timeline phase colours. Access via `Colors.planBlocks` / `blockTypeColor(
 Neutral surfaces use semantic tokens: cards `bg-card(/80)` with `border-border`, input/button borders `border-border-strong`, hairline row dividers `border-border/80`.
 
 **Contrast rule:** text on brand green is always dark (`text-ink`), never white / `text-text-primary`.
+
+### Brand foreground vs fill
+
+The brand green means two different things and only one of them is theme-invariant.
+
+- **As a fill** (`bg-brand`, `border-brand`) it stays `#00DC82` on both themes. That is safe because a brand fill always carries `text-ink`, which is 10.95:1 either way.
+- **As a foreground** — text, icon `tintColor`, spinners, chart strokes — it must resolve per theme. `#00DC82` on light `#fafafa` is only **1.74:1**, far under the 4.5:1 AA floor (and under the 3:1 large-text floor), so light mode uses `#00854E`: the same hue at a darker step, 4.51:1 on `#fafafa`.
+
+Wiring: `--color-brand-on-surface` in `global.css`, `textColor.brand` in `tailwind.config.js` (Tailwind's `textColor` scale feeds text utilities only, so `text-brand` and `bg-brand` diverge without touching call sites), and `brandOnSurface` on the `Themes` maps for imperative use.
+
+**Rule:** never read brand foreground colour off the static `Colors` export — that is the dark map, so it pins the vivid green and fails in light mode. Use `useThemeColors().brandOnSurface`, `text-brand`, or `<Spinner />`. `src/theme/__tests__/brandContrast.test.ts` asserts the ratios and that the three token sources agree.
 
 ## Type scale
 

@@ -1,7 +1,8 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, Text, View } from 'react-native';
+import { Modal, Pressable, Text, View } from 'react-native';
 
+import { Spinner } from '@/src/components/Spinner';
 import { friendlyError } from '@/src/api/errors';
 import { AppSymbol } from '@/src/components/AppSymbol';
 import { localDateYmd } from '@/src/features/nutrition/mapNutrition';
@@ -10,7 +11,6 @@ import { DEFAULT_QUICK_ADD_VOLUMES } from '@/src/features/nutrition/nutritionSet
 import { useQuickAddHydration } from '@/src/features/nutrition/useNutrition';
 import { useNutritionSettingsQuery } from '@/src/features/nutrition/useNutritionSettings';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
-import { Colors } from '@/src/theme/colors';
 import { NutritionAccents } from '@/src/theme/nutritionAccents';
 
 function formatVolumeLabel(ml: number): string {
@@ -114,9 +114,7 @@ export function HydrationQuickAddSheet({
             ))}
           </View>
 
-          {hydrationMutation.isPending ? (
-            <ActivityIndicator className="mt-4" color={Colors.brand} />
-          ) : null}
+          {hydrationMutation.isPending ? <Spinner className="mt-4" /> : null}
           {error ? <Text className="mt-3 text-xs text-red-400">{error}</Text> : null}
           {lastAddedMl ? (
             <View className="mt-4 rounded-xl border border-success/40 bg-tint-success p-3">

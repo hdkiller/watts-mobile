@@ -17,6 +17,12 @@
   --color-text-muted: 82 82 91; /* zinc-600 — AA on #fafafa */
   --color-tint-error: 254 242 242; /* red-50 */
   --color-tint-success: 240 253 244; /* green-50 */
+  /*
+   * Brand green as FOREGROUND (text / icons) only — the fill stays #00DC82.
+   * #00DC82 on #fafafa is 1.74:1, far under the 4.5:1 AA floor, so light mode
+   * drops to the same hue at a darker lightness: 4.5:1 on #fafafa, 4.7:1 on #fff.
+   */
+  --color-brand-on-surface: 0 133 78; /* #00854E */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -30,5 +36,7 @@
     --color-text-muted: 113 113 122; /* #71717a */
     --color-tint-error: 69 10 10; /* red-950 */
     --color-tint-success: 5 46 22; /* green-950 */
+    /* Dark surfaces already give the brand green 10.95:1 — keep it vivid. */
+    --color-brand-on-surface: 0 220 130; /* #00DC82 */
   }
 }

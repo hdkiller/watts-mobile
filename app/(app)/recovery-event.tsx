@@ -243,7 +243,7 @@ export default function RecoveryEventScreen() {
   if (isEdit && isLoading && !hydrated) {
     return (
       <View className="flex-1 items-center justify-center bg-surface">
-        <ActivityIndicator color={Colors.brand} />
+        <ActivityIndicator color={theme.brandOnSurface} />
       </View>
     );
   }

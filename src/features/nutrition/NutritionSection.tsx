@@ -424,7 +424,9 @@ export function NutritionSection({ entriesMode = 'full' }: NutritionSectionProps
         </Pressable>
       </View>
 
-      {isLoading && !today ? <ActivityIndicator className="mt-4" color={Colors.brand} /> : null}
+      {isLoading && !today ? (
+        <ActivityIndicator className="mt-4" color={theme.brandOnSurface} />
+      ) : null}
 
       {isError ? (
         <View className="mt-3 rounded-xl border border-danger/40 bg-tint-error p-3">
@@ -681,7 +683,7 @@ export function NutritionSection({ entriesMode = 'full' }: NutritionSectionProps
         </View>
 
         {hydrationMutation.isPending ? (
-          <ActivityIndicator className="mt-2" color={Colors.brand} />
+          <ActivityIndicator className="mt-2" color={theme.brandOnSurface} />
         ) : null}
         {hydrationError ? (
           <Text className="mt-2 text-xs text-red-400">{hydrationError}</Text>

@@ -539,7 +539,7 @@ export default function TodayScreen() {
           <RefreshControl
             refreshing={manualRefreshing}
             onRefresh={() => void onRefresh()}
-            tintColor={Colors.brand}
+            tintColor={theme.brandOnSurface}
           />
         }
       >
@@ -586,7 +586,12 @@ export default function TodayScreen() {
                   } as Href)
                 }
               >
-                <AppSymbol sf="camera.fill" size={18} tintColor={theme.brand} fallback="cam" />
+                <AppSymbol
+                  sf="camera.fill"
+                  size={18}
+                  tintColor={theme.brandOnSurface}
+                  fallback="cam"
+                />
               </AnimatedPressable>
             ) : null}
           </View>
@@ -631,7 +636,12 @@ export default function TodayScreen() {
                 <Text className="text-xl font-semibold text-text-primary">
                   Daily Coach Check-In
                 </Text>
-                <AppSymbol sf="chevron.right" size={16} tintColor={theme.brand} fallback="›" />
+                <AppSymbol
+                  sf="chevron.right"
+                  size={16}
+                  tintColor={theme.brandOnSurface}
+                  fallback="›"
+                />
               </View>
               <Text className="mt-1.5 text-sm leading-5 text-text-muted">
                 Coach has questions prepared to adjust today’s recommendation.
