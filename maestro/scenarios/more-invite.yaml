@@ -1,10 +1,12 @@
-# Invite friends QR — assumes authenticated session on hosted/local instance.
+# Invite a friend QR — assumes authenticated session on hosted/local instance.
+# The row lives in More → Account, below the training hubs, so scroll to it.
 appId: com.coachwatts.app
 ---
 - runFlow: ../subflows/tap-tab-more.yaml
-- extendedWaitUntil:
-    visible:
+- scrollUntilVisible:
+    element:
       id: more-invite-friends
+    direction: DOWN
     timeout: 15000
 - tapOn:
     id: more-invite-friends

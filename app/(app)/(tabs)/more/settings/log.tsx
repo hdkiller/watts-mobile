@@ -12,6 +12,7 @@ import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { hapticLight } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
+import { useTabScrollPadding } from '@/src/hooks/useTabScrollPadding';
 
 const OPTIONS: {
   value: LogTabPreference;
@@ -71,6 +72,7 @@ const PHOTO_MODE_OPTIONS: {
 
 export default function LogSettingsScreen() {
   const theme = useThemeColors();
+  const tabBottomPad = useTabScrollPadding();
 
   const { data: athleteProfile } = useAthleteProfileQuery();
   const nutritionEnabled = isNutritionTrackingEnabled(athleteProfile);
@@ -81,13 +83,17 @@ export default function LogSettingsScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Log defaults',
+          title: 'Default log view',
           headerShown: true,
         }}
       />
-      <SafeAreaView edges={{ bottom: true }} style={{ flex: 1, backgroundColor: theme.surface }}>
-        <ScrollView className="flex-1 bg-surface" contentContainerClassName="px-6 pb-12 pt-4">
-          <Text className="text-2xl font-semibold text-text-primary">Log defaults</Text>
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.surface }}>
+        <ScrollView
+          className="flex-1 bg-surface"
+          contentContainerClassName="px-6 pt-4"
+          contentContainerStyle={{ paddingBottom: tabBottomPad }}
+        >
+          <Text className="text-2xl font-semibold text-text-primary">Default log view</Text>
           <Text className="mt-2 text-sm text-text-muted">
             Choose which Log tab opens first. Deep links (Check in, History, Nutrition) still jump
             to the right section.
