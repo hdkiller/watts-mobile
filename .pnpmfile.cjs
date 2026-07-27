@@ -2,10 +2,10 @@ function readPackage(pkg) {
   for (const depType of ['dependencies', 'devDependencies', 'optionalDependencies']) {
     if (!pkg[depType]) continue;
     if (pkg[depType].tar) {
-      pkg[depType].tar = '^7.5.21';
+      pkg[depType].tar = '^7.5.22';
     }
     if (pkg[depType].undici) {
-      pkg[depType].undici = '^6.27.0';
+      pkg[depType].undici = '^6.28.0';
     }
     if (pkg[depType].uuid) {
       pkg[depType].uuid = '^9.0.1';
