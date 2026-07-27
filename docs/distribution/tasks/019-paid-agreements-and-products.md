@@ -39,7 +39,7 @@ Subscription group **Coach Watts** · Group ID `22257011` · App Apple ID `67932
 2. [~] Apple tax + banking for Watt Mind Kft. (status only; no financial details in git):
    - **Tax:** W-8BEN-E (nickname “W-8BEN-E Hungary”) + U.S. Certificate of Foreign Status — both **Active** (submitted Jul 23, 2026).
    - **Bank accounts on file:** Revolut Business EUR (…1013, Lithuania) and Erste HUF (…4237, Hungary) — both **Pending User Info**.
-   - **Blocked:** “Bank Account Holder Compliance Screening” / **Add user info** (upload business registration). ASC returns a server error on submit; Paid Apps stays Pending User Info until Apple accepts the screening docs. Retry later or via Apple Contact Us if it persists.
+   - **Blocked / Support Ticket (2026-07-27):** “Bank Account Holder Compliance Screening” / **Add user info** (upload business registration). ASC portal form reload loop on submit. Submitted Apple Developer Contact Us ticket: **Case ID `20000120973249`**. Awaiting Apple reply email to attach screenshots and business registration PDF (`TaroltCegadat_1309245675.pdf`).
 3. [ ] Evaluate/enroll in the App Store Small Business Program if eligible.
 4. [~] Google Play payments profile linked (2026-07-23): Watt Mind Kft. org profile `3878-8777-9292` (Play); public merchant website `https://coachwatts.com`, support `support@coachwatts.com`, statement name `CoachWatts`, category Internet/Network/Digital Media.
    - **Payout bank (2026-07-23):** Erste HUF IBAN added (HU…4237) — **Verification pending** (Google micro-deposit under HUF 35 within ~3 business days; confirm exact amount in Payments profile).

@@ -1,0 +1,20 @@
+# Today name → Athlete profile → Sports & thresholds — assumes authenticated session.
+# Invite now lives on More only; Athlete owns profile, metrics, and threshold hand-off.
+appId: com.coachwatts.app
+---
+- extendedWaitUntil:
+    visible:
+      id: today-screen
+    timeout: 45000
+- tapOn:
+    id: today-greeting-name
+- extendedWaitUntil:
+    visible:
+      id: athlete-screen
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      id: athlete-sports
+    direction: DOWN
+    timeout: 15000
+- assertVisible: 'Sports & thresholds'

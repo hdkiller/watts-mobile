@@ -130,7 +130,7 @@ export default function ConnectedAppsLiteScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Connected Apps' }} />
+      <Stack.Screen options={{ title: 'Connected apps' }} />
       <SafeAreaView edges={{ bottom: true }} style={{ flex: 1, backgroundColor: theme.surface }}>
         <ScrollView className="flex-1 bg-surface" contentContainerClassName="px-6 pb-12 pt-4">
           <Text className="text-sm text-text-muted">

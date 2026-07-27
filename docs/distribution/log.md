@@ -14,6 +14,13 @@ Format:
 
 ---
 
+## 2026-07-27 — Apple Support ticket created for Paid Apps screening bug (Case ID 20000120973249)
+
+- Submitted Apple Developer Contact Us ticket regarding the portal bug on Bank Account Holder Compliance Screening ("Add user info" submission reload loop across browsers/PDFs).
+- **Apple Case ID:** `20000120973249`.
+- Awaiting Apple Support reply email to attach screenshots and official Hungarian Business Registration PDF (`TaroltCegadat_1309245675.pdf`).
+- Linked to task [019](./tasks/019-paid-agreements-and-products.md).
+
 ## 2026-07-26 — Main Store Listing text & graphic assets prepared
 
 - Filled and saved text metadata on Google Play Console **Main store listing** for `com.coachwatts.app`:
