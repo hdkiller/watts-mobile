@@ -8,6 +8,8 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { useReduceMotion } from '@/src/hooks/useReduceMotion';
+
 const ReanimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 type AnimatedPressableProps = PressableProps & {
@@ -31,11 +33,12 @@ function AnimatedPressableBase({
   layout,
   ...rest
 }: AnimatedPressableProps) {
+  const reduceMotion = useReduceMotion();
   const pressed = useSharedValue(0);
 
   const pressStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: 1 - pressed.value * 0.03 }],
-    opacity: 1 - pressed.value * 0.15,
+    transform: [{ scale: reduceMotion ? 1 : 1 - pressed.value * 0.03 }],
+    opacity: reduceMotion ? 1 : 1 - pressed.value * 0.15,
   }));
 
   const pressable = (
