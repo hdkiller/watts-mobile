@@ -14,6 +14,30 @@ Format:
 
 ---
 
+## 2026-07-26 — Main Store Listing text & graphic assets prepared
+
+- Filled and saved text metadata on Google Play Console **Main store listing** for `com.coachwatts.app`:
+  - **App name:** `Coach Watts`
+  - **Short description:** `AI endurance coach companion: today’s session, wellness, fueling & coach chat.` (79/80 chars).
+  - **Full description:** Detailed feature overview with companion positioning, Health Connect sync details, and explicit non-medical device disclaimer.
+- Extracted, formatted, and verified Play Store graphic assets in [`dist/play-listing/`](file:///Users/hdkiller/Develop/watts-mobile/dist/play-listing/):
+  - **App icon:** 512×512 px PNG (`dist/play-listing/app-icon-512x512.png`) from `watts-marketing` brand assets.
+  - **Feature graphic:** 1024×500 px PNG (`dist/play-listing/feature-graphic-1024x500.png`) cropped from marketing header.
+  - **Phone screenshots:** 5 high-res raw mobile screenshots (1206×2622 px) + 4 framed screenshots (1080×1920 px) covering Today, Plan, Log/Wellness, Fueling, and AI Coach Chat.
+- Updated task [013](./tasks/013-play-listing-assets.md).
+
+## 2026-07-26 — Play Console Health apps declaration completed
+
+- Filled and submitted all 3 steps of the **Health apps** policy declaration in Play Console for package `com.coachwatts.app`:
+  - **Step 1 (App features):** Selected `Activity and fitness`, `Nutrition and weight management`, and `Sleep management`.
+  - **Step 2 (Health data permissions):** Completed use-case descriptions for all 20 Health Connect permissions requested by the manifest (Activity, Body measurement, Nutrition, Sleep, Vitals, and Background reads) based on `docs/store-privacy-checklist.md`.
+  - **Step 3 (Regional requirements):** Confirmed no regional requirements needed. Saved changes for review.
+
+## 2026-07-26 — Android Internal AAB build + upload (versionCode 3)
+
+- Built and uploaded signed AAB **0.1.1 / versionCode 3** (`coach-watts-0.1.1-vc3.aab`, ~98.1 MiB) on Mac Mini via `pnpm release:android:internal -- --version-code 3 --upload-internal`.
+- Successfully committed rollout to Google Play Internal testing track via Play Publisher API.
+
 ## 2026-07-25 — Play Internal testing runbook (testers)
 
 - Added [play-internal-testing.md](./play-internal-testing.md): Internal track process, `release:android:internal --upload-internal`, how to add testers (email list + opt-in link), license testers for IAP, and promote-to-prod note. Linked from hub / tasks 015–016 / docs README.

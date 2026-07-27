@@ -1,0 +1,12 @@
+# Settings: navigate to settings, verify Subscription & Billing and Delete Account affordances.
+appId: com.coachwatts.app
+---
+- runFlow: ../subflows/tap-tab-more.yaml
+- tapOn:
+    id: more-settings
+- extendedWaitUntil:
+    visible:
+      id: settings-screen
+    timeout: 15000
+- assertVisible: "Subscription & Billing"
+- assertVisible: "Delete account"

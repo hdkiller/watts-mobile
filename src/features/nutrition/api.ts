@@ -575,6 +575,135 @@ export interface FoodItemResult {
   };
 }
 
+function getNutrientVal(
+  obj: Record<string, unknown> | null | undefined,
+  keys: string[],
+): number | undefined {
+  if (!obj || typeof obj !== 'object') return undefined;
+  for (const k of keys) {
+    const val = (obj as Record<string, unknown>)[k];
+    if (val !== undefined && val !== null && val !== '') {
+      const num = Number(val);
+      if (Number.isFinite(num)) return num;
+    }
+  }
+  return undefined;
+}
+
+/** Normalize raw food items from search or barcode APIs into a consistent FoodItemResult. */
+export function normalizeFoodItemResult(item: any): FoodItemResult {
+  if (!item || typeof item !== 'object') {
+    return {
+      name: 'Unknown Food',
+      nutrients_per_100g: { calories_kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 },
+    };
+  }
+
+  const sources = [
+    item.nutrients_per_100g,
+    item.nutriments,
+    item.nutrients,
+    item.macros,
+    item.nutrition,
+    item.nutritional_info,
+    item,
+  ].filter((s) => s && typeof s === 'object');
+
+  const findVal = (keys: string[]): number | undefined => {
+    for (const src of sources) {
+      const val = getNutrientVal(src, keys);
+      if (val !== undefined) return val;
+    }
+    return undefined;
+  };
+
+  const protein =
+    findVal(['protein_g', 'protein', 'proteins', 'proteins_100g', 'protein_100g']) ?? 0;
+  const carbs =
+    findVal([
+      'carbs_g',
+      'carbs',
+      'carbohydrates',
+      'carbohydrates_100g',
+      'carbs_100g',
+      'carbohydrate',
+    ]) ?? 0;
+  const fat = findVal(['fat_g', 'fat', 'fats', 'fat_100g', 'fats_100g']) ?? 0;
+
+  let calories = findVal([
+    'calories_kcal',
+    'calories',
+    'energy_kcal',
+    'energy-kcal_100g',
+    'energy-kcal',
+    'energy_kcal_100g',
+    'energy_100g',
+    'energy',
+    'kcal',
+  ]);
+
+  if ((calories === undefined || calories === 0) && (protein > 0 || carbs > 0 || fat > 0)) {
+    calories = Math.round(carbs * 4 + protein * 4 + fat * 9);
+  } else if (calories === undefined) {
+    calories = 0;
+  }
+
+  const fiber = findVal([
+    'fiber_g',
+    'fiber',
+    'fibers',
+    'fiber_100g',
+    'fibres_100g',
+    'dietary_fiber',
+  ]);
+  const sugar = findVal(['sugar_g', 'sugar', 'sugars', 'sugars_100g', 'sugar_100g']);
+
+  let sodium = findVal(['sodium_mg', 'sodium', 'sodium_100g']);
+  if (sodium === undefined) {
+    const salt = findVal(['salt', 'salt_100g']);
+    if (salt !== undefined) {
+      sodium = Math.round(salt * 400);
+    }
+  }
+
+  const satFat = findVal([
+    'saturated_fat_g',
+    'saturated_fat',
+    'saturated-fat_100g',
+    'saturated_fat_100g',
+    'saturated-fat',
+    'sat_fat',
+  ]);
+
+  let servingSizeG = item.serving_size_g;
+  let servingDescription = item.serving_description;
+
+  if (!servingSizeG && Array.isArray(item.serving_sizes) && item.serving_sizes.length > 0) {
+    const first = item.serving_sizes[0];
+    if (first.weight_g) servingSizeG = first.weight_g;
+    if (first.description) servingDescription = first.description;
+  }
+
+  return {
+    ...item,
+    name: item.name || item.product_name || item.title || 'Unknown Food',
+    brand: item.brand || item.brands || undefined,
+    barcode: item.barcode || item.code || undefined,
+    serving_size_g: servingSizeG,
+    serving_description: servingDescription,
+    nutrients_per_100g: {
+      calories_kcal: calories,
+      protein_g: protein,
+      carbs_g: carbs,
+      fat_g: fat,
+      ...(fiber !== undefined ? { fiber_g: fiber } : {}),
+      ...(sugar !== undefined ? { sugar_g: sugar } : {}),
+      ...(sodium !== undefined ? { sodium_mg: sodium } : {}),
+      ...(satFat !== undefined ? { saturated_fat_g: satFat } : {}),
+    },
+  };
+}
+
 /** Search global food database by query string. Bearer nutrition:read. */
 export async function searchFoodDatabase(query: string, limit = 20): Promise<FoodItemResult[]> {
   const trimmed = query.trim();
@@ -587,14 +716,16 @@ export async function searchFoodDatabase(query: string, limit = 20): Promise<Foo
     );
   }
   const json = await response.json();
-  if (Array.isArray(json)) return json as FoodItemResult[];
-  if (json && typeof json === 'object') {
+  let rawItems: any[] = [];
+  if (Array.isArray(json)) {
+    rawItems = json;
+  } else if (json && typeof json === 'object') {
     const obj = json as Record<string, unknown>;
-    if (Array.isArray(obj.items)) return obj.items as FoodItemResult[];
-    if (Array.isArray(obj.results)) return obj.results as FoodItemResult[];
-    if (Array.isArray(obj.data)) return obj.data as FoodItemResult[];
+    if (Array.isArray(obj.items)) rawItems = obj.items;
+    else if (Array.isArray(obj.results)) rawItems = obj.results;
+    else if (Array.isArray(obj.data)) rawItems = obj.data;
   }
-  return [];
+  return rawItems.map(normalizeFoodItemResult);
 }
 
 /** Lookup a single food item by barcode string. Bearer nutrition:read. */
@@ -610,13 +741,14 @@ export async function lookupFoodBarcode(barcode: string): Promise<FoodItemResult
   }
   const json = await response.json();
   if (!json) return null;
+  let raw: any = json;
   if (typeof json === 'object') {
     const obj = json as Record<string, unknown>;
-    if (obj.item && typeof obj.item === 'object') return obj.item as FoodItemResult;
-    if (obj.foodItem && typeof obj.foodItem === 'object') return obj.foodItem as FoodItemResult;
-    if (obj.result && typeof obj.result === 'object') return obj.result as FoodItemResult;
+    if (obj.item && typeof obj.item === 'object') raw = obj.item;
+    else if (obj.foodItem && typeof obj.foodItem === 'object') raw = obj.foodItem;
+    else if (obj.result && typeof obj.result === 'object') raw = obj.result;
   }
-  return json as FoodItemResult;
+  return raw ? normalizeFoodItemResult(raw) : null;
 }
 
 /** Lookup a single food item by database key/id. Bearer nutrition:read. */
@@ -632,9 +764,12 @@ export async function lookupFoodItem(key: string): Promise<FoodItemResult | null
   }
   const json = await response.json();
   if (!json) return null;
+  let raw: any = json;
   if (typeof json === 'object') {
     const obj = json as Record<string, unknown>;
-    if (obj.item && typeof obj.item === 'object') return obj.item as FoodItemResult;
+    if (obj.item && typeof obj.item === 'object') raw = obj.item;
+    else if (obj.foodItem && typeof obj.foodItem === 'object') raw = obj.foodItem;
+    else if (obj.result && typeof obj.result === 'object') raw = obj.result;
   }
-  return json as FoodItemResult;
+  return raw ? normalizeFoodItemResult(raw) : null;
 }
