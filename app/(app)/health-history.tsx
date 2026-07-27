@@ -13,7 +13,6 @@ import { retryLedgerItem, runHealthSyncPass } from '@/src/features/health/orches
 import type { SyncLedgerItem, SyncLedgerStatus } from '@/src/features/health/types';
 import { useSyncLedger } from '@/src/features/health/useSyncLedger';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
-import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
 type Filter = 'all' | 'failed' | 'needs_sync';
@@ -198,7 +197,7 @@ export default function HealthSyncHistoryScreen() {
                   {canRetry ? (
                     <View className="mt-3">
                       {isBusy ? (
-                        <ActivityIndicator color={Colors.brand} />
+                        <ActivityIndicator color={theme.brandOnSurface} />
                       ) : (
                         <Button
                           label="Retry"

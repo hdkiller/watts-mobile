@@ -130,7 +130,7 @@ export default function DailyCheckinScreen() {
       return (
         <View className="flex-1 items-center justify-center bg-surface p-6">
           <Text className="text-lg font-semibold text-text-primary">Still preparing…</Text>
-          <Text className="mt-2 text-center text-sm text-red-400">
+          <Text className="mt-2 text-center text-sm text-danger">
             Check-in generation timed out. Retry or continue in Coach Watts.
           </Text>
           <View className="mt-6 w-full gap-3">
@@ -157,7 +157,7 @@ export default function DailyCheckinScreen() {
           <Text className="text-lg font-semibold text-text-primary">
             Could not prepare check-in
           </Text>
-          <Text className="mt-2 text-center text-sm text-red-400">
+          <Text className="mt-2 text-center text-sm text-danger">
             {friendlyError(displayErr, 'An error occurred during generation.')}
           </Text>
           <View className="mt-6 w-full gap-3">
@@ -266,7 +266,7 @@ export default function DailyCheckinScreen() {
                   >
                     <Text
                       className={`text-sm font-semibold ${
-                        currentAnswer === 'NO' ? 'text-red-400' : 'text-text-muted'
+                        currentAnswer === 'NO' ? 'text-danger' : 'text-text-muted'
                       }`}
                     >
                       NO
@@ -295,7 +295,7 @@ export default function DailyCheckinScreen() {
           />
         </View>
 
-        {actionError ? <Text className="mt-4 text-sm text-red-400">{actionError}</Text> : null}
+        {actionError ? <Text className="mt-4 text-sm text-danger">{actionError}</Text> : null}
       </ScrollView>
     );
   };

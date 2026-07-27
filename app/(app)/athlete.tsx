@@ -122,7 +122,7 @@ export default function AthleteMetricsScreen() {
       ) : isError && !data ? (
         <View className="flex-1 bg-surface px-6 pt-6">
           <View className="rounded-xl border border-danger/40 bg-tint-error px-4 py-4">
-            <Text className="text-sm text-red-400">
+            <Text className="text-sm text-danger">
               {friendlyError(error, 'Failed to load profile')}
             </Text>
             <AnimatedPressable
@@ -233,7 +233,7 @@ export default function AthleteMetricsScreen() {
 
                   {formError ? (
                     <View className="mt-4 rounded-xl border border-danger/40 bg-tint-error px-4 py-3">
-                      <Text className="text-sm text-red-400">{formError}</Text>
+                      <Text className="text-sm text-danger">{formError}</Text>
                     </View>
                   ) : null}
                   {successMessage ? (

@@ -109,7 +109,7 @@ export default function ActivationConnectScreen() {
           />
         </View>
 
-        {error ? <Text className="mt-4 text-sm text-red-400">{error}</Text> : null}
+        {error ? <Text className="mt-4 text-sm text-danger">{error}</Text> : null}
 
         <Text className="mt-8 text-sm text-text-muted">
           You can finish setup anytime from Today. Your plan already works without a device.
