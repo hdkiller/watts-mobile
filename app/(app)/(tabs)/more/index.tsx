@@ -237,7 +237,7 @@ export default function MoreScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={() => void onRefresh()}
-            tintColor={Colors.brand}
+            tintColor={theme.brandOnSurface}
           />
         }
       >
