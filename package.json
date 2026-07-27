@@ -44,7 +44,7 @@
     "@kingstinct/react-native-healthkit": "^14.0.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/netinfo": "12.0.1",
-    "@sentry/react-native": "^7.11.0",
+    "@sentry/react-native": "^7.13.0",
     "@tanstack/query-async-storage-persister": "^5.101.4",
     "@tanstack/react-query": "^5.101.4",
     "@tanstack/react-query-persist-client": "^5.101.4",
@@ -90,7 +90,7 @@
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "4.26.2",
     "react-native-svg": "15.15.4",
-    "react-native-web": "~0.21.0",
+    "react-native-web": "~0.21.2",
     "react-native-worklets": "0.10.0",
     "tailwindcss": "3.4.17"
   },
@@ -100,23 +100,16 @@
     "@sentry/cli": "2.58.4",
     "@types/react": "~19.2.17",
     "babel-preset-expo": "~57.0.4",
-    "eslint": "^9.0.0",
+    "eslint": "^9.39.5",
     "eslint-config-expo": "~57.0.0",
     "googleapis": "^173.0.0",
     "husky": "^9.1.7",
     "lint-staged": "^17.2.0",
     "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.1",
-    "release-it": "^19.2.2",
+    "release-it": "^19.2.4",
     "release-it-pnpm": "^4.6.6",
     "typescript": "~6.0.3",
     "vitest": "^4.1.10"
-  },
-  "overrides": {
-    "brace-expansion@<2.0.1": "1.1.11",
-    "brace-expansion@>=2.0.0 <5.0.8": "2.0.1",
-    "tar": "^7.5.21",
-    "undici": "^6.27.0",
-    "uuid": "^9.0.1"
   }
 }
