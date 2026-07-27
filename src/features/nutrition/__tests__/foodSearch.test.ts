@@ -126,7 +126,7 @@ describe('Food Database API Client', () => {
         fat_g: 30.9,
         sugar_g: 56.3,
       });
-    })
+    });
 
     it('normalizes USDA and generic items with nutrients object and string values', () => {
       const raw = {

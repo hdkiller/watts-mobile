@@ -575,7 +575,10 @@ export interface FoodItemResult {
   };
 }
 
-function getNutrientVal(obj: Record<string, unknown> | null | undefined, keys: string[]): number | undefined {
+function getNutrientVal(
+  obj: Record<string, unknown> | null | undefined,
+  keys: string[],
+): number | undefined {
   if (!obj || typeof obj !== 'object') return undefined;
   for (const k of keys) {
     const val = (obj as Record<string, unknown>)[k];
@@ -614,8 +617,17 @@ export function normalizeFoodItemResult(item: any): FoodItemResult {
     return undefined;
   };
 
-  const protein = findVal(['protein_g', 'protein', 'proteins', 'proteins_100g', 'protein_100g']) ?? 0;
-  const carbs = findVal(['carbs_g', 'carbs', 'carbohydrates', 'carbohydrates_100g', 'carbs_100g', 'carbohydrate']) ?? 0;
+  const protein =
+    findVal(['protein_g', 'protein', 'proteins', 'proteins_100g', 'protein_100g']) ?? 0;
+  const carbs =
+    findVal([
+      'carbs_g',
+      'carbs',
+      'carbohydrates',
+      'carbohydrates_100g',
+      'carbs_100g',
+      'carbohydrate',
+    ]) ?? 0;
   const fat = findVal(['fat_g', 'fat', 'fats', 'fat_100g', 'fats_100g']) ?? 0;
 
   let calories = findVal([
@@ -636,7 +648,14 @@ export function normalizeFoodItemResult(item: any): FoodItemResult {
     calories = 0;
   }
 
-  const fiber = findVal(['fiber_g', 'fiber', 'fibers', 'fiber_100g', 'fibres_100g', 'dietary_fiber']);
+  const fiber = findVal([
+    'fiber_g',
+    'fiber',
+    'fibers',
+    'fiber_100g',
+    'fibres_100g',
+    'dietary_fiber',
+  ]);
   const sugar = findVal(['sugar_g', 'sugar', 'sugars', 'sugars_100g', 'sugar_100g']);
 
   let sodium = findVal(['sodium_mg', 'sodium', 'sodium_100g']);
@@ -647,7 +666,14 @@ export function normalizeFoodItemResult(item: any): FoodItemResult {
     }
   }
 
-  const satFat = findVal(['saturated_fat_g', 'saturated_fat', 'saturated-fat_100g', 'saturated_fat_100g', 'saturated-fat', 'sat_fat']);
+  const satFat = findVal([
+    'saturated_fat_g',
+    'saturated_fat',
+    'saturated-fat_100g',
+    'saturated_fat_100g',
+    'saturated-fat',
+    'sat_fat',
+  ]);
 
   let servingSizeG = item.serving_size_g;
   let servingDescription = item.serving_description;

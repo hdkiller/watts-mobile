@@ -211,7 +211,8 @@ export default function SubscriptionScreen() {
                         {item.tier === 'PRO' ? 'Pro' : 'Supporter'}
                       </Text>
                       <Text className="mt-1 text-sm text-text-muted">
-                        {item.period === 'ANNUAL' ? 'Annual' : 'Monthly'} auto-renewable subscription
+                        {item.period === 'ANNUAL' ? 'Annual' : 'Monthly'} auto-renewable
+                        subscription
                       </Text>
                     </View>
                     <Text className="text-lg font-semibold text-brand">{item.price}</Text>
@@ -239,12 +240,12 @@ export default function SubscriptionScreen() {
                   • Payment is charged to your store account at confirmation of purchase.
                 </Text>
                 <Text className="mt-1.5 text-xs leading-5 text-text-muted">
-                  • Subscription automatically renews unless auto-renew is turned off in store settings
-                  at least 24 hours before the end of the current period.
+                  • Subscription automatically renews unless auto-renew is turned off in store
+                  settings at least 24 hours before the end of the current period.
                 </Text>
                 <Text className="mt-1.5 text-xs leading-5 text-text-muted">
-                  • Account will be charged for renewal within 24 hours prior to the end of the current
-                  period at the rate of the selected plan.
+                  • Account will be charged for renewal within 24 hours prior to the end of the
+                  current period at the rate of the selected plan.
                 </Text>
                 <Text className="mt-1.5 text-xs leading-5 text-text-muted">
                   • You can manage your subscription or turn off auto-renewal anytime in your store

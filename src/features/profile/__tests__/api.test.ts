@@ -63,7 +63,9 @@ describe('profile api', () => {
   });
 
   it('triggers deleteAthleteAccount via DELETE /api/profile', async () => {
-    apiFetch.mockResolvedValueOnce(new Response(JSON.stringify({ success: true }), { status: 200 }));
+    apiFetch.mockResolvedValueOnce(
+      new Response(JSON.stringify({ success: true }), { status: 200 }),
+    );
 
     await expect(deleteAthleteAccount()).resolves.toBeUndefined();
 
