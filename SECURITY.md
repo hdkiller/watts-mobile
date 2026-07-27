@@ -6,6 +6,7 @@ We take security seriously at Coach Watts. If you discover a vulnerability or se
 
 ### How to Report
 
+- **GitHub Private Vulnerability Reporting (Recommended)**: Submit a report directly via the repository's **Security** tab → **[Report a vulnerability](https://github.com/watt-mind/watts-mobile/security/advisories/new)**.
 - **Email**: Send vulnerability reports to [hdkiller@coachwatts.com](mailto:hdkiller@coachwatts.com).
 - **Details**: Please include:
   - Description of the vulnerability and its potential impact.
