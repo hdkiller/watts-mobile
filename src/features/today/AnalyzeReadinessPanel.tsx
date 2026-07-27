@@ -2,6 +2,7 @@
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import { Button } from '@/src/components/Button';
+import { AllowanceHint } from '@/src/features/subscriptions/AllowanceHint';
 import { QuotaLimitCard } from '@/src/features/subscriptions/QuotaLimitCard';
 import type { QuotaInfo } from '@/src/features/subscriptions/quota';
 import { Colors } from '@/src/theme/colors';
@@ -88,6 +89,7 @@ export function AnalyzeReadinessPanel({
           <Text className="mt-1.5 text-sm leading-5 text-text-muted">
             Generate today’s recommendation from your latest readiness and recovery biometrics.
           </Text>
+          <AllowanceHint className="mt-2" feature="READINESS_RECOMMENDATION" />
           <View className="mt-4 gap-3">
             <Button label="Analyze Readiness" onPress={onAnalyze} loading={generatingPending} />
             {onAdhoc ? (
