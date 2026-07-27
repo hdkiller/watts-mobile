@@ -49,7 +49,7 @@ export function GoalsLiteSection() {
         </View>
       ) : isError ? (
         <View className="mt-3 rounded-xl border border-danger/40 bg-tint-error px-4 py-3.5">
-          <Text className="text-sm text-red-400">
+          <Text className="text-sm text-danger">
             {friendlyError(error, 'Could not load goals')}
           </Text>
         </View>

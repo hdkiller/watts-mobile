@@ -14,9 +14,9 @@ export function FeedbackBanner({
 }) {
   const tone =
     feedback.type === 'error'
-      ? { shell: 'border-danger/40 bg-tint-error', text: 'text-red-400' }
+      ? { shell: 'border-danger/40 bg-tint-error', text: 'text-danger' }
       : feedback.type === 'success'
-        ? { shell: 'border-emerald-500/40 bg-emerald-500/10', text: 'text-emerald-400' }
+        ? { shell: 'border-emerald-500/40 bg-emerald-500/10', text: 'text-success' }
         : { shell: 'border-brand/40 bg-brand/10', text: 'text-text-primary' };
 
   return (

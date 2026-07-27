@@ -1,7 +1,7 @@
 import { Redirect, type Href } from 'expo-router';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 
-import { Colors } from '@/src/theme/colors';
+import { Spinner } from '@/src/components/Spinner';
 
 import { activationHrefForStatus, useActivationStatus } from './useActivationStatus';
 import { wizardRequired } from './mapStatus';
@@ -21,7 +21,7 @@ export function ActivationGate({ children }: Props) {
   if (isLoading && !data) {
     return (
       <View className="flex-1 items-center justify-center bg-surface">
-        <ActivityIndicator color={Colors.brand} />
+        <Spinner />
       </View>
     );
   }

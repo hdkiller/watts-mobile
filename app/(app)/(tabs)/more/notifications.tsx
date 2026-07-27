@@ -17,7 +17,6 @@ import {
   useMarkNotificationRead,
   useNotificationsQuery,
 } from '@/src/features/notifications/useNotifications';
-import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
 function goBackToMore() {
@@ -160,7 +159,7 @@ export default function NotificationsScreen() {
             <RefreshControl
               refreshing={manualRefreshing}
               onRefresh={() => void handleRefresh()}
-              tintColor={Colors.brand}
+              tintColor={theme.brandOnSurface}
             />
           }
           ListEmptyComponent={
