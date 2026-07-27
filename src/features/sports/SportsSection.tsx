@@ -45,7 +45,7 @@ export function SportsSection() {
     return (
       <View className="mt-6">
         <View className="rounded-xl border border-danger/40 bg-tint-error p-3">
-          <Text className="text-sm text-red-300">
+          <Text className="text-sm text-danger">
             {friendlyError(error, 'Could not load sport profiles')}
           </Text>
           <Pressable className="mt-2" hitSlop={8} onPress={() => void refetch()}>

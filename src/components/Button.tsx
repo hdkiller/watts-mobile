@@ -27,7 +27,7 @@ const containerByVariant: Record<ButtonVariant, string> = {
 const labelByVariant: Record<ButtonVariant, string> = {
   primary: 'text-ink',
   secondary: 'text-text-primary',
-  danger: 'text-red-400',
+  danger: 'text-danger',
 };
 
 const spinnerByVariant: Record<ButtonVariant, string> = {

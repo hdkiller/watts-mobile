@@ -201,7 +201,7 @@ export function CreateAdHocWorkoutSheet({
               placeholderTextColor={theme.textMuted}
             />
 
-            {formError ? <Text className="mt-3 text-sm text-red-400">{formError}</Text> : null}
+            {formError ? <Text className="mt-3 text-sm text-danger">{formError}</Text> : null}
           </ScrollView>
 
           <View className="gap-3 border-t border-border px-5 py-4">

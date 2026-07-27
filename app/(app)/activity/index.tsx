@@ -21,7 +21,6 @@ import {
 import { useOfflineCached } from '@/src/hooks/useOfflineCached';
 import { humanizeWorkoutType } from '@/src/lib/humanizeWorkoutType';
 import { APP_HREFS } from '@/src/linking/appHrefs';
-import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
 /** Root-stack lists opened from tabs/deep links often omit the native back chevron. */
@@ -163,7 +162,7 @@ export default function RecentActivityScreen() {
             <RefreshControl
               refreshing={manualRefreshing}
               onRefresh={() => void handleRefresh()}
-              tintColor={Colors.brand}
+              tintColor={theme.brandOnSurface}
             />
           }
           ListHeaderComponent={

@@ -1,7 +1,8 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
+import { Spinner } from '@/src/components/Spinner';
 import { friendlyError } from '@/src/api/errors';
 import { QuotaLimitCard } from '@/src/features/subscriptions/QuotaLimitCard';
 import { parseQuotaError, type QuotaInfo } from '@/src/features/subscriptions/quota';
@@ -13,7 +14,6 @@ import {
   usePatchNutritionPlanMeal,
 } from '@/src/features/nutrition/useNutrition';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
-import { Colors } from '@/src/theme/colors';
 
 import type { MealRecommendationOption, NutritionPlanWindowView } from './types';
 
@@ -142,7 +142,7 @@ function PickerBody({
 
       {loading ? (
         <View className="items-center gap-2 py-8" testID="plan-nutrition-meal-picker-pending">
-          <ActivityIndicator color={Colors.brand} />
+          <Spinner />
           <Text className="text-sm text-text-muted">Finding meal options…</Text>
           {slowHint ? (
             <Text className="px-2 text-center text-xs text-text-muted">
