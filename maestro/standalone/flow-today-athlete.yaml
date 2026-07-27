@@ -1,0 +1,8 @@
+# Standalone: Today name → Athlete profile → Sports & thresholds (wipe + login).
+# Auth: on (e2e seed). No instance gating — the Athlete rows show everywhere.
+appId: com.coachwatts.app
+tags:
+  - standalone
+---
+- runFlow: ../subflows/boot-and-login.yaml
+- runFlow: ../scenarios/today-athlete.yaml

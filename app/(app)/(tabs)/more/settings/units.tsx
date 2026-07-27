@@ -22,6 +22,7 @@ import type {
 } from '@/src/features/profile/types';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { useThemeColors } from '@/src/theme/useThemeColors';
+import { useTabScrollPadding } from '@/src/hooks/useTabScrollPadding';
 
 function ChoiceRow<T extends string>({
   title,
@@ -71,6 +72,7 @@ function ChoiceRow<T extends string>({
 
 export default function UnitsLocaleScreen() {
   const theme = useThemeColors();
+  const tabBottomPad = useTabScrollPadding();
 
   const { data, isLoading, isError, error, refetch } = useAthleteProfileQuery();
   const saveMutation = usePatchUnitsLocale();
@@ -123,7 +125,7 @@ export default function UnitsLocaleScreen() {
   return (
     <>
       <Stack.Screen options={{ title: 'Units & locale', headerShown: true }} />
-      <SafeAreaView edges={{ bottom: true }} style={{ flex: 1, backgroundColor: theme.surface }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.surface }}>
         {isLoading && !data ? (
           <DetailSkeleton />
         ) : isError && !data ? (
@@ -134,7 +136,8 @@ export default function UnitsLocaleScreen() {
         ) : (
           <ScrollView
             className="flex-1 bg-surface"
-            contentContainerClassName="px-6 pb-12 pt-4"
+            contentContainerClassName="px-6 pt-4"
+            contentContainerStyle={{ paddingBottom: tabBottomPad }}
             keyboardShouldPersistTaps="handled"
           >
             <Text className="text-sm text-text-muted">

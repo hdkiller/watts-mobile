@@ -14,6 +14,7 @@ import { Button } from '@/src/components/Button';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
+import { useTabScrollPadding } from '@/src/hooks/useTabScrollPadding';
 
 import {
   computeTargetCalories,
@@ -223,6 +224,7 @@ function formFromState(state: NutritionSettingsState): NutritionSettingsFormValu
 }
 
 export function NutritionSettingsForm({ initial }: { initial: NutritionSettingsState }) {
+  const tabBottomPad = useTabScrollPadding();
   const theme = useThemeColors();
   const saveMutation = useSaveNutritionSettings();
 
@@ -318,7 +320,8 @@ export function NutritionSettingsForm({ initial }: { initial: NutritionSettingsS
   return (
     <ScrollView
       className="flex-1 bg-surface"
-      contentContainerClassName="px-6 pb-16 pt-4"
+      contentContainerClassName="px-6 pt-4"
+      contentContainerStyle={{ paddingBottom: tabBottomPad }}
       keyboardShouldPersistTaps="handled"
     >
       <Text className="text-sm text-text-muted">
