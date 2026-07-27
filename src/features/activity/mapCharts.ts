@@ -2,6 +2,8 @@ import { Colors } from '@/src/theme/colors';
 
 import type {
   ActivityStreamCharts,
+  ActivityTerrainPoint,
+  ActivityTerrainStreams,
   ChartPoint,
   PowerCurveApi,
   PowerCurveCharts,
@@ -10,38 +12,9 @@ import type {
   WorkoutStreamsApi,
   ZoneBar,
 } from './chartTypes';
-import { CHART_DISPLAY_MAX_POINTS } from './chartTypes';
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
-}
-
-/** Uniform downsample of parallel series for SVG rendering. */
-export function downsamplePoints(
-  xs: number[],
-  ys: number[],
-  maxPoints: number = CHART_DISPLAY_MAX_POINTS,
-): ChartPoint[] {
-  const n = Math.min(xs.length, ys.length);
-  if (n <= 0) return [];
-  if (n <= maxPoints) {
-    const out: ChartPoint[] = [];
-    for (let i = 0; i < n; i++) {
-      if (!isFiniteNumber(xs[i]) || !isFiniteNumber(ys[i])) continue;
-      out.push({ x: xs[i]!, y: ys[i]! });
-    }
-    return out;
-  }
-
-  const out: ChartPoint[] = [];
-  for (let i = 0; i < maxPoints; i++) {
-    const idx = Math.floor((i * (n - 1)) / (maxPoints - 1));
-    const x = xs[idx];
-    const y = ys[idx];
-    if (!isFiniteNumber(x) || !isFiniteNumber(y)) continue;
-    out.push({ x, y });
-  }
-  return out;
 }
 
 function buildTimeAxis(time: number[] | null | undefined, length: number): number[] {
@@ -63,10 +36,51 @@ function mapSeries(
   const usable = values.filter(isFiniteNumber);
   if (usable.length < 2) return null;
   const xs = buildTimeAxis(time, values.length);
-  const ys = values.map((v) => (isFiniteNumber(v) ? v : 0));
-  const points = downsamplePoints(xs, ys);
+  const points: ChartPoint[] = [];
+  for (let index = 0; index < values.length; index += 1) {
+    const x = xs[index];
+    const y = values[index];
+    if (isFiniteNumber(x) && isFiniteNumber(y)) points.push({ x, y });
+  }
   if (points.length < 2) return null;
   return { key, label, unit, color, points };
+}
+
+function optionalValue(values: number[] | null | undefined, index: number): number | null {
+  const value = Array.isArray(values) ? values[index] : undefined;
+  return isFiniteNumber(value) ? value : null;
+}
+
+function mapTerrainStreams(raw: WorkoutStreamsApi): ActivityTerrainStreams | null {
+  if (!Array.isArray(raw.altitude) || !Array.isArray(raw.distance)) return null;
+  const length = Math.min(raw.altitude.length, raw.distance.length);
+  if (length < 3) return null;
+
+  const points: ActivityTerrainPoint[] = [];
+  let previousDistance = -Infinity;
+  for (let index = 0; index < length; index += 1) {
+    const altitudeM = raw.altitude[index];
+    const distanceM = raw.distance[index];
+    if (!isFiniteNumber(altitudeM) || !isFiniteNumber(distanceM)) continue;
+    if (distanceM < previousDistance) continue;
+    previousDistance = distanceM;
+    points.push({
+      sourceIndex: index,
+      timeSec: optionalValue(raw.time, index) ?? index,
+      distanceM,
+      altitudeM,
+      gradePct: optionalValue(raw.grade, index),
+      watts: optionalValue(raw.watts, index),
+      heartrate: optionalValue(raw.heartrate, index),
+      cadence: optionalValue(raw.cadence, index),
+      tempC: optionalValue(raw.temp, index),
+    });
+  }
+
+  if (points.length < 3 || points[points.length - 1]!.distanceM <= points[0]!.distanceM) {
+    return null;
+  }
+  return { points };
 }
 
 export function mapZoneBars(
@@ -109,7 +123,7 @@ export function mapActivityStreamCharts(raw: WorkoutStreamsApi): ActivityStreamC
     'heartrate',
     'Heart rate',
     'bpm',
-    '#38bdf8',
+    Colors.recovery,
     raw.time,
     raw.heartrate ?? null,
   );
@@ -134,7 +148,9 @@ export function mapActivityStreamCharts(raw: WorkoutStreamsApi): ActivityStreamC
     }
   }
 
-  if (series.length === 0 && !zones && !latlng) return null;
+  const terrain = mapTerrainStreams(raw);
+
+  if (series.length === 0 && !zones && !latlng && !terrain) return null;
 
   let durationSec = 0;
   for (const s of series) {
@@ -146,7 +162,7 @@ export function mapActivityStreamCharts(raw: WorkoutStreamsApi): ActivityStreamC
     if (isFiniteNumber(lastT)) durationSec = lastT;
   }
 
-  return { series, durationSec, zones, latlng };
+  return { series, durationSec, zones, latlng, terrain };
 }
 
 export function mapPowerCurveCharts(raw: PowerCurveApi): PowerCurveCharts | null {

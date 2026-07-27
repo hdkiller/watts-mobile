@@ -13,6 +13,7 @@ import { DetailSkeleton, Skeleton } from '@/src/components/Skeleton';
 import { SportIcon } from '@/src/components/SportIcon';
 import { ActivityCharts } from '@/src/features/activity/ActivityCharts';
 import { ActivityMap } from '@/src/features/activity/ActivityMap';
+import { ActivityTerrainAnalysis } from '@/src/features/activity/ActivityTerrainAnalysis';
 import {
   formatActivityDate,
   formatDuration,
@@ -407,6 +408,8 @@ export default function ActivitySummaryScreen() {
           />
 
           {coordinates.length > 0 ? <ActivityMap coordinates={coordinates} /> : null}
+
+          <ActivityTerrainAnalysis terrain={streams.data?.terrain ?? null} />
 
           {id ? <ActivityCharts workoutId={id} /> : null}
 

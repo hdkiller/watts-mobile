@@ -359,6 +359,30 @@ function toDayView(
 ): NutritionPlanDayView {
   const windows = windowsForDay(dateKey, dayMeals, plan);
   const meals = windows.map((w) => w.meal).filter((m): m is NutritionPlanMealView => Boolean(m));
+
+  const daySummary = summaryDays(plan).find(
+    (d) =>
+      d &&
+      typeof d === 'object' &&
+      String((d as { date?: unknown }).date ?? '').slice(0, 10) === dateKey,
+  ) as { fuelingPlan?: { windows?: unknown; workouts?: unknown }; targets?: { carbs?: number } } | undefined;
+
+  const targetCarbsTotal =
+    typeof daySummary?.targets?.carbs === 'number' && daySummary.targets.carbs > 0
+      ? Math.round(daySummary.targets.carbs)
+      : windows.reduce((sum, w) => sum + (w.targetCarbs || 0), 0);
+
+  const plannedCarbsTotal = windows
+    .filter((w) => w.meal && w.meal.status !== 'SKIPPED')
+    .reduce((sum, w) => sum + (w.targetCarbs || 0), 0);
+
+  const rawWorkouts = daySummary?.fuelingPlan?.workouts;
+  const workoutTitles = Array.isArray(rawWorkouts)
+    ? rawWorkouts
+        .map((w) => (w && typeof w === 'object' ? String((w as { title?: unknown }).title || '') : ''))
+        .filter(Boolean)
+    : [];
+
   return {
     dateKey,
     weekdayLabel: weekdayLabelForKey(dateKey),
@@ -367,6 +391,9 @@ function toDayView(
     plannedCount: meals.filter((x) => x.status === 'PLANNED').length,
     doneCount: meals.filter((x) => x.status === 'DONE').length,
     skippedCount: meals.filter((x) => x.status === 'SKIPPED').length,
+    targetCarbsTotal,
+    plannedCarbsTotal,
+    workoutTitles,
   };
 }
 

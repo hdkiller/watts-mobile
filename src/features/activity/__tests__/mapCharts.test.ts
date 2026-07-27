@@ -1,31 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  downsamplePoints,
-  mapActivityStreamCharts,
-  mapPowerCurveCharts,
-  mapZoneBars,
-} from '../mapCharts';
-
-describe('downsamplePoints', () => {
-  it('returns all points when under the cap', () => {
-    const points = downsamplePoints([0, 1, 2], [10, 20, 30], 200);
-    expect(points).toEqual([
-      { x: 0, y: 10 },
-      { x: 1, y: 20 },
-      { x: 2, y: 30 },
-    ]);
-  });
-
-  it('caps length when series is long', () => {
-    const xs = Array.from({ length: 1000 }, (_, i) => i);
-    const ys = Array.from({ length: 1000 }, (_, i) => i * 2);
-    const points = downsamplePoints(xs, ys, 50);
-    expect(points).toHaveLength(50);
-    expect(points[0]).toEqual({ x: 0, y: 0 });
-    expect(points[49]?.x).toBe(999);
-  });
-});
+import { mapActivityStreamCharts, mapPowerCurveCharts, mapZoneBars } from '../mapCharts';
 
 describe('mapZoneBars', () => {
   it('maps counts to fractions and labels', () => {
@@ -63,10 +38,42 @@ describe('mapActivityStreamCharts', () => {
     expect(charts?.series.map((s) => s.key)).toEqual(['watts', 'heartrate']);
     expect(charts?.zones?.channelLabel).toBe('Power zones');
     expect(charts?.zones?.bars).toHaveLength(2);
+    expect(charts?.series[0]?.points).toHaveLength(4);
+  });
+
+  it('retains aligned terrain streams without consuming detected climbs', () => {
+    const charts = mapActivityStreamCharts({
+      time: [0, 10, 20],
+      distance: [0, 100, 200],
+      altitude: [10, 12, 15],
+      grade: [0, 2, 3],
+      cadence: [80, 82, 84],
+      temp: [18, 18.5, 19],
+    });
+
+    expect(charts?.terrain?.points).toHaveLength(3);
+    expect(charts?.terrain?.points[1]).toMatchObject({
+      timeSec: 10,
+      distanceM: 100,
+      altitudeM: 12,
+      cadence: 82,
+      tempC: 18.5,
+    });
   });
 
   it('returns null when no chartable data', () => {
     expect(mapActivityStreamCharts({})).toBeNull();
+  });
+
+  it('keeps stream charts but omits terrain when altitude is unavailable', () => {
+    const charts = mapActivityStreamCharts({
+      time: [0, 1, 2],
+      watts: [100, 150, 125],
+      distance: [0, 10, 20],
+    });
+
+    expect(charts?.series.map((series) => series.key)).toEqual(['watts']);
+    expect(charts?.terrain).toBeNull();
   });
 });
 
