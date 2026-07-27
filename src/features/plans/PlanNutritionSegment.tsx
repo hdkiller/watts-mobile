@@ -197,82 +197,115 @@ export function PlanNutritionSegment() {
 
           {planQuery.isLoading && !hasMeals && !plan ? (
             <PlanNutritionSkeleton compact />
-          ) : !hasMeals ? (
-            <View className="gap-3" testID="plan-nutrition-empty">
-              <Text className="text-sm text-text-muted">
-                No meals selected this week yet. Generate a draft to fill fueling windows from your
-                catalog.
-              </Text>
-              <Button
-                label="Generate draft"
-                onPress={generateDraft}
-                loading={Boolean(busy)}
-                disabled={Boolean(busy)}
-                testID="plan-nutrition-generate"
-              />
-              <AnimatedPressable
-                hitSlop={8}
-                disabled={Boolean(busy)}
-                onPress={openGrocery}
-                accessibilityRole="button"
-                accessibilityLabel="Grocery list"
-                className="self-start py-1"
-              >
-                <Text className="text-sm font-semibold text-brand">Grocery list</Text>
-              </AnimatedPressable>
-            </View>
           ) : (
             <>
-              <View className="flex-row items-center justify-between gap-3">
-                <Button
-                  className="flex-1"
-                  label="Regenerate draft"
-                  variant="secondary"
-                  disabled={Boolean(busy)}
-                  onPress={generateDraft}
-                />
-                <AnimatedPressable
-                  hitSlop={8}
-                  disabled={Boolean(busy)}
-                  onPress={openGrocery}
-                  accessibilityRole="button"
-                  accessibilityLabel="Grocery list"
-                  className="py-1"
-                >
-                  <Text className="text-sm font-semibold text-brand">Grocery</Text>
-                </AnimatedPressable>
-              </View>
-              <View>
-                {days.map((day) => (
+              {!hasMeals ? (
+                <View className="gap-3" testID="plan-nutrition-empty">
+                  <Text className="text-sm text-text-muted">
+                    No meals selected this week yet. Generate a draft to fill fueling windows from
+                    your catalog.
+                  </Text>
+                  <Button
+                    label="Generate draft"
+                    onPress={generateDraft}
+                    loading={Boolean(busy)}
+                    disabled={Boolean(busy)}
+                    testID="plan-nutrition-generate"
+                  />
                   <AnimatedPressable
-                    key={day.dateKey}
-                    onPress={() => {
-                      hapticLight();
-                      setSelectedDateKey(day.dateKey);
-                    }}
                     hitSlop={8}
-                    className="border-b border-border/80 py-3"
+                    disabled={Boolean(busy)}
+                    onPress={openGrocery}
                     accessibilityRole="button"
-                    accessibilityLabel={day.weekdayLabel}
+                    accessibilityLabel="Grocery list"
+                    className="self-start py-1"
                   >
-                    <Text className="text-base font-medium text-text-primary">
-                      {day.weekdayLabel}
-                    </Text>
-                    <Text className="mt-1 text-sm text-text-muted">
-                      {day.meals.length === 0
-                        ? day.windows.length > 0
-                          ? `${day.windows.length} windows · no meals locked`
-                          : 'No meals selected'
-                        : `${day.meals.length} meals · ${day.doneCount} done · ${day.skippedCount} skipped`}
-                    </Text>
+                    <Text className="text-sm font-semibold text-brand">Grocery list</Text>
                   </AnimatedPressable>
-                ))}
-              </View>
+                </View>
+              ) : (
+                <View className="flex-row items-center justify-between gap-3">
+                  <Button
+                    className="flex-1"
+                    label="Regenerate draft"
+                    variant="secondary"
+                    disabled={Boolean(busy)}
+                    onPress={generateDraft}
+                  />
+                  <AnimatedPressable
+                    hitSlop={8}
+                    disabled={Boolean(busy)}
+                    onPress={openGrocery}
+                    accessibilityRole="button"
+                    accessibilityLabel="Grocery list"
+                    className="py-1"
+                  >
+                    <Text className="text-sm font-semibold text-brand">Grocery</Text>
+                  </AnimatedPressable>
+                </View>
+              )}
+
+              {days.length > 0 ? (
+                <View className="mt-2">
+                  {days.map((day) => (
+                    <AnimatedPressable
+                      key={day.dateKey}
+                      onPress={() => {
+                        hapticLight();
+                        setSelectedDateKey(day.dateKey);
+                      }}
+                      hitSlop={8}
+                      className="border-b border-border/80 py-3.5"
+                      accessibilityRole="button"
+                      accessibilityLabel={day.weekdayLabel}
+                    >
+                      <View className="flex-row items-start justify-between gap-2">
+                        <View className="flex-1">
+                          <Text className="text-base font-semibold text-text-primary">
+                            {day.weekdayLabel}
+                          </Text>
+                          {day.workoutTitles && day.workoutTitles.length > 0 ? (
+                            <Text className="mt-0.5 text-xs text-text-muted">
+                              {day.workoutTitles.join(' · ')}
+                            </Text>
+                          ) : (
+                            <Text className="mt-0.5 text-xs text-text-muted">Rest day</Text>
+                          )}
+                        </View>
+
+                        {day.targetCarbsTotal ? (
+                          <View className="items-end">
+                            <Text className="text-sm font-semibold text-text-primary">
+                              {day.targetCarbsTotal}g carbs
+                            </Text>
+                            <Text className="text-xs text-text-muted">
+                              {day.plannedCarbsTotal
+                                ? `${day.plannedCarbsTotal}g planned`
+                                : '0g planned'}
+                            </Text>
+                          </View>
+                        ) : null}
+                      </View>
+
+                      <View className="mt-2 flex-row items-center justify-between gap-2">
+                        <WindowCirclesIndicator windows={day.windows} />
+                        <Text className="text-xs text-text-muted">
+                          {day.meals.length === 0
+                            ? day.windows.length > 0
+                              ? `${day.windows.length} windows · no meals locked`
+                              : 'No meals selected'
+                            : `${day.meals.length} / ${day.windows.length} meals locked`}
+                        </Text>
+                      </View>
+                    </AnimatedPressable>
+                  ))}
+                </View>
+              ) : null}
             </>
           )}
 
           <BottomSheet
-            visible={Boolean(selectedDateKey)}
+            visible={Boolean(selectedDateKey) && pickerWindow == null}
             onClose={() => setSelectedDateKey(null)}
             testID="plan-nutrition-day-sheet"
           >
@@ -324,6 +357,50 @@ export function PlanNutritionSegment() {
           />
         </>
       ) : null}
+    </View>
+  );
+}
+
+function WindowCirclesIndicator({ windows }: { windows: NutritionPlanWindowView[] }) {
+  if (!windows.length) return null;
+
+  return (
+    <View className="flex-row items-center gap-1.5 py-0.5">
+      {windows.map((w, index) => {
+        const isLocked = Boolean(w.meal);
+        const status = w.meal?.status?.toUpperCase() ?? 'UNLOCKED';
+        const isDone = status === 'DONE';
+        const isSkipped = status === 'SKIPPED';
+        const isPrePost = w.windowType.includes('PRE') || w.windowType.includes('POST');
+
+        if (isDone) {
+          return <View key={`${w.key}-${index}`} className="h-2.5 w-2.5 rounded-full bg-success" />;
+        }
+
+        if (isSkipped) {
+          return (
+            <View
+              key={`${w.key}-${index}`}
+              className="h-2.5 w-2.5 rounded-full border border-text-muted/40 bg-surface"
+            />
+          );
+        }
+
+        if (isLocked) {
+          return <View key={`${w.key}-${index}`} className="h-2.5 w-2.5 rounded-full bg-brand" />;
+        }
+
+        return (
+          <View
+            key={`${w.key}-${index}`}
+            className={`h-2.5 w-2.5 rounded-full border ${
+              isPrePost
+                ? 'border-amber-400/80 bg-amber-400/10'
+                : 'border-text-muted/60 bg-transparent'
+            }`}
+          />
+        );
+      })}
     </View>
   );
 }

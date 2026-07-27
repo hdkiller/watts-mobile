@@ -9,6 +9,12 @@ export type WorkoutStreamsApi = {
   time?: number[] | null;
   watts?: number[] | null;
   heartrate?: number[] | null;
+  altitude?: number[] | null;
+  distance?: number[] | null;
+  cadence?: number[] | null;
+  velocity?: number[] | null;
+  grade?: number[] | null;
+  temp?: number[] | null;
   latlng?: [number, number][] | null;
   hrZoneTimes?: number[] | null;
   powerZoneTimes?: number[] | null;
@@ -46,8 +52,26 @@ export type StreamSeries = {
   key: string;
   label: string;
   unit: string;
+  /** Series with different display units can opt into one meaningful shared scale. */
+  scaleGroup?: string;
   color: string;
   points: ChartPoint[];
+};
+
+export type ActivityTerrainPoint = {
+  sourceIndex: number;
+  timeSec: number;
+  distanceM: number;
+  altitudeM: number;
+  gradePct: number | null;
+  watts: number | null;
+  heartrate: number | null;
+  cadence: number | null;
+  tempC: number | null;
+};
+
+export type ActivityTerrainStreams = {
+  points: ActivityTerrainPoint[];
 };
 
 export type ZoneBar = {
@@ -67,11 +91,10 @@ export type ActivityStreamCharts = {
     bars: ZoneBar[];
   } | null;
   latlng?: { latitude: number; longitude: number }[] | null;
+  terrain: ActivityTerrainStreams | null;
 };
 
 export type PowerCurveCharts = {
   points: { label: string; power: number }[];
   peak20min: number | null;
 };
-
-export const CHART_DISPLAY_MAX_POINTS = 200;

@@ -191,6 +191,46 @@ function PickerBody({
         })}
       </View>
 
+      {!loading ? (
+        <View className="mt-3">
+          <Button
+            label="✨ Suggest AI meal"
+            variant="secondary"
+            disabled={busy}
+            onPress={() => {
+              hapticLight();
+              setLoading(true);
+              setError(null);
+              setSelectedIndex(null);
+              void recommend
+                .mutateAsync({
+                  date: dateKey,
+                  windowType: window.windowKey || window.windowType,
+                  targetCarbs: window.targetCarbs || undefined,
+                  targetProtein: window.targetProtein || undefined,
+                  targetKcal: window.targetKcal || undefined,
+                  forceLlm: true,
+                })
+                .then((rows) => {
+                  setOptions(rows);
+                  setSlowHint(false);
+                })
+                .catch((err) => {
+                  hapticError();
+                  if (isQuotaError(err)) {
+                    setError('Meal recommendation limit reached — try again later');
+                  } else {
+                    setError(friendlyError(err, 'Could not generate AI meal suggestion'));
+                  }
+                })
+                .finally(() => {
+                  setLoading(false);
+                });
+            }}
+          />
+        </View>
+      ) : null}
+
       <Button
         className="mt-4"
         label={window.meal ? 'Replace meal' : 'Lock meal'}
