@@ -13,7 +13,7 @@ UI conventions for this app. Brand tokens originate in coach-wattz `BRANDING.md`
 
 Source of truth: [`src/theme/colors.ts`](../src/theme/colors.ts) (JS access) and [`tailwind.config.js`](../tailwind.config.js) (className access). Keep them in sync.
 
-Brand/state accents (brand, recovery, modify, danger, zone ramp) are **theme-invariant**. Neutrals are **semantic** and resolve per theme:
+Brand/state accents (brand, recovery, modify, danger, zone ramp) are **theme-invariant as fills**. Neutrals are **semantic** and resolve per theme — as does **brand-on-surface**, the brand green used as text or an icon tint (see [Brand foreground vs fill](#brand-foreground-vs-fill)):
 
 | Semantic token | Dark value | Light value | Tailwind | Replaces |
 |----------------|-----------|-------------|----------|----------|
@@ -33,7 +33,8 @@ Wired via CSS variables in `global.css` (`:root` light + `prefers-color-scheme: 
 
 | Token | Value | Tailwind | Use |
 |-------|-------|----------|-----|
-| brand | `#00DC82` | `text-brand` / `bg-brand` | Accents, links, active states, spinner tint; train hero tone |
+| brand (fill) | `#00DC82` | `bg-brand` / `border-brand` | Fills, active states, train hero tone — theme-invariant |
+| accent on surface | per theme — see [table](#accent-foreground-vs-fill) | `text-brand` / `text-modify` / `text-danger` / …, `theme.*OnSurface` | **Text**, icon tints, spinners, chart strokes |
 | brand action | `#00C16A` | `bg-brand-action` | Primary button fill only |
 | brand deep | `#00A155` | `brand-deep` | Chart accent |
 | recovery | `#38bdf8` | `text-recovery` / `bg-recovery` | Rest-day hero accent (sky on dark; not violet) |
@@ -42,7 +43,7 @@ Wired via CSS variables in `global.css` (`:root` light + `prefers-color-scheme: 
 | hydration | `#38bdf8` (same as recovery) | `text-hydration` / `bg-hydration` | Fluid / water meters |
 | surface | see table | `bg-surface` | Screen background |
 | ink | `#09090b` | `text-ink` | Text **on** brand green |
-| danger | `#ef4444` | `text-danger` / `text-red-400` | Errors, destructive |
+| danger | `#ef4444` | `bg-danger` (fill) / `text-danger` (per theme) | Errors, destructive |
 | success | `#22c55e` | `text-success` / `text-green-400` | Success confirmations |
 
 ### Zone ramp (Z1→Z7)
@@ -75,6 +76,36 @@ Season timeline phase colours. Access via `Colors.planBlocks` / `blockTypeColor(
 Neutral surfaces use semantic tokens: cards `bg-card(/80)` with `border-border`, input/button borders `border-border-strong`, hairline row dividers `border-border/80`.
 
 **Contrast rule:** text on brand green is always dark (`text-ink`), never white / `text-text-primary`.
+
+### Accent foreground vs fill
+
+Every accent means two different things and only one of them is theme-invariant.
+
+- **As a fill** (`bg-*`, `border-*`) accents stay vivid on both themes. A brand fill always carries `text-ink` (10.95:1 either way), and chart fills are judged as graphics, not text.
+- **As a foreground** — text, icon `tintColor`, spinners, chart strokes — an accent must resolve per theme. The palette was designed against dark surfaces, so on light `#fafafa` **every accent lands between 1.6:1 and 3.8:1 as text**, under the 4.5:1 AA floor (most are under the 3:1 large-text floor too). Light mode uses the same hue one step darker.
+
+| Foreground token | Dark | Light | Light ratio on `#fafafa` |
+|---|---|---|---|
+| `brandOnSurface` | `#00DC82` | `#00854E` | 4.51 |
+| `modifyOnSurface` | `#f59e0b` | `#b45309` | 4.81 |
+| `recoveryOnSurface` / `hydrationOnSurface` | `#38bdf8` | `#0369a1` | 5.68 |
+| `dangerOnSurface` | `#f87171` | `#b91c1c` | 6.20 |
+| `successOnSurface` | `#22c55e` | `#15803d` | 4.81 |
+| `macroCaloriesOnSurface` | `#fb923c` | `#c2410c` | 4.96 |
+| `macroCarbsOnSurface` | `#fbbf24` | `#a16207` | 4.72 |
+| `macroProteinOnSurface` | `#60a5fa` | `#1d4ed8` | 6.42 |
+| `macroFatOnSurface` | `#a78bfa` | `#6d28d9` | 6.81 |
+
+`dangerOnSurface` is the one token whose dark value is not the raw accent: red-400 is lighter than `danger` and reads better on the tinted error card (5.84 vs 4.29 on `#450a0a`).
+
+Wiring: `--color-*-on-surface` in `global.css`, `textColor.*` in `tailwind.config.js` (Tailwind's `textColor` scale feeds text utilities only, so `text-modify` and `bg-modify` diverge without touching call sites), and `*OnSurface` on the `Themes` maps for imperative use.
+
+**Rules:**
+
+1. Never read an accent foreground off the static `Colors` export — that is the dark map, so it pins the vivid value and fails in light mode. Use `useThemeColors().<accent>OnSurface`, the `text-*` class, or `<Spinner />`.
+2. Don't reach for raw Tailwind palette classes (`text-red-400`, `text-green-400`) for state text — they are theme-blind and were the second source of light-mode failures. Use `text-danger` / `text-success`.
+
+`src/theme/__tests__/brandContrast.test.ts` asserts every token clears AA on both themes, that error/success text clears its tinted card, that fills stay invariant, and that `global.css` / `tailwind.config.js` / `colors.ts` agree.
 
 ## Type scale
 
@@ -113,7 +144,7 @@ Inline text links (Retry, See all, Check in…): `text-sm font-semibold text-bra
 ## States
 
 - **Loading:** skeleton (see above). Warm-cache Today target is < ~2s.
-- **Error:** red tinted card (`border-danger/40 bg-tint-error`, `text-red-400`) with an inline brand-colored Retry link. Prefer friendly copy over raw API messages.
+- **Error:** red tinted card (`border-danger/40 bg-tint-error`, `text-danger`) with an inline brand-colored Retry link. Prefer friendly copy over raw API messages.
 - **Empty:** honest one-liner in `text-text-muted` ("Waiting for sync…", "No upcoming planned workouts.") plus the relevant action. Never a blank screen.
 - **Success/confirm:** green (`text-green-400`) inline text or state change; keep it near the triggering control. For meaningful habit actions that already occupy a dedicated flow (for example, logging a photo meal), the final screen may become a restrained completion state: one success haptic, a short checkmark transition, the real values added, and the updated daily context. No confetti, invented praise, badges, or detached celebratory toast.
 

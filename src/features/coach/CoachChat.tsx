@@ -131,10 +131,10 @@ function ToolOutcomeCard({ outcome }: { outcome: ToolOutcomeSummary }) {
         : 'border-red-800/50 bg-tint-error';
   const textClass =
     outcome.status === 'success'
-      ? 'text-green-400'
+      ? 'text-success'
       : outcome.status === 'denied'
         ? 'text-text-muted'
-        : 'text-red-300';
+        : 'text-danger';
   const iconTint =
     outcome.status === 'success' ? glyph.tint : outcome.status === 'denied' ? '#94a3b8' : '#f87171';
   return (
@@ -610,11 +610,11 @@ export function CoachChat({
       ) : null}
 
       {chat.sendError ? (
-        <Text className="px-5 pb-2 text-sm text-red-400">{chat.sendError}</Text>
+        <Text className="px-5 pb-2 text-sm text-danger">{chat.sendError}</Text>
       ) : null}
 
       {dictation.error ? (
-        <Text className="px-5 pb-2 text-sm text-red-400">{dictation.error}</Text>
+        <Text className="px-5 pb-2 text-sm text-danger">{dictation.error}</Text>
       ) : null}
 
       {chat.recoverableTurnId ? (
@@ -646,7 +646,7 @@ export function CoachChat({
               />
               {attachment.uploading ? (
                 <View className="absolute inset-0 items-center justify-center rounded-xl bg-black/50">
-                  <ActivityIndicator color={Colors.brand} />
+                  <ActivityIndicator color={theme.brandOnSurface} />
                 </View>
               ) : null}
               <Pressable

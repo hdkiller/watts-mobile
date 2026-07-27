@@ -1,6 +1,7 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
-import { ActivityIndicator, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
+import { Spinner } from '@/src/components/Spinner';
 import { Colors } from '@/src/theme/colors';
 
 import { BarSeriesChart, powerCurveToItems, zoneBarsToItems } from './charts/BarSeriesChart';
@@ -35,7 +36,7 @@ export function ActivityCharts({ workoutId }: Props) {
   if (loading) {
     return (
       <View className="mt-6 items-center py-4">
-        <ActivityIndicator color={Colors.brand} />
+        <Spinner />
         <Text className="mt-2 text-sm text-text-muted">Loading charts…</Text>
       </View>
     );
