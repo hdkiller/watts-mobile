@@ -25,7 +25,6 @@ import { useUnreadNotificationsCount } from '@/src/features/notifications/useNot
 import { useSubscriptionSummary } from '@/src/features/subscriptions/useSubscriptions';
 import { useTabScrollPadding } from '@/src/hooks/useTabScrollPadding';
 import { APP_HREFS } from '@/src/linking/appHrefs';
-import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 import { canUseAthleteReferralShare } from '@/src/features/referrals/isHostedReferralInstance';
@@ -49,7 +48,7 @@ function RowIcon({ sf, isDestructive = false }: { sf: SFSymbol; isDestructive?: 
       <AppSymbol
         sf={sf}
         size={18}
-        tintColor={isDestructive ? Colors.danger : theme.textMuted}
+        tintColor={isDestructive ? theme.dangerOnSurface : theme.textMuted}
         fallback=""
       />
     </View>

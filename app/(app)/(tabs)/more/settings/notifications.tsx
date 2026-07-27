@@ -174,7 +174,7 @@ export default function NotificationSettingsScreen() {
                   <AppSymbol
                     sf="exclamationmark.triangle"
                     size={18}
-                    tintColor={Colors.modify}
+                    tintColor={theme.modifyOnSurface}
                     fallback="⚠️"
                   />
                   <Text className="text-sm font-semibold text-modify">

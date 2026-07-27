@@ -81,7 +81,7 @@ export function TrainingLoadSheet({ visible, onClose }: { visible: boolean; onCl
             </View>
           ) : query.isError ? (
             <View className="mt-8">
-              <Text className="text-red-400">
+              <Text className="text-danger">
                 {friendlyError(query.error, 'Failed to load training load')}
               </Text>
               <Text className="mt-2 text-sm text-text-muted">

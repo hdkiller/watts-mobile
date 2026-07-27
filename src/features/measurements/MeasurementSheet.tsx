@@ -315,7 +315,7 @@ export function MeasurementSheet({ visible, onClose }: MeasurementSheetProps) {
                 />
               </View>
 
-              {error ? <Text className="mb-3 text-xs text-red-400">{error}</Text> : null}
+              {error ? <Text className="mb-3 text-xs text-danger">{error}</Text> : null}
 
               <Button
                 className="mt-2"

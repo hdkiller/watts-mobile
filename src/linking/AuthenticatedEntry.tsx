@@ -1,15 +1,15 @@
 import { Redirect, type Href } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 
 import {
   activationHrefForStatus,
   useActivationStatus,
 } from '@/src/features/activation/useActivationStatus';
+import { Spinner } from '@/src/components/Spinner';
 import { wizardRequired } from '@/src/features/activation/mapStatus';
 import { migrateLegacyAppHref } from '@/src/linking/appHrefs';
 import { consumePendingReturnPath } from '@/src/linking/pendingReturnPath';
-import { Colors } from '@/src/theme/colors';
 
 const DEFAULT_HOME = '/(app)/(tabs)/today';
 
@@ -44,7 +44,7 @@ export function AuthenticatedEntry() {
   if (!href) {
     return (
       <View className="flex-1 items-center justify-center bg-surface">
-        <ActivityIndicator color={Colors.brand} />
+        <Spinner />
       </View>
     );
   }

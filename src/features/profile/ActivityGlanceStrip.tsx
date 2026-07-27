@@ -145,7 +145,7 @@ function ActivityGlancePage({ pageOffset, width }: { pageOffset: number; width: 
     return (
       <View style={{ width }}>
         <View className="rounded-xl border border-danger/40 bg-tint-error px-4 py-3">
-          <Text className="text-sm text-red-400">
+          <Text className="text-sm text-danger">
             {friendlyError(error, 'Could not load activity glance')}
           </Text>
           <AnimatedPressable
@@ -244,7 +244,7 @@ function NutritionGlancePage({ pageOffset, width }: { pageOffset: number; width:
     return (
       <View style={{ width }}>
         <View className="rounded-xl border border-danger/40 bg-tint-error px-4 py-3">
-          <Text className="text-sm text-red-400">
+          <Text className="text-sm text-danger">
             {friendlyError(loggedQuery.error, 'Could not load nutrition glance')}
           </Text>
           <AnimatedPressable

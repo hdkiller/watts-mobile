@@ -97,7 +97,7 @@ export default function SubscriptionScreen() {
                 void summary.refetch();
                 if (showPlans) void offerings.refetch();
               }}
-              tintColor={theme.brand}
+              tintColor={theme.brandOnSurface}
             />
           }
         >
@@ -119,7 +119,7 @@ export default function SubscriptionScreen() {
             ) : null}
             {summary.isError ? (
               <View className="mt-3 rounded-xl border border-danger/40 bg-tint-error p-3">
-                <Text className="text-sm text-red-400">Could not load subscription status.</Text>
+                <Text className="text-sm text-danger">Could not load subscription status.</Text>
                 <Pressable className="mt-2" hitSlop={8} onPress={() => void summary.refetch()}>
                   <Text className="text-sm font-semibold text-brand">Retry</Text>
                 </Pressable>
