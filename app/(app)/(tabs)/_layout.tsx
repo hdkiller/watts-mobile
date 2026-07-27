@@ -16,12 +16,12 @@ export default function TabsLayout() {
 
   return (
     <NativeTabs
-      tintColor={theme.brand}
+      tintColor={theme.brandOnSurface}
       backgroundColor={theme.surface}
-      iconColor={{ default: theme.textMuted, selected: theme.brand }}
+      iconColor={{ default: theme.textMuted, selected: theme.brandOnSurface }}
       labelStyle={{
         default: { color: theme.textMuted },
-        selected: { color: theme.brand },
+        selected: { color: theme.brandOnSurface },
       }}
       // Material 3 defaults to selected-only labels (icons misalign). Match iOS: always labeled.
       labelVisibilityMode="labeled"

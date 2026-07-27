@@ -1,12 +1,12 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
 
+import { Spinner } from '@/src/components/Spinner';
 import { friendlyError } from '@/src/api/errors';
 import { BottomSheet } from '@/src/components/BottomSheet';
 import { Button } from '@/src/components/Button';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
-import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
 import { apiMealTypeToMealSlot, mealSlotToApiMealType } from './mapNutrition';
@@ -208,7 +208,7 @@ function EditForm({
         </Text>
       ) : null}
 
-      {patchItem.isPending ? <ActivityIndicator className="mt-3" color={Colors.brand} /> : null}
+      {patchItem.isPending ? <Spinner className="mt-3" /> : null}
 
       <Button
         className="mt-4"

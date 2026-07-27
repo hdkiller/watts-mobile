@@ -46,7 +46,7 @@ export function WeightInput({
       {value && !editing ? (
         <View className="mt-3 flex-row items-center justify-between rounded-xl bg-surface p-3">
           <View className="flex-row items-center gap-2">
-            <AppSymbol sf="ruler" size={16} tintColor={theme.brand} fallback="⚖️" />
+            <AppSymbol sf="ruler" size={16} tintColor={theme.brandOnSurface} fallback="⚖️" />
             <Text className="text-base font-bold text-text-primary">
               {value} <Text className="text-xs font-normal text-text-muted">{unitLabel}</Text>
             </Text>
