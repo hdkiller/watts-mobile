@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
+import { AllowanceHint } from '@/src/features/subscriptions/AllowanceHint';
 import { QuotaLimitCard } from '@/src/features/subscriptions/QuotaLimitCard';
 import { parseQuotaError, type QuotaInfo } from '@/src/features/subscriptions/quota';
+import { useRefreshQuotaAllowances } from '@/src/features/subscriptions/useQuotaAllowances';
 import { useAuth } from '@/src/auth/AuthContext';
 import { Button } from '@/src/components/Button';
 import { HeroStatTiles, type HeroStat } from '@/src/components/HeroStatTiles';
@@ -143,7 +145,10 @@ function AnalysisGlance({
       ) : null}
 
       {showCta && !limited ? (
-        <Button className="mt-4" label={ctaLabel} onPress={onAnalyze} loading={analyzing} />
+        <>
+          <AllowanceHint className="mt-3" feature="ACTIVITY_ANALYSIS" />
+          <Button className="mt-3" label={ctaLabel} onPress={onAnalyze} loading={analyzing} />
+        </>
       ) : null}
     </View>
   );
@@ -331,9 +336,11 @@ export default function ActivitySummaryScreen() {
   const onAnalyze = () => {
     analyzeMutation.mutate(undefined, {
       onError: () => hapticError(),
+      onSettled: () => refreshAllowances(),
     });
   };
 
+  const refreshAllowances = useRefreshQuotaAllowances();
   const analyzeQuota = analyzeMutation.error
     ? parseQuotaError(analyzeMutation.error, 'ACTIVITY_ANALYSIS')
     : null;

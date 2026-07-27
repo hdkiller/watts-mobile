@@ -38,8 +38,10 @@ import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { DASHBOARD_PROFILE_KEY } from '@/src/features/profile/useRecentWellness';
 import { useActiveRecoveryQuery } from '@/src/features/recovery/useRecovery';
 import { AnalysisReadyCard } from '@/src/features/today/analysis-ready-card';
+import { AllowanceHint } from '@/src/features/subscriptions/AllowanceHint';
 import { QuotaLimitCard } from '@/src/features/subscriptions/QuotaLimitCard';
 import { parseQuotaError, type QuotaInfo } from '@/src/features/subscriptions/quota';
+import { useRefreshQuotaAllowances } from '@/src/features/subscriptions/useQuotaAllowances';
 import { AnalyzeReadinessPanel } from '@/src/features/today/AnalyzeReadinessPanel';
 import { ComingUpStrip } from '@/src/features/today/coming-up-strip';
 import { MoreActionsSheet, type MoreAction } from '@/src/features/today/more-actions-sheet';
@@ -239,6 +241,7 @@ export default function TodayScreen() {
   const [genState, setGenState] = useState<'idle' | 'generating' | 'error' | 'quota'>('idle');
   const [genError, setGenError] = useState<string | null>(null);
   const [genQuota, setGenQuota] = useState<QuotaInfo | null>(null);
+  const refreshAllowances = useRefreshQuotaAllowances();
   const [detailOpen, setDetailOpen] = useState(false);
   const [refineOpen, setRefineOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -283,6 +286,7 @@ export default function TodayScreen() {
     clearGeneratePoll();
     statusFailRef.current = 0;
     setGenState('generating');
+    refreshAllowances();
     setGenError(null);
     try {
       const trimmed = userFeedback?.trim();
@@ -323,6 +327,7 @@ export default function TodayScreen() {
       }
     } catch (err: unknown) {
       hapticError();
+      refreshAllowances();
       const quota = parseQuotaError(err, 'READINESS_RECOMMENDATION');
       if (quota) {
         setGenState('quota');
@@ -370,6 +375,7 @@ export default function TodayScreen() {
     clearAdhocPoll();
     adhocFailRef.current = 0;
     setAdhocState('generating');
+    refreshAllowances();
     setAdhocError(null);
     const priorPlannedId = data?.plannedWorkout?.id ?? null;
     try {
@@ -421,6 +427,7 @@ export default function TodayScreen() {
       }, 2500);
     } catch (err: unknown) {
       hapticError();
+      refreshAllowances();
       const quota = parseQuotaError(err, 'WORKOUT_GENERATION');
       if (quota) {
         setAdhocState('quota');
@@ -865,6 +872,7 @@ export default function TodayScreen() {
                 onPress={() => setAdhocOpen(true)}
                 disabled={actionsBusy}
               />
+              <AllowanceHint feature="WORKOUT_GENERATION" />
             </View>
           </EnterSection>
         ) : null}
