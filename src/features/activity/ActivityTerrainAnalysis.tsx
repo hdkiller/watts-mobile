@@ -124,10 +124,7 @@ function TerrainStrip({
   return (
     <View className="mt-6">
       <Text className="mb-3 text-xs uppercase tracking-wide text-text-body">Terrain</Text>
-      <View
-        className="pb-2 pt-1"
-        onLayout={(event) => setWidth(event.nativeEvent.layout.width)}
-      >
+      <View className="pb-2 pt-1" onLayout={(event) => setWidth(event.nativeEvent.layout.width)}>
         <View
           accessible
           accessibilityRole="image"
