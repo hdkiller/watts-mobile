@@ -8,6 +8,7 @@ import { Colors } from '@/src/theme/colors';
 import { themePreferenceLabel, type ThemePreference } from '@/src/theme/themePreference';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 import { useThemePreference } from '@/src/theme/useThemePreference';
+import { useTabScrollPadding } from '@/src/hooks/useTabScrollPadding';
 
 const OPTIONS: {
   value: ThemePreference;
@@ -33,6 +34,7 @@ const OPTIONS: {
 
 export default function AppearanceSettingsScreen() {
   const theme = useThemeColors();
+  const tabBottomPad = useTabScrollPadding();
   const { preference, setPreference } = useThemePreference();
 
   return (
@@ -43,8 +45,12 @@ export default function AppearanceSettingsScreen() {
           headerShown: true,
         }}
       />
-      <SafeAreaView edges={{ bottom: true }} style={{ flex: 1, backgroundColor: theme.surface }}>
-        <ScrollView className="flex-1 bg-surface" contentContainerClassName="px-6 pb-12 pt-4">
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.surface }}>
+        <ScrollView
+          className="flex-1 bg-surface"
+          contentContainerClassName="px-6 pt-4"
+          contentContainerStyle={{ paddingBottom: tabBottomPad }}
+        >
           <Text className="text-2xl font-semibold text-text-primary">Appearance</Text>
           <Text className="mt-2 text-sm text-text-muted">
             Choose how Coach Watts looks on this device. System follows your phone’s setting.

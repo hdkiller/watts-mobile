@@ -22,13 +22,13 @@ export default function SettingsStackLayout() {
     >
       <Stack.Screen name="index" options={{ title: 'Settings' }} />
       <Stack.Screen name="notifications" options={{ title: 'Notification settings' }} />
-      <Stack.Screen name="subscription" options={{ title: 'Subscription & Billing' }} />
+      <Stack.Screen name="subscription" options={{ title: 'Subscription' }} />
       <Stack.Screen name="units" options={{ title: 'Units & locale' }} />
       <Stack.Screen name="appearance" options={{ title: 'Appearance' }} />
-      <Stack.Screen name="log" options={{ title: 'Log defaults' }} />
-      <Stack.Screen name="coach" options={{ title: 'Coach identity' }} />
+      <Stack.Screen name="log" options={{ title: 'Default log view' }} />
+      <Stack.Screen name="coach" options={{ title: 'Coach persona' }} />
       {/* nutrition stays file-routed when present */}
-      <Stack.Screen name="nutrition" options={{ title: 'Nutrition' }} />
+      <Stack.Screen name="nutrition" options={{ title: 'Nutrition tracking' }} />
     </Stack>
   );
 }

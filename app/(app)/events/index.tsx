@@ -53,7 +53,7 @@ export default function UpcomingEventsListScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Upcoming Events',
+          title: 'Events',
           headerShown: true,
           headerRight: () => (
             <AnimatedPressable
