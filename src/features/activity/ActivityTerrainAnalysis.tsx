@@ -125,8 +125,8 @@ function TerrainStrip({
     <View className="mt-6">
       <Text className="mb-3 text-xs uppercase tracking-wide text-text-body">Terrain</Text>
       <View
-        className="overflow-hidden rounded-xl border border-border bg-card/40 px-2 pb-2 pt-1"
-        onLayout={(event) => setWidth(event.nativeEvent.layout.width - 16)}
+        className="pb-2 pt-1"
+        onLayout={(event) => setWidth(event.nativeEvent.layout.width)}
       >
         <View
           accessible
@@ -226,12 +226,26 @@ function TerrainStrip({
             </Svg>
           ) : null}
         </View>
-        <View className="mt-1 flex-row overflow-hidden rounded-sm" accessibilityElementsHidden>
+        <View className="mt-2 flex-row items-center">
+          <View
+            className="mr-1.5 h-2 w-2 rounded-full"
+            style={{ backgroundColor: theme.textBody }}
+          />
+          <Text className="text-xs text-text-body">Elevation (m)</Text>
+        </View>
+        <View
+          className="mt-3 flex-row overflow-hidden rounded-sm"
+          style={{ marginLeft: TERRAIN_PAD.left, marginRight: TERRAIN_PAD.right }}
+          accessibilityElementsHidden
+        >
           {palette.map((color) => (
             <View key={color} className="h-2 flex-1" style={{ backgroundColor: color }} />
           ))}
         </View>
-        <View className="mt-1 flex-row justify-between">
+        <View
+          className="mt-1 flex-row justify-between"
+          style={{ marginLeft: TERRAIN_PAD.left, marginRight: TERRAIN_PAD.right }}
+        >
           <Text className="text-[9px] text-text-body">−10% descent</Text>
           <Text className="text-[9px] text-text-body">flat</Text>
           <Text className="text-[9px] text-text-body">+10% climb</Text>
@@ -267,7 +281,7 @@ function ClimbLedger({
         <Text className="text-xs uppercase tracking-wide text-text-body">Climbs</Text>
         <Text className="text-xs text-text-body">{climbs.length} total</Text>
       </View>
-      <View className="overflow-hidden rounded-xl border border-border bg-card/40">
+      <View>
         {shown.map((climb, rowIndex) => {
           const expanded = selectedClimb === climb.index;
           return (
