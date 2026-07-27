@@ -12,7 +12,7 @@ tags:
 - runFlow: subflows/reset-to-today.yaml
 - runFlow: scenarios/daily-coach-checkin-open.yaml
 - runFlow: subflows/reset-to-today.yaml
-- runFlow: scenarios/today-invite.yaml
+- runFlow: scenarios/today-athlete.yaml
 - runFlow: subflows/reset-to-today.yaml
 - runFlow: scenarios/log-checkin-open.yaml
 - runFlow: subflows/reset-to-today.yaml

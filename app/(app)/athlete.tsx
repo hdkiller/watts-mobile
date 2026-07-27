@@ -2,6 +2,7 @@
 /* Hallmark · genre: modern-minimal · macrostructure: Workbench · design-system: docs/DESIGN.md · designed-as-app */
 import { useQueryClient } from '@tanstack/react-query';
 import { Stack, router, type Href } from 'expo-router';
+import type { SFSymbol } from 'expo-symbols';
 import { useState } from 'react';
 import { ScrollView, Text, TextInput, View } from 'react-native';
 
@@ -14,7 +15,6 @@ import { Skeleton, SkeletonScreen } from '@/src/components/Skeleton';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 import { GoalsLiteSection } from '@/src/features/goals/GoalsLiteSection';
 import { AthleteProfileOverview } from '@/src/features/profile/AthleteProfileOverview';
-import { canUseAthleteReferralShare } from '@/src/features/referrals/isHostedReferralInstance';
 import {
   athleteProfileWebPath,
   emptyAthleteForm,
@@ -192,14 +192,8 @@ export default function AthleteMetricsScreen() {
               {metricsOpen ? (
                 <View className="mt-2">
                   <Text className="text-sm text-text-muted">
-                    Default sport profile — per-sport thresholds live in{' '}
-                    <Text
-                      className="font-semibold text-brand"
-                      onPress={() => router.push(APP_HREFS.settingsSports as Href)}
-                    >
-                      Sports
-                    </Text>
-                    .
+                    Your default sport profile. Per-sport thresholds live under Sports & thresholds,
+                    below.
                   </Text>
 
                   <Field
@@ -246,13 +240,6 @@ export default function AthleteMetricsScreen() {
                     loading={pending}
                     onPress={() => void onSave()}
                   />
-
-                  <Button
-                    className="mt-3"
-                    variant="secondary"
-                    label="Open Profile Settings"
-                    onPress={() => void openWebSettings()}
-                  />
                 </View>
               ) : (
                 <Text className="mt-2 text-sm text-text-muted">
@@ -261,41 +248,72 @@ export default function AthleteMetricsScreen() {
               )}
             </View>
 
-            {canUseAthleteReferralShare(instanceUrl) ? (
-              <View className="mt-10 border-t border-border pt-6">
-                <AnimatedPressable
-                  testID="athlete-invite-friends"
-                  accessibilityRole="button"
-                  accessibilityLabel="Invite friends"
-                  className="flex-row items-center py-1"
-                  hitSlop={8}
-                  onPress={() => {
-                    hapticLight();
-                    router.push(APP_HREFS.invite as Href);
-                  }}
-                >
-                  <View className="mr-3 h-5 w-5 items-center justify-center">
-                    <AppSymbol sf="qrcode" size={18} tintColor={theme.textMuted} fallback="" />
-                  </View>
-                  <View className="min-w-0 flex-1">
-                    <Text className="text-base font-medium text-text-primary">Invite friends</Text>
-                    <Text className="mt-0.5 text-sm text-text-muted">
-                      QR & link so others can join
-                    </Text>
-                  </View>
-                  <AppSymbol
-                    sf="chevron.right"
-                    size={14}
-                    tintColor={theme.textMuted}
-                    fallback="›"
-                  />
-                </AnimatedPressable>
-              </View>
-            ) : null}
+            <View className="mt-10 border-t border-border pt-6">
+              <LinkRow
+                testID="athlete-sports"
+                sf="figure.run"
+                title="Sports & thresholds"
+                detail="Per-sport FTP, LTHR, Max HR"
+                onPress={() => router.push(APP_HREFS.settingsSports as Href)}
+              />
+              <LinkRow
+                sf="globe"
+                title="Manage full profile on the web"
+                detail="Zones, history & everything else"
+                isExternal
+                onPress={() => void openWebSettings()}
+              />
+            </View>
           </ScrollView>
         </View>
       )}
     </>
+  );
+}
+
+/** Bottom-of-screen navigation rows: the two places that own the rest of the profile. */
+function LinkRow({
+  sf,
+  title,
+  detail,
+  onPress,
+  isExternal = false,
+  testID,
+}: {
+  sf: SFSymbol;
+  title: string;
+  detail: string;
+  onPress: () => void;
+  isExternal?: boolean;
+  testID?: string;
+}) {
+  const theme = useThemeColors();
+  return (
+    <AnimatedPressable
+      testID={testID}
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      className="flex-row items-center py-3"
+      hitSlop={8}
+      onPress={() => {
+        hapticLight();
+        onPress();
+      }}
+    >
+      <View className="mr-3 h-5 w-5 items-center justify-center">
+        <AppSymbol sf={sf} size={18} tintColor={theme.textMuted} fallback="" />
+      </View>
+      <View className="min-w-0 flex-1">
+        <Text className="text-base font-medium text-text-primary">{title}</Text>
+        <Text className="mt-0.5 text-sm text-text-muted">{detail}</Text>
+      </View>
+      <AppSymbol
+        sf={isExternal ? 'arrow.up.right' : 'chevron.right'}
+        size={isExternal ? 13 : 14}
+        tintColor={theme.textMuted}
+        fallback={isExternal ? '↗' : '›'}
+      />
+    </AnimatedPressable>
   );
 }
 

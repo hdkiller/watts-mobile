@@ -5,11 +5,16 @@ import * as Linking from 'expo-linking';
 import type { SFSymbol } from 'expo-symbols';
 import * as WebBrowser from 'expo-web-browser';
 import { useState, type ReactNode } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { useAuth } from '@/src/auth/AuthContext';
 import { AppSymbol } from '@/src/components/AppSymbol';
+import {
+  inviteRowDetail,
+  notificationsRowDetail,
+  subscriptionRowDetail,
+} from '@/src/features/account/menuDetails';
 import {
   helpCenterWebPath,
   PRIVACY_POLICY_URL,
@@ -17,11 +22,13 @@ import {
   TERMS_OF_SERVICE_URL,
 } from '@/src/features/account/paths';
 import { useUnreadNotificationsCount } from '@/src/features/notifications/useNotifications';
+import { useSubscriptionSummary } from '@/src/features/subscriptions/useSubscriptions';
 import { useTabScrollPadding } from '@/src/hooks/useTabScrollPadding';
 import { APP_HREFS } from '@/src/linking/appHrefs';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
 import { canUseAthleteReferralShare } from '@/src/features/referrals/isHostedReferralInstance';
+import { useMyReferral } from '@/src/features/referrals/useMyReferral';
 
 function appVersionLabel(): string {
   const version = Constants.expoConfig?.version ?? '0.1.0';
@@ -51,6 +58,12 @@ function RowIcon({ sf, isDestructive = false }: { sf: SFSymbol; isDestructive?: 
 function Chevron() {
   const theme = useThemeColors();
   return <AppSymbol sf="chevron.right" size={14} tintColor={theme.textMuted} fallback="›" />;
+}
+
+/** Marks rows that hand off to the browser so leaving the app is never a surprise. */
+function ExternalMark() {
+  const theme = useThemeColors();
+  return <AppSymbol sf="arrow.up.right" size={13} tintColor={theme.textMuted} fallback="↗" />;
 }
 
 function AthleteAvatar({ name }: { name?: string | null }) {
@@ -89,6 +102,7 @@ function MenuRow({
   showChevron = true,
   isLast = false,
   isDestructive = false,
+  isExternal = false,
   testID,
 }: {
   title: string;
@@ -98,6 +112,7 @@ function MenuRow({
   showChevron?: boolean;
   isLast?: boolean;
   isDestructive?: boolean;
+  isExternal?: boolean;
   testID?: string;
 }) {
   const body = (
@@ -118,9 +133,7 @@ function MenuRow({
         ) : null}
       </View>
       {showChevron && !isDestructive ? (
-        <View className="ml-2">
-          <Chevron />
-        </View>
+        <View className="ml-2">{isExternal ? <ExternalMark /> : <Chevron />}</View>
       ) : null}
     </View>
   );
@@ -149,10 +162,28 @@ export default function MoreScreen() {
   const unreadCount = useUnreadNotificationsCount();
   const tabBottomPad = useTabScrollPadding();
   const [busy, setBusy] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const showInviteFriends = canUseAthleteReferralShare(instanceUrl);
+  const referralQuery = useMyReferral(showInviteFriends);
+  const subscriptionQuery = useSubscriptionSummary();
 
   const openWeb = async () => {
     await openInstanceWeb(instanceUrl, '/');
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        refreshUser(),
+        subscriptionQuery.refetch(),
+        showInviteFriends ? referralQuery.refetch() : Promise.resolve(),
+      ]);
+    } catch {
+      // Best-effort refresh — the rows keep their last known detail.
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const openExternal = async (url: string) => {
@@ -190,14 +221,6 @@ export default function MoreScreen() {
           onPress: () => void openExternal(TERMS_OF_SERVICE_URL),
         }
       : null,
-    SUPPORT_URL
-      ? {
-          key: 'support',
-          title: 'Support',
-          sf: 'questionmark.circle' as const,
-          onPress: () => void openExternal(SUPPORT_URL),
-        }
-      : null,
   ].filter((row): row is NonNullable<typeof row> => row != null);
 
   return (
@@ -210,6 +233,13 @@ export default function MoreScreen() {
         className="flex-1 bg-surface"
         contentContainerClassName="px-6 pt-4"
         contentContainerStyle={{ paddingBottom: tabBottomPad }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => void onRefresh()}
+            tintColor={theme.brandOnSurface}
+          />
+        }
       >
         <Text className="text-2xl font-semibold text-text-primary">More</Text>
 
@@ -231,44 +261,44 @@ export default function MoreScreen() {
                 {user.email}
               </Text>
             ) : null}
-            <Text className="mt-1 text-xs font-medium text-brand">View profile & biometrics ›</Text>
+            <Text className="mt-1 text-xs font-medium text-brand">
+              Body metrics, AI profile & goal ›
+            </Text>
           </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Refresh profile"
-            className="ml-2 h-9 w-9 items-center justify-center rounded-full bg-border-strong active:opacity-60"
-            hitSlop={8}
-            onPress={(e) => {
-              e.stopPropagation();
-              void refreshUser();
-            }}
-          >
-            <AppSymbol sf="arrow.clockwise" size={16} tintColor={theme.textMuted} fallback="↻" />
-          </Pressable>
+          <View className="ml-2">
+            <Chevron />
+          </View>
         </Pressable>
 
-        <Section title="Account & Hub">
+        <Section title="Your training">
           <MenuRow
-            title="Notification inbox"
-            detail={unreadCount > 0 ? `${unreadCount} unread` : 'All caught up'}
-            sf="bell"
-            onPress={() => router.push('/(app)/(tabs)/more/notifications' as Href)}
+            title="Activity history"
+            detail="Completed workouts & analysis"
+            sf="list.bullet"
+            onPress={() => router.push(APP_HREFS.activityList as Href)}
           />
-          {showInviteFriends ? (
-            <MenuRow
-              testID="more-invite-friends"
-              title="Invite friends"
-              detail="QR & link so others can join"
-              sf="qrcode"
-              onPress={() => router.push(APP_HREFS.invite as Href)}
-            />
-          ) : null}
           <MenuRow
-            title="Help Center & Support"
-            detail="Documentation, tickets & community"
-            sf="questionmark.circle"
-            onPress={() => void openInstanceWeb(instanceUrl, helpCenterWebPath())}
+            title="Upcoming workouts"
+            detail="Scheduled sessions"
+            sf="calendar"
+            onPress={() => router.push(APP_HREFS.upcoming as Href)}
           />
+          <MenuRow
+            title="Events"
+            detail="Races & life events"
+            sf="calendar.badge.clock"
+            onPress={() => router.push(APP_HREFS.eventsList as Href)}
+          />
+          <MenuRow
+            title="Goals"
+            detail="What you’re training for"
+            sf="flag"
+            onPress={() => router.push(APP_HREFS.goalsList as Href)}
+            isLast
+          />
+        </Section>
+
+        <Section title="Account">
           <MenuRow
             testID="more-settings"
             title="Settings"
@@ -277,38 +307,56 @@ export default function MoreScreen() {
             onPress={() => router.push('/(app)/(tabs)/more/settings' as Href)}
           />
           <MenuRow
-            title="Open Coach Watts"
-            detail="Web control room & deep tools"
-            sf="globe"
-            onPress={() => void openWeb()}
-            isLast
+            title="Notifications"
+            detail={notificationsRowDetail(unreadCount)}
+            sf="bell"
+            onPress={() => router.push('/(app)/(tabs)/more/notifications' as Href)}
           />
+          <MenuRow
+            testID="more-subscription"
+            title="Subscription"
+            detail={subscriptionRowDetail(subscriptionQuery.data, {
+              isLoading: subscriptionQuery.isLoading,
+              isError: subscriptionQuery.isError,
+            })}
+            sf="creditcard"
+            onPress={() => router.push(APP_HREFS.settingsSubscription as Href)}
+            isLast={!showInviteFriends}
+          />
+          {showInviteFriends ? (
+            <MenuRow
+              testID="more-invite-friends"
+              title="Invite a friend"
+              detail={inviteRowDetail(referralQuery.data?.stats.attributedCount)}
+              sf="qrcode"
+              onPress={() => router.push(APP_HREFS.invite as Href)}
+              isLast
+            />
+          ) : null}
         </Section>
 
-        <Section title="Training & Schedule">
+        <Section title="Help">
           <MenuRow
-            title="Recent activity"
-            detail="Completed workouts & analysis"
-            sf="list.bullet"
-            onPress={() => router.push(APP_HREFS.activityList as Href)}
+            title="Help center"
+            detail="Docs, tickets & community"
+            sf="questionmark.circle"
+            onPress={() => void openInstanceWeb(instanceUrl, helpCenterWebPath())}
+            isExternal
           />
+          {SUPPORT_URL ? (
+            <MenuRow
+              title="Contact support"
+              sf="envelope"
+              onPress={() => void openExternal(SUPPORT_URL)}
+              isExternal
+            />
+          ) : null}
           <MenuRow
-            title="Upcoming planned"
-            detail="Scheduled workouts"
-            sf="calendar"
-            onPress={() => router.push(APP_HREFS.upcoming as Href)}
-          />
-          <MenuRow
-            title="Goals"
-            detail="Browse goals · manage on web"
-            sf="flag"
-            onPress={() => router.push(APP_HREFS.goalsList as Href)}
-          />
-          <MenuRow
-            title="Events"
-            detail="Race & life events · manage on web"
-            sf="calendar.badge.clock"
-            onPress={() => router.push(APP_HREFS.eventsList as Href)}
+            title="Open on the web"
+            detail="Full control room & deep tools"
+            sf="globe"
+            onPress={() => void openWeb()}
+            isExternal
             isLast
           />
         </Section>
@@ -321,13 +369,14 @@ export default function MoreScreen() {
                 title={row.title}
                 sf={row.sf}
                 onPress={row.onPress}
+                isExternal
                 isLast={index === aboutRows.length - 1}
               />
             ))}
           </Section>
         ) : null}
 
-        <Section title="Account Session">
+        <View className="mt-8 overflow-hidden rounded-xl border border-border bg-card">
           <MenuRow
             title="Sign out"
             detail={busy ? 'Signing out…' : 'Disconnect this device'}
@@ -336,7 +385,7 @@ export default function MoreScreen() {
             isDestructive
             isLast
           />
-        </Section>
+        </View>
 
         <Text className="mt-8 text-center text-sm text-text-muted">{appVersionLabel()}</Text>
       </ScrollView>
