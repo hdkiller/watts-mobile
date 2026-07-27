@@ -2,6 +2,8 @@
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import { Button } from '@/src/components/Button';
+import { QuotaLimitCard } from '@/src/features/subscriptions/QuotaLimitCard';
+import type { QuotaInfo } from '@/src/features/subscriptions/quota';
 import { Colors } from '@/src/theme/colors';
 
 export type AnalyzeReadinessState = 'idle' | 'generating' | 'error' | 'quota';
@@ -9,6 +11,8 @@ export type AnalyzeReadinessState = 'idle' | 'generating' | 'error' | 'quota';
 type Props = {
   state: AnalyzeReadinessState;
   errorMessage?: string | null;
+  /** Structured limit details when `state` is 'quota'. */
+  quotaInfo?: QuotaInfo | null;
   generatingPending?: boolean;
   onAnalyze: () => void;
   onOpenWeb: () => void;
@@ -21,12 +25,13 @@ const shellByState: Record<AnalyzeReadinessState, string> = {
   idle: 'py-1',
   generating: 'rounded-2xl border border-border bg-card/80 p-5',
   error: 'rounded-2xl border border-danger/40 bg-tint-error p-5',
-  quota: 'rounded-2xl border border-modify/40 bg-modify/10 p-5',
+  quota: '',
 };
 
 export function AnalyzeReadinessPanel({
   state,
   errorMessage,
+  quotaInfo,
   generatingPending = false,
   onAnalyze,
   onOpenWeb,
@@ -49,21 +54,11 @@ export function AnalyzeReadinessPanel({
       ) : null}
 
       {state === 'quota' ? (
-        <View>
-          <Text className="text-xs font-semibold uppercase tracking-wide text-modify">
-            Plan limit
-          </Text>
-          <Text className="mt-2 text-lg font-semibold text-text-primary">
-            Recommendation limit reached
-          </Text>
-          <Text className="mt-2 text-sm leading-5 text-text-body">
-            {errorMessage || 'Update your plan in Coach Watts to generate more recommendations.'}
-          </Text>
-          <View className="mt-5 gap-3">
-            <Button label="Open Coach Watts" onPress={onOpenWeb} />
-            <Button label="Back" variant="secondary" onPress={onDismissQuota} />
-          </View>
-        </View>
+        <QuotaLimitCard
+          info={quotaInfo ?? { feature: 'READINESS_RECOMMENDATION' }}
+          surface="today_readiness"
+          onDismiss={onDismissQuota}
+        />
       ) : null}
 
       {state === 'error' ? (

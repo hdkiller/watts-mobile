@@ -60,6 +60,7 @@ import { TypingIndicator } from './TypingIndicator';
 import { useCoachChat } from './useCoachChat';
 import { useCoachDictation } from './useCoachDictation';
 import { useTypingFloor } from './useTypingFloor';
+import { QuotaLimitCard } from '@/src/features/subscriptions/QuotaLimitCard';
 
 function ChatGlyph({
   sf,
@@ -601,6 +602,12 @@ export function CoachChat({
           onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
         />
       )}
+
+      {chat.sendQuota ? (
+        <View className="px-5 pb-2">
+          <QuotaLimitCard compact info={chat.sendQuota} surface="coach_chat" />
+        </View>
+      ) : null}
 
       {chat.sendError ? (
         <Text className="px-5 pb-2 text-sm text-red-400">{chat.sendError}</Text>

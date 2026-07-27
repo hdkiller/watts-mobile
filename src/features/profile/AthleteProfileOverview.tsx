@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
+import { QuotaLimitCard } from '@/src/features/subscriptions/QuotaLimitCard';
+import { parseQuotaError, type QuotaInfo } from '@/src/features/subscriptions/quota';
 import { AnimatedPressable } from '@/src/components/AnimatedPressable';
 import { ScoreChip } from '@/src/components/ScoreChip';
 import { Skeleton } from '@/src/components/Skeleton';
@@ -46,6 +48,7 @@ export function AthleteProfileOverview({
 
   const [syncing, setSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [syncQuota, setSyncQuota] = useState<QuotaInfo | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const flag = countryFlag(profile.country);
@@ -63,6 +66,7 @@ export function AthleteProfileOverview({
 
   const onSync = async () => {
     setSyncError(null);
+    setSyncQuota(null);
     setSyncing(true);
     hapticLight();
     try {
@@ -79,6 +83,11 @@ export function AthleteProfileOverview({
       }
     } catch (err) {
       hapticError();
+      const quota = parseQuotaError(err, 'ATHLETE_REPORT');
+      if (quota) {
+        setSyncQuota(quota);
+        return;
+      }
       const status = (err as { status?: number } | null)?.status;
       if (status === 401 || status === 403) {
         setSyncError(
@@ -219,6 +228,16 @@ export function AthleteProfileOverview({
             No AI athlete profile yet. Sync to generate one, or open the full report.
           </Text>
         )}
+
+        {syncQuota ? (
+          <QuotaLimitCard
+            className="mt-3"
+            compact
+            info={syncQuota}
+            surface="athlete_report"
+            onDismiss={() => setSyncQuota(null)}
+          />
+        ) : null}
 
         {syncError ? (
           <View className="mt-3 rounded-xl border border-danger/40 bg-tint-error px-4 py-3.5">

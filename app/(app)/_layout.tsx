@@ -101,6 +101,10 @@ export default function AppLayout() {
           name="connected-apps"
           options={{ headerShown: true, title: 'Connected Apps' }}
         />
+        <Stack.Screen
+          name="paywall"
+          options={{ headerShown: true, title: 'Upgrade', presentation: 'modal' }}
+        />
         <Stack.Screen name="sports/index" options={{ headerShown: true, title: 'Sports' }} />
         <Stack.Screen name="sports/[id]" options={{ headerShown: true, title: 'Sport profile' }} />
       </Stack>

@@ -4,6 +4,7 @@ import { DefaultChatTransport } from 'ai';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { friendlyError } from '@/src/api/errors';
+import { parseQuotaError, type QuotaInfo } from '@/src/features/subscriptions/quota';
 import { getInstanceUrl } from '@/src/config/instance';
 import type { RecoveryContextItem } from '@/src/features/recovery/types';
 import { filterActiveToday } from '@/src/features/recovery/mapRecovery';
@@ -77,6 +78,8 @@ type UseCoachChatResult = {
   usingPollFallback: boolean;
   error: string | null;
   sendError: string | null;
+  /** Set when the reply was blocked by a plan limit rather than a failure. */
+  sendQuota: QuotaInfo | null;
   notice: string | null;
   send: (text?: string) => Promise<void>;
   applyStarter: (text: string) => void;
@@ -113,6 +116,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
+  const [sendQuota, setSendQuota] = useState<QuotaInfo | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [awaitingTurnStart, setAwaitingTurnStart] = useState(false);
   const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
@@ -206,7 +210,9 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
     },
     onError: (err) => {
       setAwaitingTurnStart(false);
-      setSendError(friendlyError(err, 'Failed to send message'));
+      const quota = parseQuotaError(err, 'COACH_CHAT');
+      setSendQuota(quota);
+      setSendError(quota ? null : friendlyError(err, 'Failed to send message'));
     },
   });
 
@@ -522,6 +528,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
       setSeedUsed(false);
       setPendingAttachments([]);
       setSendError(null);
+      setSendQuota(null);
       setInput('');
       if (options?.clearMessages !== false) {
         setMessagesRef.current([]);
@@ -941,6 +948,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
     usingPollFallback,
     error: error || (chatError ? friendlyError(chatError, 'Chat error') : null),
     sendError,
+    sendQuota,
     notice,
     send,
     applyStarter,

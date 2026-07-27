@@ -2,7 +2,9 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
-import { ApiError, friendlyError } from '@/src/api/errors';
+import { friendlyError } from '@/src/api/errors';
+import { QuotaLimitCard } from '@/src/features/subscriptions/QuotaLimitCard';
+import { parseQuotaError, type QuotaInfo } from '@/src/features/subscriptions/quota';
 import { BottomSheet } from '@/src/components/BottomSheet';
 import { Button } from '@/src/components/Button';
 import {
@@ -23,12 +25,6 @@ type Props = {
   window: NutritionPlanWindowView | null;
   onClose: () => void;
 };
-
-function isQuotaError(err: unknown): boolean {
-  if (err instanceof ApiError && err.status === 429) return true;
-  if (err instanceof Error && err.message.toLowerCase().includes('quota')) return true;
-  return false;
-}
 
 function optionMacros(option: MealRecommendationOption): string {
   const t = option.totals ?? {};
@@ -56,6 +52,7 @@ function PickerBody({
   const [options, setOptions] = useState<MealRecommendationOption[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [quota, setQuota] = useState<QuotaInfo | null>(null);
   const [slowHint, setSlowHint] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -82,8 +79,9 @@ function PickerBody({
       .catch((err) => {
         if (cancelled) return;
         hapticError();
-        if (isQuotaError(err)) {
-          setError('Meal recommendation limit reached — try again later');
+        const limit = parseQuotaError(err, 'MEAL_RECOMMENDATION');
+        if (limit) {
+          setQuota(limit);
         } else {
           setError(friendlyError(err, 'Could not load meal options'));
         }
@@ -154,6 +152,15 @@ function PickerBody({
         </View>
       ) : null}
 
+      {quota ? (
+        <QuotaLimitCard
+          className="mb-3"
+          compact
+          info={quota}
+          surface="nutrition_meal_recommendation"
+        />
+      ) : null}
+
       {error ? (
         <View className="mb-3 rounded-xl border border-danger/40 bg-tint-error p-3">
           <Text className="text-sm text-danger" testID="plan-nutrition-meal-picker-error">
@@ -162,7 +169,7 @@ function PickerBody({
         </View>
       ) : null}
 
-      {!loading && !error && options.length === 0 ? (
+      {!loading && !error && !quota && options.length === 0 ? (
         <Text className="py-4 text-sm text-text-muted">No meal options for this window.</Text>
       ) : null}
 
@@ -201,6 +208,7 @@ function PickerBody({
               hapticLight();
               setLoading(true);
               setError(null);
+              setQuota(null);
               setSelectedIndex(null);
               void recommend
                 .mutateAsync({
@@ -217,8 +225,9 @@ function PickerBody({
                 })
                 .catch((err) => {
                   hapticError();
-                  if (isQuotaError(err)) {
-                    setError('Meal recommendation limit reached — try again later');
+                  const limit = parseQuotaError(err, 'MEAL_RECOMMENDATION');
+                  if (limit) {
+                    setQuota(limit);
                   } else {
                     setError(friendlyError(err, 'Could not generate AI meal suggestion'));
                   }
