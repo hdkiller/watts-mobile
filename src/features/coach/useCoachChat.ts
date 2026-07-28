@@ -185,8 +185,22 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
   }, []);
 
   useEffect(() => {
-    void resolveApiUrl();
-  }, [resolveApiUrl]);
+    let cancelled = false;
+    void resolveChatMessagesApiUrl()
+      .then((url) => {
+        if (!cancelled && activeRef.current) {
+          setApiUrl(url);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled && activeRef.current) {
+          setError(friendlyError(err, 'Could not resolve chat API'));
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const transport = useMemo(
     () =>
