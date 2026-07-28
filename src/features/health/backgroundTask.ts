@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 
 import { HEALTHKIT_BACKGROUND_DELIVERY_TYPES } from './syncPermissions';
+import type { HealthPlatform, SyncLedgerItem } from './types';
 
 export const HEALTH_SYNC_TASK = 'COACH_WATTS_HEALTH_SYNC';
 
@@ -9,6 +10,55 @@ const HC_CHANGES_TOKEN_KEY = 'watts.health.hcChangesToken.v1';
 let defined = false;
 let hkObserverRemovers: { remove: () => boolean }[] = [];
 let hcChangesPollTimer: ReturnType<typeof setInterval> | null = null;
+
+function logErrorToSentry(err: unknown, context: string): void {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Sentry = require('@sentry/react-native') as typeof import('@sentry/react-native');
+    const errorObj =
+      err instanceof Error ? err : new Error(typeof err === 'string' ? err : context);
+    Sentry.captureException(errorObj, {
+      tags: {
+        feature: 'health_sync',
+        background_task: HEALTH_SYNC_TASK,
+      },
+      extra: {
+        context,
+      },
+    });
+  } catch {
+    // Sentry unavailable (e.g. native module missing or unconfigured)
+  }
+}
+
+export async function recordBackgroundSyncFailure(errorReason: string): Promise<void> {
+  try {
+    const { getLedgerItem, saveLedgerItem } = await import('./ledger');
+    const { seedNeedsSync, completeLedgerFailure, wellnessLedgerId } =
+      await import('./ledgerHelpers');
+    const { localDateYmd, wellnessHistoryTitle } = await import('./mapToWellnessPayload');
+
+    const today = localDateYmd(new Date());
+    const id = wellnessLedgerId(today);
+    const existing = await getLedgerItem(id);
+    const platform: HealthPlatform = Platform.OS === 'ios' ? 'healthkit' : 'health_connect';
+
+    let item: SyncLedgerItem =
+      existing ??
+      seedNeedsSync('wellness', {
+        id,
+        kind: 'wellness',
+        platform,
+        title: wellnessHistoryTitle(today),
+        localDate: today,
+      });
+
+    item = completeLedgerFailure(item, errorReason);
+    await saveLedgerItem(item);
+  } catch (ledgerErr) {
+    console.warn('[HealthSync] Failed to record failure in syncLedger', ledgerErr);
+  }
+}
 
 /**
  * Define the background task once at module load (global scope requirement).
@@ -44,14 +94,25 @@ export function defineHealthSyncBackgroundTask(): void {
           result.wellnessPassError ||
           result.workoutPassError
         ) {
+          const errorReason =
+            result.reason ??
+            (result.wellnessPassError || result.workoutPassError
+              ? 'Background sync pass failed (permission or platform read error)'
+              : `Background sync failed (${result.wellnessFailed} wellness, ${result.workoutsFailed} workouts)`);
+
+          if (result.wellnessPassError || result.workoutPassError) {
+            logErrorToSentry(new Error(errorReason), 'Background health sync pass error');
+            await recordBackgroundSyncFailure(errorReason);
+          }
           return BackgroundTask.BackgroundTaskResult.Failed;
         }
         return BackgroundTask.BackgroundTaskResult.Success;
       } catch (err) {
-        console.warn(
-          '[HealthSync] background task failed',
-          err instanceof Error ? err.message : 'error',
-        );
+        const message =
+          err instanceof Error ? err.message : 'Background health sync task exception';
+        console.warn('[HealthSync] background task failed', message);
+        logErrorToSentry(err, 'Background health sync task exception');
+        await recordBackgroundSyncFailure(message);
         return BackgroundTask.BackgroundTaskResult.Failed;
       }
     });
@@ -102,7 +163,10 @@ async function drainHealthConnectChanges(): Promise<boolean> {
     }
     return (result.upsertionChanges?.length ?? 0) > 0 || (result.deletionChanges?.length ?? 0) > 0;
   } catch (err) {
-    console.warn('[HealthSync] HC getChanges failed', err instanceof Error ? err.message : 'error');
+    const message = err instanceof Error ? err.message : 'HC getChanges failed';
+    console.warn('[HealthSync] HC getChanges failed', message);
+    logErrorToSentry(err, 'Health Connect drain changes error');
+    await recordBackgroundSyncFailure(`Health Connect changes drain error: ${message}`);
     return false;
   }
 }
@@ -165,6 +229,7 @@ async function registerHealthKitBackgroundDelivery(): Promise<void> {
       '[HealthSync] HK background delivery unavailable — foreground sync still works',
       err instanceof Error ? err.message : 'error',
     );
+    logErrorToSentry(err, 'HealthKit background delivery error');
   }
 }
 
@@ -246,6 +311,7 @@ export async function registerHealthSyncBackgroundTask(): Promise<void> {
       '[HealthSync] background register failed — degrading to foreground-only',
       err instanceof Error ? err.message : 'error',
     );
+    logErrorToSentry(err, 'Background task registration error');
   }
 
   // Change-driven triggers (best-effort; failures degrade to periodic/foreground).
@@ -260,6 +326,7 @@ export async function registerHealthSyncBackgroundTask(): Promise<void> {
       '[HealthSync] change-driven register failed',
       err instanceof Error ? err.message : 'error',
     );
+    logErrorToSentry(err, 'Change-driven background register error');
   }
 }
 
@@ -285,5 +352,6 @@ export async function unregisterHealthSyncBackgroundTask(): Promise<void> {
       '[HealthSync] background unregister failed',
       err instanceof Error ? err.message : 'error',
     );
+    logErrorToSentry(err, 'Background task unregister error');
   }
 }
