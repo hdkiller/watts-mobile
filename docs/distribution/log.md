@@ -14,6 +14,11 @@ Format:
 
 ---
 
+## 2026-07-28 — Android Internal AAB build + upload (versionCode 4)
+
+- Built and uploaded signed AAB **0.1.1 / versionCode 4** (`coach-watts-0.1.1-vc4.aab`, 98.5 MiB) on Mac Mini via `pnpm release:android:internal -- --version-code 4 --upload-internal`.
+- Successfully committed rollout to Google Play Internal testing track via Play Publisher API.
+
 ## 2026-07-27 — Apple Support ticket created for Paid Apps screening bug (Case ID 20000120973249)
 
 - Submitted Apple Developer Contact Us ticket regarding the portal bug on Bank Account Holder Compliance Screening ("Add user info" submission reload loop across browsers/PDFs).
