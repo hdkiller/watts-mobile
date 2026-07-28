@@ -129,6 +129,12 @@ Fixed without a prior issue card (2026-07-23): Today greeting → Athlete — ro
 | [067](./issues/067.md) | Athlete → Sports settings: Back abandons Athlete | navigation/profile | medium | S | done |
 | [068](./issues/068.md) | Inbox / push opens nested stacks without a return path | navigation/notifications | medium | M | done |
 
+## Runtime / deps — July 2026
+
+| ID | Issue | Area | Priority | Effort | Status |
+|----|-------|------|----------|--------|--------|
+| [069](./issues/069.md) | Simulator Hermes abort after Dependabot RNGH 3.1.0 bump | runtime/deps | high | S | done |
+
 Not filed (low / likely intentional tab jumps): Today/session “Discuss with Coach” and Log “AI photo estimate” → Coach tab — no header Back to source; revisit only if product wants modal Coach.
 
 Suggested order: **065** (More menu, high traffic) → **066** (activation connect path) → **067** (small, preserves athlete root-stack win) → **068** (touches push + deep links — don’t batch with 065).
