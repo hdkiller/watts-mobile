@@ -369,9 +369,9 @@ export default function TodayScreen() {
   };
 
   const onAdhocSubmit = async (payload: AdHocWorkoutRequest) => {
+    clearAdhocPoll();
     if (adhocBusy || generatingBusy) return;
     setAdhocOpen(false);
-    clearAdhocPoll();
     adhocFailRef.current = 0;
     setAdhocState('generating');
     refreshAllowances();
@@ -381,6 +381,7 @@ export default function TodayScreen() {
       const res = await adhocMutation.mutateAsync(payload);
       let attempts = 0;
       const maxAttempts = 30;
+      clearAdhocPoll();
       adhocPollRef.current = setInterval(() => {
         void (async () => {
           attempts++;
@@ -425,6 +426,7 @@ export default function TodayScreen() {
         })();
       }, 2500);
     } catch (err: unknown) {
+      clearAdhocPoll();
       hapticError();
       refreshAllowances();
       const quota = parseQuotaError(err, 'WORKOUT_GENERATION');
@@ -684,6 +686,7 @@ export default function TodayScreen() {
             info={adhocQuota ?? { feature: 'WORKOUT_GENERATION' }}
             surface="today_adhoc"
             onDismiss={() => {
+              clearAdhocPoll();
               adhocMutation.reset();
               setAdhocState('idle');
               setAdhocError(null);
@@ -702,9 +705,23 @@ export default function TodayScreen() {
               {adhocError || 'Something went wrong. Try again, or continue in Coach Watts.'}
             </Text>
             <View className="mt-5 gap-3">
-              <Button label="Try again" onPress={() => setAdhocOpen(true)} />
+              <Button
+                label="Try again"
+                onPress={() => {
+                  clearAdhocPoll();
+                  setAdhocState('idle');
+                  setAdhocOpen(true);
+                }}
+              />
               <Button label="Open Coach Watts" variant="secondary" onPress={() => void openWeb()} />
-              <Button label="Dismiss" variant="secondary" onPress={() => setAdhocState('idle')} />
+              <Button
+                label="Dismiss"
+                variant="secondary"
+                onPress={() => {
+                  clearAdhocPoll();
+                  setAdhocState('idle');
+                }}
+              />
             </View>
           </View>
         ) : null}
