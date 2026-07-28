@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isDailyCheckinCompleted } from '../isDailyCheckinCompleted';
+import { isDailyCheckinCompleted } from './isDailyCheckinCompleted';
 
 describe('isDailyCheckinCompleted', () => {
   it('returns false when check-in is missing', () => {
