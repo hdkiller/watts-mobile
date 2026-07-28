@@ -1,8 +1,11 @@
+import { getAuthSessionGeneration } from '@/src/auth/authSessionGeneration';
 import { deleteItemAsync, getItemAsync, setItemAsync } from '@/src/storage/secureStorage';
 
 const ACCESS_KEY = 'cw.accessToken';
 const REFRESH_KEY = 'cw.refreshToken';
 const EXPIRES_KEY = 'cw.accessExpiresAt';
+/** Auth session generation that last wrote tokens — used to ignore stale clears. */
+const SESSION_GEN_KEY = 'cw.authSessionGeneration';
 
 export type StoredTokens = {
   accessToken: string;
@@ -20,7 +23,9 @@ export async function saveTokens(tokens: {
   refreshToken?: string | null;
   expiresIn?: number | null;
 }): Promise<StoredTokens> {
+  const sessionGeneration = getAuthSessionGeneration();
   await setItemAsync(ACCESS_KEY, tokens.accessToken);
+  await setItemAsync(SESSION_GEN_KEY, String(sessionGeneration));
 
   if (tokens.refreshToken !== undefined) {
     if (tokens.refreshToken) {
@@ -68,8 +73,26 @@ export async function loadTokens(): Promise<StoredTokens | null> {
   };
 }
 
-export async function clearTokens(): Promise<void> {
+/**
+ * Clear tokens. When `expectedGeneration` is set, skip if SecureStore already holds a
+ * newer login's tokens (stale failAuthSession must not wipe a fresh session).
+ */
+export async function clearTokens(expectedGeneration?: number): Promise<void> {
+  if (expectedGeneration !== undefined) {
+    const storedGenRaw = await getItemAsync(SESSION_GEN_KEY);
+    if (storedGenRaw != null && storedGenRaw !== '') {
+      const storedGen = Number(storedGenRaw);
+      if (Number.isFinite(storedGen) && storedGen !== expectedGeneration) {
+        return;
+      }
+    }
+    if (expectedGeneration !== getAuthSessionGeneration()) {
+      return;
+    }
+  }
+
   await deleteItemAsync(ACCESS_KEY);
   await deleteItemAsync(REFRESH_KEY);
   await deleteItemAsync(EXPIRES_KEY);
+  await deleteItemAsync(SESSION_GEN_KEY);
 }

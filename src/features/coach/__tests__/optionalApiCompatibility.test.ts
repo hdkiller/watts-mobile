@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { transcribeChatAudio } from '../api';
 import { fetchNutritionSettings } from '../../nutrition/nutritionSettingsApi';
+import { fetchQuotaAllowances } from '../../subscriptions/quotaApi';
 
 const { apiFetch } = vi.hoisted(() => ({ apiFetch: vi.fn() }));
 
@@ -24,6 +25,20 @@ describe('optional API compatibility', () => {
     await fetchNutritionSettings();
 
     expect(apiFetch).toHaveBeenCalledWith('/api/profile/nutrition', {
+      softUnauthorized: true,
+    });
+  });
+
+  it('loads quota allowances with non-destructive auth handling', async () => {
+    apiFetch.mockResolvedValueOnce(new Response(null, { status: 401 }));
+
+    await expect(fetchQuotaAllowances()).resolves.toEqual({
+      tier: 'FREE',
+      effectiveTier: 'FREE',
+      allowances: [],
+    });
+
+    expect(apiFetch).toHaveBeenCalledWith('/api/profile/quotas', {
       softUnauthorized: true,
     });
   });

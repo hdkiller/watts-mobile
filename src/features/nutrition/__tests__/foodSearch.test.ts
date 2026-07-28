@@ -149,6 +149,36 @@ describe('Food Database API Client', () => {
       });
     });
 
+    it('converts energy (kJ) to kcal when energy-kcal is absent', () => {
+      const raw = {
+        product_name: 'Protein Bar',
+        nutriments: {
+          energy_100g: 2000,
+          proteins_100g: 20,
+          carbohydrates_100g: 40,
+          fat_100g: 10,
+        },
+      };
+      const normalized = normalizeFoodItemResult(raw);
+      // Math.round(2000 / 4.184) = 478
+      expect(normalized.nutrients_per_100g.calories_kcal).toBe(478);
+    });
+
+    it('prefers explicit kcal over kJ when both are present', () => {
+      const raw = {
+        product_name: 'Energy Bar',
+        nutriments: {
+          'energy-kcal_100g': 500,
+          energy_100g: 2092,
+          proteins_100g: 10,
+          carbohydrates_100g: 60,
+          fat_100g: 15,
+        },
+      };
+      const normalized = normalizeFoodItemResult(raw);
+      expect(normalized.nutrients_per_100g.calories_kcal).toBe(500);
+    });
+
     it('derives calories from macros when calories is missing or 0', () => {
       const raw = {
         name: 'Custom Mix',

@@ -4,6 +4,10 @@ import Constants from 'expo-constants';
 import * as WebBrowser from 'expo-web-browser';
 
 import { APP_SCHEME, OAUTH_CLIENT_ID } from '@/src/config/env';
+import {
+  bumpAuthSessionGeneration,
+  getAuthSessionGeneration,
+} from '@/src/auth/authSessionGeneration';
 import { COMPANION_SCOPES } from '@/src/auth/scopes';
 import { saveTokens, type StoredTokens } from '@/src/auth/tokenStorage';
 
@@ -45,6 +49,10 @@ export function assertOAuthClientConfigured(): string {
 }
 
 export async function loginWithPkce(instanceBaseUrl: string): Promise<StoredTokens> {
+  // Invalidate in-flight 401/refresh handlers before the browser returns — otherwise a
+  // stale failAuthSession can clear the brand-new tokens and bounce straight to login.
+  bumpAuthSessionGeneration();
+
   const clientId = assertOAuthClientConfigured();
   const redirectUri = getRedirectUri();
 
@@ -91,9 +99,15 @@ export async function loginWithPkce(instanceBaseUrl: string): Promise<StoredToke
     codeVerifier: request.codeVerifier,
   });
 
+  if (!token.refresh_token) {
+    throw new Error(
+      'Sign-in succeeded but no refresh token was issued — check offline_access scope',
+    );
+  }
+
   return saveTokens({
     accessToken: token.access_token,
-    refreshToken: token.refresh_token ?? null,
+    refreshToken: token.refresh_token,
     expiresIn: token.expires_in ?? 3600,
   });
 }
@@ -137,6 +151,7 @@ export async function refreshAccessToken(params: {
   refreshToken: string;
 }): Promise<StoredTokens> {
   const clientId = assertOAuthClientConfigured();
+  const generation = getAuthSessionGeneration();
 
   const response = await fetch(`${params.instanceBaseUrl}/api/oauth/token`, {
     method: 'POST',
@@ -165,6 +180,10 @@ export async function refreshAccessToken(params: {
     const message =
       body?.error_description || body?.error || 'Token refresh failed (' + response.status + ')';
     throw new ApiError(message, response.status, body);
+  }
+
+  if (generation !== getAuthSessionGeneration()) {
+    throw new Error('Auth session changed during token refresh');
   }
 
   return saveTokens({
