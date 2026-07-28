@@ -169,11 +169,20 @@ To avoid keyboards layout overlap or blocking inputs:
 - Prefer **`AnimatedPressable`** (spring-scale + opacity press animation) over raw `Pressable` with `active:opacity-80` classes.
 - Ensure all tappable surfaces (links, chips, triggers) have **`hitSlop={8}`** or higher, targeting a minimum touch dimension of **44pt**.
 
-## Accessibility
+## Accessibility & Dynamic Type Scaling
 
 - Primary CTAs go through `Button` (roles/labels/state included).
 - Custom icon-only Pressables need `accessibilityRole="button"` + `accessibilityLabel`.
-- Don't disable font scaling; layouts must tolerate larger text.
+- **Dynamic Type Scaling Rules:**
+  - **Enable Font Scaling:** Never set `allowFontScaling={false}` on `Text` or `TextInput` components.
+  - **Max Font Multiplier:** Tight headers, badges, and fixed CTAs should specify `maxFontSizeMultiplier` (`MAX_FONT_SCALE_DEFAULT = 1.5` in `src/theme/typography.ts`, `MAX_FONT_SCALE_BADGE = 1.3`, `MAX_FONT_SCALE_HERO = 1.25`) to cap text growth where container overflow would break layout.
+  - **Fluid Body Prose:** Body text and prose content allow unconstrained OS font scaling.
+  - **Layout Resilience:** Text containers must use flexible padding (`py-3`, `min-h-[44px]`) and flex wrapping instead of fixed height classes (`h-10`, `h-12`) that clip when fonts scale up.
+- **Reduce Motion Animation Rules:**
+  - Use `useReduceMotion()` hook (`src/hooks/useReduceMotion.ts`) and guards (`reduceMotionGuard`, `reduceMotionScale`, `reduceMotionDuration`) for Reanimated styles and layout transitions.
+  - **Press Animations:** `AnimatedPressable` automatically bypasses spring scale transforms and opacity pulses when Reduce Motion is enabled.
+  - **Skeleton & Pulsing Components:** `Skeleton` placeholders settle at a static opacity (0.65) without continuous looping pulses under Reduce Motion.
+  - **Typing & Streaming Indicators:** `TypingIndicator` freezes dot bounce loops at neutral position when Reduce Motion is active.
 - **Maestro / e2e:** screen and sheet roots (and primary CTAs the suite must tap) also get stable `testID`s — naming, inventory, and when to update flows live in [e2e.md](./e2e.md) § Maintaining e2e. Labels may change with copy; `testID`s should not.
 
 ## Localization & Copy Policy
@@ -191,3 +200,4 @@ To avoid keyboards layout overlap or blocking inputs:
 - No new one-off button styles — extend `Button` with a variant instead.
 - No full-screen `ActivityIndicator` for initial loads.
 - No CTL grids, Today calendar heatmaps, or dashboard clones (see [product-baseline.md](./product-baseline.md)). Athlete’s compact swipeable 12-week day-circle glance (Activity done/planned; Nutrition logged/gaps when tracking on) is allowed; keep it glance-scale (no streak gamification, no TSS/calorie heat legend).
+
