@@ -91,7 +91,7 @@ export function WellnessCheckinSheet({
     hapticLight();
     setSleepAutoSynced(false);
     const parsed = Number(values.sleepHours.trim());
-    const base = Number.isFinite(parsed) ? parsed : 0;
+    const base = Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
     const next = Math.max(0, Math.round((base + delta) * 10) / 10);
     setValues((prev) => ({ ...prev, sleepHours: String(next) }));
   };
