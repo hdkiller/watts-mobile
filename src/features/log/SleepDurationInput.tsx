@@ -11,7 +11,7 @@ interface SleepDurationInputProps {
   value: string;
   isAutoSynced?: boolean;
   onChangeText: (v: string) => void;
-  onStep: (delta: number) => void;
+  onStep?: (delta: number) => void;
 }
 
 export function SleepDurationInput({
@@ -30,7 +30,11 @@ export function SleepDurationInput({
 
   const handleStep = (delta: number) => {
     hapticLight();
-    onStep(delta);
+    const parsed = Number(value.trim());
+    const base = Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
+    const next = Math.max(0, Math.round((base + delta) * 10) / 10);
+    onChangeText(String(next));
+    onStep?.(delta);
   };
 
   return (
