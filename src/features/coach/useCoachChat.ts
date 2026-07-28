@@ -38,6 +38,12 @@ import {
   upsertChatMessage,
   visibleCoachMessages,
 } from './mapMessages';
+import {
+  coalescePendingLoad,
+  resolveFollowUpLoad,
+  shouldApplyMessageLoad,
+  type MessageLoadRequest,
+} from './messageLoadCoalesce';
 import { buildCoachSeedContext, buildSessionCoachSeedContext, withSeedPrefix } from './seedContext';
 import { takeSessionDiscuss } from './sessionDiscussStore';
 import { decideSessionOpen, findRoomById } from './sessionPolicy';
@@ -135,7 +141,8 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
   const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollGraceUntil = useRef(0);
   const loadInFlight = useRef(false);
-  const loadPending = useRef(false);
+  const pendingLoad = useRef<MessageLoadRequest | null>(null);
+  const loadGeneration = useRef(0);
   const setMessagesRef = useRef<(messages: CoachUIMessage[]) => void>(() => {});
   const restartTurnPollingRef = useRef<(options?: { forceForMs?: number }) => void>(() => {});
   const loadMessagesRef = useRef<(id: string, options?: { silent?: boolean }) => Promise<void>>(
@@ -234,17 +241,39 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
   const loadMessages = useCallback(
     async (id: string, options?: { silent?: boolean }) => {
       if (!activeRef.current) return;
+      const silent = options?.silent ?? false;
+      const request: MessageLoadRequest = { roomId: id, silent };
+
       if (loadInFlight.current) {
-        loadPending.current = true;
+        pendingLoad.current = coalescePendingLoad(pendingLoad.current, request, roomIdRef.current);
+        if (!silent) setLoading(true);
         return;
       }
+
       loadInFlight.current = true;
-      const silent = options?.silent ?? false;
+      const targetId = id;
+      const targetSilent = silent;
+      // Clear any coalesce entry for this start; later requests re-queue via pendingLoad.
+      if (pendingLoad.current?.roomId === targetId) {
+        pendingLoad.current = null;
+      }
+      const generation = ++loadGeneration.current;
+
       try {
-        if (!silent) setLoading(true);
-        const loaded = await fetchChatMessages(id);
-        if (!activeRef.current || roomIdRef.current !== id) return;
-        queryClient.setQueryData(chatMessagesQueryKey(id), loaded);
+        if (!targetSilent) setLoading(true);
+        const loaded = await fetchChatMessages(targetId);
+        if (
+          !shouldApplyMessageLoad({
+            isActive: activeRef.current,
+            requestGeneration: generation,
+            currentGeneration: loadGeneration.current,
+            requestedRoomId: targetId,
+            activeRoomId: roomIdRef.current,
+          })
+        ) {
+          return;
+        }
+        queryClient.setQueryData(chatMessagesQueryKey(targetId), loaded);
         const transformed = hydrateCoachMessages(loaded);
         const merged = mergeLoadedMessages(messagesRef.current, transformed);
         setMessagesRef.current(merged);
@@ -262,23 +291,41 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
         setError(null);
         restartTurnPollingRef.current();
       } catch (err) {
-        const cached = queryClient.getQueryData<StoredChatMessage[]>(chatMessagesQueryKey(id));
-        if (cached && cached.length > 0 && (!silent || messagesRef.current.length === 0)) {
-          if (!activeRef.current || roomIdRef.current !== id) return;
+        if (
+          !shouldApplyMessageLoad({
+            isActive: activeRef.current,
+            requestGeneration: generation,
+            currentGeneration: loadGeneration.current,
+            requestedRoomId: targetId,
+            activeRoomId: roomIdRef.current,
+          })
+        ) {
+          return;
+        }
+        const cached = queryClient.getQueryData<StoredChatMessage[]>(
+          chatMessagesQueryKey(targetId),
+        );
+        if (cached && cached.length > 0 && (!targetSilent || messagesRef.current.length === 0)) {
           const transformed = hydrateCoachMessages(cached);
           setMessagesRef.current(transformed);
           if (transformed.length > 0) setSeedUsed(true);
           setError(null);
           setNotice('You’re offline — showing last saved chat');
-        } else if (!silent) {
+        } else if (!targetSilent) {
           setError(friendlyError(err, 'Failed to load messages'));
         }
       } finally {
         loadInFlight.current = false;
-        if (!silent) setLoading(false);
-        if (loadPending.current) {
-          loadPending.current = false;
-          void loadMessagesRef.current(id, { silent: true });
+        const followUp = resolveFollowUpLoad({
+          pending: pendingLoad.current,
+          activeRoomId: roomIdRef.current,
+          completedRoomId: targetId,
+        });
+        if (followUp) {
+          pendingLoad.current = null;
+          void loadMessagesRef.current(followUp.roomId, { silent: followUp.silent });
+        } else if (!targetSilent) {
+          setLoading(false);
         }
       }
     },
@@ -525,6 +572,8 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
       setRoomName(room.roomName || 'Coach Watts');
       setIsReadOnly(Boolean(room.isReadOnly));
       roomIdRef.current = room.roomId;
+      // Invalidate any in-flight fetch for the previous room.
+      loadGeneration.current += 1;
       setSeedUsed(false);
       setPendingAttachments([]);
       setSendError(null);
