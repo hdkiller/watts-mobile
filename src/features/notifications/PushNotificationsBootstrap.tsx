@@ -74,6 +74,7 @@ export function PushNotificationsBootstrap() {
       if (handledResponseIds.current.has(responseId)) return;
       handledResponseIds.current.add(responseId);
       navigateFromPushData(response.notification.request.content.data as Record<string, unknown>);
+      void Notifications.clearLastNotificationResponseAsync();
     });
 
     return () => {
