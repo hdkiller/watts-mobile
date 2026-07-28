@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
+  Keyboard,
   Modal,
   Platform,
   Pressable,
@@ -408,6 +409,22 @@ export function CoachChat({
   }, [overlap]);
 
   useEffect(() => {
+    const willShowSub = Keyboard.addListener('keyboardWillShow', () => {
+      listRef.current?.scrollToEnd({ animated: true });
+    });
+    const didShowSub = Keyboard.addListener('keyboardDidShow', () => {
+      setTimeout(() => {
+        listRef.current?.scrollToEnd({ animated: true });
+      }, 50);
+    });
+
+    return () => {
+      willShowSub.remove();
+      didShowSub.remove();
+    };
+  }, []);
+
+  useEffect(() => {
     if (!autoAttach || autoAttachHandled.current || chat.loading || chat.isReadOnly) return;
     autoAttachHandled.current = true;
     if (autoAttach === 'camera') {
@@ -600,6 +617,7 @@ export function CoachChat({
           keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
           keyboardShouldPersistTaps="handled"
           onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
+          onLayout={() => listRef.current?.scrollToEnd({ animated: true })}
         />
       )}
 
