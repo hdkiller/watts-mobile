@@ -176,6 +176,14 @@ To avoid keyboards layout overlap or blocking inputs:
 - Don't disable font scaling; layouts must tolerate larger text.
 - **Maestro / e2e:** screen and sheet roots (and primary CTAs the suite must tap) also get stable `testID`s — naming, inventory, and when to update flows live in [e2e.md](./e2e.md) § Maintaining e2e. Labels may change with copy; `testID`s should not.
 
+## Localization & Copy Policy
+
+- **V1 Client Chrome is English-First:** Mobile UI labels, headings, CTAs, and tab titles use English copy.
+- **Typed `src/i18n` Scaffold:** All new or updated chrome strings are routed through `src/i18n` (`t()`, `messages/en.ts`). Keys are stable and typed to support future catalog expansion (e.g. Tolgee / shared multi-language catalogs with web).
+- **Server-Driven Localization:** Dynamic AI content (Coach chat messages, AI recommendations, workout step names, advice, notes) is generated in the athlete's language by the `coach-wattz` backend based on their user profile setting.
+- **Chrome / Content Separation:** Client chrome labels should never prefix, wrap, or concatenate server-driven content in ways that assume English sentence structure or cause mixed-language presentation.
+
+
 ## Don'ts
 
 - No raw neutral palette values in components (`bg-zinc-900`, `#09090b`, `text-white`) — semantic tokens only, so both themes stay correct. **Exception:** QR code modules may use pure `#000000` / `#ffffff` for scanner reliability; wrap the pad in semantic `bg-card` chrome.

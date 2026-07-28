@@ -91,7 +91,7 @@ Cross-cutting quality gaps surfaced while closing the review; each needs a decis
 | ID | Issue | Area | Priority | Effort | Status |
 |----|-------|------|----------|--------|--------|
 | [053](./issues/053.md) | Dynamic Type untested, Reduce Motion ignored | accessibility | medium | M | open |
-| [054](./issues/054.md) | i18n scaffold is dead code; mixed-language UX unowned | i18n | medium | M | open |
+| [054](./issues/054.md) | i18n scaffold is dead code; mixed-language UX unowned | i18n | medium | M | resolved |
 | [055](./issues/055.md) | iPad enabled but ships stretched phone layouts | store/layout | medium | S–M | done |
 | [056](./issues/056.md) | First-run experience unaudited (day-one athlete) | onboarding | medium | M | open |
 | [057](./issues/057.md) | Offline: no reconnect/foreground refetch wiring, narrow persistence, hard-fail writes | offline | high | M | done |
