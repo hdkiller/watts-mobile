@@ -637,10 +637,15 @@ export function normalizeFoodItemResult(item: any): FoodItemResult {
     'energy-kcal_100g',
     'energy-kcal',
     'energy_kcal_100g',
-    'energy_100g',
-    'energy',
     'kcal',
   ]);
+
+  if (calories === undefined) {
+    const kjVal = findVal(['energy_100g', 'energy', 'energy_kj', 'energy_kj_100g']);
+    if (kjVal !== undefined) {
+      calories = Math.round(kjVal / 4.184);
+    }
+  }
 
   if ((calories === undefined || calories === 0) && (protein > 0 || carbs > 0 || fat > 0)) {
     calories = Math.round(carbs * 4 + protein * 4 + fat * 9);

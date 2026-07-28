@@ -5,6 +5,10 @@ allowBuilds:
   '@sentry/cli': true
   unrs-resolver: true
 
+# nitro 0.36.3 is already in the lockfile (HealthKit); allow until the age gate clears
+minimumReleaseAgeExclude:
+  - react-native-nitro-modules@0.36.3
+
 overrides:
   tar: '^7.5.22'
   undici: '^6.28.0'

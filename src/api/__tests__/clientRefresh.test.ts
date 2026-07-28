@@ -23,16 +23,18 @@ const mockClearTokens = vi.fn();
 
 vi.mock('@/src/auth/tokenStorage', () => ({
   loadTokens: () => mockLoadTokens(),
-  clearTokens: () => mockClearTokens(),
+  clearTokens: (...args: unknown[]) => mockClearTokens(...args),
 }));
 
-import { apiFetch, setAuthFailureHandler } from '../client';
+import { bumpAuthSessionGeneration, apiFetch, setAuthFailureHandler } from '../client';
+import { resetAuthSessionGenerationForTests } from '@/src/auth/authSessionGeneration';
 
 describe('apiFetch token refresh error handling (CW-135)', () => {
   const failureHandler = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
+    resetAuthSessionGenerationForTests();
     setAuthFailureHandler(failureHandler);
     mockLoadTokens.mockResolvedValue({
       accessToken: 'stale-access-token',
@@ -97,6 +99,42 @@ describe('apiFetch token refresh error handling (CW-135)', () => {
 
     const response = await apiFetch('/api/test-endpoint');
 
+    expect(response.status).toBe(401);
+    expect(mockClearTokens).not.toHaveBeenCalled();
+    expect(failureHandler).not.toHaveBeenCalled();
+  });
+
+  it('ignores stale 401 handling after auth session generation bumps (re-login race)', async () => {
+    let requestStarted!: () => void;
+    const requestStartedPromise = new Promise<void>((resolve) => {
+      requestStarted = resolve;
+    });
+    let finishRequest!: () => void;
+    const requestGate = new Promise<void>((resolve) => {
+      finishRequest = resolve;
+    });
+
+    global.fetch = vi.fn().mockImplementation(async (input: RequestInfo) => {
+      const url = String(input);
+      if (url.includes('/api/oauth/token')) {
+        return {
+          status: 400,
+          ok: false,
+          json: async () => ({ error: 'invalid_grant' }),
+        } as Response;
+      }
+      // First API call: hold the 401 until after a simulated re-login bump.
+      requestStarted();
+      await requestGate;
+      return { status: 401, ok: false } as Response;
+    });
+
+    const pending = apiFetch('/api/test-endpoint');
+    await requestStartedPromise;
+    bumpAuthSessionGeneration();
+    finishRequest();
+
+    const response = await pending;
     expect(response.status).toBe(401);
     expect(mockClearTokens).not.toHaveBeenCalled();
     expect(failureHandler).not.toHaveBeenCalled();
