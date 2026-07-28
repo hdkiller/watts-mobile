@@ -14,6 +14,7 @@ import {
 
 import { fetchUserInfo, setAuthFailureHandler, type UserInfo } from '@/src/api/client';
 import { friendlyError } from '@/src/api/errors';
+import { bumpAuthSessionGeneration } from '@/src/auth/authSessionGeneration';
 import { applyE2eAuthSeed, applyPendingE2eLogin } from '@/src/auth/e2eAuth';
 import { parseE2eLoginDeepLink } from '@/src/auth/e2eLoginDeepLink';
 import { loginWithPkce } from '@/src/auth/oauth';
@@ -211,6 +212,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const previous = instanceUrl ?? (await getInstanceUrl());
       const normalized = normalizeInstanceUrl(url);
       if (previous && previous !== normalized) {
+        bumpAuthSessionGeneration();
         await clearHealthSyncForIdentityTransition();
         const { clearConnectLater } = await import('@/src/features/activation/connectLater');
         await clearConnectLater();
@@ -235,6 +237,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     await validateInstanceReachability(instance);
+    // Invalidate stale 401/refresh handlers before opening the browser, then drop
+    // in-flight field reads so they cannot race the new grant.
+    bumpAuthSessionGeneration();
+    await queryClient.cancelQueries();
     await loginWithPkce(instance);
     const info = await fetchUserInfo();
     setUser(info);
@@ -242,6 +248,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [instanceUrl]);
 
   const signOut = useCallback(async () => {
+    bumpAuthSessionGeneration();
     try {
       const { clearPushRegistrationOnSignOut } =
         await import('@/src/features/notifications/pushRegistration');
