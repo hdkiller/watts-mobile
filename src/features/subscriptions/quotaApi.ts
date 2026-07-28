@@ -62,14 +62,26 @@ function mapQuota(raw: RawQuota): QuotaAllowance | null {
   };
 }
 
+const EMPTY_ALLOWANCES: QuotaAllowanceSummary = {
+  tier: 'FREE',
+  effectiveTier: 'FREE',
+  allowances: [],
+};
+
 /**
  * Current allowances for every metered feature.
  *
  * Lets the app warn before a limit is hit; without it the first sign of a limit
  * is a blocked action after the athlete has already waited for a generation.
+ *
+ * softUnauthorized: hosted coachwatts.com may still gate this route on cookie
+ * session only. A hard 401 after refresh must not clear the mobile OAuth session.
  */
 export async function fetchQuotaAllowances(): Promise<QuotaAllowanceSummary> {
-  const response = await apiFetch('/api/profile/quotas');
+  const response = await apiFetch('/api/profile/quotas', { softUnauthorized: true });
+  if (response.status === 401 || response.status === 403 || response.status === 404) {
+    return EMPTY_ALLOWANCES;
+  }
   if (!response.ok) {
     throw new ApiError(`Quota request failed (${response.status})`, response.status);
   }
