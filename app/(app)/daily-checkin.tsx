@@ -148,7 +148,15 @@ export default function DailyCheckinScreen() {
       if (quota) {
         return (
           <View className="flex-1 justify-center bg-surface p-6">
-            <QuotaLimitCard info={quota} surface="daily_checkin" onDismiss={() => router.back()} />
+            <QuotaLimitCard
+              info={quota}
+              surface="daily_checkin"
+              onDismiss={() => {
+                generateMutation.reset();
+                setActionError(null);
+                router.back();
+              }}
+            />
           </View>
         );
       }

@@ -657,7 +657,13 @@ export default function TodayScreen() {
             generatingPending={generateMutation.isPending}
             onAnalyze={() => void onGenerate()}
             onOpenWeb={() => void openWeb()}
-            onDismissQuota={() => setGenState('idle')}
+            onDismissQuota={() => {
+              generateMutation.reset();
+              setGenState('idle');
+              setGenError(null);
+              setGenQuota(null);
+              setActionError(null);
+            }}
             onAdhoc={!showFinishSetup && emptyNoDecision ? () => setAdhocOpen(true) : undefined}
             adhocDisabled={actionsBusy}
           />
@@ -677,7 +683,13 @@ export default function TodayScreen() {
             className="mt-6"
             info={adhocQuota ?? { feature: 'WORKOUT_GENERATION' }}
             surface="today_adhoc"
-            onDismiss={() => setAdhocState('idle')}
+            onDismiss={() => {
+              adhocMutation.reset();
+              setAdhocState('idle');
+              setAdhocError(null);
+              setAdhocQuota(null);
+              setActionError(null);
+            }}
           />
         ) : null}
 
