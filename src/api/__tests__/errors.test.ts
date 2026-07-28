@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { ApiError, friendlyError } from '../errors';
+import { ApiError, friendlyError, isAuthTokenInvalidationError } from '../errors';
 
 describe('friendlyError', () => {
   it('maps 401/403 to session copy', () => {
@@ -70,5 +70,24 @@ describe('friendlyError', () => {
 
   it('does not treat unmapped 4xx as session/server', () => {
     expect(friendlyError(new ApiError('Conflict', 409), 'Could not save')).toBe('Could not save');
+  });
+});
+
+describe('isAuthTokenInvalidationError', () => {
+  it('returns true for 400 and 401 status errors', () => {
+    expect(isAuthTokenInvalidationError(new ApiError('Invalid grant', 400))).toBe(true);
+    expect(isAuthTokenInvalidationError(new ApiError('Unauthorized', 401))).toBe(true);
+    expect(isAuthTokenInvalidationError({ status: 400 })).toBe(true);
+    expect(isAuthTokenInvalidationError({ status: 401 })).toBe(true);
+  });
+
+  it('returns false for transport, network, and 5xx server errors', () => {
+    expect(isAuthTokenInvalidationError(new TypeError('Network request failed'))).toBe(false);
+    expect(isAuthTokenInvalidationError(new Error('Network request failed'))).toBe(false);
+    expect(isAuthTokenInvalidationError(new ApiError('Internal Server Error', 500))).toBe(false);
+    expect(isAuthTokenInvalidationError(new ApiError('Bad Gateway', 502))).toBe(false);
+    expect(isAuthTokenInvalidationError(new ApiError('Rate limit', 429))).toBe(false);
+    expect(isAuthTokenInvalidationError(null)).toBe(false);
+    expect(isAuthTokenInvalidationError(undefined)).toBe(false);
   });
 });
