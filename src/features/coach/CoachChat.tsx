@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
+  Keyboard,
   Modal,
   Platform,
   Pressable,
@@ -60,6 +61,7 @@ import { TypingIndicator } from './TypingIndicator';
 import { useCoachChat } from './useCoachChat';
 import { useCoachDictation } from './useCoachDictation';
 import { useTypingFloor } from './useTypingFloor';
+import { QuotaLimitCard } from '@/src/features/subscriptions/QuotaLimitCard';
 
 function ChatGlyph({
   sf,
@@ -130,10 +132,10 @@ function ToolOutcomeCard({ outcome }: { outcome: ToolOutcomeSummary }) {
         : 'border-red-800/50 bg-tint-error';
   const textClass =
     outcome.status === 'success'
-      ? 'text-green-400'
+      ? 'text-success'
       : outcome.status === 'denied'
         ? 'text-text-muted'
-        : 'text-red-300';
+        : 'text-danger';
   const iconTint =
     outcome.status === 'success' ? glyph.tint : outcome.status === 'denied' ? '#94a3b8' : '#f87171';
   return (
@@ -407,6 +409,22 @@ export function CoachChat({
   }, [overlap]);
 
   useEffect(() => {
+    const willShowSub = Keyboard.addListener('keyboardWillShow', () => {
+      listRef.current?.scrollToEnd({ animated: true });
+    });
+    const didShowSub = Keyboard.addListener('keyboardDidShow', () => {
+      setTimeout(() => {
+        listRef.current?.scrollToEnd({ animated: true });
+      }, 50);
+    });
+
+    return () => {
+      willShowSub.remove();
+      didShowSub.remove();
+    };
+  }, []);
+
+  useEffect(() => {
     if (!autoAttach || autoAttachHandled.current || chat.loading || chat.isReadOnly) return;
     autoAttachHandled.current = true;
     if (autoAttach === 'camera') {
@@ -458,10 +476,6 @@ export function CoachChat({
     setAttachSheetOpen(true);
   };
 
-  if (chat.loading && chat.displayMessages.length === 0) {
-    return <CoachChatSkeleton />;
-  }
-
   if (chat.error && chat.displayMessages.length === 0) {
     return (
       <View className="flex-1 items-center justify-center bg-surface px-6">
@@ -473,6 +487,10 @@ export function CoachChat({
         />
       </View>
     );
+  }
+
+  if (chat.loading && chat.displayMessages.length === 0) {
+    return <CoachChatSkeleton />;
   }
 
   const empty = chat.displayMessages.length === 0;
@@ -599,15 +617,22 @@ export function CoachChat({
           keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
           keyboardShouldPersistTaps="handled"
           onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
+          onLayout={() => listRef.current?.scrollToEnd({ animated: true })}
         />
       )}
 
+      {chat.sendQuota ? (
+        <View className="px-5 pb-2">
+          <QuotaLimitCard compact info={chat.sendQuota} surface="coach_chat" />
+        </View>
+      ) : null}
+
       {chat.sendError ? (
-        <Text className="px-5 pb-2 text-sm text-red-400">{chat.sendError}</Text>
+        <Text className="px-5 pb-2 text-sm text-danger">{chat.sendError}</Text>
       ) : null}
 
       {dictation.error ? (
-        <Text className="px-5 pb-2 text-sm text-red-400">{dictation.error}</Text>
+        <Text className="px-5 pb-2 text-sm text-danger">{dictation.error}</Text>
       ) : null}
 
       {chat.recoverableTurnId ? (
@@ -639,7 +664,7 @@ export function CoachChat({
               />
               {attachment.uploading ? (
                 <View className="absolute inset-0 items-center justify-center rounded-xl bg-black/50">
-                  <ActivityIndicator color={Colors.brand} />
+                  <ActivityIndicator color={theme.brandOnSurface} />
                 </View>
               ) : null}
               <Pressable

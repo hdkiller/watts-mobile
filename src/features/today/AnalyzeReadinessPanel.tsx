@@ -1,14 +1,19 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
+import { Spinner } from '@/src/components/Spinner';
 import { Button } from '@/src/components/Button';
-import { Colors } from '@/src/theme/colors';
+import { AllowanceHint } from '@/src/features/subscriptions/AllowanceHint';
+import { QuotaLimitCard } from '@/src/features/subscriptions/QuotaLimitCard';
+import type { QuotaInfo } from '@/src/features/subscriptions/quota';
 
 export type AnalyzeReadinessState = 'idle' | 'generating' | 'error' | 'quota';
 
 type Props = {
   state: AnalyzeReadinessState;
   errorMessage?: string | null;
+  /** Structured limit details when `state` is 'quota'. */
+  quotaInfo?: QuotaInfo | null;
   generatingPending?: boolean;
   onAnalyze: () => void;
   onOpenWeb: () => void;
@@ -21,12 +26,13 @@ const shellByState: Record<AnalyzeReadinessState, string> = {
   idle: 'py-1',
   generating: 'rounded-2xl border border-border bg-card/80 p-5',
   error: 'rounded-2xl border border-danger/40 bg-tint-error p-5',
-  quota: 'rounded-2xl border border-modify/40 bg-modify/10 p-5',
+  quota: '',
 };
 
 export function AnalyzeReadinessPanel({
   state,
   errorMessage,
+  quotaInfo,
   generatingPending = false,
   onAnalyze,
   onOpenWeb,
@@ -38,7 +44,7 @@ export function AnalyzeReadinessPanel({
     <View testID="today-readiness-panel" className={`mt-6 ${shellByState[state]}`}>
       {state === 'generating' ? (
         <View className="items-center py-2">
-          <ActivityIndicator color={Colors.brand} size="small" />
+          <Spinner size="small" />
           <Text className="mt-3 text-base font-semibold text-text-primary">
             Analyzing readiness…
           </Text>
@@ -49,32 +55,22 @@ export function AnalyzeReadinessPanel({
       ) : null}
 
       {state === 'quota' ? (
-        <View>
-          <Text className="text-xs font-semibold uppercase tracking-wide text-modify">
-            Plan limit
-          </Text>
-          <Text className="mt-2 text-lg font-semibold text-text-primary">
-            Recommendation limit reached
-          </Text>
-          <Text className="mt-2 text-sm leading-5 text-text-body">
-            {errorMessage || 'Update your plan in Coach Watts to generate more recommendations.'}
-          </Text>
-          <View className="mt-5 gap-3">
-            <Button label="Open Coach Watts" onPress={onOpenWeb} />
-            <Button label="Back" variant="secondary" onPress={onDismissQuota} />
-          </View>
-        </View>
+        <QuotaLimitCard
+          info={quotaInfo ?? { feature: 'READINESS_RECOMMENDATION' }}
+          surface="today_readiness"
+          onDismiss={onDismissQuota}
+        />
       ) : null}
 
       {state === 'error' ? (
         <View>
-          <Text className="text-xs font-semibold uppercase tracking-wide text-red-400/90">
+          <Text className="text-xs font-semibold uppercase tracking-wide text-danger/90">
             Analyze Readiness
           </Text>
           <Text className="mt-2 text-lg font-semibold text-text-primary">
             Couldn’t analyze readiness
           </Text>
-          <Text className="mt-2 text-sm leading-5 text-red-300">
+          <Text className="mt-2 text-sm leading-5 text-danger">
             {errorMessage || 'Something went wrong. Try again, or continue in Coach Watts.'}
           </Text>
           <View className="mt-5 gap-3">
@@ -93,6 +89,7 @@ export function AnalyzeReadinessPanel({
           <Text className="mt-1.5 text-sm leading-5 text-text-muted">
             Generate today’s recommendation from your latest readiness and recovery biometrics.
           </Text>
+          <AllowanceHint className="mt-2" feature="READINESS_RECOMMENDATION" />
           <View className="mt-4 gap-3">
             <Button label="Analyze Readiness" onPress={onAnalyze} loading={generatingPending} />
             {onAdhoc ? (

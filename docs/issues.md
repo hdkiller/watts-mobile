@@ -91,7 +91,7 @@ Cross-cutting quality gaps surfaced while closing the review; each needs a decis
 | ID | Issue | Area | Priority | Effort | Status |
 |----|-------|------|----------|--------|--------|
 | [053](./issues/053.md) | Dynamic Type untested, Reduce Motion ignored | accessibility | medium | M | open |
-| [054](./issues/054.md) | i18n scaffold is dead code; mixed-language UX unowned | i18n | medium | M | open |
+| [054](./issues/054.md) | i18n scaffold is dead code; mixed-language UX unowned | i18n | medium | M | resolved |
 | [055](./issues/055.md) | iPad enabled but ships stretched phone layouts | store/layout | medium | S–M | done |
 | [056](./issues/056.md) | First-run experience unaudited (day-one athlete) | onboarding | medium | M | open |
 | [057](./issues/057.md) | Offline: no reconnect/foreground refetch wiring, narrow persistence, hard-fail writes | offline | high | M | done |
@@ -128,6 +128,12 @@ Fixed without a prior issue card (2026-07-23): Today greeting → Athlete — ro
 | [066](./issues/066.md) | Today / activation → Health Sync & Connected Apps: Back leaves setup | navigation/activation | high | M | done |
 | [067](./issues/067.md) | Athlete → Sports settings: Back abandons Athlete | navigation/profile | medium | S | done |
 | [068](./issues/068.md) | Inbox / push opens nested stacks without a return path | navigation/notifications | medium | M | done |
+
+## Runtime / deps — July 2026
+
+| ID | Issue | Area | Priority | Effort | Status |
+|----|-------|------|----------|--------|--------|
+| [069](./issues/069.md) | Simulator Hermes abort after Dependabot RNGH 3.1.0 bump | runtime/deps | high | S | done |
 
 Not filed (low / likely intentional tab jumps): Today/session “Discuss with Coach” and Log “AI photo estimate” → Coach tab — no header Back to source; revisit only if product wants modal Coach.
 

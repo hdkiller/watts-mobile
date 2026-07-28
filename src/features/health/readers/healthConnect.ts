@@ -411,7 +411,9 @@ export async function readHealthConnectWorkouts(
       speedSamples.filter((s) => s.t >= start.getTime() && s.t <= windowEnd),
     );
 
-    // Bulk route read via READ_EXERCISE_ROUTES. Deliberately no
+    // Bulk route read via READ_EXERCISE_ROUTES, declared in app.json and granted
+    // from the Health Connect settings screen — react-native-health-connect has no
+    // read-route permission to request in-app. Deliberately no
     // `requestExerciseRoute` fallback: that API prompts per record, which would
     // mean one system dialog per workout during a pass (and always fails in the
     // background). Without the grant, routes are simply omitted.

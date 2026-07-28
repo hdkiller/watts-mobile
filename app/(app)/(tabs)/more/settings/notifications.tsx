@@ -29,6 +29,7 @@ import type { NotificationPreferences } from '@/src/features/notifications/types
 import { hapticLight, hapticSuccess, hapticError } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
+import { useTabScrollPadding } from '@/src/hooks/useTabScrollPadding';
 
 function goBackToSettings() {
   if (router.canGoBack()) {
@@ -71,6 +72,7 @@ function PreferenceRow({
 
 export default function NotificationSettingsScreen() {
   const theme = useThemeColors();
+  const tabBottomPad = useTabScrollPadding();
 
   const {
     data: preferences,
@@ -144,7 +146,7 @@ export default function NotificationSettingsScreen() {
           ),
         }}
       />
-      <SafeAreaView edges={{ bottom: true }} style={{ flex: 1, backgroundColor: theme.surface }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.surface }}>
         {isLoading ? (
           <DetailSkeleton />
         ) : isError ? (
@@ -155,7 +157,11 @@ export default function NotificationSettingsScreen() {
             <Button className="mt-4" label="Try again" onPress={() => void refetch()} />
           </View>
         ) : (
-          <ScrollView className="flex-1 bg-surface" contentContainerClassName="px-6 pb-12 pt-4">
+          <ScrollView
+            className="flex-1 bg-surface"
+            contentContainerClassName="px-6 pt-4"
+            contentContainerStyle={{ paddingBottom: tabBottomPad }}
+          >
             <Text className="text-2xl font-semibold text-text-primary">Push notifications</Text>
             <Text className="mt-1 text-sm text-text-muted">
               Choose which coaching alerts Coach Watts may send as push notifications on your
@@ -168,7 +174,7 @@ export default function NotificationSettingsScreen() {
                   <AppSymbol
                     sf="exclamationmark.triangle"
                     size={18}
-                    tintColor={Colors.modify}
+                    tintColor={theme.modifyOnSurface}
                     fallback="⚠️"
                   />
                   <Text className="text-sm font-semibold text-modify">

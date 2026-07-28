@@ -1,3 +1,8 @@
+import { isAuthTokenInvalidationError } from '@/src/api/errors';
+import {
+  bumpAuthSessionGeneration,
+  getAuthSessionGeneration,
+} from '@/src/auth/authSessionGeneration';
 import { refreshAccessToken } from '@/src/auth/oauth';
 import { clearTokens, loadTokens, type StoredTokens } from '@/src/auth/tokenStorage';
 import { getInstanceUrl } from '@/src/config/instance';
@@ -20,6 +25,7 @@ type ApiFetchOptions = RequestInit & {
 };
 
 let refreshPromise: Promise<StoredTokens> | null = null;
+let refreshPromiseGeneration = -1;
 let onAuthFailure: (() => void) | null = null;
 
 export function setAuthFailureHandler(handler: (() => void) | null) {
@@ -30,6 +36,8 @@ export function setAuthFailureHandler(handler: (() => void) | null) {
 export function notifyAuthFailure(): void {
   onAuthFailure?.();
 }
+
+export { bumpAuthSessionGeneration, getAuthSessionGeneration };
 
 function resolveUrl(instanceBaseUrl: string, path: string): string {
   if (path.startsWith('http://') || path.startsWith('https://')) {
@@ -47,16 +55,47 @@ export async function singleFlightRefresh(
   instanceBaseUrl: string,
   refreshToken: string,
 ): Promise<StoredTokens> {
-  if (!refreshPromise) {
-    refreshPromise = refreshAccessToken({ instanceBaseUrl, refreshToken }).finally(() => {
-      refreshPromise = null;
-    });
+  const generation = getAuthSessionGeneration();
+  if (!refreshPromise || refreshPromiseGeneration !== generation) {
+    refreshPromiseGeneration = generation;
+    refreshPromise = refreshAccessToken({ instanceBaseUrl, refreshToken })
+      .then((tokens) => {
+        if (generation !== getAuthSessionGeneration()) {
+          throw new Error('Auth session changed during token refresh');
+        }
+        return tokens;
+      })
+      .finally(() => {
+        if (refreshPromiseGeneration === generation) {
+          refreshPromise = null;
+        }
+      });
   }
   return refreshPromise;
 }
 
-async function failAuthSession(): Promise<void> {
-  await clearTokens();
+async function failAuthSession(expectedGeneration: number, reason: string): Promise<void> {
+  if (expectedGeneration !== getAuthSessionGeneration()) {
+    if (__DEV__) {
+      console.warn(
+        `[auth] Ignoring stale session failure (${reason}); generation ${expectedGeneration} ≠ ${getAuthSessionGeneration()}`,
+      );
+    }
+    return;
+  }
+  if (__DEV__) {
+    console.warn(`[auth] Clearing session: ${reason}`);
+  }
+  // Generation-tagged clear: a newer login's tokens are not wiped if this races.
+  await clearTokens(expectedGeneration);
+  if (expectedGeneration !== getAuthSessionGeneration()) {
+    if (__DEV__) {
+      console.warn(
+        `[auth] Session was replaced during clear (${reason}); not invoking auth failure handler`,
+      );
+    }
+    return;
+  }
   onAuthFailure?.();
 }
 
@@ -65,6 +104,10 @@ export async function apiFetch(path: string, options: ApiFetchOptions = {}): Pro
   if (!instanceBaseUrl) {
     throw new Error('Instance URL is not configured');
   }
+
+  // Capture before the network round-trip so a re-login during the request cannot
+  // make this handler clear the new session when the stale response finally 401s.
+  const sessionGeneration = getAuthSessionGeneration();
 
   const url = resolveUrl(instanceBaseUrl, path);
   const headers = new Headers(options.headers);
@@ -92,9 +135,16 @@ export async function apiFetch(path: string, options: ApiFetchOptions = {}): Pro
     return response;
   }
 
+  if (sessionGeneration !== getAuthSessionGeneration()) {
+    if (__DEV__) {
+      console.warn(`[auth] Ignoring 401 on ${path}; auth session was replaced during request`);
+    }
+    return response;
+  }
+
   const tokens = await loadTokens();
   if (!tokens?.refreshToken) {
-    await failAuthSession();
+    await failAuthSession(sessionGeneration, `401 on ${path} with no refresh token`);
     return response;
   }
 
@@ -107,11 +157,13 @@ export async function apiFetch(path: string, options: ApiFetchOptions = {}): Pro
     retryHeaders.set('Authorization', `Bearer ${refreshed.accessToken}`);
     const retry = await fetch(url, { ...options, headers: retryHeaders });
     if (retry.status === 401) {
-      await failAuthSession();
+      await failAuthSession(sessionGeneration, `401 after refresh on ${path}`);
     }
     return retry;
-  } catch {
-    await failAuthSession();
+  } catch (err) {
+    if (isAuthTokenInvalidationError(err)) {
+      await failAuthSession(sessionGeneration, `refresh invalidated for ${path}`);
+    }
     return response;
   }
 }

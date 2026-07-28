@@ -1,11 +1,26 @@
+import { isAuthTokenInvalidationError } from '@/src/api/errors';
 import { fetch as expoFetch } from 'expo/fetch';
 
-import { notifyAuthFailure, singleFlightRefresh } from '@/src/api/client';
+import { getAuthSessionGeneration, notifyAuthFailure, singleFlightRefresh } from '@/src/api/client';
 import { clearTokens, loadTokens } from '@/src/auth/tokenStorage';
 import { getInstanceUrl } from '@/src/config/instance';
 
-async function failAuthSession(): Promise<void> {
-  await clearTokens();
+async function failAuthSession(expectedGeneration: number, reason: string): Promise<void> {
+  if (expectedGeneration !== getAuthSessionGeneration()) {
+    if (__DEV__) {
+      console.warn(
+        `[auth] Ignoring stale coach session failure (${reason}); generation ${expectedGeneration} ≠ ${getAuthSessionGeneration()}`,
+      );
+    }
+    return;
+  }
+  if (__DEV__) {
+    console.warn(`[auth] Clearing session (coach): ${reason}`);
+  }
+  await clearTokens(expectedGeneration);
+  if (expectedGeneration !== getAuthSessionGeneration()) {
+    return;
+  }
   notifyAuthFailure();
 }
 
@@ -22,6 +37,8 @@ export async function coachChatFetch(
   if (!instanceBaseUrl) {
     throw new Error('Instance URL is not configured');
   }
+
+  const sessionGeneration = getAuthSessionGeneration();
 
   const url = typeof input === 'string' || input instanceof URL ? String(input) : input.url;
   const headers = new Headers(init?.headers);
@@ -40,8 +57,15 @@ export async function coachChatFetch(
     return response;
   }
 
+  if (sessionGeneration !== getAuthSessionGeneration()) {
+    if (__DEV__) {
+      console.warn('[auth] Ignoring coach 401; auth session was replaced during request');
+    }
+    return response;
+  }
+
   if (!tokens?.refreshToken) {
-    await failAuthSession();
+    await failAuthSession(sessionGeneration, `401 on coach fetch with no refresh token`);
     return response;
   }
 
@@ -54,11 +78,13 @@ export async function coachChatFetch(
     retryHeaders.set('Authorization', `Bearer ${refreshed.accessToken}`);
     const retry = await expoFetch(url, { ...init, headers: retryHeaders });
     if (retry.status === 401) {
-      await failAuthSession();
+      await failAuthSession(sessionGeneration, `401 after refresh on coach fetch`);
     }
     return retry;
-  } catch {
-    await failAuthSession();
+  } catch (err) {
+    if (isAuthTokenInvalidationError(err)) {
+      await failAuthSession(sessionGeneration, `refresh invalidated for coach fetch`);
+    }
     return response;
   }
 }

@@ -72,7 +72,9 @@ export default function InviteFriendsScreen() {
         >
           <AppSymbol sf="chevron.left" size={20} tintColor={theme.textPrimary} fallback="‹" />
         </AnimatedPressable>
-        <Text className="ml-1 flex-1 text-2xl font-semibold text-text-primary">Invite friends</Text>
+        <Text className="ml-1 flex-1 text-2xl font-semibold text-text-primary">
+          Invite a friend
+        </Text>
       </View>
 
       <ScrollView
@@ -99,7 +101,7 @@ export default function InviteFriendsScreen() {
         {isError ? (
           <View className="mt-10 rounded-xl border border-danger/40 bg-tint-error p-4">
             <Text className="text-base font-medium text-danger">Couldn’t load invite</Text>
-            <Text className="mt-1 text-sm text-red-400">Check your connection and try again.</Text>
+            <Text className="mt-1 text-sm text-danger">Check your connection and try again.</Text>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Retry"

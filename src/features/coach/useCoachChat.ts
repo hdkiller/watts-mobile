@@ -4,6 +4,7 @@ import { DefaultChatTransport } from 'ai';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { friendlyError } from '@/src/api/errors';
+import { parseQuotaError, type QuotaInfo } from '@/src/features/subscriptions/quota';
 import { getInstanceUrl } from '@/src/config/instance';
 import type { RecoveryContextItem } from '@/src/features/recovery/types';
 import { filterActiveToday } from '@/src/features/recovery/mapRecovery';
@@ -37,6 +38,12 @@ import {
   upsertChatMessage,
   visibleCoachMessages,
 } from './mapMessages';
+import {
+  coalescePendingLoad,
+  resolveFollowUpLoad,
+  shouldApplyMessageLoad,
+  type MessageLoadRequest,
+} from './messageLoadCoalesce';
 import { buildCoachSeedContext, buildSessionCoachSeedContext, withSeedPrefix } from './seedContext';
 import { takeSessionDiscuss } from './sessionDiscussStore';
 import { decideSessionOpen, findRoomById } from './sessionPolicy';
@@ -77,6 +84,8 @@ type UseCoachChatResult = {
   usingPollFallback: boolean;
   error: string | null;
   sendError: string | null;
+  /** Set when the reply was blocked by a plan limit rather than a failure. */
+  sendQuota: QuotaInfo | null;
   notice: string | null;
   send: (text?: string) => Promise<void>;
   applyStarter: (text: string) => void;
@@ -113,6 +122,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
+  const [sendQuota, setSendQuota] = useState<QuotaInfo | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [awaitingTurnStart, setAwaitingTurnStart] = useState(false);
   const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
@@ -131,7 +141,8 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
   const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollGraceUntil = useRef(0);
   const loadInFlight = useRef(false);
-  const loadPending = useRef(false);
+  const pendingLoad = useRef<MessageLoadRequest | null>(null);
+  const loadGeneration = useRef(0);
   const setMessagesRef = useRef<(messages: CoachUIMessage[]) => void>(() => {});
   const restartTurnPollingRef = useRef<(options?: { forceForMs?: number }) => void>(() => {});
   const loadMessagesRef = useRef<(id: string, options?: { silent?: boolean }) => Promise<void>>(
@@ -140,6 +151,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
   const isRealtimeConnectedRef = useRef(false);
   const approvalInFlight = useRef(new Set<string>());
   const bootstrappedForTarget = useRef<string | null | undefined>(undefined);
+  const bootstrapRef = useRef<() => Promise<void>>(async () => {});
 
   useEffect(() => {
     roomIdRef.current = roomId;
@@ -164,12 +176,37 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
     };
   }, []);
 
-  useEffect(() => {
-    void resolveChatMessagesApiUrl()
-      .then(setApiUrl)
-      .catch((err) => {
+  const resolveApiUrl = useCallback(async () => {
+    try {
+      const url = await resolveChatMessagesApiUrl();
+      if (activeRef.current) {
+        setApiUrl(url);
+      }
+      return url;
+    } catch (err) {
+      if (activeRef.current) {
         setError(friendlyError(err, 'Could not resolve chat API'));
+      }
+      return null;
+    }
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    void resolveChatMessagesApiUrl()
+      .then((url) => {
+        if (!cancelled && activeRef.current) {
+          setApiUrl(url);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled && activeRef.current) {
+          setError(friendlyError(err, 'Could not resolve chat API'));
+        }
       });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const transport = useMemo(
@@ -206,7 +243,9 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
     },
     onError: (err) => {
       setAwaitingTurnStart(false);
-      setSendError(friendlyError(err, 'Failed to send message'));
+      const quota = parseQuotaError(err, 'COACH_CHAT');
+      setSendQuota(quota);
+      setSendError(quota ? null : friendlyError(err, 'Failed to send message'));
     },
   });
 
@@ -228,17 +267,39 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
   const loadMessages = useCallback(
     async (id: string, options?: { silent?: boolean }) => {
       if (!activeRef.current) return;
+      const silent = options?.silent ?? false;
+      const request: MessageLoadRequest = { roomId: id, silent };
+
       if (loadInFlight.current) {
-        loadPending.current = true;
+        pendingLoad.current = coalescePendingLoad(pendingLoad.current, request, roomIdRef.current);
+        if (!silent) setLoading(true);
         return;
       }
+
       loadInFlight.current = true;
-      const silent = options?.silent ?? false;
+      const targetId = id;
+      const targetSilent = silent;
+      // Clear any coalesce entry for this start; later requests re-queue via pendingLoad.
+      if (pendingLoad.current?.roomId === targetId) {
+        pendingLoad.current = null;
+      }
+      const generation = ++loadGeneration.current;
+
       try {
-        if (!silent) setLoading(true);
-        const loaded = await fetchChatMessages(id);
-        if (!activeRef.current || roomIdRef.current !== id) return;
-        queryClient.setQueryData(chatMessagesQueryKey(id), loaded);
+        if (!targetSilent) setLoading(true);
+        const loaded = await fetchChatMessages(targetId);
+        if (
+          !shouldApplyMessageLoad({
+            isActive: activeRef.current,
+            requestGeneration: generation,
+            currentGeneration: loadGeneration.current,
+            requestedRoomId: targetId,
+            activeRoomId: roomIdRef.current,
+          })
+        ) {
+          return;
+        }
+        queryClient.setQueryData(chatMessagesQueryKey(targetId), loaded);
         const transformed = hydrateCoachMessages(loaded);
         const merged = mergeLoadedMessages(messagesRef.current, transformed);
         setMessagesRef.current(merged);
@@ -256,23 +317,41 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
         setError(null);
         restartTurnPollingRef.current();
       } catch (err) {
-        const cached = queryClient.getQueryData<StoredChatMessage[]>(chatMessagesQueryKey(id));
-        if (cached && cached.length > 0 && (!silent || messagesRef.current.length === 0)) {
-          if (!activeRef.current || roomIdRef.current !== id) return;
+        if (
+          !shouldApplyMessageLoad({
+            isActive: activeRef.current,
+            requestGeneration: generation,
+            currentGeneration: loadGeneration.current,
+            requestedRoomId: targetId,
+            activeRoomId: roomIdRef.current,
+          })
+        ) {
+          return;
+        }
+        const cached = queryClient.getQueryData<StoredChatMessage[]>(
+          chatMessagesQueryKey(targetId),
+        );
+        if (cached && cached.length > 0 && (!targetSilent || messagesRef.current.length === 0)) {
           const transformed = hydrateCoachMessages(cached);
           setMessagesRef.current(transformed);
           if (transformed.length > 0) setSeedUsed(true);
           setError(null);
           setNotice('You’re offline — showing last saved chat');
-        } else if (!silent) {
+        } else if (!targetSilent) {
           setError(friendlyError(err, 'Failed to load messages'));
         }
       } finally {
         loadInFlight.current = false;
-        if (!silent) setLoading(false);
-        if (loadPending.current) {
-          loadPending.current = false;
-          void loadMessagesRef.current(id, { silent: true });
+        const followUp = resolveFollowUpLoad({
+          pending: pendingLoad.current,
+          activeRoomId: roomIdRef.current,
+          completedRoomId: targetId,
+        });
+        if (followUp) {
+          pendingLoad.current = null;
+          void loadMessagesRef.current(followUp.roomId, { silent: followUp.silent });
+        } else if (!targetSilent) {
+          setLoading(false);
         }
       }
     },
@@ -519,9 +598,12 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
       setRoomName(room.roomName || 'Coach Watts');
       setIsReadOnly(Boolean(room.isReadOnly));
       roomIdRef.current = room.roomId;
+      // Invalidate any in-flight fetch for the previous room.
+      loadGeneration.current += 1;
       setSeedUsed(false);
       setPendingAttachments([]);
       setSendError(null);
+      setSendQuota(null);
       setInput('');
       if (options?.clearMessages !== false) {
         setMessagesRef.current([]);
@@ -659,6 +741,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
       }
     }
 
+    bootstrapRef.current = bootstrap;
     void bootstrap();
 
     return () => {
@@ -894,9 +977,18 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
   }, [loadMessages, recoverable.turnId, restartTurnPolling]);
 
   const refresh = useCallback(async () => {
-    if (!roomIdRef.current) return;
-    await loadMessages(roomIdRef.current);
-  }, [loadMessages]);
+    let currentApiUrl = apiUrl;
+    if (!currentApiUrl) {
+      currentApiUrl = await resolveApiUrl();
+    }
+    if (!roomIdRef.current) {
+      await bootstrapRef.current();
+      return;
+    }
+    if (currentApiUrl) {
+      await loadMessages(roomIdRef.current);
+    }
+  }, [apiUrl, loadMessages, resolveApiUrl]);
 
   const displayMessages = useMemo(() => {
     const visible = visibleCoachMessages(messages);
@@ -933,7 +1025,9 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
     input,
     setInput,
     pendingAttachments,
-    loading: loading || !apiUrl,
+    loading:
+      (loading || !apiUrl) &&
+      !(error || (chatError ? friendlyError(chatError, 'Chat error') : null)),
     sending,
     streaming,
     awaitingReply: streaming,
@@ -941,6 +1035,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
     usingPollFallback,
     error: error || (chatError ? friendlyError(chatError, 'Chat error') : null),
     sendError,
+    sendQuota,
     notice,
     send,
     applyStarter,

@@ -1,4 +1,6 @@
 import { apiFetch } from '@/src/api/client';
+import { ApiError } from '@/src/api/errors';
+import { withRetryAfter } from '@/src/features/subscriptions/quota';
 
 import { mapAthleteProfileReport, type AthleteProfileReport } from './mapAthleteReport';
 
@@ -43,11 +45,11 @@ export async function fetchLatestAthleteProfileReport(): Promise<AthleteProfileR
 export async function generateAthleteProfile(): Promise<{ reportId: string }> {
   const response = await apiFetch('/api/profile/generate', { method: 'POST' });
   if (response.status === 429) {
-    const err = new Error(
+    throw new ApiError(
       await readErrorMessage(response, 'Quota exceeded for athlete profile generation.'),
-    ) as Error & { status?: number };
-    err.status = 429;
-    throw err;
+      429,
+      withRetryAfter(response, null),
+    );
   }
   if (!response.ok) {
     const err = new Error(

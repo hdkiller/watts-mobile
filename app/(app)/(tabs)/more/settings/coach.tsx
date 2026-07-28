@@ -20,9 +20,11 @@ import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
+import { useTabScrollPadding } from '@/src/hooks/useTabScrollPadding';
 
 export default function CoachIdentityScreen() {
   const theme = useThemeColors();
+  const tabBottomPad = useTabScrollPadding();
 
   const { instanceUrl } = useAuth();
   const profileQuery = useAthleteProfileQuery();
@@ -78,7 +80,7 @@ export default function CoachIdentityScreen() {
           : undefined,
       });
       hapticSuccess();
-      setSuccessMessage('Coach identity saved.');
+      setSuccessMessage('Coach persona saved.');
     } catch (err) {
       hapticError();
       setFormError(friendlyError(err, 'Failed to save coach identity'));
@@ -98,8 +100,8 @@ export default function CoachIdentityScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Coach identity', headerShown: true }} />
-      <SafeAreaView edges={{ bottom: true }} style={{ flex: 1, backgroundColor: theme.surface }}>
+      <Stack.Screen options={{ title: 'Coach persona', headerShown: true }} />
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.surface }}>
         {loading ? (
           <DetailSkeleton />
         ) : loadError ? (
@@ -120,10 +122,11 @@ export default function CoachIdentityScreen() {
         ) : (
           <ScrollView
             className="flex-1 bg-surface"
-            contentContainerClassName="px-6 pb-12 pt-4"
+            contentContainerClassName="px-6 pt-4"
+            contentContainerStyle={{ paddingBottom: tabBottomPad }}
             keyboardShouldPersistTaps="handled"
           >
-            <Text className="text-2xl font-semibold text-text-primary">Coach identity</Text>
+            <Text className="text-2xl font-semibold text-text-primary">Coach persona</Text>
             <Text className="mt-1 text-sm text-text-muted">
               How Coach Watts addresses you and behaves in chat.
             </Text>

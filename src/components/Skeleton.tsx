@@ -8,6 +8,8 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { useReduceMotion } from '@/src/hooks/useReduceMotion';
+
 /** Wrap a skeleton layout so it crossfades out when real content replaces it. */
 export function SkeletonScreen({ children }: { children: ReactNode }) {
   return (
@@ -19,11 +21,16 @@ export function SkeletonScreen({ children }: { children: ReactNode }) {
 
 /** Pulsing placeholder block; size/shape via className (e.g. "h-4 w-32 rounded-lg"). */
 export function Skeleton({ className = '' }: { className?: string }) {
+  const reduceMotion = useReduceMotion();
   const opacity = useSharedValue(0.45);
 
   useEffect(() => {
+    if (reduceMotion) {
+      opacity.value = 0.65;
+      return;
+    }
     opacity.value = withRepeat(withTiming(0.9, { duration: 700 }), -1, true);
-  }, [opacity]);
+  }, [opacity, reduceMotion]);
 
   const animatedStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
 

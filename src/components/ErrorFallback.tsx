@@ -40,7 +40,7 @@ export function ErrorFallback({ error, retry }: ErrorBoundaryProps) {
 
         {__DEV__ ? (
           <ScrollView className="mt-6 max-h-48 rounded-xl border border-border bg-card/80 p-3">
-            <Text className="text-sm font-medium text-red-400">{error.message}</Text>
+            <Text className="text-sm font-medium text-danger">{error.message}</Text>
             {error.stack ? (
               <Text className="mt-2 font-mono text-xs text-text-muted">{error.stack}</Text>
             ) : null}

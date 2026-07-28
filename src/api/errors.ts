@@ -78,3 +78,13 @@ export function friendlyError(err: unknown, fallback: string): string {
 
   return fallback;
 }
+
+/**
+ * Returns true if an error from token refresh indicates explicit unrecoverable token invalidation
+ * (HTTP 400 Bad Request or HTTP 401 Unauthorized from the OAuth token endpoint).
+ * Network errors (TypeError) and server errors (HTTP 5xx) return false.
+ */
+export function isAuthTokenInvalidationError(err: unknown): boolean {
+  const status = httpStatus(err);
+  return status === 400 || status === 401;
+}

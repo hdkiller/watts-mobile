@@ -11,7 +11,7 @@ interface SleepDurationInputProps {
   value: string;
   isAutoSynced?: boolean;
   onChangeText: (v: string) => void;
-  onStep: (delta: number) => void;
+  onStep?: (delta: number) => void;
 }
 
 export function SleepDurationInput({
@@ -30,7 +30,11 @@ export function SleepDurationInput({
 
   const handleStep = (delta: number) => {
     hapticLight();
-    onStep(delta);
+    const parsed = Number(value.trim());
+    const base = Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
+    const next = Math.max(0, Math.round((base + delta) * 10) / 10);
+    onChangeText(String(next));
+    onStep?.(delta);
   };
 
   return (
@@ -58,7 +62,7 @@ export function SleepDurationInput({
       {value && !editing ? (
         <View className="mt-3 flex-row items-center justify-between rounded-xl bg-surface p-3">
           <View className="flex-row items-center gap-2">
-            <AppSymbol sf="moon.stars" size={16} tintColor={theme.brand} fallback="🌙" />
+            <AppSymbol sf="moon.stars" size={16} tintColor={theme.brandOnSurface} fallback="🌙" />
             <Text className="text-base font-bold text-text-primary">
               {value} <Text className="text-xs font-normal text-text-muted">hours</Text>
             </Text>

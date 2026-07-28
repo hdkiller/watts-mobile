@@ -10,6 +10,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { useReduceMotion } from '@/src/hooks/useReduceMotion';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
 /** Stagger between dots so the three read as a travelling wave, not a single pulse. */
@@ -18,10 +19,22 @@ const HALF_CYCLE_MS = 400;
 const LIFT_PX = -4;
 const REST_OPACITY = 0.35;
 
-function Dot({ delayMs, color }: { delayMs: number; color: string }) {
+function Dot({
+  delayMs,
+  color,
+  reduceMotion = false,
+}: {
+  delayMs: number;
+  color: string;
+  reduceMotion?: boolean;
+}) {
   const progress = useSharedValue(0);
 
   useEffect(() => {
+    if (reduceMotion) {
+      progress.value = 0.5;
+      return;
+    }
     progress.value = withDelay(
       delayMs,
       withRepeat(
@@ -32,7 +45,7 @@ function Dot({ delayMs, color }: { delayMs: number; color: string }) {
         -1,
       ),
     );
-  }, [delayMs, progress]);
+  }, [delayMs, progress, reduceMotion]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: REST_OPACITY + progress.value * (1 - REST_OPACITY),
@@ -49,11 +62,12 @@ function Dot({ delayMs, color }: { delayMs: number; color: string }) {
 /** Three bouncing dots shown while the coach response is still streaming. */
 export function TypingIndicator() {
   const theme = useThemeColors();
+  const reduceMotion = useReduceMotion();
 
   return (
     <View className="flex-row items-center gap-1" accessibilityLabel="Coach is typing">
       {DOT_DELAYS_MS.map((delayMs) => (
-        <Dot key={delayMs} delayMs={delayMs} color={theme.textMuted} />
+        <Dot key={delayMs} delayMs={delayMs} color={theme.textMuted} reduceMotion={reduceMotion} />
       ))}
     </View>
   );

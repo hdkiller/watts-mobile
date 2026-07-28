@@ -1,3 +1,4 @@
+import { bumpAuthSessionGeneration } from '@/src/auth/authSessionGeneration';
 import { consumePendingE2eLogin } from '@/src/auth/pendingE2eLogin';
 import { saveTokens } from '@/src/auth/tokenStorage';
 import {
@@ -132,6 +133,7 @@ export async function applyPendingE2eLogin(): Promise<E2eAuthSeedResult | null> 
   const loopbackInstance = rewriteLoopbackInstanceUrl(pending.instanceUrl);
   const minted = await mintE2eToken(loopbackInstance, pending.email);
   const instanceUrl = await setInstanceUrl(loopbackInstance);
+  bumpAuthSessionGeneration();
   await saveTokens({
     accessToken: minted.accessToken,
     refreshToken: minted.refreshToken,
@@ -167,6 +169,7 @@ export async function applyE2eAuthSeed(): Promise<E2eAuthSeedResult | null> {
   }
 
   const instanceUrl = await setInstanceUrl(rewriteLoopbackInstanceUrl(instanceInput));
+  bumpAuthSessionGeneration();
   await saveTokens({
     accessToken,
     refreshToken: E2E_REFRESH_TOKEN.trim() || null,

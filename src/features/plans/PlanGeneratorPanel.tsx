@@ -331,7 +331,7 @@ export function PlanGeneratorPanel({
     <View testID="plan-generator" className="gap-4">
       {error ? (
         <View className="rounded-xl border border-danger/40 bg-tint-error p-3">
-          <Text className="text-sm text-red-400">{error}</Text>
+          <Text className="text-sm text-danger">{error}</Text>
           {lastAction ? (
             <AnimatedPressable
               hitSlop={8}
@@ -807,7 +807,7 @@ export function PlanGeneratorPanel({
             <View className="flex-row flex-wrap gap-2">
               {PLAN_STRATEGY_OPTIONS.map((opt) => {
                 const selected = strategy === opt.id;
-                const accent = selected ? theme.brand : theme.textMuted;
+                const accent = selected ? theme.brandOnSurface : theme.textMuted;
                 return (
                   <AnimatedPressable
                     key={opt.id}

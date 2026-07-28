@@ -1,8 +1,0 @@
-# Standalone: Today name → Athlete → Invite friends (wipe + login).
-# Auth: on (e2e seed). Hosted or localhost instance required for Invite row.
-appId: com.coachwatts.app
-tags:
-  - standalone
----
-- runFlow: ../subflows/boot-and-login.yaml
-- runFlow: ../scenarios/today-invite.yaml

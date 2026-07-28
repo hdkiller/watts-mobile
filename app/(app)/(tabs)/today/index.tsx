@@ -38,6 +38,10 @@ import { useAthleteProfileQuery } from '@/src/features/profile/useProfile';
 import { DASHBOARD_PROFILE_KEY } from '@/src/features/profile/useRecentWellness';
 import { useActiveRecoveryQuery } from '@/src/features/recovery/useRecovery';
 import { AnalysisReadyCard } from '@/src/features/today/analysis-ready-card';
+import { AllowanceHint } from '@/src/features/subscriptions/AllowanceHint';
+import { QuotaLimitCard } from '@/src/features/subscriptions/QuotaLimitCard';
+import { parseQuotaError, type QuotaInfo } from '@/src/features/subscriptions/quota';
+import { useRefreshQuotaAllowances } from '@/src/features/subscriptions/useQuotaAllowances';
 import { AnalyzeReadinessPanel } from '@/src/features/today/AnalyzeReadinessPanel';
 import { ComingUpStrip } from '@/src/features/today/coming-up-strip';
 import { MoreActionsSheet, type MoreAction } from '@/src/features/today/more-actions-sheet';
@@ -73,7 +77,6 @@ import { WeekGlanceStrip } from '@/src/features/today/week-glance-strip';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
 import { humanizeWorkoutType } from '@/src/lib/humanizeWorkoutType';
 import { APP_HREFS } from '@/src/linking/appHrefs';
-import { Colors } from '@/src/theme/colors';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
 function openPlannedWorkout(id: string) {
@@ -236,12 +239,15 @@ export default function TodayScreen() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [genState, setGenState] = useState<'idle' | 'generating' | 'error' | 'quota'>('idle');
   const [genError, setGenError] = useState<string | null>(null);
+  const [genQuota, setGenQuota] = useState<QuotaInfo | null>(null);
+  const refreshAllowances = useRefreshQuotaAllowances();
   const [detailOpen, setDetailOpen] = useState(false);
   const [refineOpen, setRefineOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [adhocOpen, setAdhocOpen] = useState(false);
   const [adhocState, setAdhocState] = useState<'idle' | 'generating' | 'error' | 'quota'>('idle');
   const [adhocError, setAdhocError] = useState<string | null>(null);
+  const [adhocQuota, setAdhocQuota] = useState<QuotaInfo | null>(null);
   const generateMutation = useGenerateTodayRecommendation();
   const adhocMutation = useGenerateAdHocWorkout();
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -279,6 +285,7 @@ export default function TodayScreen() {
     clearGeneratePoll();
     statusFailRef.current = 0;
     setGenState('generating');
+    refreshAllowances();
     setGenError(null);
     try {
       const trimmed = userFeedback?.trim();
@@ -319,14 +326,11 @@ export default function TodayScreen() {
       }
     } catch (err: unknown) {
       hapticError();
-      const status =
-        typeof err === 'object' && err !== null && 'status' in err
-          ? (err as { status?: number }).status
-          : undefined;
-      const message = err instanceof Error ? err.message : '';
-      if (status === 429 || message.includes('Quota')) {
+      refreshAllowances();
+      const quota = parseQuotaError(err, 'READINESS_RECOMMENDATION');
+      if (quota) {
         setGenState('quota');
-        setGenError(message || 'Quota exceeded for activity recommendation.');
+        setGenQuota(quota);
       } else {
         setGenState('error');
         setGenError(
@@ -365,17 +369,19 @@ export default function TodayScreen() {
   };
 
   const onAdhocSubmit = async (payload: AdHocWorkoutRequest) => {
+    clearAdhocPoll();
     if (adhocBusy || generatingBusy) return;
     setAdhocOpen(false);
-    clearAdhocPoll();
     adhocFailRef.current = 0;
     setAdhocState('generating');
+    refreshAllowances();
     setAdhocError(null);
     const priorPlannedId = data?.plannedWorkout?.id ?? null;
     try {
       const res = await adhocMutation.mutateAsync(payload);
       let attempts = 0;
       const maxAttempts = 30;
+      clearAdhocPoll();
       adhocPollRef.current = setInterval(() => {
         void (async () => {
           attempts++;
@@ -420,15 +426,13 @@ export default function TodayScreen() {
         })();
       }, 2500);
     } catch (err: unknown) {
+      clearAdhocPoll();
       hapticError();
-      const status =
-        typeof err === 'object' && err !== null && 'status' in err
-          ? (err as { status?: number }).status
-          : undefined;
-      const message = err instanceof Error ? err.message : '';
-      if (status === 429 || message.includes('Quota')) {
+      refreshAllowances();
+      const quota = parseQuotaError(err, 'WORKOUT_GENERATION');
+      if (quota) {
         setAdhocState('quota');
-        setAdhocError(message || 'Quota exceeded for workout generation.');
+        setAdhocQuota(quota);
       } else {
         setAdhocState('error');
         setAdhocError(friendlyError(err, 'Couldn’t start ad-hoc workout generation.'));
@@ -536,7 +540,7 @@ export default function TodayScreen() {
           <RefreshControl
             refreshing={manualRefreshing}
             onRefresh={() => void onRefresh()}
-            tintColor={Colors.brand}
+            tintColor={theme.brandOnSurface}
           />
         }
       >
@@ -583,7 +587,12 @@ export default function TodayScreen() {
                   } as Href)
                 }
               >
-                <AppSymbol sf="camera.fill" size={18} tintColor={theme.brand} fallback="cam" />
+                <AppSymbol
+                  sf="camera.fill"
+                  size={18}
+                  tintColor={theme.brandOnSurface}
+                  fallback="cam"
+                />
               </AnimatedPressable>
             ) : null}
           </View>
@@ -601,7 +610,7 @@ export default function TodayScreen() {
 
         {hardError ? (
           <View className="mt-6 rounded-xl border border-danger/40 bg-tint-error p-4">
-            <Text className="text-base text-red-400">
+            <Text className="text-base text-danger">
               {friendlyError(error, 'Could not load today')}
             </Text>
             <Pressable className="mt-3" hitSlop={8} onPress={() => void refetch()}>
@@ -628,7 +637,12 @@ export default function TodayScreen() {
                 <Text className="text-xl font-semibold text-text-primary">
                   Daily Coach Check-In
                 </Text>
-                <AppSymbol sf="chevron.right" size={16} tintColor={theme.brand} fallback="›" />
+                <AppSymbol
+                  sf="chevron.right"
+                  size={16}
+                  tintColor={theme.brandOnSurface}
+                  fallback="›"
+                />
               </View>
               <Text className="mt-1.5 text-sm leading-5 text-text-muted">
                 Coach has questions prepared to adjust today’s recommendation.
@@ -641,10 +655,17 @@ export default function TodayScreen() {
           <AnalyzeReadinessPanel
             state={genState}
             errorMessage={genError}
+            quotaInfo={genQuota}
             generatingPending={generateMutation.isPending}
             onAnalyze={() => void onGenerate()}
             onOpenWeb={() => void openWeb()}
-            onDismissQuota={() => setGenState('idle')}
+            onDismissQuota={() => {
+              generateMutation.reset();
+              setGenState('idle');
+              setGenError(null);
+              setGenQuota(null);
+              setActionError(null);
+            }}
             onAdhoc={!showFinishSetup && emptyNoDecision ? () => setAdhocOpen(true) : undefined}
             adhocDisabled={actionsBusy}
           />
@@ -660,19 +681,19 @@ export default function TodayScreen() {
         ) : null}
 
         {adhocState === 'quota' ? (
-          <View className="mt-6 rounded-2xl border border-modify/40 bg-modify/10 p-5">
-            <Text className="text-xs uppercase tracking-wide text-modify">Plan limit</Text>
-            <Text className="mt-2 text-lg font-semibold text-text-primary">
-              Workout generation limit reached
-            </Text>
-            <Text className="mt-2 text-sm leading-5 text-text-body">
-              {adhocError || 'Update your plan in Coach Watts to generate more workouts.'}
-            </Text>
-            <View className="mt-5 gap-3">
-              <Button label="Open Coach Watts" onPress={() => void openWeb()} />
-              <Button label="Back" variant="secondary" onPress={() => setAdhocState('idle')} />
-            </View>
-          </View>
+          <QuotaLimitCard
+            className="mt-6"
+            info={adhocQuota ?? { feature: 'WORKOUT_GENERATION' }}
+            surface="today_adhoc"
+            onDismiss={() => {
+              clearAdhocPoll();
+              adhocMutation.reset();
+              setAdhocState('idle');
+              setAdhocError(null);
+              setAdhocQuota(null);
+              setActionError(null);
+            }}
+          />
         ) : null}
 
         {adhocState === 'error' ? (
@@ -680,13 +701,27 @@ export default function TodayScreen() {
             <Text className="text-lg font-semibold text-text-primary">
               Couldn’t generate workout
             </Text>
-            <Text className="mt-2 text-sm leading-5 text-red-400">
+            <Text className="mt-2 text-sm leading-5 text-danger">
               {adhocError || 'Something went wrong. Try again, or continue in Coach Watts.'}
             </Text>
             <View className="mt-5 gap-3">
-              <Button label="Try again" onPress={() => setAdhocOpen(true)} />
+              <Button
+                label="Try again"
+                onPress={() => {
+                  clearAdhocPoll();
+                  setAdhocState('idle');
+                  setAdhocOpen(true);
+                }}
+              />
               <Button label="Open Coach Watts" variant="secondary" onPress={() => void openWeb()} />
-              <Button label="Dismiss" variant="secondary" onPress={() => setAdhocState('idle')} />
+              <Button
+                label="Dismiss"
+                variant="secondary"
+                onPress={() => {
+                  clearAdhocPoll();
+                  setAdhocState('idle');
+                }}
+              />
             </View>
           </View>
         ) : null}
@@ -736,7 +771,7 @@ export default function TodayScreen() {
           </EnterSection>
         ) : null}
 
-        {actionError ? <Text className="mt-4 text-sm text-red-400">{actionError}</Text> : null}
+        {actionError ? <Text className="mt-4 text-sm text-danger">{actionError}</Text> : null}
 
         {hasRecommendation ? (
           <EnterSection order={3}>
@@ -749,14 +784,24 @@ export default function TodayScreen() {
                     className="flex-row items-center justify-center gap-2 rounded-xl border border-border-strong bg-card/80 px-4 py-3.5 active:opacity-70"
                     onPress={() => openPlannedWorkout(planned.id)}
                   >
-                    <AppSymbol sf="checkmark" size={16} tintColor={Colors.success} fallback="ok" />
+                    <AppSymbol
+                      sf="checkmark"
+                      size={16}
+                      tintColor={theme.successOnSurface}
+                      fallback="ok"
+                    />
                     <Text className="text-base font-semibold text-success">
                       Accepted — view workout
                     </Text>
                   </Pressable>
                 ) : (
                   <View className="flex-row items-center justify-center gap-2 rounded-xl border border-border-strong bg-card/80 px-4 py-3.5">
-                    <AppSymbol sf="checkmark" size={16} tintColor={Colors.success} fallback="ok" />
+                    <AppSymbol
+                      sf="checkmark"
+                      size={16}
+                      tintColor={theme.successOnSurface}
+                      fallback="ok"
+                    />
                     <Text className="text-base font-semibold text-success">
                       {data.action === 'rest' ? 'Rest day accepted' : 'Accepted'}
                     </Text>
@@ -875,6 +920,7 @@ export default function TodayScreen() {
                 onPress={() => setAdhocOpen(true)}
                 disabled={actionsBusy}
               />
+              <AllowanceHint feature="WORKOUT_GENERATION" />
             </View>
           </EnterSection>
         ) : null}

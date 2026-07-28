@@ -1,8 +1,11 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
-import { ApiError, friendlyError } from '@/src/api/errors';
+import { Spinner } from '@/src/components/Spinner';
+import { friendlyError } from '@/src/api/errors';
+import { QuotaLimitCard } from '@/src/features/subscriptions/QuotaLimitCard';
+import { parseQuotaError, type QuotaInfo } from '@/src/features/subscriptions/quota';
 import { BottomSheet } from '@/src/components/BottomSheet';
 import { Button } from '@/src/components/Button';
 import {
@@ -11,7 +14,6 @@ import {
   usePatchNutritionPlanMeal,
 } from '@/src/features/nutrition/useNutrition';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
-import { Colors } from '@/src/theme/colors';
 
 import type { MealRecommendationOption, NutritionPlanWindowView } from './types';
 
@@ -23,12 +25,6 @@ type Props = {
   window: NutritionPlanWindowView | null;
   onClose: () => void;
 };
-
-function isQuotaError(err: unknown): boolean {
-  if (err instanceof ApiError && err.status === 429) return true;
-  if (err instanceof Error && err.message.toLowerCase().includes('quota')) return true;
-  return false;
-}
 
 function optionMacros(option: MealRecommendationOption): string {
   const t = option.totals ?? {};
@@ -56,6 +52,7 @@ function PickerBody({
   const [options, setOptions] = useState<MealRecommendationOption[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [quota, setQuota] = useState<QuotaInfo | null>(null);
   const [slowHint, setSlowHint] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -82,8 +79,9 @@ function PickerBody({
       .catch((err) => {
         if (cancelled) return;
         hapticError();
-        if (isQuotaError(err)) {
-          setError('Meal recommendation limit reached — try again later');
+        const limit = parseQuotaError(err, 'MEAL_RECOMMENDATION');
+        if (limit) {
+          setQuota(limit);
         } else {
           setError(friendlyError(err, 'Could not load meal options'));
         }
@@ -144,7 +142,7 @@ function PickerBody({
 
       {loading ? (
         <View className="items-center gap-2 py-8" testID="plan-nutrition-meal-picker-pending">
-          <ActivityIndicator color={Colors.brand} />
+          <Spinner />
           <Text className="text-sm text-text-muted">Finding meal options…</Text>
           {slowHint ? (
             <Text className="px-2 text-center text-xs text-text-muted">
@@ -152,6 +150,15 @@ function PickerBody({
             </Text>
           ) : null}
         </View>
+      ) : null}
+
+      {quota ? (
+        <QuotaLimitCard
+          className="mb-3"
+          compact
+          info={quota}
+          surface="nutrition_meal_recommendation"
+        />
       ) : null}
 
       {error ? (
@@ -162,7 +169,7 @@ function PickerBody({
         </View>
       ) : null}
 
-      {!loading && !error && options.length === 0 ? (
+      {!loading && !error && !quota && options.length === 0 ? (
         <Text className="py-4 text-sm text-text-muted">No meal options for this window.</Text>
       ) : null}
 
@@ -190,6 +197,48 @@ function PickerBody({
           );
         })}
       </View>
+
+      {!loading ? (
+        <View className="mt-3">
+          <Button
+            label="✨ Suggest AI meal"
+            variant="secondary"
+            disabled={busy}
+            onPress={() => {
+              hapticLight();
+              setLoading(true);
+              setError(null);
+              setQuota(null);
+              setSelectedIndex(null);
+              void recommend
+                .mutateAsync({
+                  date: dateKey,
+                  windowType: window.windowKey || window.windowType,
+                  targetCarbs: window.targetCarbs || undefined,
+                  targetProtein: window.targetProtein || undefined,
+                  targetKcal: window.targetKcal || undefined,
+                  forceLlm: true,
+                })
+                .then((rows) => {
+                  setOptions(rows);
+                  setSlowHint(false);
+                })
+                .catch((err) => {
+                  hapticError();
+                  const limit = parseQuotaError(err, 'MEAL_RECOMMENDATION');
+                  if (limit) {
+                    setQuota(limit);
+                  } else {
+                    setError(friendlyError(err, 'Could not generate AI meal suggestion'));
+                  }
+                })
+                .finally(() => {
+                  setLoading(false);
+                });
+            }}
+          />
+        </View>
+      ) : null}
 
       <Button
         className="mt-4"

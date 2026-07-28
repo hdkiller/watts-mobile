@@ -1,14 +1,16 @@
 /* Hallmark · genre: modern-minimal · macrostructure: Workbench · design-system: docs/DESIGN.md · designed-as-app */
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
+import { Spinner } from '@/src/components/Spinner';
 import { friendlyError } from '@/src/api/errors';
+import { QuotaLimitCard } from '@/src/features/subscriptions/QuotaLimitCard';
+import { parseQuotaError, type QuotaInfo } from '@/src/features/subscriptions/quota';
 import { AnimatedPressable } from '@/src/components/AnimatedPressable';
 import { ScoreChip } from '@/src/components/ScoreChip';
 import { Skeleton } from '@/src/components/Skeleton';
 import { hapticError, hapticLight, hapticSuccess } from '@/src/lib/haptics';
-import { Colors } from '@/src/theme/colors';
 
 import { ActivityGlanceStrip } from './ActivityGlanceStrip';
 import { AthleteReportSheet } from './AthleteReportSheet';
@@ -46,6 +48,7 @@ export function AthleteProfileOverview({
 
   const [syncing, setSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [syncQuota, setSyncQuota] = useState<QuotaInfo | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const flag = countryFlag(profile.country);
@@ -63,6 +66,7 @@ export function AthleteProfileOverview({
 
   const onSync = async () => {
     setSyncError(null);
+    setSyncQuota(null);
     setSyncing(true);
     hapticLight();
     try {
@@ -79,6 +83,11 @@ export function AthleteProfileOverview({
       }
     } catch (err) {
       hapticError();
+      const quota = parseQuotaError(err, 'ATHLETE_REPORT');
+      if (quota) {
+        setSyncQuota(quota);
+        return;
+      }
       const status = (err as { status?: number } | null)?.status;
       if (status === 401 || status === 403) {
         setSyncError(
@@ -114,7 +123,7 @@ export function AthleteProfileOverview({
             className="min-h-11 min-w-11 items-center justify-center rounded-full border border-border-strong px-3"
           >
             {syncing ? (
-              <ActivityIndicator color={Colors.brand} size="small" />
+              <Spinner size="small" />
             ) : (
               <Text className="text-xs font-semibold text-brand">Sync</Text>
             )}
@@ -162,7 +171,7 @@ export function AthleteProfileOverview({
           </View>
         ) : reportQuery.isError ? (
           <View className="rounded-xl border border-danger/40 bg-tint-error px-4 py-3.5">
-            <Text className="text-sm text-red-400">
+            <Text className="text-sm text-danger">
               {friendlyError(reportQuery.error, 'Could not load AI profile')}
             </Text>
             <AnimatedPressable
@@ -220,9 +229,19 @@ export function AthleteProfileOverview({
           </Text>
         )}
 
+        {syncQuota ? (
+          <QuotaLimitCard
+            className="mt-3"
+            compact
+            info={syncQuota}
+            surface="athlete_report"
+            onDismiss={() => setSyncQuota(null)}
+          />
+        ) : null}
+
         {syncError ? (
           <View className="mt-3 rounded-xl border border-danger/40 bg-tint-error px-4 py-3.5">
-            <Text className="text-sm text-red-400">{syncError}</Text>
+            <Text className="text-sm text-danger">{syncError}</Text>
           </View>
         ) : null}
 

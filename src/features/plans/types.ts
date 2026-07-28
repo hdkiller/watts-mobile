@@ -240,6 +240,9 @@ export type NutritionPlanDayView = {
   plannedCount: number;
   doneCount: number;
   skippedCount: number;
+  targetCarbsTotal?: number;
+  plannedCarbsTotal?: number;
+  workoutTitles?: string[];
 };
 
 export type MealRecommendationOption = {
