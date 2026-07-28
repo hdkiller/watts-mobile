@@ -18,6 +18,10 @@ export async function openInstanceWeb(
 
   try {
     const { url } = await mintAppWebHandoff(normalizedPath);
+    if (new URL(url).origin !== new URL(bareUrl).origin) {
+      await WebBrowser.openBrowserAsync(bareUrl);
+      return;
+    }
     await WebBrowser.openBrowserAsync(url);
   } catch {
     await WebBrowser.openBrowserAsync(bareUrl);
