@@ -7,11 +7,11 @@ vi.mock('expo-web-browser', () => ({
 
 vi.mock('expo-auth-session', () => {
   class AuthRequest {
-    clientId: string;
-    redirectUri: string;
-    scopes: string[];
-    usePKCE: boolean;
-    responseType: string;
+    clientId!: string;
+    redirectUri!: string;
+    scopes!: string[];
+    usePKCE!: boolean;
+    responseType!: string;
     prompt?: string;
     codeVerifier?: string;
 
