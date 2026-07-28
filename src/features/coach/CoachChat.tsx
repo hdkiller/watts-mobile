@@ -476,10 +476,6 @@ export function CoachChat({
     setAttachSheetOpen(true);
   };
 
-  if (chat.loading && chat.displayMessages.length === 0) {
-    return <CoachChatSkeleton />;
-  }
-
   if (chat.error && chat.displayMessages.length === 0) {
     return (
       <View className="flex-1 items-center justify-center bg-surface px-6">
@@ -491,6 +487,10 @@ export function CoachChat({
         />
       </View>
     );
+  }
+
+  if (chat.loading && chat.displayMessages.length === 0) {
+    return <CoachChatSkeleton />;
   }
 
   const empty = chat.displayMessages.length === 0;

@@ -151,6 +151,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
   const isRealtimeConnectedRef = useRef(false);
   const approvalInFlight = useRef(new Set<string>());
   const bootstrappedForTarget = useRef<string | null | undefined>(undefined);
+  const bootstrapRef = useRef<() => Promise<void>>(async () => {});
 
   useEffect(() => {
     roomIdRef.current = roomId;
@@ -175,12 +176,37 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
     };
   }, []);
 
-  useEffect(() => {
-    void resolveChatMessagesApiUrl()
-      .then(setApiUrl)
-      .catch((err) => {
+  const resolveApiUrl = useCallback(async () => {
+    try {
+      const url = await resolveChatMessagesApiUrl();
+      if (activeRef.current) {
+        setApiUrl(url);
+      }
+      return url;
+    } catch (err) {
+      if (activeRef.current) {
         setError(friendlyError(err, 'Could not resolve chat API'));
+      }
+      return null;
+    }
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    void resolveChatMessagesApiUrl()
+      .then((url) => {
+        if (!cancelled && activeRef.current) {
+          setApiUrl(url);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled && activeRef.current) {
+          setError(friendlyError(err, 'Could not resolve chat API'));
+        }
       });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const transport = useMemo(
@@ -715,6 +741,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
       }
     }
 
+    bootstrapRef.current = bootstrap;
     void bootstrap();
 
     return () => {
@@ -950,9 +977,18 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
   }, [loadMessages, recoverable.turnId, restartTurnPolling]);
 
   const refresh = useCallback(async () => {
-    if (!roomIdRef.current) return;
-    await loadMessages(roomIdRef.current);
-  }, [loadMessages]);
+    let currentApiUrl = apiUrl;
+    if (!currentApiUrl) {
+      currentApiUrl = await resolveApiUrl();
+    }
+    if (!roomIdRef.current) {
+      await bootstrapRef.current();
+      return;
+    }
+    if (currentApiUrl) {
+      await loadMessages(roomIdRef.current);
+    }
+  }, [apiUrl, loadMessages, resolveApiUrl]);
 
   const displayMessages = useMemo(() => {
     const visible = visibleCoachMessages(messages);
@@ -989,7 +1025,9 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
     input,
     setInput,
     pendingAttachments,
-    loading: loading || !apiUrl,
+    loading:
+      (loading || !apiUrl) &&
+      !(error || (chatError ? friendlyError(chatError, 'Chat error') : null)),
     sending,
     streaming,
     awaitingReply: streaming,
