@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import {
+  bumpAuthSessionGeneration,
+  resetAuthSessionGenerationForTests,
+} from '../authSessionGeneration';
 import { clearTokens, loadTokens, saveTokens } from '../tokenStorage';
 
 const store = new Map<string, string>();
@@ -17,6 +21,7 @@ vi.mock('@/src/storage/secureStorage', () => ({
 describe('saveTokens', () => {
   beforeEach(() => {
     store.clear();
+    resetAuthSessionGenerationForTests();
   });
 
   it('deletes refresh token and expiry when explicitly null', async () => {
@@ -47,5 +52,18 @@ describe('saveTokens', () => {
     await saveTokens({ accessToken: 'a1', refreshToken: 'r1', expiresIn: 60 });
     await clearTokens();
     expect(await loadTokens()).toBeNull();
+  });
+
+  it('does not clear tokens tagged with a newer auth session generation', async () => {
+    await saveTokens({ accessToken: 'old', refreshToken: 'r-old', expiresIn: 60 });
+    const staleGeneration = 0;
+    bumpAuthSessionGeneration();
+    await saveTokens({ accessToken: 'new', refreshToken: 'r-new', expiresIn: 60 });
+
+    await clearTokens(staleGeneration);
+
+    const loaded = await loadTokens();
+    expect(loaded?.accessToken).toBe('new');
+    expect(loaded?.refreshToken).toBe('r-new');
   });
 });
