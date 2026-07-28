@@ -1,3 +1,4 @@
+import { ApiError } from '@/src/api/errors';
 import * as AuthSession from 'expo-auth-session';
 import Constants from 'expo-constants';
 import * as WebBrowser from 'expo-web-browser';
@@ -150,13 +151,20 @@ export async function refreshAccessToken(params: {
     }),
   });
 
-  const body = (await response.json()) as TokenResponse & {
-    error?: string;
-    error_description?: string;
-  };
+  let body: (TokenResponse & { error?: string; error_description?: string }) | undefined;
+  try {
+    body = (await response.json()) as TokenResponse & {
+      error?: string;
+      error_description?: string;
+    };
+  } catch {
+    // Ignore JSON parse failure if response is not JSON
+  }
 
-  if (!response.ok || !body.access_token) {
-    throw new Error(body.error_description || body.error || 'Token refresh failed');
+  if (!response.ok || !body?.access_token) {
+    const message =
+      body?.error_description || body?.error || 'Token refresh failed (' + response.status + ')';
+    throw new ApiError(message, response.status, body);
   }
 
   return saveTokens({

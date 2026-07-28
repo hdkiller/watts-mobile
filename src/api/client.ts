@@ -1,3 +1,4 @@
+import { isAuthTokenInvalidationError } from '@/src/api/errors';
 import { refreshAccessToken } from '@/src/auth/oauth';
 import { clearTokens, loadTokens, type StoredTokens } from '@/src/auth/tokenStorage';
 import { getInstanceUrl } from '@/src/config/instance';
@@ -110,8 +111,10 @@ export async function apiFetch(path: string, options: ApiFetchOptions = {}): Pro
       await failAuthSession();
     }
     return retry;
-  } catch {
-    await failAuthSession();
+  } catch (err) {
+    if (isAuthTokenInvalidationError(err)) {
+      await failAuthSession();
+    }
     return response;
   }
 }

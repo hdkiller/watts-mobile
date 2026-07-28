@@ -1,3 +1,4 @@
+import { isAuthTokenInvalidationError } from '@/src/api/errors';
 import { fetch as expoFetch } from 'expo/fetch';
 
 import { notifyAuthFailure, singleFlightRefresh } from '@/src/api/client';
@@ -57,8 +58,10 @@ export async function coachChatFetch(
       await failAuthSession();
     }
     return retry;
-  } catch {
-    await failAuthSession();
+  } catch (err) {
+    if (isAuthTokenInvalidationError(err)) {
+      await failAuthSession();
+    }
     return response;
   }
 }
