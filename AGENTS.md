@@ -18,7 +18,6 @@ Team **`CW`**, projects **`Mobile App`** / **`App Store Distribution`**. Live ta
 | [docs/product-baseline.md](docs/product-baseline.md) | Product positioning (activation companion), shipped loop, activation chapter, IA, non-goals |
 | [docs/implementation-plan.md](docs/implementation-plan.md) | Delivery phases and checklist for this repo |
 | [docs/open-questions.md](docs/open-questions.md) | Decisions to resolve before/during Phase 0–1 |
-| [docs/issues.md](docs/issues.md) | Archive / specs for known issues (live queue is Linear) |
 | [docs/oauth-setup.md](docs/oauth-setup.md) | Public OAuth client + redirect URI registration |
 | [docs/e2e.md](docs/e2e.md) | Maestro runbook **and** day-to-day e2e conventions (testIDs, when to update flows, PR checklist) |
 | [docs/deep-links.md](docs/deep-links.md) | Scheme / universal link path map + host association |
