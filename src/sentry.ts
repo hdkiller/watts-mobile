@@ -2,12 +2,13 @@ import {
   APP_VERSION,
   SENTRY_DIST,
   SENTRY_DSN,
+  SENTRY_ENABLED,
   SENTRY_ENVIRONMENT,
   SENTRY_RELEASE,
 } from '@/src/config/env';
 
 export function initSentry() {
-  if (!SENTRY_DSN) return;
+  if (!SENTRY_DSN || !SENTRY_ENABLED) return;
 
   // Lazy require so builds without a DSN stay lightweight.
   // eslint-disable-next-line @typescript-eslint/no-require-imports
