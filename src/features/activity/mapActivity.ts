@@ -34,6 +34,7 @@ import {
   type StructureChartBlock,
   type ZoneProfileSnapshot,
 } from './structureIntensity';
+import { mpsToPaceLabel } from '@/src/lib/pace';
 
 export type { ChartTargetRefs, StructureChartBlock };
 export {
@@ -440,13 +441,7 @@ export function mapCoachInstructions(structuredWorkout: unknown): string | null 
 }
 
 function formatPaceMps(mps: number): string {
-  const minPerKm = 1000 / (mps * 60);
-  if (!Number.isFinite(minPerKm) || minPerKm <= 0) return `${mps.toFixed(2)} m/s`;
-  const mins = Math.floor(minPerKm);
-  const secs = Math.round((minPerKm - mins) * 60);
-  const safeSecs = secs === 60 ? 0 : secs;
-  const safeMins = secs === 60 ? mins + 1 : mins;
-  return `${safeMins}:${String(safeSecs).padStart(2, '0')}/km`;
+  return mpsToPaceLabel(mps, '/km');
 }
 
 function mapZoneBands(ranges: unknown, formatBound: (n: number) => string): PlannedZoneBand[] {
