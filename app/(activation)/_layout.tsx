@@ -1,11 +1,12 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { Redirect, Stack, useSegments, type Href } from 'expo-router';
+import { useState } from 'react';
 import { View } from 'react-native';
 
 import { useAuth } from '@/src/auth/AuthContext';
 import { Skeleton, SkeletonScreen } from '@/src/components/Skeleton';
 import { ActivationUnavailable } from '@/src/features/activation/ActivationUnavailable';
-import { activationStepRank } from '@/src/features/activation/mapStatus';
+import { activationStepRank, canDismissActivationError } from '@/src/features/activation/mapStatus';
 import {
   activationHrefForStatus,
   useActivationStatus,
@@ -18,6 +19,7 @@ export default function ActivationLayout() {
   const theme = useThemeColors();
   const segments = useSegments();
   const activationQuery = useActivationStatus(status === 'authenticated');
+  const [dismissedStatusError, setDismissedStatusError] = useState(false);
 
   if (status === 'needs_instance') {
     return <Redirect href="/(auth)/instance" />;
@@ -42,11 +44,19 @@ export default function ActivationLayout() {
     );
   }
   if (activationQuery.isError) {
+    if (dismissedStatusError) {
+      return <Redirect href={APP_HREFS.today as Href} />;
+    }
+    // A cached status (last successful fetch) still tells us whether this athlete is
+    // soft-activated / connect-only, so a transient status-refresh failure can offer
+    // a way in rather than a hard block for them.
+    const canDismiss = canDismissActivationError(activationQuery.data);
     return (
       <ActivationUnavailable
         error={activationQuery.error}
         isFetching={activationQuery.isFetching}
         onRetry={() => void activationQuery.refetch()}
+        onDismiss={canDismiss ? () => setDismissedStatusError(true) : undefined}
       />
     );
   }
