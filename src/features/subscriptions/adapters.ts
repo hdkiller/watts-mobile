@@ -168,6 +168,38 @@ export function formatIntroOfferDisclosure(
   return `${offer.priceString} for the first ${offer.periodLabel}${cycles}, then ${recurringPrice} per ${cadence}.`;
 }
 
+/** Lifecycle of the subscription-summary query, collapsed to the states callers need. */
+export type SummaryQueryState = 'pending' | 'ready' | 'error';
+
+/**
+ * Buying before the server's subscription summary has arrived risks a double
+ * web+store charge or a stacked Play subscription (the summary tells us what
+ * the athlete already holds). `pending` covers both "never fetched" and
+ * "refetching with no prior data" — there is nothing safe to decide on yet.
+ * An errored query fails closed as `'error'`, not `'ready'`.
+ */
+export function summaryQueryState(summary: {
+  isSuccess: boolean;
+  isError: boolean;
+}): SummaryQueryState {
+  if (summary.isSuccess) return 'ready';
+  if (summary.isError) return 'error';
+  return 'pending';
+}
+
+/**
+ * The plan chooser (and its purchase CTAs) may only render once the summary
+ * has definitively settled — loading or errored summaries fail closed.
+ */
+export function canShowPlanChooser(input: {
+  summaryState: SummaryQueryState;
+  acquisitionEnabled: boolean;
+  acquisitionSuppressed: boolean;
+}): boolean {
+  if (input.summaryState !== 'ready') return false;
+  return input.acquisitionEnabled && !input.acquisitionSuppressed;
+}
+
 /** Store product ids the athlete currently holds through Apple or Google. */
 export function activeStoreProductIds(summary: SubscriptionSummary | undefined): string[] {
   if (!summary) return [];

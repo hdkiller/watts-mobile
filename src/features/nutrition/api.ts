@@ -746,14 +746,14 @@ export async function lookupFoodBarcode(barcode: string): Promise<FoodItemResult
   }
   const json = await response.json();
   if (!json) return null;
-  let raw: any = json;
-  if (typeof json === 'object') {
-    const obj = json as Record<string, unknown>;
-    if (obj.item && typeof obj.item === 'object') raw = obj.item;
-    else if (obj.foodItem && typeof obj.foodItem === 'object') raw = obj.foodItem;
-    else if (obj.result && typeof obj.result === 'object') raw = obj.result;
-  }
-  return raw ? normalizeFoodItemResult(raw) : null;
+  if (typeof json !== 'object') return null;
+  const obj = json as Record<string, unknown>;
+  let raw: unknown;
+  if (obj.item && typeof obj.item === 'object') raw = obj.item;
+  else if (obj.foodItem && typeof obj.foodItem === 'object') raw = obj.foodItem;
+  else if (obj.result && typeof obj.result === 'object') raw = obj.result;
+  else return null;
+  return normalizeFoodItemResult(raw);
 }
 
 /** Lookup a single food item by database key/id. Bearer nutrition:read. */

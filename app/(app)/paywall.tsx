@@ -5,6 +5,8 @@ import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-screens/experimental';
 
 import { useAuth } from '@/src/auth/AuthContext';
+import { Skeleton } from '@/src/components/Skeleton';
+import { canShowPlanChooser, summaryQueryState } from '@/src/features/subscriptions/adapters';
 import { trackPaywallEvent } from '@/src/features/subscriptions/analytics';
 import {
   canAcquireNativeSubscription,
@@ -63,7 +65,12 @@ export default function PaywallScreen() {
     restore,
     isRestoring,
   } = usePurchaseFlow(source);
-  const showPlans = acquisitionEnabled && !summary.data?.acquisitionSuppressed;
+  const summaryState = summaryQueryState(summary);
+  const showPlans = canShowPlanChooser({
+    summaryState,
+    acquisitionEnabled,
+    acquisitionSuppressed: Boolean(summary.data?.acquisitionSuppressed),
+  });
   const offerings = useStoreOfferings(showPlans);
   const scrollRef = useRef<ScrollView>(null);
 
@@ -124,6 +131,25 @@ export default function PaywallScreen() {
               />
               <AutoRenewTerms />
             </>
+          ) : acquisitionEnabled && summaryState === 'pending' ? (
+            // Wait on the subscription summary before deciding whether plans
+            // (and their purchase CTAs) can even be shown — never show a buy
+            // button while we don't yet know what the athlete already holds.
+            <View className="mt-6 gap-3">
+              <Skeleton className="h-11 w-full rounded-xl" />
+              <Skeleton className="h-56 w-full rounded-2xl" />
+              <Skeleton className="h-56 w-full rounded-2xl" />
+            </View>
+          ) : acquisitionEnabled && summaryState === 'error' ? (
+            <View className="mt-6 rounded-2xl border border-border bg-card p-5">
+              <Text className="font-semibold text-text-primary">
+                Couldn’t confirm your subscription
+              </Text>
+              <Text className="mt-2 text-sm leading-5 text-text-muted">
+                We couldn’t load your current subscription status, so purchases stay disabled for
+                now. Pull down to refresh and try again.
+              </Text>
+            </View>
           ) : (
             <View className="mt-6 rounded-2xl border border-border bg-card p-5">
               <Text className="font-semibold text-text-primary">
