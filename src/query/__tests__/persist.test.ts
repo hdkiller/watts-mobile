@@ -1,6 +1,9 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { describe, expect, it } from 'vitest';
 
-import { shouldDehydratePersistedQuery, shouldPersistQuery } from '../persist';
+import { clearPersistedQueryCache, shouldDehydratePersistedQuery, shouldPersistQuery } from '../persist';
+
+const PERSIST_KEY = 'watts.reactQuery.v1';
 
 function query(key: unknown[], status: 'success' | 'pending' | 'error' = 'success') {
   return {
@@ -47,5 +50,19 @@ describe('shouldDehydratePersistedQuery', () => {
     expect(shouldDehydratePersistedQuery(query(['performance', 'pmc', 90], 'pending'))).toBe(false);
     expect(shouldDehydratePersistedQuery(query(['performance', 'pmc', 90], 'error'))).toBe(false);
     expect(shouldDehydratePersistedQuery(query(['settings', 'ai'], 'success'))).toBe(false);
+  });
+});
+
+describe('clearPersistedQueryCache', () => {
+  it('removes the persisted cache entry so a subsequent sign-in cannot rehydrate it', async () => {
+    await AsyncStorage.setItem(
+      PERSIST_KEY,
+      JSON.stringify({ clientState: { queries: [{ queryKey: ['today'] }] } }),
+    );
+    expect(await AsyncStorage.getItem(PERSIST_KEY)).not.toBeNull();
+
+    await clearPersistedQueryCache();
+
+    expect(await AsyncStorage.getItem(PERSIST_KEY)).toBeNull();
   });
 });
