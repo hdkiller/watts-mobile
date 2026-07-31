@@ -1,4 +1,11 @@
-import { APP_HREFS, logCameraHref, migrateLegacyAppHref } from '@/src/linking/appHrefs';
+import {
+  APP_HREFS,
+  logCameraHref,
+  migrateLegacyAppHref,
+  PAYWALL_QUERY_KEYS,
+  paywallHref,
+  type PaywallQueryKey,
+} from '@/src/linking/appHrefs';
 import {
   APP_SCHEME,
   OAUTH_CALLBACK_PATH,
@@ -48,6 +55,60 @@ export function extractDeepLinkPath(input: string): string | null {
   return normalizePathname(stripUniversalPrefix(trimmed));
 }
 
+/** Raw `?a=b&c=d` (no `#fragment`) substring of a bare path/URL string, or '' if none. */
+function rawQueryString(raw: string): string {
+  const qIdx = raw.indexOf('?');
+  if (qIdx < 0) return '';
+  const rest = raw.slice(qIdx);
+  const hashIdx = rest.indexOf('#');
+  return hashIdx >= 0 ? rest.slice(0, hashIdx) : rest;
+}
+
+/**
+ * Mirrors `extractDeepLinkPath`'s parsing branches to recover the query string
+ * alongside the matched path, so allowlisted params (e.g. paywall `feature`/
+ * `source`) can survive path resolution instead of being dropped.
+ */
+function extractDeepLinkQuery(input: string): string {
+  const trimmed = input.trim();
+  if (!trimmed) return '';
+
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) {
+    try {
+      const url = new URL(trimmed);
+      const protocol = url.protocol.replace(/:$/, '').toLowerCase();
+
+      if (protocol === APP_SCHEME || protocol === 'https' || protocol === 'http') {
+        return url.search;
+      }
+
+      if (protocol === 'exp') {
+        const marker = '/--/';
+        const idx = trimmed.indexOf(marker);
+        if (idx >= 0) {
+          return rawQueryString(trimmed.slice(idx + marker.length));
+        }
+      }
+    } catch {
+      return '';
+    }
+  }
+
+  return rawQueryString(trimmed);
+}
+
+/** Builds a paywall href keeping only the allowlisted query keys from `query`. */
+function resolvePaywallHref(query: string): string {
+  if (!query) return APP_HREFS.paywall;
+  const params = new URLSearchParams(query);
+  const allowed: Partial<Record<PaywallQueryKey, string>> = {};
+  for (const key of PAYWALL_QUERY_KEYS) {
+    const value = params.get(key);
+    if (value) allowed[key] = value;
+  }
+  return paywallHref(allowed);
+}
+
 function stripUniversalPrefix(pathname: string): string {
   const normalized = pathname.startsWith('/') ? pathname : `/${pathname}`;
   if (normalized === UNIVERSAL_LINK_PREFIX || normalized.startsWith(`${UNIVERSAL_LINK_PREFIX}/`)) {
@@ -67,7 +128,7 @@ function normalizePathname(pathname: string): string {
   return path || '/';
 }
 
-export function resolveDeepLinkPath(pathname: string): ResolvedDeepLink {
+export function resolveDeepLinkPath(pathname: string, query = ''): ResolvedDeepLink {
   const path = normalizePathname(pathname);
 
   if (path === OAUTH_CALLBACK_PATH || path.startsWith(`${OAUTH_CALLBACK_PATH}/`)) {
@@ -109,9 +170,10 @@ export function resolveDeepLinkPath(pathname: string): ResolvedDeepLink {
     return { kind: 'app', href: APP_HREFS.upcoming, canonicalPath: path };
   }
 
-  // `/paywall?feature=…` so a limit notification can open the contextual upgrade.
+  // `/paywall?feature=…&source=…` so a limit notification can open the contextual
+  // upgrade with the right copy/analytics context — allowlisted params survive.
   if (path === '/paywall' || path === '/upgrade') {
-    return { kind: 'app', href: APP_HREFS.paywall, canonicalPath: path };
+    return { kind: 'app', href: resolvePaywallHref(query), canonicalPath: path };
   }
 
   if (path === '/plan' || path === '/plans') {
@@ -178,7 +240,7 @@ export function resolveDeepLink(input: string): ResolvedDeepLink {
   if (!path) {
     return { kind: 'unknown', reason: 'Empty or unparseable link' };
   }
-  return resolveDeepLinkPath(path);
+  return resolveDeepLinkPath(path, extractDeepLinkQuery(input));
 }
 
 export type PushNavigationData = {
