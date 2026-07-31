@@ -1,4 +1,4 @@
-import { isAuthTokenInvalidationError } from '@/src/api/errors';
+import { ApiError, isAuthTokenInvalidationError } from '@/src/api/errors';
 import {
   bumpAuthSessionGeneration,
   getAuthSessionGeneration,
@@ -171,7 +171,10 @@ export async function apiFetch(path: string, options: ApiFetchOptions = {}): Pro
 export async function fetchUserInfo(): Promise<UserInfo> {
   const response = await apiFetch('/api/oauth/userinfo');
   if (!response.ok) {
-    throw new Error(`userinfo failed (${response.status})`);
+    // Preserve the HTTP status so callers (e.g. AuthContext.bootstrap) can distinguish
+    // a genuine auth failure (401/403) from a transient connectivity/server error (5xx)
+    // instead of treating every userinfo failure as "session invalid".
+    throw new ApiError(`userinfo failed (${response.status})`, response.status);
   }
   return (await response.json()) as UserInfo;
 }

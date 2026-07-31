@@ -88,3 +88,18 @@ export function isAuthTokenInvalidationError(err: unknown): boolean {
   const status = httpStatus(err);
   return status === 400 || status === 401;
 }
+
+/**
+ * Returns true if an error indicates the instance/network is temporarily unreachable
+ * (offline, DNS failure, request timeout, or HTTP 5xx) rather than a genuine auth failure.
+ * Used to avoid treating transient connectivity blips as "this session is invalid" —
+ * e.g. a bootstrap userinfo fetch that fails because the device is offline should not
+ * be conflated with a definitive 401/403 that indicates the session itself was rejected.
+ */
+export function isReachabilityError(err: unknown): boolean {
+  const status = httpStatus(err);
+  if (status !== undefined) {
+    return status >= 500;
+  }
+  return isConnectivityError(err) || isTimeoutError(err);
+}

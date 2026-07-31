@@ -324,8 +324,10 @@ export async function runHealthSyncPass(
         lookbackDays: LOOKBACK_DAYS,
       });
       const samples = await readPlatformWellness(wellnessWindow);
+      let wellnessFoundData = false;
       for (const sample of samples) {
         if (!sampleHasMetrics(sample)) continue;
+        wellnessFoundData = true;
         result.foundLocalData = true;
         const status = await syncWellnessSample(sample, force, generation);
         if (status === 'skipped') continue;
@@ -337,8 +339,19 @@ export async function runHealthSyncPass(
         if (status === 'synced') result.wellnessSynced += 1;
         else result.wellnessFailed += 1;
       }
-      // Advance watermark only after a successful push so failures retry next pass.
-      if (platform && result.wellnessFailed === 0 && isHealthSyncGenerationCurrent(generation)) {
+      // Advance watermark only after a successful push so failures retry next pass,
+      // and only when the read actually surfaced usable data — an empty result can
+      // mean the platform store is silently denying/unavailable rather than "nothing
+      // new happened", and advancing on that would permanently skip the gap once
+      // permission is later granted (see foundLocalData doc above). Also gated on
+      // the sign-out generation staying current, so a stale pass can't write after
+      // sign-out has cleared the ledger.
+      if (
+        platform &&
+        result.wellnessFailed === 0 &&
+        wellnessFoundData &&
+        isHealthSyncGenerationCurrent(generation)
+      ) {
         await setWatermark('wellness', passEndedAt, platform);
       }
     } catch (err) {
@@ -361,7 +374,8 @@ export async function runHealthSyncPass(
           lookbackDays: LOOKBACK_DAYS,
         });
         const sessions = await readPlatformWorkouts(workoutWindow);
-        if (sessions.length > 0) result.foundLocalData = true;
+        const workoutsFoundData = sessions.length > 0;
+        if (workoutsFoundData) result.foundLocalData = true;
         const remotes = await fetchRemoteWorkoutsForMatch(LOOKBACK_DAYS);
         for (const session of sessions) {
           if (!isHealthSyncGenerationCurrent(generation)) {
@@ -397,10 +411,15 @@ export async function runHealthSyncPass(
           else if (status === 'pending') result.workoutsPending += 1;
           else result.workoutsFailed += 1;
         }
+        // Same rule as wellness: only advance once the read actually returned
+        // sessions, not merely "nothing failed" — an empty read may just mean
+        // permission was denied or the store was unavailable this pass. Also
+        // gated on the sign-out generation staying current.
         if (
           platform &&
           result.workoutsFailed === 0 &&
           result.workoutsPending === 0 &&
+          workoutsFoundData &&
           isHealthSyncGenerationCurrent(generation)
         ) {
           await setWatermark('workout', passEndedAt, platform);

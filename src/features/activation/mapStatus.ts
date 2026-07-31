@@ -25,7 +25,11 @@ export function mapOnboardingStatus(raw: OnboardingStatusApi | null | undefined)
     return unsupportedActivationStatus();
   }
 
-  const step = isStep(raw.mobileActivationStep) ? raw.mobileActivationStep : 'done';
+  // Unknown/future step strings must not resolve to 'done' — that would let
+  // activationHrefForStatus() return null and ActivationGate render children,
+  // bypassing the wizard while wizardRequired() is still true. Fall back to
+  // the first step instead so the athlete is routed into the wizard.
+  const step = isStep(raw.mobileActivationStep) ? raw.mobileActivationStep : 'consent';
 
   return {
     supportsActivation: true,
@@ -44,6 +48,18 @@ export function mapOnboardingStatus(raw: OnboardingStatusApi | null | undefined)
  */
 export function wizardRequired(status: ActivationStatus): boolean {
   return status.supportsActivation && !status.softActivated;
+}
+
+/**
+ * When the onboarding-status fetch errors, decide whether the athlete can dismiss
+ * the block and continue into the app using the last successfully cached status.
+ * Soft-activated (or connect-only / unsupported-instance) athletes already have a
+ * usable daily loop, so a transient refresh failure should not hard-block them —
+ * only athletes still mid-wizard need the gate to stay up.
+ */
+export function canDismissActivationError(status: ActivationStatus | undefined): boolean {
+  if (!status) return false;
+  return status.softActivated || !status.supportsActivation;
 }
 
 /** Wizard step order for comparing optimistic forward navigation vs server resume. */

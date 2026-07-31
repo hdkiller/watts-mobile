@@ -93,4 +93,41 @@ describe('toSportThresholdPatch', () => {
       toSportThresholdPatch({ ftp: 'x', lthr: '1', maxHr: '2', thresholdPace: '' }, false),
     ).toBeNull();
   });
+
+  it('converts an mm:ss threshold pace to m/s before patching', () => {
+    const form = { ftp: '250', lthr: '165', maxHr: '185', thresholdPace: '5:00' };
+    const patch = toSportThresholdPatch(form, true);
+    // 5:00 min/km == 1000m / 300s
+    expect(patch?.thresholdPace).toBeCloseTo(1000 / 300, 5);
+  });
+
+  it('rejects a malformed threshold pace', () => {
+    const form = { ftp: '250', lthr: '165', maxHr: '185', thresholdPace: 'not-a-pace' };
+    expect(toSportThresholdPatch(form, true)).toBeNull();
+  });
+
+  it('clears threshold pace when the field is emptied', () => {
+    const form = { ftp: '250', lthr: '165', maxHr: '185', thresholdPace: '' };
+    expect(toSportThresholdPatch(form, true)?.thresholdPace).toBeNull();
+  });
+});
+
+describe('formFromSportProfile threshold pace display', () => {
+  it('renders the stored m/s value as an mm:ss label', () => {
+    const runProfile: SportProfile = {
+      ...sample,
+      thresholdPace: 1000 / 300, // 5:00 min/km
+    };
+    expect(formFromSportProfile(runProfile).thresholdPace).toBe('5:00');
+  });
+
+  it('round-trips display -> parse back to the original m/s value', () => {
+    const mps = 1000 / 315; // 5:15 min/km
+    const label = formFromSportProfile({ ...sample, thresholdPace: mps }).thresholdPace;
+    const patch = toSportThresholdPatch(
+      { ftp: '250', lthr: '165', maxHr: '185', thresholdPace: label },
+      true,
+    );
+    expect(patch?.thresholdPace).toBeCloseTo(mps, 5);
+  });
 });
