@@ -4,7 +4,7 @@ import { Alert } from 'react-native';
 import { friendlyError } from '@/src/api/errors';
 import { hapticLight, hapticSuccess } from '@/src/lib/haptics';
 
-import { activeStoreProductIds, hasActiveWebSubscription } from './adapters';
+import { activeStoreProductIds, hasActiveWebSubscription, summaryQueryState } from './adapters';
 import { trackPaywallEvent } from './analytics';
 import { purchaseStorePackage, restoreStorePurchases } from './revenueCat';
 import type { PlanChangeKind, StorePackage } from './types';
@@ -62,6 +62,17 @@ export function usePurchaseFlow(source: string) {
     async (item: StorePackage, kind: PlanChangeKind) => {
       if (kind === 'current') return;
 
+      // Belt-and-suspenders: the UI should already hide the plan chooser until
+      // the summary settles, but never let a purchase through without it —
+      // buying blind risks a double web+store charge or a stacked Play sub.
+      if (summaryQueryState(summary) !== 'ready') {
+        setFeedback({
+          type: 'error',
+          text: 'We could not confirm your current subscription status. Pull down to refresh and try again.',
+        });
+        return;
+      }
+
       // Stacking a store purchase on top of web billing charges twice.
       if (hasActiveWebSubscription(summary.data)) {
         const proceed = await confirmDoubleBilling();
@@ -108,7 +119,7 @@ export function usePurchaseFlow(source: string) {
         setBusyPackageId(null);
       }
     },
-    [confirmWithServer, source, summary.data],
+    [confirmWithServer, source, summary],
   );
 
   const restore = useCallback(async () => {
