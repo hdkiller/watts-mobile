@@ -5,6 +5,8 @@ import {
   clampDescription,
   filterActiveToday,
   formFromRecoveryItem,
+  fromLocalDateTimeValue,
+  isLocalTimestampValid,
   parseRecoveryContextList,
   toJourneyPayload,
 } from '../mapRecovery';
@@ -56,6 +58,55 @@ describe('toJourneyPayload', () => {
       description: '   ',
     });
     expect(payload.description).toBeUndefined();
+  });
+
+  it('throws instead of silently defaulting to now when the custom timestamp is invalid', () => {
+    expect(() =>
+      toJourneyPayload({
+        optionId: 'fatigue',
+        severityPreset: 'mild',
+        timePreset: 'custom',
+        localTimestamp: 'not-a-date',
+        description: '',
+      }),
+    ).toThrow();
+
+    expect(() =>
+      toJourneyPayload({
+        optionId: 'fatigue',
+        severityPreset: 'mild',
+        timePreset: 'custom',
+        // Calendar-invalid: February has no 30th day.
+        localTimestamp: '2026-02-30T10:00',
+        description: '',
+      }),
+    ).toThrow();
+  });
+});
+
+describe('fromLocalDateTimeValue / isLocalTimestampValid', () => {
+  it('parses a well-formed local datetime', () => {
+    const parsed = fromLocalDateTimeValue('2026-07-19T08:30');
+    expect(parsed).not.toBeNull();
+    expect(parsed?.getFullYear()).toBe(2026);
+    expect(parsed?.getMonth()).toBe(6);
+    expect(parsed?.getDate()).toBe(19);
+    expect(parsed?.getHours()).toBe(8);
+    expect(parsed?.getMinutes()).toBe(30);
+    expect(isLocalTimestampValid('2026-07-19T08:30')).toBe(true);
+  });
+
+  it('rejects free-text / malformed input instead of defaulting to now', () => {
+    expect(fromLocalDateTimeValue('whenever')).toBeNull();
+    expect(fromLocalDateTimeValue('')).toBeNull();
+    expect(fromLocalDateTimeValue('07/19/2026 8:30am')).toBeNull();
+    expect(isLocalTimestampValid('whenever')).toBe(false);
+  });
+
+  it('rejects calendar-invalid dates', () => {
+    expect(fromLocalDateTimeValue('2026-02-30T10:00')).toBeNull();
+    expect(fromLocalDateTimeValue('2026-13-01T00:00')).toBeNull();
+    expect(fromLocalDateTimeValue('2026-07-19T25:00')).toBeNull();
   });
 });
 
