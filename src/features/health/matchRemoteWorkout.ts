@@ -3,7 +3,7 @@ import { sportLabel } from './sportTypes';
 import type { PlatformWorkoutSession, RemoteWorkoutMatchCandidate } from './types';
 import { WORKOUT_MATCH_TOLERANCE_MS } from './types';
 
-const DATE_ONLY_RE = /^\d{4}-\d{2}-\d{2}(?:[T ]00:00:00(?:\.0+)?(?:Z|[+-]00:?00)?)?$/;
+const DATE_ONLY_RE = /^(\d{4}-\d{2}-\d{2})(?:[T ]00:00:00(?:\.0+)?(?:Z|[+-]00:?00)?)?$/;
 /** Max duration difference accepted when only a calendar date is available. */
 const DATE_ONLY_DURATION_TOLERANCE_S = 10 * 60;
 
@@ -47,10 +47,12 @@ export function matchRemoteWorkout(
     if (sessionSport && remoteSport && sessionSport !== remoteSport) continue;
 
     let score: number;
-    if (DATE_ONLY_RE.test(remote.date)) {
-      // No time component — match on local calendar day, requiring duration
+    const dateOnlyMatch = DATE_ONLY_RE.exec(remote.date);
+    if (dateOnlyMatch) {
+      // No time component (or midnight-UTC normalized) — match on calendar
+      // day taken directly from the date string, requiring duration
       // agreement when both sides have one so same-day workouts don't collide.
-      if (remote.date !== sessionYmd) continue;
+      if (dateOnlyMatch[1] !== sessionYmd) continue;
       if (session.durationSec == null || remote.durationSec == null) continue;
       const durDelta =
         session.durationSec != null &&

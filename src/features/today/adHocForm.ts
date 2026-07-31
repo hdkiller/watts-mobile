@@ -11,11 +11,15 @@ export function validateAdHocForm(input: {
   if (!Number.isFinite(durationMinutes) || durationMinutes <= 0) {
     return { ok: false, error: 'Enter a duration greater than zero.' };
   }
+  const roundedMinutes = Math.round(durationMinutes);
+  if (roundedMinutes < 1) {
+    return { ok: false, error: 'Enter a duration of at least 1 minute.' };
+  }
   return {
     ok: true,
     payload: {
       type: input.type,
-      durationMinutes: Math.round(durationMinutes),
+      durationMinutes: roundedMinutes,
       intensity: input.intensity,
       notes: input.notes.trim(),
     },

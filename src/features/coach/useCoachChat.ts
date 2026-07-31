@@ -47,6 +47,7 @@ import {
 import { buildCoachSeedContext, buildSessionCoachSeedContext, withSeedPrefix } from './seedContext';
 import { takeSessionDiscuss } from './sessionDiscussStore';
 import { decideSessionOpen, findRoomById } from './sessionPolicy';
+import { shouldApplyStreamCallback } from './streamGeneration';
 import type {
   ChatRoomSummary,
   CoachUIMessage,
@@ -143,6 +144,10 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
   const loadInFlight = useRef(false);
   const pendingLoad = useRef<MessageLoadRequest | null>(null);
   const loadGeneration = useRef(0);
+  // Bumped on every room switch; guards useChat's onFinish/onError against
+  // acting on a stream started for a room that is no longer active.
+  const roomGeneration = useRef(0);
+  const sendGeneration = useRef(0);
   const setMessagesRef = useRef<(messages: CoachUIMessage[]) => void>(() => {});
   const restartTurnPollingRef = useRef<(options?: { forceForMs?: number }) => void>(() => {});
   const loadMessagesRef = useRef<(id: string, options?: { silent?: boolean }) => Promise<void>>(
@@ -228,12 +233,17 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
     messages,
     setMessages,
     sendMessage,
+    stop,
     status,
     error: chatError,
     clearError,
   } = useChat<CoachUIMessage>({
     transport,
     onFinish: () => {
+      // A stale callback from a room we've since switched away from — ignore it
+      // so it can't resurrect the composer/typing state or write into the new
+      // room's messages.
+      if (!shouldApplyStreamCallback(sendGeneration.current, roomGeneration.current)) return;
       setAwaitingTurnStart(false);
       const id = roomIdRef.current;
       if (id) {
@@ -242,6 +252,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
       }
     },
     onError: (err) => {
+      if (!shouldApplyStreamCallback(sendGeneration.current, roomGeneration.current)) return;
       setAwaitingTurnStart(false);
       const quota = parseQuotaError(err, 'COACH_CHAT');
       setSendQuota(quota);
@@ -594,6 +605,18 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
 
   const applyActiveRoom = useCallback(
     async (room: ChatRoomSummary, options?: { clearMessages?: boolean }) => {
+      // Stop any in-flight reply stream for the room we're leaving — otherwise
+      // its late text-delta/onFinish/onError callbacks can keep writing into
+      // the new room's messages, and the turn poll can never stop while
+      // `awaiting` stays true (CW-165).
+      stop();
+      roomGeneration.current += 1;
+      stopTurnPolling();
+      pollGraceUntil.current = 0;
+      awaitingTurnStartRef.current = false;
+      setAwaitingTurnStart(false);
+      clearError();
+
       setRoomId(room.roomId);
       setRoomName(room.roomName || 'Coach Watts');
       setIsReadOnly(Boolean(room.isReadOnly));
@@ -606,11 +629,16 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
       setSendQuota(null);
       setInput('');
       if (options?.clearMessages !== false) {
+        // Update the ref synchronously too — setMessages/messagesRef sync
+        // otherwise happens via a render-driven effect, leaving a brief window
+        // where hasActiveTurn(messagesRef.current) still sees the old room's
+        // messages (e.g. from restartTurnPolling running before that effect).
+        messagesRef.current = [];
         setMessagesRef.current([]);
       }
       await loadMessages(room.roomId);
     },
-    [loadMessages],
+    [clearError, loadMessages, stop, stopTurnPolling],
   );
 
   const refreshRooms = useCallback(async () => {
@@ -862,6 +890,10 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
       setInput('');
       setPendingAttachments([]);
       setAwaitingTurnStart(true);
+      // Tag this stream with the room generation live right now, so a late
+      // onFinish/onError firing after a room switch can recognize itself as
+      // stale (see shouldApplyStreamCallback) instead of touching the new room.
+      sendGeneration.current = roomGeneration.current;
       restartTurnPolling({ forceForMs: POLL_GRACE_MS });
 
       try {

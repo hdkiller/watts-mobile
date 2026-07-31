@@ -178,6 +178,15 @@ export function PlanTrainingSegment({
   const [moveUndo, setMoveUndo] = useState<MoveUndo | null>(null);
   const [sessionEditor, setSessionEditor] = useState<SessionEditorContext | null>(null);
   const swipeStartX = useRef<number | null>(null);
+  const busyAbortRef = useRef<AbortController | null>(null);
+
+  // Abort any in-flight busy operation (adapt/generate pollers) when this segment unmounts —
+  // leaving Plan mid-poll would otherwise keep hitting /api/plans/status after the screen is gone.
+  useEffect(() => {
+    return () => {
+      busyAbortRef.current?.abort();
+    };
+  }, []);
 
   const weekSessions = useMemo(() => {
     const items = weekSessionsQuery.data ?? [];
@@ -313,28 +322,37 @@ export function PlanTrainingSegment({
     setWeekIndex(currentWeekIndex);
   };
 
-  const runBusy = async (label: string, fn: () => Promise<unknown>) => {
+  const runBusy = async (label: string, fn: (signal: AbortSignal) => Promise<unknown>) => {
+    // Supersede any still-running busy operation (its own poll keeps going otherwise).
+    busyAbortRef.current?.abort();
+    const controller = new AbortController();
+    busyAbortRef.current = controller;
     setActionError(null);
     setBusyMsg(label);
     try {
-      await fn();
+      await fn(controller.signal);
       hapticSuccess();
     } catch (err) {
+      if (controller.signal.aborted) return;
       hapticError();
       setActionError(friendlyError(err, 'Something went wrong'));
     } finally {
-      setBusyMsg(null);
+      if (busyAbortRef.current === controller) {
+        busyAbortRef.current = null;
+        setBusyMsg(null);
+      }
     }
   };
 
   const generateMissingStructures = () => {
     if (needsStructureIds.length === 0) return;
-    void runBusy('Generating structures', () =>
+    void runBusy('Generating structures', (signal) =>
       genWeekStructures.mutateAsync({
         ids: needsStructureIds,
         onProgress: (done, total) => {
           setBusyMsg(`Generating structures (${done}/${total})`);
         },
+        signal,
       }),
     );
   };
@@ -404,7 +422,9 @@ export function PlanTrainingSegment({
       {
         text: title.includes('Push') ? 'Push forward' : 'Recalculate',
         onPress: () =>
-          void runBusy(busy, () => adapt.mutateAsync({ planId: shell.id, adaptationType })),
+          void runBusy(busy, (signal) =>
+            adapt.mutateAsync({ planId: shell.id, adaptationType, signal }),
+          ),
       },
     ]);
   };
@@ -446,7 +466,9 @@ export function PlanTrainingSegment({
       onPress: () => {
         const blockId = weekMeta?.blockId;
         if (!blockId) return;
-        void runBusy('Generating phase workouts', () => genBlock.mutateAsync(blockId));
+        void runBusy('Generating phase workouts', (signal) =>
+          genBlock.mutateAsync({ blockId, signal }),
+        );
       },
     },
     {
@@ -813,8 +835,8 @@ export function PlanTrainingSegment({
                 onGenerateStructure={
                   !item.structureChartBlocks || item.structureChartBlocks.length < 2
                     ? () =>
-                        void runBusy('Generating structure', () =>
-                          genStructure.mutateAsync(item.id),
+                        void runBusy('Generating structure', (signal) =>
+                          genStructure.mutateAsync({ plannedWorkoutId: item.id, signal }),
                         )
                     : undefined
                 }
@@ -915,11 +937,12 @@ export function PlanTrainingSegment({
           disabled={Boolean(busyMsg)}
           onPress={() => {
             if (!weekMeta) return;
-            void runBusy('Generating week', async () => {
+            void runBusy('Generating week', async (signal) => {
               await genWeek.mutateAsync({
                 blockId: weekMeta.blockId,
                 weekId: weekMeta.id,
                 instructions: aiInstructions,
+                signal,
               });
               setAiWeekOpen(false);
               setAiInstructions('');
