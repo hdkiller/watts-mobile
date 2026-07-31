@@ -1,7 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { describe, expect, it } from 'vitest';
 
-import { clearPersistedQueryCache, shouldDehydratePersistedQuery, shouldPersistQuery } from '../persist';
+import {
+  clearPersistedQueryCache,
+  shouldDehydratePersistedQuery,
+  shouldPersistQuery,
+} from '../persist';
 
 const PERSIST_KEY = 'watts.reactQuery.v1';
 
