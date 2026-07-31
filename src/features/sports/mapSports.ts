@@ -1,4 +1,5 @@
 import { humanizeWorkoutType } from '@/src/lib/humanizeWorkoutType';
+import { mpsToPaceLabel, parsePaceToMps } from '@/src/lib/pace';
 
 import type { SportProfile, SportThresholdFormValues, SportThresholdPatch } from './types';
 
@@ -83,7 +84,7 @@ export function formFromSportProfile(profile: SportProfile): SportThresholdFormV
     ftp: profile.ftp != null ? String(profile.ftp) : '',
     lthr: profile.lthr != null ? String(profile.lthr) : '',
     maxHr: profile.maxHr != null ? String(profile.maxHr) : '',
-    thresholdPace: profile.thresholdPace != null ? String(profile.thresholdPace) : '',
+    thresholdPace: profile.thresholdPace != null ? mpsToPaceLabel(profile.thresholdPace) : '',
   };
 }
 
@@ -99,12 +100,12 @@ function parseOptionalInt(value: string): number | null | undefined {
   return Math.round(n);
 }
 
-function parseOptionalFloat(value: string): number | null | undefined {
+/** Parse a threshold pace field (mm:ss or decimal minutes-per-km) into m/s for the API. */
+function parseOptionalPace(value: string): number | null | undefined {
   const trimmed = value.trim();
   if (!trimmed) return null;
-  const n = Number(trimmed);
-  if (!Number.isFinite(n)) return undefined;
-  return n;
+  const mps = parsePaceToMps(trimmed);
+  return mps === undefined ? undefined : mps;
 }
 
 export function formHasInvalidNumbers(
@@ -117,7 +118,7 @@ export function formHasInvalidNumbers(
   if (
     includePace &&
     values.thresholdPace.trim() &&
-    parseOptionalFloat(values.thresholdPace) === undefined
+    parseOptionalPace(values.thresholdPace) === undefined
   ) {
     return true;
   }
@@ -137,7 +138,7 @@ export function toSportThresholdPatch(
   patch.lthr = lthr;
   patch.maxHr = maxHr;
   if (includePace) {
-    const pace = parseOptionalFloat(values.thresholdPace);
+    const pace = parseOptionalPace(values.thresholdPace);
     if (pace === undefined) return null;
     patch.thresholdPace = pace;
   }

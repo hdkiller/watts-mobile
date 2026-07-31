@@ -87,10 +87,12 @@ export function useAdaptPlanMutation() {
     mutationFn: ({
       planId,
       adaptationType,
+      signal,
     }: {
       planId: string;
       adaptationType: PlanAdaptationType;
-    }) => adaptPlan(planId, adaptationType),
+      signal?: AbortSignal;
+    }) => adaptPlan(planId, adaptationType, { signal }),
     onSuccess: async () => {
       await invalidatePlanCaches(queryClient);
     },
@@ -173,9 +175,15 @@ export function useDeletePlannedWorkoutMutation() {
 export function useGenerateStructureMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (plannedWorkoutId: string) => generateWorkoutStructure(plannedWorkoutId),
-    onSuccess: async (_data, id) => {
-      await invalidatePlanCaches(queryClient, { plannedId: id });
+    mutationFn: ({
+      plannedWorkoutId,
+      signal,
+    }: {
+      plannedWorkoutId: string;
+      signal?: AbortSignal;
+    }) => generateWorkoutStructure(plannedWorkoutId, { signal }),
+    onSuccess: async (_data, vars) => {
+      await invalidatePlanCaches(queryClient, { plannedId: vars.plannedWorkoutId });
     },
   });
 }
@@ -186,10 +194,12 @@ export function useGenerateWeekStructuresMutation() {
     mutationFn: ({
       ids,
       onProgress,
+      signal,
     }: {
       ids: string[];
       onProgress?: (done: number, total: number) => void;
-    }) => generateWeekStructures(ids, onProgress),
+      signal?: AbortSignal;
+    }) => generateWeekStructures(ids, onProgress, { signal }),
     // Partial batch success still needs a refresh even when the mutation throws.
     onSettled: async () => {
       await invalidatePlanCaches(queryClient);
@@ -204,11 +214,13 @@ export function useGenerateAiWeekMutation() {
       blockId,
       weekId,
       instructions,
+      signal,
     }: {
       blockId: string;
       weekId: string;
       instructions?: string;
-    }) => generateAiWeek(blockId, weekId, instructions),
+      signal?: AbortSignal;
+    }) => generateAiWeek(blockId, weekId, instructions, { signal }),
     onSuccess: async () => {
       await invalidatePlanCaches(queryClient);
     },
@@ -218,7 +230,8 @@ export function useGenerateAiWeekMutation() {
 export function useGenerateBlockMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (blockId: string) => generateTrainingBlock(blockId),
+    mutationFn: ({ blockId, signal }: { blockId: string; signal?: AbortSignal }) =>
+      generateTrainingBlock(blockId, { signal }),
     onSuccess: async () => {
       await invalidatePlanCaches(queryClient);
     },

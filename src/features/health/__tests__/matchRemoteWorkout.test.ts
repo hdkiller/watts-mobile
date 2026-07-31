@@ -51,6 +51,27 @@ describe('matchRemoteWorkout', () => {
     expect(match).toBeNull();
   });
 
+  it('matches a midnight-UTC ISO remote (Garmin/Intervals.icu style) on the same day', () => {
+    const startedAt = new Date(2026, 6, 20, 12, 0, 0).toISOString();
+    const match = matchRemoteWorkout(
+      {
+        platformSessionId: 'a',
+        platform: 'healthkit',
+        startedAt,
+        durationSec: 3600,
+      },
+      [
+        {
+          id: 'remote-1',
+          date: '2026-07-20T00:00:00.000Z',
+          type: 'run',
+          durationSec: 3500,
+        },
+      ],
+    );
+    expect(match?.id).toBe('remote-1');
+  });
+
   it('rejects a date-only remote on a different local day', () => {
     const startedAt = new Date(2026, 6, 20, 12, 0, 0).toISOString();
     const match = matchRemoteWorkout(
