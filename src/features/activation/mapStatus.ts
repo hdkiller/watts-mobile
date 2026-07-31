@@ -25,7 +25,11 @@ export function mapOnboardingStatus(raw: OnboardingStatusApi | null | undefined)
     return unsupportedActivationStatus();
   }
 
-  const step = isStep(raw.mobileActivationStep) ? raw.mobileActivationStep : 'done';
+  // Unknown/future step strings must not resolve to 'done' — that would let
+  // activationHrefForStatus() return null and ActivationGate render children,
+  // bypassing the wizard while wizardRequired() is still true. Fall back to
+  // the first step instead so the athlete is routed into the wizard.
+  const step = isStep(raw.mobileActivationStep) ? raw.mobileActivationStep : 'consent';
 
   return {
     supportsActivation: true,
