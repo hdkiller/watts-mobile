@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import {
   goalTypeLabel,
@@ -62,6 +62,32 @@ describe('mapGoals', () => {
 
   it('labels unknown types', () => {
     expect(goalTypeLabel('CUSTOM_THING')).toBe('CUSTOM THING');
+  });
+
+  describe('UTC-midnight eventDate label (CW-180)', () => {
+    const originalTz = process.env.TZ;
+
+    beforeEach(() => {
+      // Western timezone, behind UTC — the case that showed the off-by-one.
+      process.env.TZ = 'America/Los_Angeles';
+    });
+
+    afterEach(() => {
+      process.env.TZ = originalTz;
+    });
+
+    it('renders the calendar day the athlete picked, not the previous day', () => {
+      const goal: GoalApi = {
+        id: 'g2',
+        type: 'EVENT',
+        title: 'Local Gran Fondo',
+        eventDate: '2026-08-15T00:00:00.000Z',
+        status: 'ACTIVE',
+      };
+      const glance = mapGoalGlance(goal);
+      expect(glance.targetDateLabel).toContain('Aug 15');
+      expect(glance.targetDateLabel).not.toContain('Aug 14');
+    });
   });
 
   it('picks primary by priority desc then oldest createdAt', () => {
