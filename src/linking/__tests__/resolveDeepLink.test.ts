@@ -112,6 +112,35 @@ describe('resolveDeepLinkPath', () => {
     }
   });
 
+  it('preserves allowlisted paywall query params (feature/source/tier)', () => {
+    expect(
+      resolveDeepLinkPath('/paywall', '?feature=coach_chat&source=push&tier=SUPPORTER'),
+    ).toEqual({
+      kind: 'app',
+      href: `${APP_HREFS.paywall}?feature=coach_chat&source=push&tier=SUPPORTER`,
+      canonicalPath: '/paywall',
+    });
+
+    expect(resolveDeepLinkPath('/upgrade', '?feature=coach_chat')).toEqual({
+      kind: 'app',
+      href: `${APP_HREFS.paywall}?feature=coach_chat`,
+      canonicalPath: '/upgrade',
+    });
+
+    expect(resolveDeepLinkPath('/paywall')).toEqual({
+      kind: 'app',
+      href: APP_HREFS.paywall,
+      canonicalPath: '/paywall',
+    });
+
+    // Unrelated query keys are dropped.
+    expect(resolveDeepLinkPath('/paywall', '?feature=coach_chat&evil=1')).toEqual({
+      kind: 'app',
+      href: `${APP_HREFS.paywall}?feature=coach_chat`,
+      canonicalPath: '/paywall',
+    });
+  });
+
   it('keeps oauth callback out of product routing', () => {
     expect(resolveDeepLinkPath('/oauth/callback')).toEqual({ kind: 'oauth' });
   });
@@ -126,6 +155,22 @@ describe('resolveDeepLink + native intent', () => {
     expect(resolveDeepLink('coachwatts://coach')).toMatchObject({
       kind: 'app',
       href: APP_HREFS.coach,
+    });
+  });
+
+  it('preserves feature/source query params through a full paywall deep link', () => {
+    expect(resolveDeepLink('coachwatts://paywall?feature=coach_chat&source=push')).toEqual({
+      kind: 'app',
+      href: `${APP_HREFS.paywall}?feature=coach_chat&source=push`,
+      canonicalPath: '/paywall',
+    });
+
+    expect(
+      resolveDeepLink('https://coachwatts.com/go/paywall?feature=coach_chat&source=push'),
+    ).toEqual({
+      kind: 'app',
+      href: `${APP_HREFS.paywall}?feature=coach_chat&source=push`,
+      canonicalPath: '/paywall',
     });
   });
 
