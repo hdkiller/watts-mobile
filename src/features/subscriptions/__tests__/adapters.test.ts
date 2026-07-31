@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 
 import {
   canonicalSubscriptionTier,
+  canShowPlanChooser,
   classifyProductTier,
   identityForSession,
   packagePeriod,
+  summaryQueryState,
 } from '../adapters';
 import { isOfficialHostedInstance } from '../gating';
 
@@ -55,5 +57,59 @@ describe('subscription adapters', () => {
         subscriptions: [],
       }),
     ).toBe('SUPPORTER');
+  });
+
+  it('classifies the subscription-summary query as pending until it settles one way or the other', () => {
+    expect(summaryQueryState({ isSuccess: false, isError: false })).toBe('pending');
+    expect(summaryQueryState({ isSuccess: true, isError: false })).toBe('ready');
+    expect(summaryQueryState({ isSuccess: false, isError: true })).toBe('error');
+  });
+
+  it('never shows the plan chooser (and its purchase CTAs) before the summary has settled', () => {
+    // Still loading (or refetching with no prior data): fail closed even if
+    // acquisition would otherwise be allowed.
+    expect(
+      canShowPlanChooser({
+        summaryState: 'pending',
+        acquisitionEnabled: true,
+        acquisitionSuppressed: false,
+      }),
+    ).toBe(false);
+
+    // Errored: fail closed too — we can't tell if a web subscription is active.
+    expect(
+      canShowPlanChooser({
+        summaryState: 'error',
+        acquisitionEnabled: true,
+        acquisitionSuppressed: false,
+      }),
+    ).toBe(false);
+
+    // Settled and eligible: show plans.
+    expect(
+      canShowPlanChooser({
+        summaryState: 'ready',
+        acquisitionEnabled: true,
+        acquisitionSuppressed: false,
+      }),
+    ).toBe(true);
+
+    // Settled but the server says billing happens elsewhere: still hidden.
+    expect(
+      canShowPlanChooser({
+        summaryState: 'ready',
+        acquisitionEnabled: true,
+        acquisitionSuppressed: true,
+      }),
+    ).toBe(false);
+
+    // Settled but acquisition disabled for this instance: still hidden.
+    expect(
+      canShowPlanChooser({
+        summaryState: 'ready',
+        acquisitionEnabled: false,
+        acquisitionSuppressed: false,
+      }),
+    ).toBe(false);
   });
 });
