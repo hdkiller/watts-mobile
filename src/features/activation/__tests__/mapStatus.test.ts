@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { activationStepRank, mapOnboardingStatus, wizardRequired } from '../mapStatus';
+import { ACTIVATION_STEP_HREF } from '../types';
 
 describe('mapOnboardingStatus', () => {
   it('degrades open for older API payloads without activation fields', () => {
@@ -26,6 +27,22 @@ describe('mapOnboardingStatus', () => {
       fullyActivated: false,
     });
     expect(wizardRequired(status)).toBe(false);
+  });
+
+  it('routes an unknown/future mobileActivationStep into the wizard instead of bypassing it', () => {
+    const status = mapOnboardingStatus({
+      // Cast: simulating an unrecognized value the API might send in the future.
+      mobileActivationStep: 'future-step' as never,
+      softActivated: false,
+      fullyActivated: false,
+    });
+    expect(status.supportsActivation).toBe(true);
+    expect(status.mobileActivationStep).not.toBe('done');
+    expect(wizardRequired(status)).toBe(true);
+    // The core regression: wizardRequired() being true must not be paired with
+    // a step that activationHrefForStatus() (useActivationStatus.ts) cannot
+    // resolve to a route, or ActivationGate falls through and renders children.
+    expect(status.mobileActivationStep in ACTIVATION_STEP_HREF).toBe(true);
   });
 });
 
