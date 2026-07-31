@@ -38,8 +38,7 @@ export const APP_HREFS = {
   settingsSubscription: '/(app)/(tabs)/more/settings/subscription',
   /** Contextual upgrade sheet — root stack so Back returns to the blocked screen. */
   paywall: '/(app)/paywall',
-  paywallForQuota: (feature: string, source = 'quota') =>
-    `/(app)/paywall?source=${encodeURIComponent(source)}&feature=${encodeURIComponent(feature)}` as const,
+  paywallForQuota: (feature: string, source = 'quota') => paywallHref({ feature, source }),
   settingsUnits: '/(app)/(tabs)/more/settings/units',
   settingsLog: '/(app)/(tabs)/more/settings/log',
   settingsNutrition: '/(app)/(tabs)/more/settings/nutrition',
@@ -52,6 +51,22 @@ export const APP_HREFS = {
   recoveryEvent: '/(app)/recovery-event',
   recoveryEventEdit: (id: string) => `/(app)/recovery-event?id=${encodeURIComponent(id)}` as const,
 } as const;
+
+/**
+ * Query params the paywall screen actually reads (see `useLocalSearchParams` in
+ * `app/(app)/paywall.tsx`) — single source of truth so deep links and in-app
+ * navigation agree on which params survive.
+ */
+export const PAYWALL_QUERY_KEYS = ['feature', 'source', 'tier'] as const;
+export type PaywallQueryKey = (typeof PAYWALL_QUERY_KEYS)[number];
+
+/** Build a paywall href, keeping only the allowlisted query keys present in `params`. */
+export function paywallHref(params: Partial<Record<PaywallQueryKey, string>>): string {
+  const query = PAYWALL_QUERY_KEYS.filter((key) => params[key])
+    .map((key) => `${key}=${encodeURIComponent(params[key]!)}`)
+    .join('&');
+  return query ? `${APP_HREFS.paywall}?${query}` : APP_HREFS.paywall;
+}
 
 /** One-shot Log → photo-meal intent. Always include a unique `t` so relaunches are not deduped. */
 export function logCameraHref(nonce: string = String(Date.now())): string {
