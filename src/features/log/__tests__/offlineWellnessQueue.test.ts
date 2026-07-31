@@ -70,4 +70,22 @@ describe('offlineWellnessQueue', () => {
     expect(saveWellnessCheckin).not.toHaveBeenCalled();
     expect(await loadPendingWellnessCheckin()).not.toBeNull();
   });
+
+  it('does not drop a newer check-in queued while a flush is in flight', async () => {
+    await enqueueWellnessCheckin({ date: '2026-07-20', mood: 2 });
+
+    // Simulate the athlete saving a new check-in while the POST for the
+    // first one is still in flight: swap the "in-flight" payload into
+    // storage for a newer one mid-flush, before clear-if-unchanged runs.
+    vi.mocked(saveWellnessCheckin).mockImplementationOnce(async () => {
+      await enqueueWellnessCheckin({ date: '2026-07-21', mood: 5 });
+    });
+
+    const synced = await flushPendingWellnessCheckin();
+    expect(synced).toBe(true);
+
+    // The newer, queued-during-flush check-in must survive the flush's clear.
+    const remaining = await loadPendingWellnessCheckin();
+    expect(remaining?.payload).toEqual({ date: '2026-07-21', mood: 5 });
+  });
 });
