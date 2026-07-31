@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { ApiError, friendlyError, isAuthTokenInvalidationError, isReachabilityError } from '../errors';
+import {
+  ApiError,
+  friendlyError,
+  isAuthTokenInvalidationError,
+  isReachabilityError,
+} from '../errors';
 
 describe('friendlyError', () => {
   it('maps 401/403 to session copy', () => {

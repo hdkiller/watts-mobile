@@ -146,7 +146,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // valid as far as we know, so keep the user signed in and leave Health Sync
           // state (ledger/watermarks/background task) untouched. Only a definitive auth
           // failure (401/403) below should sign the user out and wipe health state.
-          setError(friendlyError(err, "Can't reach your Coach Watts instance — check your connection"));
+          setError(
+            friendlyError(err, "Can't reach your Coach Watts instance — check your connection"),
+          );
           setStatus('authenticated');
         } else {
           await clearHealthSyncForIdentityTransition();
