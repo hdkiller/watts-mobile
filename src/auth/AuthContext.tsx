@@ -13,7 +13,7 @@ import {
 } from 'react';
 
 import { fetchUserInfo, setAuthFailureHandler, type UserInfo } from '@/src/api/client';
-import { friendlyError } from '@/src/api/errors';
+import { friendlyError, isReachabilityError } from '@/src/api/errors';
 import { bumpAuthSessionGeneration } from '@/src/auth/authSessionGeneration';
 import { applyE2eAuthSeed, applyPendingE2eLogin } from '@/src/auth/e2eAuth';
 import { parseE2eLoginDeepLink } from '@/src/auth/e2eLoginDeepLink';
@@ -102,14 +102,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setError(null);
           setStatus('authenticated');
         } catch (err) {
-          await clearHealthSyncForIdentityTransition();
-          setUser(null);
-          setError(
-            err instanceof Error
-              ? `E2E userinfo: ${err.message}`
-              : 'E2E auth seed failed — check token and instance URL',
-          );
-          setStatus('needs_login');
+          if (isReachabilityError(err)) {
+            // Transient connectivity/server error — keep the seeded session and Health
+            // Sync state intact rather than treating a network blip as a login failure.
+            setError(friendlyError(err, 'Could not verify E2E session — check your connection'));
+            setStatus('authenticated');
+          } else {
+            await clearHealthSyncForIdentityTransition();
+            setUser(null);
+            setError(
+              err instanceof Error
+                ? `E2E userinfo: ${err.message}`
+                : 'E2E auth seed failed — check token and instance URL',
+            );
+            setStatus('needs_login');
+          }
         }
         return;
       }
@@ -131,11 +138,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const info = await fetchUserInfo();
         setUser(info);
+        setError(null);
         setStatus('authenticated');
-      } catch {
-        await clearHealthSyncForIdentityTransition();
-        setUser(null);
-        setStatus('needs_login');
+      } catch (err) {
+        if (isReachabilityError(err)) {
+          // Offline/DNS/5xx while checking the existing session: the tokens are still
+          // valid as far as we know, so keep the user signed in and leave Health Sync
+          // state (ledger/watermarks/background task) untouched. Only a definitive auth
+          // failure (401/403) below should sign the user out and wipe health state.
+          setError(friendlyError(err, "Can't reach your Coach Watts instance — check your connection"));
+          setStatus('authenticated');
+        } else {
+          await clearHealthSyncForIdentityTransition();
+          setUser(null);
+          setStatus('needs_login');
+        }
       }
     } catch (err) {
       setError(friendlyError(err, 'Failed to start app'));
