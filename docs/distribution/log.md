@@ -14,6 +14,24 @@ Format:
 
 ---
 
+## 2026-07-31 — DAC7 compliance information submitted
+
+- Submitted the required **Directive on Administrative Cooperation — 7th Amendment (DAC7)** compliance information in App Store Connect.
+- Follow-up: confirm the resulting App Store Connect compliance / paid-commerce status is active or complete before treating Apple paid commerce as ready. See [019](./tasks/019-paid-agreements-and-products.md).
+
+## 2026-07-31 — Apple bank information verified; DAC7 compliance next
+
+- Bank account information was submitted and Apple verified the supplied information, resolving the prior Bank Account Holder Compliance Screening blocker.
+- Next action in App Store Connect: add the required **Directive on Administrative Cooperation — 7th Amendment (DAC7)** compliance information. Apple notes this is required to submit new apps or avoid potential payment blocks: [DAC7 compliance guide](https://developer.apple.com/help/app-store-connect/manage-compliance-information/manage-information-for-directive-on-administrative-cooperation-7th-amendment).
+- Task [019](./tasks/019-paid-agreements-and-products.md) is now **in-progress**; do not consider Apple paid commerce fully active until the DAC7 requirement is complete and the relevant ASC statuses are active.
+
+## 2026-07-30 — Apple Support: bank compliance is Account Holder–only (Case 20000120973249)
+
+- Reply from Eduardo (Developer Support) on case **`20000120973249`**: Bank Account Holder Compliance Screening can only be completed by the membership **Account Holder**; Admins/Finance cannot submit the identity/compliance docs.
+- Matches team setup from [001](./tasks/001-apple-developer-account.md): Account Holder = `deploy@watt-mind.com`; `hdkiller@gmail.com` = Admin only.
+- Action: finish **Add user info** / bank-holder screening while signed in as `deploy@watt-mind.com` (not Gmail Admin). Re-open on the case only if it still fails as Account Holder.
+- See [019](./tasks/019-paid-agreements-and-products.md). Paid Apps + both banks remain **Pending User Info** until this clears (blocks iOS IAP commerce).
+
 ## 2026-07-27 — Apple Support ticket created for Paid Apps screening bug (Case ID 20000120973249)
 
 - Submitted Apple Developer Contact Us ticket regarding the portal bug on Bank Account Holder Compliance Screening ("Add user info" submission reload loop across browsers/PDFs).

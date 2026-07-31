@@ -58,7 +58,7 @@ These tasks add hosted Supporter/Pro acquisition after (or independently from) t
 | ID | Task | Area | Priority | Status |
 |----|------|------|----------|--------|
 | [018](./tasks/018-revenuecat-project.md) | RevenueCat project ownership, plan, stores, restore policy | account | high | in-progress |
-| [019](./tasks/019-paid-agreements-and-products.md) | Paid agreements, merchant profile, pricing, Apple/Google products | commerce | high | open |
+| [019](./tasks/019-paid-agreements-and-products.md) | Paid agreements, merchant profile, pricing, Apple/Google products | commerce | high | in-progress |
 | [020](./tasks/020-subscription-backend.md) | Provider-neutral backend, RevenueCat lifecycle, Stripe reconciliation | backend | high | in-progress |
 | [021](./tasks/021-native-subscription-experience.md) | Expo RevenueCat SDK + hosted purchase/restore/manage UI | app | high | in-progress |
 | [022](./tasks/022-subscription-store-test-review.md) | Sandbox/TestFlight/Internal lifecycle QA + IAP review marketing | review | high | open |
