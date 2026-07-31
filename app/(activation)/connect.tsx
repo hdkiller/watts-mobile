@@ -13,7 +13,14 @@ import {
   useActivationStatus,
   useAdvanceActivationStatus,
 } from '@/src/features/activation/useActivationStatus';
-import { APP_HREFS } from '@/src/linking/appHrefs';
+import { APP_HREFS, migrateLegacyAppHref } from '@/src/linking/appHrefs';
+import { consumePendingReturnPath } from '@/src/linking/pendingReturnPath';
+
+/** Resolve where to land after the wizard finishes: a preserved deep-link return path, else Today. */
+async function resolvePostActivationHref(): Promise<Href> {
+  const pending = await consumePendingReturnPath();
+  return (pending ? migrateLegacyAppHref(pending) : APP_HREFS.today) as Href;
+}
 
 export default function ActivationConnectScreen() {
   const router = useRouter();
@@ -41,7 +48,7 @@ export default function ActivationConnectScreen() {
       trackActivationEvent('activation_connect_skipped');
       // Soft activation is already done at connect; keep gate open while status refreshes.
       await advance({ softActivated: true, mobileActivationStep: 'connect' });
-      router.replace(APP_HREFS.today as Href);
+      router.replace(await resolvePostActivationHref());
     } catch (err) {
       setError(friendlyError(err, 'Could not continue'));
     } finally {
@@ -60,7 +67,7 @@ export default function ActivationConnectScreen() {
       if (refreshed.data?.fullyActivated) {
         trackActivationEvent('activation_fully_activated');
       }
-      router.replace(APP_HREFS.today as Href);
+      router.replace(await resolvePostActivationHref());
     } catch (err) {
       setError(friendlyError(err, 'Could not finish connection setup'));
     } finally {
