@@ -35,7 +35,12 @@ export function OfflineWellnessFlush() {
 
     return () => {
       cancelled = true;
-      flushing.current = false;
+      // Do NOT reset flushing.current here: the async flush above may still
+      // be in flight (POST + clear-if-unchanged). Resetting the guard on
+      // effect cleanup (e.g. isOnline flapping or queryClient identity
+      // change) would let a second overlapping flush start and race with
+      // the first. The guard is only cleared in the `finally` below, once
+      // the in-flight flush has actually completed.
     };
   }, [isOnline, queryClient]);
 
