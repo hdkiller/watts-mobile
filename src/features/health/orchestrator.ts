@@ -39,6 +39,42 @@ import { clearWatermarks, resolveReadWindow, setWatermark } from './watermarks';
 
 let inFlight: Promise<SyncPassResult> | null = null;
 
+/**
+ * Monotonic generation bumped when sign-out begins (see clearHealthSyncOnSignOut).
+ * A running `runHealthSyncPass` captures this value at start; if it goes stale
+ * mid-pass, the pass refuses to persist any further ledger/watermark write —
+ * closing the window where a sync started before sign-out could still write
+ * (or upload with a token that's about to be invalidated) after the clear runs.
+ */
+let healthSyncGeneration = 0;
+
+export function bumpHealthSyncGeneration(): number {
+  healthSyncGeneration += 1;
+  return healthSyncGeneration;
+}
+
+export function getHealthSyncGeneration(): number {
+  return healthSyncGeneration;
+}
+
+function isHealthSyncGenerationCurrent(generation: number): boolean {
+  return generation === healthSyncGeneration;
+}
+
+/**
+ * Await any pass already in flight so its writes are guaranteed to either finish
+ * or bail out (via the generation check) before the caller proceeds. Used by
+ * clearHealthSyncOnSignOut so the ledger clear cannot race a stale pass.
+ */
+export async function awaitInFlightHealthSyncPass(): Promise<void> {
+  if (!inFlight) return;
+  try {
+    await inFlight;
+  } catch {
+    // Any failure is the pass's own concern — nothing to surface here.
+  }
+}
+
 export type SyncPassResult = {
   wellnessAttempted: number;
   wellnessSynced: number;
@@ -53,6 +89,8 @@ export type SyncPassResult = {
   foundLocalData: boolean;
   skipped: boolean;
   reason?: string;
+  /** True when a sign-out happened mid-pass and the pass stopped writing early. */
+  signedOutMidPass: boolean;
 };
 
 /** Stop auto-retrying an item after this many failed attempts (manual retry still works). */
@@ -71,6 +109,7 @@ function emptyResult(partial: Partial<SyncPassResult> & { skipped: boolean }): S
     wellnessPassError: false,
     workoutPassError: false,
     foundLocalData: false,
+    signedOutMidPass: false,
     ...partial,
   };
 }
@@ -98,8 +137,10 @@ function currentPlatform(): HealthPlatform | null {
 async function syncWellnessSample(
   sample: DailyWellnessSample,
   force = false,
-): Promise<'synced' | 'failed' | 'skipped'> {
+  generation?: number,
+): Promise<'synced' | 'failed' | 'skipped' | 'cancelled'> {
   if (!sampleHasMetrics(sample)) return 'skipped';
+  if (generation !== undefined && !isHealthSyncGenerationCurrent(generation)) return 'cancelled';
 
   const id = wellnessLedgerId(sample.date);
   const existing = await getLedgerItem(id);
@@ -130,15 +171,18 @@ async function syncWellnessSample(
     });
 
   item = beginLedgerAttempt(item);
+  if (generation !== undefined && !isHealthSyncGenerationCurrent(generation)) return 'cancelled';
   await saveLedgerItem(item);
 
   try {
     await uploadWellnessPayload(mapSampleToWellnessPayload(sample));
+    if (generation !== undefined && !isHealthSyncGenerationCurrent(generation)) return 'cancelled';
     item = completeLedgerSuccess(item, { contentFingerprint: fingerprint });
     await saveLedgerItem(item);
     await markHealthSyncSuccess(item.lastSuccessAt);
     return 'synced';
   } catch (err) {
+    if (generation !== undefined && !isHealthSyncGenerationCurrent(generation)) return 'cancelled';
     const message = err instanceof Error ? err.message : 'Upload failed';
     item = completeLedgerFailure(item, message);
     await saveLedgerItem(item);
@@ -150,7 +194,10 @@ async function syncWorkoutSession(
   session: PlatformWorkoutSession,
   remotes: Awaited<ReturnType<typeof fetchRemoteWorkoutsForMatch>>,
   force = false,
-): Promise<'synced' | 'pending' | 'failed' | 'skipped'> {
+  generation?: number,
+): Promise<'synced' | 'pending' | 'failed' | 'skipped' | 'cancelled'> {
+  if (generation !== undefined && !isHealthSyncGenerationCurrent(generation)) return 'cancelled';
+
   const id = workoutLedgerId(session.platformSessionId);
   const existing = await getLedgerItem(id);
 
@@ -158,6 +205,8 @@ async function syncWorkoutSession(
   if (!force && existing?.status === 'synced' && existing.remoteWorkoutId) {
     return 'skipped';
   }
+
+  if (generation !== undefined && !isHealthSyncGenerationCurrent(generation)) return 'cancelled';
 
   const matched = matchRemoteWorkout(session, remotes);
   if (matched) {
@@ -200,15 +249,19 @@ async function syncWorkoutSession(
       startedAt: session.startedAt,
     });
 
+  if (generation !== undefined && !isHealthSyncGenerationCurrent(generation)) return 'cancelled';
+
   if (!existing) {
     await saveLedgerItem(item);
   }
 
   item = beginLedgerAttempt(item);
+  if (generation !== undefined && !isHealthSyncGenerationCurrent(generation)) return 'cancelled';
   await saveLedgerItem(item);
 
   try {
     const result = await uploadPlatformWorkout(session);
+    if (generation !== undefined && !isHealthSyncGenerationCurrent(generation)) return 'cancelled';
     if (result.queued && !result.remoteWorkoutId) {
       item = completeLedgerPending(item);
       await saveLedgerItem(item);
@@ -219,6 +272,7 @@ async function syncWorkoutSession(
     await markHealthSyncSuccess(item.lastSuccessAt);
     return 'synced';
   } catch (err) {
+    if (generation !== undefined && !isHealthSyncGenerationCurrent(generation)) return 'cancelled';
     const message = err instanceof Error ? err.message : 'Upload failed';
     item = completeLedgerFailure(item, message);
     await saveLedgerItem(item);
@@ -236,6 +290,10 @@ export async function runHealthSyncPass(
 ): Promise<SyncPassResult> {
   if (inFlight) return inFlight;
 
+  // Capture the generation this pass runs under. If sign-out bumps it mid-pass,
+  // every write below is gated on it staying current — see isHealthSyncGenerationCurrent.
+  const generation = healthSyncGeneration;
+
   inFlight = (async () => {
     const prefs = await loadHealthSyncPreferences();
     if (!prefs.syncEnabled) {
@@ -246,6 +304,9 @@ export async function runHealthSyncPass(
     }
     if (!onlineManager.isOnline()) {
       return emptyResult({ skipped: true, reason: 'offline' });
+    }
+    if (!isHealthSyncGenerationCurrent(generation)) {
+      return emptyResult({ skipped: true, reason: 'signed_out', signedOutMidPass: true });
     }
 
     if (options.fullResync) {
@@ -266,14 +327,22 @@ export async function runHealthSyncPass(
       for (const sample of samples) {
         if (!sampleHasMetrics(sample)) continue;
         result.foundLocalData = true;
-        const status = await syncWellnessSample(sample, force);
+        const status = await syncWellnessSample(sample, force, generation);
         if (status === 'skipped') continue;
+        if (status === 'cancelled') {
+          result.signedOutMidPass = true;
+          return result;
+        }
         result.wellnessAttempted += 1;
         if (status === 'synced') result.wellnessSynced += 1;
         else result.wellnessFailed += 1;
       }
       // Advance watermark only after a successful push so failures retry next pass.
-      if (platform && result.wellnessFailed === 0) {
+      if (
+        platform &&
+        result.wellnessFailed === 0 &&
+        isHealthSyncGenerationCurrent(generation)
+      ) {
         await setWatermark('wellness', passEndedAt, platform);
       }
     } catch (err) {
@@ -282,6 +351,11 @@ export async function runHealthSyncPass(
         '[HealthSync] wellness pass error',
         err instanceof Error ? err.message : 'error',
       );
+    }
+
+    if (!isHealthSyncGenerationCurrent(generation)) {
+      result.signedOutMidPass = true;
+      return result;
     }
 
     if (prefs.syncWorkouts) {
@@ -294,9 +368,17 @@ export async function runHealthSyncPass(
         if (sessions.length > 0) result.foundLocalData = true;
         const remotes = await fetchRemoteWorkoutsForMatch(LOOKBACK_DAYS);
         for (const session of sessions) {
+          if (!isHealthSyncGenerationCurrent(generation)) {
+            result.signedOutMidPass = true;
+            return result;
+          }
           const id = workoutLedgerId(session.platformSessionId);
           const existing = await getLedgerItem(id);
           if (!existing) {
+            if (!isHealthSyncGenerationCurrent(generation)) {
+              result.signedOutMidPass = true;
+              return result;
+            }
             await saveLedgerItem(
               seedNeedsSync('workout', {
                 id,
@@ -308,14 +390,23 @@ export async function runHealthSyncPass(
             );
           }
           if (existing?.status === 'synced' && existing.remoteWorkoutId && !force) continue;
-          const status = await syncWorkoutSession(session, remotes, force);
+          const status = await syncWorkoutSession(session, remotes, force, generation);
           if (status === 'skipped') continue;
+          if (status === 'cancelled') {
+            result.signedOutMidPass = true;
+            return result;
+          }
           result.workoutsAttempted += 1;
           if (status === 'synced') result.workoutsSynced += 1;
           else if (status === 'pending') result.workoutsPending += 1;
           else result.workoutsFailed += 1;
         }
-        if (platform && result.workoutsFailed === 0 && result.workoutsPending === 0) {
+        if (
+          platform &&
+          result.workoutsFailed === 0 &&
+          result.workoutsPending === 0 &&
+          isHealthSyncGenerationCurrent(generation)
+        ) {
           await setWatermark('workout', passEndedAt, platform);
         }
       } catch (err) {
