@@ -55,11 +55,21 @@ export function goalsWebPath(): string {
   return '/profile/goals';
 }
 
+/**
+ * Formats a date-only / UTC-midnight value as the calendar day the athlete
+ * actually picked, regardless of local timezone offset (CW-180). Derives a
+ * calendar-stable local YMD key first (see `localDateKey`) and only then
+ * builds a local `Date` from those components — mirrors the pattern used in
+ * `mapEvents.ts` (`formatEventDateLabel`).
+ */
 function asDateLabel(value: unknown): string | null {
   if (value == null || value === '') return null;
-  const d = value instanceof Date ? value : new Date(String(value));
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString(undefined, {
+  const key = localDateKey(value instanceof Date ? value : String(value));
+  if (!key) return null;
+  const [y, m, d] = key.split('-').map(Number);
+  const local = new Date(y, m - 1, d);
+  if (Number.isNaN(local.getTime())) return null;
+  return local.toLocaleDateString(undefined, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
