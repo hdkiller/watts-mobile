@@ -127,14 +127,28 @@ async function requestWeekPreview(blockId: string, weekId: string): Promise<void
   }
 }
 
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+function delay(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new DOMException('Aborted', 'AbortError'));
+      return;
+    }
+    const timer = setTimeout(() => resolve(), ms);
+    signal?.addEventListener(
+      'abort',
+      () => {
+        clearTimeout(timer);
+        reject(new DOMException('Aborted', 'AbortError'));
+      },
+      { once: true },
+    );
+  });
 }
 
 /** Generate the draft's first real training week and poll until its workouts are persisted. */
 export async function generateFirstWeekPreview(
   initialized: PlanInitializeResult,
-  options: { timeoutMs?: number; pollMs?: number } = {},
+  options: { timeoutMs?: number; pollMs?: number; signal?: AbortSignal } = {},
 ): Promise<PlannedWorkoutPreview[]> {
   const existing = extractFirstWeekPreview(initialized);
   if (existing.length > 0) return existing;
@@ -151,7 +165,10 @@ export async function generateFirstWeekPreview(
   const pollMs = options.pollMs ?? 2_000;
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
-    await delay(pollMs);
+    if (options.signal?.aborted) {
+      throw new DOMException('Aborted', 'AbortError');
+    }
+    await delay(pollMs, options.signal);
     const refreshed = await fetchPlan(initialized.planId);
     const preview = extractFirstWeekPreview(refreshed);
     if (preview.length > 0) return preview;
@@ -236,6 +253,7 @@ export async function fetchPlanDetail(planId: string): Promise<ActivePlanApi> {
 export async function adaptPlan(
   planId: string,
   adaptationType: PlanAdaptationType,
+  options: JobPollOptions = {},
 ): Promise<{ jobId?: string }> {
   const response = await apiFetch('/api/plans/adapt', {
     method: 'POST',
@@ -251,7 +269,7 @@ export async function adaptPlan(
     );
   }
   const result = (await response.json()) as { jobId?: string };
-  if (result.jobId) await waitForPlanJob(result.jobId);
+  if (result.jobId) await waitForPlanJob(result.jobId, options);
   return result;
 }
 
@@ -388,6 +406,7 @@ export async function generateAiWeek(
   blockId: string,
   weekId: string,
   instructions?: string,
+  options: JobPollOptions = {},
 ): Promise<{ jobId?: string }> {
   const response = await apiFetch('/api/plans/generate-ai-week', {
     method: 'POST',
@@ -407,11 +426,14 @@ export async function generateAiWeek(
     );
   }
   const result = (await response.json()) as { jobId?: string };
-  if (result.jobId) await waitForPlanJob(result.jobId);
+  if (result.jobId) await waitForPlanJob(result.jobId, options);
   return result;
 }
 
-export async function generateTrainingBlock(blockId: string): Promise<{ jobId?: string }> {
+export async function generateTrainingBlock(
+  blockId: string,
+  options: JobPollOptions = {},
+): Promise<{ jobId?: string }> {
   const response = await apiFetch('/api/plans/generate-block', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -426,12 +448,13 @@ export async function generateTrainingBlock(blockId: string): Promise<{ jobId?: 
     );
   }
   const result = (await response.json()) as { jobId?: string };
-  if (result.jobId) await waitForPlanJob(result.jobId);
+  if (result.jobId) await waitForPlanJob(result.jobId, options);
   return result;
 }
 
 export async function generateWorkoutStructure(
   plannedWorkoutId: string,
+  options: JobPollOptions = {},
 ): Promise<{ jobId?: string }> {
   const response = await apiFetch(
     `/api/workouts/planned/${encodeURIComponent(plannedWorkoutId)}/generate-structure`,
@@ -447,7 +470,7 @@ export async function generateWorkoutStructure(
   }
   const result = (await response.json()) as { jobId?: string; taskId?: string };
   const jobId = result.jobId ?? result.taskId;
-  if (jobId) await waitForPlanJob(jobId);
+  if (jobId) await waitForPlanJob(jobId, options);
   return { jobId };
 }
 
@@ -455,6 +478,7 @@ export async function generateWorkoutStructure(
 export async function generateWeekStructures(
   plannedWorkoutIds: string[],
   onProgress?: (done: number, total: number) => void,
+  options: { signal?: AbortSignal } = {},
 ): Promise<{ succeeded: number; failed: number }> {
   const ids = plannedWorkoutIds.filter(Boolean);
   const total = ids.length;
@@ -466,8 +490,13 @@ export async function generateWeekStructures(
   let firstError: Error | null = null;
 
   for (let i = 0; i < ids.length; i += batchSize) {
+    if (options.signal?.aborted) {
+      throw new DOMException('Aborted', 'AbortError');
+    }
     const batch = ids.slice(i, i + batchSize);
-    const results = await Promise.allSettled(batch.map((id) => generateWorkoutStructure(id)));
+    const results = await Promise.allSettled(
+      batch.map((id) => generateWorkoutStructure(id, { signal: options.signal })),
+    );
     for (const result of results) {
       done += 1;
       onProgress?.(done, total);
