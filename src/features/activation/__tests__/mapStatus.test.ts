@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { activationStepRank, mapOnboardingStatus, wizardRequired } from '../mapStatus';
+import {
+  activationStepRank,
+  canDismissActivationError,
+  mapOnboardingStatus,
+  wizardRequired,
+} from '../mapStatus';
 import { ACTIVATION_STEP_HREF } from '../types';
 
 describe('mapOnboardingStatus', () => {
@@ -51,5 +56,34 @@ describe('activationStepRank', () => {
     expect(activationStepRank('consent')).toBeLessThan(activationStepRank('goal'));
     expect(activationStepRank('insight')).toBeLessThan(activationStepRank('connect'));
     expect(activationStepRank('index')).toBe(-1);
+  });
+});
+
+describe('canDismissActivationError', () => {
+  it('blocks when there is no cached status at all', () => {
+    expect(canDismissActivationError(undefined)).toBe(false);
+  });
+
+  it('blocks athletes still mid-wizard (not soft-activated, instance supports activation)', () => {
+    const status = mapOnboardingStatus({
+      mobileActivationStep: 'goal',
+      softActivated: false,
+      fullyActivated: false,
+    });
+    expect(canDismissActivationError(status)).toBe(false);
+  });
+
+  it('allows dismiss for soft-activated / connect-only athletes', () => {
+    const status = mapOnboardingStatus({
+      mobileActivationStep: 'connect',
+      softActivated: true,
+      fullyActivated: false,
+    });
+    expect(canDismissActivationError(status)).toBe(true);
+  });
+
+  it('allows dismiss for older instances that do not support activation', () => {
+    const status = mapOnboardingStatus({ hasUsableData: true });
+    expect(canDismissActivationError(status)).toBe(true);
   });
 });

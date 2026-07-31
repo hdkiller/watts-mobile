@@ -50,6 +50,18 @@ export function wizardRequired(status: ActivationStatus): boolean {
   return status.supportsActivation && !status.softActivated;
 }
 
+/**
+ * When the onboarding-status fetch errors, decide whether the athlete can dismiss
+ * the block and continue into the app using the last successfully cached status.
+ * Soft-activated (or connect-only / unsupported-instance) athletes already have a
+ * usable daily loop, so a transient refresh failure should not hard-block them —
+ * only athletes still mid-wizard need the gate to stay up.
+ */
+export function canDismissActivationError(status: ActivationStatus | undefined): boolean {
+  if (!status) return false;
+  return status.softActivated || !status.supportsActivation;
+}
+
 /** Wizard step order for comparing optimistic forward navigation vs server resume. */
 export function activationStepRank(step: string | undefined | null): number {
   if (!step) return -1;
