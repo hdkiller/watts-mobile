@@ -40,6 +40,32 @@ describe('validateAdHocForm', () => {
     ).toBe(false);
   });
 
+  it('rejects durations that round to zero minutes', () => {
+    const result = validateAdHocForm({
+      type: 'Run',
+      durationText: '0.4',
+      intensity: 'Tempo',
+      notes: '',
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toBe('Enter a duration of at least 1 minute.');
+    }
+  });
+
+  it('accepts a duration that rounds up to one minute', () => {
+    const result = validateAdHocForm({
+      type: 'Run',
+      durationText: '0.6',
+      intensity: 'Tempo',
+      notes: '',
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.payload.durationMinutes).toBe(1);
+    }
+  });
+
   it('trims notes', () => {
     const result = validateAdHocForm({
       type: 'Swim',

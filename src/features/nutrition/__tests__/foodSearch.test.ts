@@ -101,6 +101,26 @@ describe('Food Database API Client', () => {
     expect(notFound).toBeNull();
   });
 
+  it('lookupFoodBarcode returns null for a bare/empty 200 envelope instead of a fake item', async () => {
+    mockApiFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({ success: true }),
+    } as Response);
+
+    const bareEnvelope = await lookupFoodBarcode('11111111');
+    expect(bareEnvelope).toBeNull();
+
+    mockApiFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({}),
+    } as Response);
+
+    const emptyObject = await lookupFoodBarcode('22222222');
+    expect(emptyObject).toBeNull();
+  });
+
   describe('normalizeFoodItemResult', () => {
     it('normalizes Open Food Facts items with nutriments object', () => {
       const raw = {
