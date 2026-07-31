@@ -313,6 +313,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
         queryClient.setQueryData(chatMessagesQueryKey(targetId), loaded);
         const transformed = hydrateCoachMessages(loaded);
         const merged = mergeLoadedMessages(messagesRef.current, transformed);
+        messagesRef.current = merged;
         setMessagesRef.current(merged);
         if (
           transformed.some(
@@ -344,6 +345,7 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
         );
         if (cached && cached.length > 0 && (!targetSilent || messagesRef.current.length === 0)) {
           const transformed = hydrateCoachMessages(cached);
+          messagesRef.current = transformed;
           setMessagesRef.current(transformed);
           if (transformed.length > 0) setSeedUsed(true);
           setError(null);
@@ -531,14 +533,16 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
           data.turnId
         ) {
           setAwaitingTurnStart(false);
-          setMessagesRef.current(
-            applyAssistantTextDelta(messagesRef.current, {
+          {
+            const next = applyAssistantTextDelta(messagesRef.current, {
               messageId: data.messageId,
               turnId: data.turnId,
               textDelta: data.textDelta,
               status: data.status,
-            }),
-          );
+            });
+            messagesRef.current = next;
+            setMessagesRef.current(next);
+          }
           return;
         }
 
@@ -549,7 +553,11 @@ export function useCoachChat(options: UseCoachChatOptions = {}): UseCoachChatRes
           ) {
             setAwaitingTurnStart(false);
           }
-          setMessagesRef.current(upsertChatMessage(messagesRef.current, data.message));
+          {
+            const next = upsertChatMessage(messagesRef.current, data.message);
+            messagesRef.current = next;
+            setMessagesRef.current(next);
+          }
           if (
             data.message.role === 'assistant' &&
             isTerminalTurnStatus(data.message.metadata?.turnStatus)
