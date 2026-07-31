@@ -338,11 +338,7 @@ export async function runHealthSyncPass(
         else result.wellnessFailed += 1;
       }
       // Advance watermark only after a successful push so failures retry next pass.
-      if (
-        platform &&
-        result.wellnessFailed === 0 &&
-        isHealthSyncGenerationCurrent(generation)
-      ) {
+      if (platform && result.wellnessFailed === 0 && isHealthSyncGenerationCurrent(generation)) {
         await setWatermark('wellness', passEndedAt, platform);
       }
     } catch (err) {
