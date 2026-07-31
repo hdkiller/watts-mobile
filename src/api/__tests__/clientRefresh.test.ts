@@ -26,7 +26,13 @@ vi.mock('@/src/auth/tokenStorage', () => ({
   clearTokens: (...args: unknown[]) => mockClearTokens(...args),
 }));
 
-import { bumpAuthSessionGeneration, apiFetch, setAuthFailureHandler } from '../client';
+import {
+  bumpAuthSessionGeneration,
+  apiFetch,
+  fetchUserInfo,
+  setAuthFailureHandler,
+} from '../client';
+import { ApiError } from '../errors';
 import { resetAuthSessionGenerationForTests } from '@/src/auth/authSessionGeneration';
 
 describe('apiFetch token refresh error handling (CW-135)', () => {
@@ -138,5 +144,43 @@ describe('apiFetch token refresh error handling (CW-135)', () => {
     expect(response.status).toBe(401);
     expect(mockClearTokens).not.toHaveBeenCalled();
     expect(failureHandler).not.toHaveBeenCalled();
+  });
+});
+
+describe('fetchUserInfo error classification (CW-161)', () => {
+  const failureHandler = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    resetAuthSessionGenerationForTests();
+    setAuthFailureHandler(failureHandler);
+    mockLoadTokens.mockResolvedValue({
+      accessToken: 'valid-access-token',
+      refreshToken: 'valid-refresh-token',
+    });
+  });
+
+  it('throws an ApiError carrying the HTTP status on a definitive 401', async () => {
+    // Both the initial request and the refresh retry come back 401 (no refresh token
+    // rotation possible) — a genuine, definitive auth failure.
+    global.fetch = vi.fn().mockResolvedValue({ status: 401, ok: false } as Response);
+    mockLoadTokens.mockResolvedValue({
+      accessToken: 'valid-access-token',
+      refreshToken: undefined,
+    });
+
+    await expect(fetchUserInfo()).rejects.toMatchObject(new ApiError('userinfo failed (401)', 401));
+  });
+
+  it('throws an ApiError carrying the HTTP status on a 5xx server error', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ status: 503, ok: false } as Response);
+
+    await expect(fetchUserInfo()).rejects.toMatchObject(new ApiError('userinfo failed (503)', 503));
+  });
+
+  it('propagates a raw network error (no HTTP status available)', async () => {
+    global.fetch = vi.fn().mockRejectedValue(new TypeError('Network request failed'));
+
+    await expect(fetchUserInfo()).rejects.toBeInstanceOf(TypeError);
   });
 });

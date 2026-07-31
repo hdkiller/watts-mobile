@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { ApiError, friendlyError, isAuthTokenInvalidationError } from '../errors';
+import {
+  ApiError,
+  friendlyError,
+  isAuthTokenInvalidationError,
+  isReachabilityError,
+} from '../errors';
 
 describe('friendlyError', () => {
   it('maps 401/403 to session copy', () => {
@@ -89,5 +94,38 @@ describe('isAuthTokenInvalidationError', () => {
     expect(isAuthTokenInvalidationError(new ApiError('Rate limit', 429))).toBe(false);
     expect(isAuthTokenInvalidationError(null)).toBe(false);
     expect(isAuthTokenInvalidationError(undefined)).toBe(false);
+  });
+});
+
+describe('isReachabilityError (CW-161)', () => {
+  it('returns true for network/connectivity failures', () => {
+    expect(isReachabilityError(new TypeError('Network request failed'))).toBe(true);
+    expect(isReachabilityError(new Error('failed to fetch'))).toBe(true);
+    expect(isReachabilityError(new Error('network error'))).toBe(true);
+  });
+
+  it('returns true for timeouts', () => {
+    const abort = new Error('The operation was aborted');
+    abort.name = 'AbortError';
+    expect(isReachabilityError(abort)).toBe(true);
+    expect(isReachabilityError(new Error('Request timed out'))).toBe(true);
+  });
+
+  it('returns true for HTTP 5xx errors', () => {
+    expect(isReachabilityError(new ApiError('userinfo failed (500)', 500))).toBe(true);
+    expect(isReachabilityError(new ApiError('userinfo failed (502)', 502))).toBe(true);
+    expect(isReachabilityError({ status: 503 })).toBe(true);
+  });
+
+  it('returns false for definitive auth failures (401/403)', () => {
+    expect(isReachabilityError(new ApiError('userinfo failed (401)', 401))).toBe(false);
+    expect(isReachabilityError(new ApiError('userinfo failed (403)', 403))).toBe(false);
+  });
+
+  it('returns false for other 4xx and unclassified errors', () => {
+    expect(isReachabilityError(new ApiError('Not found', 404))).toBe(false);
+    expect(isReachabilityError(new Error('weird parse failure'))).toBe(false);
+    expect(isReachabilityError(null)).toBe(false);
+    expect(isReachabilityError(undefined)).toBe(false);
   });
 });
