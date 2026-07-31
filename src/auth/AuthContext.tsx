@@ -213,7 +213,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuthFailureHandler(() => {
       setUser(null);
       setStatus((current) => (current === 'needs_instance' ? current : 'needs_login'));
-      void queryClient.clear();
+      queryClient.clear();
+      void clearPersistedQueryCache();
       void clearHealthSyncForIdentityTransition();
       void import('@/src/features/activation/connectLater')
         .then(({ clearConnectLater }) => clearConnectLater())
@@ -285,6 +286,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await clearTokens();
     setUser(null);
     queryClient.clear();
+    await clearPersistedQueryCache();
     setStatus(instanceUrl ? 'needs_login' : 'needs_instance');
   }, [instanceUrl]);
 
