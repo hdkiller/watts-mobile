@@ -23,10 +23,37 @@ export function toLocalDateTimeValue(date: Date): string {
   return `${y}-${m}-${d}T${h}:${min}`;
 }
 
-export function fromLocalDateTimeValue(value: string): Date {
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return new Date();
-  return parsed;
+const LOCAL_DATETIME_RE = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/;
+
+/**
+ * Strictly parses a `YYYY-MM-DDTHH:mm` local datetime string.
+ *
+ * Returns `null` on malformed input or a calendar-invalid date (e.g.
+ * `2026-02-30T10:00`, `2026-13-01T00:00`) instead of silently falling back to
+ * "now" — callers must surface a validation error rather than save a wrong
+ * timestamp.
+ */
+export function fromLocalDateTimeValue(value: string): Date | null {
+  const match = LOCAL_DATETIME_RE.exec(value.trim());
+  if (!match) return null;
+  const [, yStr, mStr, dStr, hStr, minStr] = match;
+  const year = Number(yStr);
+  const month = Number(mStr);
+  const day = Number(dStr);
+  const hour = Number(hStr);
+  const minute = Number(minStr);
+  const date = new Date(year, month - 1, day, hour, minute, 0, 0);
+  const isValid =
+    date.getFullYear() === year &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day &&
+    date.getHours() === hour &&
+    date.getMinutes() === minute;
+  return isValid ? date : null;
+}
+
+export function isLocalTimestampValid(value: string): boolean {
+  return fromLocalDateTimeValue(value) !== null;
 }
 
 function setLocalTime(base: Date, hour: number, minute: number): Date {
@@ -81,8 +108,12 @@ export function clampDescription(description: string): string {
 export function toJourneyPayload(values: RecoveryEventFormValues): JourneyEventPayload {
   const option = optionById(values.optionId);
   const description = clampDescription(values.description);
+  const timestamp = fromLocalDateTimeValue(values.localTimestamp);
+  if (!timestamp) {
+    throw new Error('Invalid recovery event timestamp');
+  }
   const payload: JourneyEventPayload = {
-    timestamp: fromLocalDateTimeValue(values.localTimestamp).toISOString(),
+    timestamp: timestamp.toISOString(),
     eventType: option.eventType,
     category: option.category,
     severity: severityValueFromPreset(values.severityPreset),

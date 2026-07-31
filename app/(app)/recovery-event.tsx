@@ -25,6 +25,7 @@ import {
   eventTypeBadgeLabel,
   formFromRecoveryItem,
   isDescriptionValid,
+  isLocalTimestampValid,
   toJourneyPayload,
 } from '@/src/features/recovery/mapRecovery';
 import {
@@ -166,7 +167,10 @@ export default function RecoveryEventScreen() {
 
   const selectedOption = optionById(values.optionId);
   const pending = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
-  const canSave = isDescriptionValid(values.description) && !pending;
+  const canSave =
+    isDescriptionValid(values.description) &&
+    isLocalTimestampValid(values.localTimestamp) &&
+    !pending;
 
   const patch = <K extends keyof RecoveryEventFormValues>(
     key: K,
@@ -203,6 +207,10 @@ export default function RecoveryEventScreen() {
   const onSave = async () => {
     if (!isDescriptionValid(values.description)) {
       setError(`Notes must be ${DESCRIPTION_MAX} characters or fewer.`);
+      return;
+    }
+    if (!isLocalTimestampValid(values.localTimestamp)) {
+      setError('Enter a valid date and time (YYYY-MM-DDTHH:mm).');
       return;
     }
     setError(null);
