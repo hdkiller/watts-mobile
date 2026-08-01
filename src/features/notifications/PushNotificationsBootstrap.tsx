@@ -1,14 +1,33 @@
 import { useQueryClient } from '@tanstack/react-query';
 import * as Notifications from 'expo-notifications';
 import { router, type Href } from 'expo-router';
-import { useEffect, useRef } from 'react';
-import { Platform } from 'react-native';
+import { useCallback, useEffect, useRef } from 'react';
+import { AppState, Platform, type AppStateStatus } from 'react-native';
 
 import { useAuth } from '@/src/auth/AuthContext';
 
 import { invalidateQueriesForPush } from './invalidateFromPush';
 import { registerPushForAuthenticatedSession } from './pushRegistration';
 import { pushDataFromNotificationContent, resolvePushOpen } from './resolvePushOpen';
+
+function captureRegistrationFailure(error: string) {
+  try {
+    // Lazy require so builds without Sentry stay lightweight (matches src/sentry.ts).
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Sentry = require('@sentry/react-native') as typeof import('@sentry/react-native');
+    Sentry.captureException(new Error(`Push device registration failed: ${error}`), {
+      tags: {
+        feature: 'push_notifications',
+        platform: Platform.OS,
+      },
+      extra: {
+        error,
+      },
+    });
+  } catch {
+    // Sentry unavailable — ignore.
+  }
+}
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -36,21 +55,47 @@ export function PushNotificationsBootstrap() {
   const { status } = useAuth();
   const queryClient = useQueryClient();
   const handledResponseIds = useRef(new Set<string>());
+  const lastRegistrationStateRef = useRef<'failed' | 'succeeded' | null>(null);
+  const registrationInFlightRef = useRef(false);
+
+  const attemptPushRegistration = useCallback((cancelledRef: { current: boolean }) => {
+    if (registrationInFlightRef.current) return;
+    registrationInFlightRef.current = true;
+    void (async () => {
+      try {
+        const result = await registerPushForAuthenticatedSession();
+        if (cancelledRef.current) return;
+        if (result.state === 'failed') {
+          console.warn('Push device registration failed:', result.error);
+          captureRegistrationFailure(result.error);
+          lastRegistrationStateRef.current = 'failed';
+        } else {
+          lastRegistrationStateRef.current = 'succeeded';
+        }
+      } finally {
+        registrationInFlightRef.current = false;
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     if (status !== 'authenticated' || Platform.OS === 'web') {
       return;
     }
 
-    let cancelled = false;
+    const cancelledRef = { current: false };
 
-    void (async () => {
-      const result = await registerPushForAuthenticatedSession();
-      if (cancelled) return;
-      if (result.state === 'failed') {
-        console.warn('Push device registration failed:', result.error);
-      }
-    })();
+    // Attempt registration on this auth transition / app launch.
+    attemptPushRegistration(cancelledRef);
+
+    // Retry on subsequent foregrounds until it succeeds — registration can
+    // fail transiently (network, backend outage) and should not require a
+    // fresh auth transition to recover.
+    const appStateSub = AppState.addEventListener('change', (next: AppStateStatus) => {
+      if (next !== 'active') return;
+      if (lastRegistrationStateRef.current === 'succeeded') return;
+      attemptPushRegistration(cancelledRef);
+    });
 
     const receivedSub = Notifications.addNotificationReceivedListener((notification) => {
       void invalidateQueriesForPush(
@@ -69,7 +114,7 @@ export function PushNotificationsBootstrap() {
     });
 
     void Notifications.getLastNotificationResponseAsync().then((response) => {
-      if (!response || cancelled) return;
+      if (!response || cancelledRef.current) return;
       const responseId = response.notification.request.identifier;
       if (handledResponseIds.current.has(responseId)) return;
       handledResponseIds.current.add(responseId);
@@ -78,11 +123,12 @@ export function PushNotificationsBootstrap() {
     });
 
     return () => {
-      cancelled = true;
+      cancelledRef.current = true;
+      appStateSub.remove();
       receivedSub.remove();
       responseSub.remove();
     };
-  }, [status, queryClient]);
+  }, [status, queryClient, attemptPushRegistration]);
 
   return null;
 }
