@@ -68,9 +68,11 @@ function NotificationRow({
         </Text>
         {!item.read ? <View className="mt-1.5 h-2 w-2 rounded-full bg-brand" /> : null}
       </View>
-      <Text className="mt-1.5 text-sm text-text-muted" numberOfLines={3}>
-        {item.body}
-      </Text>
+      {item.body ? (
+        <Text className="mt-1.5 text-sm text-text-muted" numberOfLines={3}>
+          {item.body}
+        </Text>
+      ) : null}
       {formattedTime ? <Text className="mt-2 text-xs text-text-muted">{formattedTime}</Text> : null}
     </Pressable>
   );

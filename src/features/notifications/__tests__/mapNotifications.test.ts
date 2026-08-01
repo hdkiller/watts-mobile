@@ -40,9 +40,39 @@ describe('mapNotificationItem', () => {
     ).toMatchObject({ body: 'Sync finished', read: true, link: null });
   });
 
-  it('returns null for incomplete rows', () => {
-    expect(mapNotificationItem({ id: 'x', title: 'Nope' })).toBeNull();
+  it('returns null only when the id is unusable', () => {
     expect(mapNotificationItem(null)).toBeNull();
+    expect(mapNotificationItem({ title: 'No id' })).toBeNull();
+    expect(mapNotificationItem({ id: '', title: 'Blank id' })).toBeNull();
+  });
+
+  it('degrades gracefully instead of dropping rows with missing fields (CW-300)', () => {
+    // An unread row the server counts must never vanish from the list.
+    expect(mapNotificationItem({ id: 'x', title: 'Nope' })).toEqual({
+      id: 'x',
+      title: 'Nope',
+      body: '',
+      read: false,
+      createdAt: '',
+      link: null,
+    });
+    expect(mapNotificationItem({ id: 'y', message: '', read: false })).toMatchObject({
+      id: 'y',
+      title: 'Notification',
+      body: '',
+    });
+  });
+
+  it('keeps unread rows with empty message in the list so badge and inbox agree (CW-300)', () => {
+    const inbox = mapNotificationsList({
+      notifications: [
+        { id: 'a', title: 'One', message: '', read: false, createdAt: '2026-07-19T10:00:00.000Z' },
+        { id: 'b', title: '', message: '', read: false, createdAt: '' },
+      ],
+      unreadCount: 2,
+    });
+    expect(inbox.items).toHaveLength(2);
+    expect(inbox.unreadCount).toBe(2);
   });
 });
 
