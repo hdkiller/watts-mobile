@@ -2,6 +2,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { RefreshControl, ScrollView, Text, View } from 'react-native';
+import { ScrollViewMarker } from 'react-native-screens/experimental';
 
 import { AnimatedPressable } from '@/src/components/AnimatedPressable';
 import { OfflineBanner } from '@/src/components/OfflineBanner';
@@ -91,29 +92,33 @@ export default function PlanTabScreen() {
     <View testID="plan-screen" className="flex-1 bg-surface">
       <OfflineBanner visible={showCachedOffline} lastUpdatedLabel={lastUpdatedLabel} />
       <PlanModeSegment mode={mode} onChange={setMode} />
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ paddingBottom: tabBottomPad }}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => void refetchAll()} />
-        }
-      >
-        {mode === 'training' ? (
-          <PlanTrainingSegment
-            shell={plan.data?.shell ?? null}
-            loading={plan.isLoading}
-            error={plan.isError ? plan.error : null}
-            onRetry={() => void plan.refetch()}
-            hasUsableData={hasUsableData}
-            onOpenNutrition={() => {
-              hapticLight();
-              setMode('nutrition');
-            }}
-          />
-        ) : (
-          <PlanNutritionSegment />
-        )}
-      </ScrollView>
+      {/* Marks the content ScrollView so the native tab bar's minimize/restore
+          tracking (NativeTabs minimizeBehavior) can find it. */}
+      <ScrollViewMarker style={{ flex: 1 }}>
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ paddingBottom: tabBottomPad }}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={() => void refetchAll()} />
+          }
+        >
+          {mode === 'training' ? (
+            <PlanTrainingSegment
+              shell={plan.data?.shell ?? null}
+              loading={plan.isLoading}
+              error={plan.isError ? plan.error : null}
+              onRetry={() => void plan.refetch()}
+              hasUsableData={hasUsableData}
+              onOpenNutrition={() => {
+                hapticLight();
+                setMode('nutrition');
+              }}
+            />
+          ) : (
+            <PlanNutritionSegment />
+          )}
+        </ScrollView>
+      </ScrollViewMarker>
     </View>
   );
 }

@@ -6,7 +6,7 @@ import type { SFSymbol } from 'expo-symbols';
 import * as WebBrowser from 'expo-web-browser';
 import { useState, type ReactNode } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-screens/experimental';
+import { ScrollViewMarker, SafeAreaView } from 'react-native-screens/experimental';
 
 import { useAuth } from '@/src/auth/AuthContext';
 import { AppSymbol } from '@/src/components/AppSymbol';
@@ -229,166 +229,170 @@ export default function MoreScreen() {
       edges={{ top: true }}
       style={{ flex: 1, backgroundColor: theme.surface }}
     >
-      <ScrollView
-        className="flex-1 bg-surface"
-        contentContainerClassName="px-6 pt-4"
-        contentContainerStyle={{ paddingBottom: tabBottomPad }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => void onRefresh()}
-            tintColor={theme.brandOnSurface}
-          />
-        }
-      >
-        <Text className="text-2xl font-semibold text-text-primary">More</Text>
-
-        {/* Interactive Profile Header Card */}
-        <Pressable
-          testID="more-athlete-profile"
-          accessibilityRole="button"
-          accessibilityLabel="Athlete profile"
-          className="mt-6 flex-row items-center rounded-xl border border-border bg-card p-4 active:opacity-80"
-          onPress={() => router.push(APP_HREFS.athlete as Href)}
+      {/* Marks the content ScrollView so the native tab bar's minimize/restore
+          tracking (NativeTabs minimizeBehavior) can find it. */}
+      <ScrollViewMarker style={{ flex: 1 }}>
+        <ScrollView
+          className="flex-1 bg-surface"
+          contentContainerClassName="px-6 pt-4"
+          contentContainerStyle={{ paddingBottom: tabBottomPad }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => void onRefresh()}
+              tintColor={theme.brandOnSurface}
+            />
+          }
         >
-          <AthleteAvatar name={user?.name} />
-          <View className="ml-3.5 min-w-0 flex-1">
-            <Text className="text-lg font-semibold text-text-primary" numberOfLines={1}>
-              {user?.name || user?.email || 'Athlete'}
-            </Text>
-            {user?.email ? (
-              <Text className="mt-0.5 text-sm text-text-muted" numberOfLines={1}>
-                {user.email}
+          <Text className="text-2xl font-semibold text-text-primary">More</Text>
+
+          {/* Interactive Profile Header Card */}
+          <Pressable
+            testID="more-athlete-profile"
+            accessibilityRole="button"
+            accessibilityLabel="Athlete profile"
+            className="mt-6 flex-row items-center rounded-xl border border-border bg-card p-4 active:opacity-80"
+            onPress={() => router.push(APP_HREFS.athlete as Href)}
+          >
+            <AthleteAvatar name={user?.name} />
+            <View className="ml-3.5 min-w-0 flex-1">
+              <Text className="text-lg font-semibold text-text-primary" numberOfLines={1}>
+                {user?.name || user?.email || 'Athlete'}
               </Text>
-            ) : null}
-            <Text className="mt-1 text-xs font-medium text-brand">
-              Body metrics, AI profile & goal ›
-            </Text>
-          </View>
-          <View className="ml-2">
-            <Chevron />
-          </View>
-        </Pressable>
+              {user?.email ? (
+                <Text className="mt-0.5 text-sm text-text-muted" numberOfLines={1}>
+                  {user.email}
+                </Text>
+              ) : null}
+              <Text className="mt-1 text-xs font-medium text-brand">
+                Body metrics, AI profile & goal ›
+              </Text>
+            </View>
+            <View className="ml-2">
+              <Chevron />
+            </View>
+          </Pressable>
 
-        <Section title="Your training">
-          <MenuRow
-            title="Activity history"
-            detail="Completed workouts & analysis"
-            sf="list.bullet"
-            onPress={() => router.push(APP_HREFS.activityList as Href)}
-          />
-          <MenuRow
-            title="Upcoming workouts"
-            detail="Scheduled sessions"
-            sf="calendar"
-            onPress={() => router.push(APP_HREFS.upcoming as Href)}
-          />
-          <MenuRow
-            title="Events"
-            detail="Races & life events"
-            sf="calendar.badge.clock"
-            onPress={() => router.push(APP_HREFS.eventsList as Href)}
-          />
-          <MenuRow
-            title="Goals"
-            detail="What you’re training for"
-            sf="flag"
-            onPress={() => router.push(APP_HREFS.goalsList as Href)}
-            isLast
-          />
-        </Section>
-
-        <Section title="Account">
-          <MenuRow
-            testID="more-settings"
-            title="Settings"
-            detail="Preferences, integrations & coach"
-            sf="gearshape"
-            onPress={() => router.push('/(app)/(tabs)/more/settings' as Href)}
-          />
-          <MenuRow
-            title="Notifications"
-            detail={notificationsRowDetail(unreadCount)}
-            sf="bell"
-            onPress={() => router.push('/(app)/(tabs)/more/notifications' as Href)}
-          />
-          <MenuRow
-            testID="more-subscription"
-            title="Subscription"
-            detail={subscriptionRowDetail(subscriptionQuery.data, {
-              isLoading: subscriptionQuery.isLoading,
-              isError: subscriptionQuery.isError,
-            })}
-            sf="creditcard"
-            onPress={() => router.push(APP_HREFS.settingsSubscription as Href)}
-            isLast={!showInviteFriends}
-          />
-          {showInviteFriends ? (
+          <Section title="Your training">
             <MenuRow
-              testID="more-invite-friends"
-              title="Invite a friend"
-              detail={inviteRowDetail(referralQuery.data?.stats.attributedCount)}
-              sf="qrcode"
-              onPress={() => router.push(APP_HREFS.invite as Href)}
+              title="Activity history"
+              detail="Completed workouts & analysis"
+              sf="list.bullet"
+              onPress={() => router.push(APP_HREFS.activityList as Href)}
+            />
+            <MenuRow
+              title="Upcoming workouts"
+              detail="Scheduled sessions"
+              sf="calendar"
+              onPress={() => router.push(APP_HREFS.upcoming as Href)}
+            />
+            <MenuRow
+              title="Events"
+              detail="Races & life events"
+              sf="calendar.badge.clock"
+              onPress={() => router.push(APP_HREFS.eventsList as Href)}
+            />
+            <MenuRow
+              title="Goals"
+              detail="What you’re training for"
+              sf="flag"
+              onPress={() => router.push(APP_HREFS.goalsList as Href)}
               isLast
             />
-          ) : null}
-        </Section>
+          </Section>
 
-        <Section title="Help">
-          <MenuRow
-            title="Help center"
-            detail="Docs, tickets & community"
-            sf="questionmark.circle"
-            onPress={() => void openInstanceWeb(instanceUrl, helpCenterWebPath())}
-            isExternal
-          />
-          {SUPPORT_URL ? (
+          <Section title="Account">
             <MenuRow
-              title="Contact support"
-              sf="envelope"
-              onPress={() => void openExternal(SUPPORT_URL)}
+              testID="more-settings"
+              title="Settings"
+              detail="Preferences, integrations & coach"
+              sf="gearshape"
+              onPress={() => router.push('/(app)/(tabs)/more/settings' as Href)}
+            />
+            <MenuRow
+              title="Notifications"
+              detail={notificationsRowDetail(unreadCount)}
+              sf="bell"
+              onPress={() => router.push('/(app)/(tabs)/more/notifications' as Href)}
+            />
+            <MenuRow
+              testID="more-subscription"
+              title="Subscription"
+              detail={subscriptionRowDetail(subscriptionQuery.data, {
+                isLoading: subscriptionQuery.isLoading,
+                isError: subscriptionQuery.isError,
+              })}
+              sf="creditcard"
+              onPress={() => router.push(APP_HREFS.settingsSubscription as Href)}
+              isLast={!showInviteFriends}
+            />
+            {showInviteFriends ? (
+              <MenuRow
+                testID="more-invite-friends"
+                title="Invite a friend"
+                detail={inviteRowDetail(referralQuery.data?.stats.attributedCount)}
+                sf="qrcode"
+                onPress={() => router.push(APP_HREFS.invite as Href)}
+                isLast
+              />
+            ) : null}
+          </Section>
+
+          <Section title="Help">
+            <MenuRow
+              title="Help center"
+              detail="Docs, tickets & community"
+              sf="questionmark.circle"
+              onPress={() => void openInstanceWeb(instanceUrl, helpCenterWebPath())}
               isExternal
             />
-          ) : null}
-          <MenuRow
-            title="Open on the web"
-            detail="Full control room & deep tools"
-            sf="globe"
-            onPress={() => void openWeb()}
-            isExternal
-            isLast
-          />
-        </Section>
-
-        {aboutRows.length > 0 ? (
-          <Section title="About">
-            {aboutRows.map((row, index) => (
+            {SUPPORT_URL ? (
               <MenuRow
-                key={row.key}
-                title={row.title}
-                sf={row.sf}
-                onPress={row.onPress}
+                title="Contact support"
+                sf="envelope"
+                onPress={() => void openExternal(SUPPORT_URL)}
                 isExternal
-                isLast={index === aboutRows.length - 1}
               />
-            ))}
+            ) : null}
+            <MenuRow
+              title="Open on the web"
+              detail="Full control room & deep tools"
+              sf="globe"
+              onPress={() => void openWeb()}
+              isExternal
+              isLast
+            />
           </Section>
-        ) : null}
 
-        <View className="mt-8 overflow-hidden rounded-xl border border-border bg-card">
-          <MenuRow
-            title="Sign out"
-            detail={busy ? 'Signing out…' : 'Disconnect this device'}
-            sf="rectangle.portrait.and.arrow.right"
-            onPress={() => void onSignOut()}
-            isDestructive
-            isLast
-          />
-        </View>
+          {aboutRows.length > 0 ? (
+            <Section title="About">
+              {aboutRows.map((row, index) => (
+                <MenuRow
+                  key={row.key}
+                  title={row.title}
+                  sf={row.sf}
+                  onPress={row.onPress}
+                  isExternal
+                  isLast={index === aboutRows.length - 1}
+                />
+              ))}
+            </Section>
+          ) : null}
 
-        <Text className="mt-8 text-center text-sm text-text-muted">{appVersionLabel()}</Text>
-      </ScrollView>
+          <View className="mt-8 overflow-hidden rounded-xl border border-border bg-card">
+            <MenuRow
+              title="Sign out"
+              detail={busy ? 'Signing out…' : 'Disconnect this device'}
+              sf="rectangle.portrait.and.arrow.right"
+              onPress={() => void onSignOut()}
+              isDestructive
+              isLast
+            />
+          </View>
+
+          <Text className="mt-8 text-center text-sm text-text-muted">{appVersionLabel()}</Text>
+        </ScrollView>
+      </ScrollViewMarker>
     </SafeAreaView>
   );
 }
