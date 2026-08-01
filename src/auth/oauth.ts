@@ -70,6 +70,11 @@ export async function loginWithPkce(instanceBaseUrl: string): Promise<StoredToke
   });
 
   // Keep cookies so the user can complete Coach Watts (Google) login inside the auth session.
+  //
+  // Theming only reaches Android here: it has no native ASWebAuthenticationSession
+  // equivalent, so expo-web-browser falls back to Chrome Custom Tabs and honors
+  // toolbarColor/showTitle. iOS's ASWebAuthenticationSession chrome is deliberately
+  // non-themeable by Apple (anti-spoofing) — these options are silently ignored there.
   const result = await request.promptAsync(
     {
       authorizationEndpoint: `${instanceBaseUrl}/api/oauth/authorize`,
@@ -77,6 +82,10 @@ export async function loginWithPkce(instanceBaseUrl: string): Promise<StoredToke
     {
       preferEphemeralSession: false,
       showInRecents: true,
+      toolbarColor: '#09090b',
+      secondaryToolbarColor: '#09090b',
+      showTitle: false,
+      enableDefaultShareMenuItem: false,
     },
   );
 
