@@ -1,0 +1,14 @@
+# Notifications: open the inbox directly from More (not via the unread badge),
+# verify the header back button returns to More.
+appId: com.coachwatts.app
+---
+- runFlow: ../subflows/tap-tab-more.yaml
+- tapOn: "Notifications"
+- extendedWaitUntil:
+    visible: "Back"
+    timeout: 15000
+- tapOn: "Back"
+- extendedWaitUntil:
+    visible:
+      id: more-screen
+    timeout: 15000

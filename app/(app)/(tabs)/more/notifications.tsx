@@ -27,9 +27,14 @@ function goBackToMore() {
   router.replace('/(app)/(tabs)/more' as Href);
 }
 
-function openNotificationLink(link: string | null) {
-  if (!link) return;
-  const resolved = resolvePushOpen({ path: link });
+// Mirrors the field set PushNotificationsBootstrap forwards to `resolvePushOpen` for a live
+// push (path/url/type) so an inbox row resolves the same way a live push would — including the
+// type-based fallback used when a notification has no explicit link. `type` is typed as optional
+// here because the current `/api/notifications` payload (see InboxNotification in
+// src/features/notifications/types.ts) doesn't surface it yet; once the backend adds it, no
+// further change is needed here.
+function openNotificationLink(item: Pick<InboxNotification, 'link'> & { type?: string | null }) {
+  const resolved = resolvePushOpen({ path: item.link, url: item.link, type: item.type ?? null });
   if (resolved.kind === 'app') {
     router.push(resolved.href as Href);
   }
@@ -47,6 +52,7 @@ function NotificationRow({
     : item.read
       ? 'font-medium text-text-body'
       : 'font-semibold text-text-primary';
+  const formattedTime = formatNotificationTime(item.createdAt);
 
   return (
     <Pressable
@@ -64,11 +70,7 @@ function NotificationRow({
       <Text className="mt-1.5 text-sm text-text-muted" numberOfLines={3}>
         {item.body}
       </Text>
-      {formatNotificationTime(item.createdAt) ? (
-        <Text className="mt-2 text-xs text-text-muted">
-          {formatNotificationTime(item.createdAt)}
-        </Text>
-      ) : null}
+      {formattedTime ? <Text className="mt-2 text-xs text-text-muted">{formattedTime}</Text> : null}
     </Pressable>
   );
 }
@@ -96,7 +98,7 @@ export default function NotificationsScreen() {
     if (!item.read) {
       markOne.mutate(item.id);
     }
-    openNotificationLink(item.link);
+    openNotificationLink(item);
   };
 
   return (

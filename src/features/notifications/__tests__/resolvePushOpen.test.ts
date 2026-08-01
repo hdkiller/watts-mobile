@@ -60,4 +60,14 @@ describe('resolvePushOpen', () => {
     expect(resolvePushOpen({}).kind).toBe('unknown');
     expect(resolvePushOpen(null).kind).toBe('unknown');
   });
+
+  it('resolves an inbox row whose only routing signal is type (no link/path/url)', () => {
+    // Mirrors the shape `openNotificationLink` in app/(app)/(tabs)/more/notifications.tsx
+    // builds from an inbox item with a null `link` but a `type` — the case that previously
+    // short-circuited before ever calling resolvePushOpen.
+    expect(resolvePushOpen({ path: null, url: null, type: 'RECOMMENDATION_READY' })).toMatchObject({
+      kind: 'app',
+      href: APP_HREFS.today,
+    });
+  });
 });
