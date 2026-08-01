@@ -1,0 +1,42 @@
+# Settings: header back button returns to More (CW-282 regression coverage),
+# then Appearance sub-screen theme switching (System/Light/Dark).
+appId: com.coachwatts.app
+---
+- runFlow: ../subflows/tap-tab-more.yaml
+- scrollUntilVisible:
+    element:
+      id: more-settings
+    direction: DOWN
+    timeout: 15000
+- tapOn:
+    id: more-settings
+- extendedWaitUntil:
+    visible:
+      id: settings-screen
+    timeout: 15000
+- tapOn: "Back"
+- extendedWaitUntil:
+    visible:
+      id: more-screen
+    timeout: 15000
+- scrollUntilVisible:
+    element:
+      id: more-settings
+    direction: DOWN
+    timeout: 15000
+- tapOn:
+    id: more-settings
+- extendedWaitUntil:
+    visible:
+      id: settings-screen
+    timeout: 15000
+- tapOn: "Appearance"
+- extendedWaitUntil:
+    visible: "Current:"
+    timeout: 15000
+- tapOn: "Light"
+- assertVisible: "Current: Light"
+- tapOn: "Dark"
+- assertVisible: "Current: Dark"
+- tapOn: "System"
+- assertVisible: "Current: System"
