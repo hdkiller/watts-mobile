@@ -1246,68 +1246,53 @@ export function LogMealSheet({
                 />
               </View>
 
-              {/* Mode Selector Tabs */}
+              {/* Mode Selector Tabs — operation icons keep the modes visually distinct
+                  from the rest of the sheet (tester feedback, CW-298). */}
               <View className="mb-4 flex-row rounded-xl border border-border bg-card p-1">
-                <Pressable
-                  accessibilityRole="tab"
-                  accessibilityState={{ selected: composeTab === 'quick' }}
-                  onPress={() => {
-                    hapticLight();
-                    setComposeTab('quick');
-                  }}
-                  className={`flex-1 items-center rounded-lg py-2 ${
-                    composeTab === 'quick' ? 'border border-border bg-surface' : ''
-                  }`}
-                >
-                  <Text
-                    className={`text-xs font-semibold ${
-                      composeTab === 'quick' ? 'text-text-primary' : 'text-text-muted'
-                    }`}
-                  >
-                    Quick Log
-                  </Text>
-                </Pressable>
-
-                <Pressable
-                  testID="log-meal-search-tab"
-                  accessibilityRole="tab"
-                  accessibilityState={{ selected: composeTab === 'search' }}
-                  onPress={() => {
-                    hapticLight();
-                    setComposeTab('search');
-                  }}
-                  className={`flex-1 items-center rounded-lg py-2 ${
-                    composeTab === 'search' ? 'border border-border bg-surface' : ''
-                  }`}
-                >
-                  <Text
-                    className={`text-xs font-semibold ${
-                      composeTab === 'search' ? 'text-text-primary' : 'text-text-muted'
-                    }`}
-                  >
-                    Search Food
-                  </Text>
-                </Pressable>
-
-                <Pressable
-                  accessibilityRole="tab"
-                  accessibilityState={{ selected: composeTab === 'photo' }}
-                  onPress={() => {
-                    hapticLight();
-                    setComposeTab('photo');
-                  }}
-                  className={`flex-1 items-center rounded-lg py-2 ${
-                    composeTab === 'photo' ? 'border border-border bg-surface' : ''
-                  }`}
-                >
-                  <Text
-                    className={`text-xs font-semibold ${
-                      composeTab === 'photo' ? 'text-text-primary' : 'text-text-muted'
-                    }`}
-                  >
-                    Photo Log
-                  </Text>
-                </Pressable>
+                {(
+                  [
+                    { tab: 'quick', label: 'Quick Log', sf: 'square.and.pencil', fallback: '✏️' },
+                    {
+                      tab: 'search',
+                      label: 'Search Food',
+                      sf: 'magnifyingglass',
+                      fallback: '🔍',
+                      testID: 'log-meal-search-tab',
+                    },
+                    { tab: 'photo', label: 'Photo Log', sf: 'camera.fill', fallback: '📷' },
+                  ] as const
+                ).map(({ tab, label, sf, fallback, ...rest }) => {
+                  const selected = composeTab === tab;
+                  return (
+                    <Pressable
+                      key={tab}
+                      {...('testID' in rest ? { testID: rest.testID } : {})}
+                      accessibilityRole="tab"
+                      accessibilityState={{ selected }}
+                      onPress={() => {
+                        hapticLight();
+                        setComposeTab(tab);
+                      }}
+                      className={`flex-1 flex-row items-center justify-center gap-1.5 rounded-lg py-2.5 ${
+                        selected ? 'border border-brand/40 bg-surface' : ''
+                      }`}
+                    >
+                      <AppSymbol
+                        sf={sf}
+                        size={14}
+                        tintColor={selected ? theme.brandOnSurface : theme.textMuted}
+                        fallback={fallback}
+                      />
+                      <Text
+                        className={`text-xs font-semibold ${
+                          selected ? 'text-text-primary' : 'text-text-muted'
+                        }`}
+                      >
+                        {label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
               </View>
 
               {composeTab === 'search' ? (
