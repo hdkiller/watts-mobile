@@ -15,7 +15,7 @@ import {
 import { fetchUserInfo, setAuthFailureHandler, type UserInfo } from '@/src/api/client';
 import { friendlyError, isReachabilityError } from '@/src/api/errors';
 import { bumpAuthSessionGeneration } from '@/src/auth/authSessionGeneration';
-import { applyE2eAuthSeed, applyPendingE2eLogin } from '@/src/auth/e2eAuth';
+import { applyE2eAuthSeed, applyPendingE2eLogin, isE2eAuthEnabled } from '@/src/auth/e2eAuth';
 import { parseE2eLoginDeepLink } from '@/src/auth/e2eLoginDeepLink';
 import { loginWithPkce } from '@/src/auth/oauth';
 import { loadPendingE2eLogin, setPendingE2eLogin } from '@/src/auth/pendingE2eLogin';
@@ -42,6 +42,15 @@ async function clearHealthSyncForIdentityTransition(): Promise<void> {
     await clearHealthSyncOnSignOut();
   } catch (error) {
     console.warn('Failed to clear health sync state during account transition', error);
+  }
+}
+
+async function clearPendingWellnessCheckinForIdentityTransition(): Promise<void> {
+  try {
+    const { clearPendingWellnessCheckin } = await import('@/src/features/log/offlineWellnessQueue');
+    await clearPendingWellnessCheckin();
+  } catch (error) {
+    console.warn('Failed to clear offline wellness queue during account transition', error);
   }
 }
 
@@ -171,6 +180,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // +native-intent stores pending e2e login; re-bootstrap when it appears.
   const e2eWakeBusy = useRef(false);
   useEffect(() => {
+    if (!isE2eAuthEnabled()) return;
     if (status === 'authenticated' || status === 'loading') return;
 
     async function wakeIfPendingE2eLogin() {
@@ -216,6 +226,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.clear();
       void clearPersistedQueryCache();
       void clearHealthSyncForIdentityTransition();
+      void clearPendingWellnessCheckinForIdentityTransition();
       void import('@/src/features/activation/connectLater')
         .then(({ clearConnectLater }) => clearConnectLater())
         .catch(() => {
@@ -277,6 +288,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.warn('Failed to clear push registration on sign-out', error);
     }
     await clearHealthSyncForIdentityTransition();
+    await clearPendingWellnessCheckinForIdentityTransition();
     try {
       const { clearConnectLater } = await import('@/src/features/activation/connectLater');
       await clearConnectLater();
