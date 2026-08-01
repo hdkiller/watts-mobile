@@ -89,6 +89,20 @@ function weekContainsTodaySafe(weekMeta: PlanWeekShell | null | undefined): bool
   return today >= weekMeta.startDateKey && today <= (weekMeta.endDateKey ?? weekMeta.startDateKey);
 }
 
+/**
+ * Index of the week to treat as "current": prefer the plan's own `currentWeek`
+ * (id match), but fall back to whichever week's date range actually contains
+ * today. A plan that ended weeks ago has no `currentWeek`, and without this
+ * fallback the view (and the "This week" jump affordance) silently defaults
+ * to the plan's last historical week instead of reflecting today's date.
+ */
+function findCurrentWeekIndex(shell: ActivePlanShell | null | undefined): number {
+  if (!shell) return -1;
+  const byId = shell.weeks.findIndex((w) => w.id === shell.currentWeek?.id);
+  if (byId >= 0) return byId;
+  return shell.weeks.findIndex((w) => weekContainsTodaySafe(w));
+}
+
 export function PlanTrainingSegment({
   shell,
   loading,
@@ -122,7 +136,7 @@ export function PlanTrainingSegment({
       weekCount: shell?.weeks.length ?? 0,
     });
     if (shell) {
-      const idx = shell.weeks.findIndex((w) => w.id === shell.currentWeek?.id);
+      const idx = findCurrentWeekIndex(shell);
       setWeekIndex(idx >= 0 ? idx : Math.max(0, shell.weeks.length - 1));
     }
   }
@@ -222,10 +236,7 @@ export function PlanTrainingSegment({
     !nutritionQuery.isError &&
     !weekHasSelectedMeals(nutritionDays);
 
-  const currentWeekIndex = useMemo(() => {
-    if (!shell) return -1;
-    return shell.weeks.findIndex((w) => w.id === shell.currentWeek?.id);
-  }, [shell]);
+  const currentWeekIndex = useMemo(() => findCurrentWeekIndex(shell), [shell]);
   const weekIsPast = Boolean(
     weekMeta?.endDateKey && weekMeta.endDateKey < todayKey && !weekContainsToday,
   );
