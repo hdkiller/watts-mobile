@@ -34,6 +34,17 @@ function parseOptionalNumber(value: string): number | undefined {
   return Number.isFinite(n) ? n : undefined;
 }
 
+/**
+ * Same non-negative floor the wellness stepper UI applies (see SleepDurationInput.tsx,
+ * fixed under CW-136). Free-text entry bypasses the stepper's Math.max(0, ...) clamp, so
+ * this mirrors it here to stop a manually typed negative value (e.g. "-3" sleep hours)
+ * from being submitted as-is.
+ */
+function parseNonNegativeNumber(value: string): number | undefined {
+  const n = parseOptionalNumber(value);
+  return n == null ? undefined : Math.max(0, n);
+}
+
 function asSubjective(value: unknown): number | null {
   if (typeof value !== 'number' || !Number.isFinite(value)) return null;
   return clampSubjectiveScore(value);
@@ -67,8 +78,8 @@ export function toWellnessPayload(
   if (values.fatigue != null) payload.fatigue = clampSubjectiveScore(values.fatigue);
   if (values.soreness != null) payload.soreness = clampSubjectiveScore(values.soreness);
 
-  const sleepHours = parseOptionalNumber(values.sleepHours);
-  const displayWeight = parseOptionalNumber(values.weight);
+  const sleepHours = parseNonNegativeNumber(values.sleepHours);
+  const displayWeight = parseNonNegativeNumber(values.weight);
 
   if (sleepHours != null) payload.sleepHours = sleepHours;
   if (displayWeight != null) {
