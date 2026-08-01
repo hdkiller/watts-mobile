@@ -22,3 +22,21 @@ appId: com.coachwatts.app
     timeout: 15000
 - runFlow: ../subflows/tap-tab-more.yaml
 - assertVisible: "More"
+# Scroll the More tab content down and back up — coverage for the tab-bar-minimize
+# area (NativeTabs minimizeBehavior: "onScrollDown"); asserts the full tab bar is
+# still reachable afterward regardless of whether the minimize bug is fixed yet.
+- scrollUntilVisible:
+    element:
+      text: "Sign out"
+    direction: DOWN
+    timeout: 15000
+- scrollUntilVisible:
+    element:
+      id: more-athlete-profile
+    direction: UP
+    timeout: 15000
+- assertVisible: "Today"
+- assertVisible: "Plan"
+- assertVisible: "Log"
+- assertVisible: "Coach"
+- assertVisible: "More"

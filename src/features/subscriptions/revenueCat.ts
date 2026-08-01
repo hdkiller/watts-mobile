@@ -52,6 +52,15 @@ function setupLogLevel(): void {
   }
 }
 
+/**
+ * Awaits the most recently started identity sync so callers never read
+ * `configuredUserId` mid-transition. Safe to call even if no sync has ever
+ * been requested — resolves immediately, leaving `configuredUserId` null.
+ */
+function awaitIdentitySettled(): Promise<void> {
+  return identityOperation;
+}
+
 export function synchronizeRevenueCatIdentity(userId: string | null): Promise<void> {
   identityOperation = identityOperation
     .then(async () => {
@@ -146,16 +155,12 @@ export function mapStorePackages(packages: readonly PurchasesPackage[]): StorePa
 
 export async function fetchStorePackages(): Promise<StorePackage[]> {
   if (!isRevenueCatAvailable()) return [];
-  const configured = await Purchases.isConfigured();
-  if (!configured) {
-    const key = platformKey();
-    if (key) {
-      setupLogLevel();
-      Purchases.configure({ apiKey: key });
-    } else {
-      return [];
-    }
-  }
+  // Never configure the SDK here — that's synchronizeRevenueCatIdentity's job,
+  // and it always passes the Coach Watts appUserID. Configuring anonymously
+  // (no appUserID) would let offerings load under the wrong RC identity and
+  // race whichever caller configures with the real one second.
+  await awaitIdentitySettled();
+  if (!configuredUserId) return [];
   const offerings = await Purchases.getOfferings();
   return mapStorePackages(offerings.current?.availablePackages ?? []);
 }
@@ -171,6 +176,13 @@ export async function purchaseStorePackage(
   item: StorePackage,
   replacesProductId?: string | null,
 ): Promise<PurchaseOutcome> {
+  await awaitIdentitySettled();
+  if (!configuredUserId) {
+    // Fail closed: never let a purchase attach to an anonymous RC identity.
+    throw new Error(
+      'Your account is still connecting to the store — please wait a moment and try again.',
+    );
+  }
   try {
     const productChange =
       Platform.OS === 'android' && replacesProductId
@@ -195,6 +207,13 @@ export async function purchaseStorePackage(
 
 export async function restoreStorePurchases(): Promise<boolean> {
   if (!isRevenueCatAvailable()) return false;
+  await awaitIdentitySettled();
+  if (!configuredUserId) {
+    // Fail closed: never restore into an anonymous RC identity.
+    throw new Error(
+      'Your account is still connecting to the store — please wait a moment and try again.',
+    );
+  }
   const info = await Purchases.restorePurchases();
   return Object.keys(info.entitlements.active).length > 0;
 }

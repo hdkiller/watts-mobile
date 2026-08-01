@@ -251,6 +251,13 @@ export default function TodayScreen() {
   const generateMutation = useGenerateTodayRecommendation();
   const adhocMutation = useGenerateAdHocWorkout();
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Epoch/token for the generate-status poll. Bumped each time a new generation
+  // starts so a slow/late tick from a prior generation can recognize it's stale
+  // and no-op instead of clobbering a newer generation's interval or genState.
+  const genTokenRef = useRef(0);
+  // Token the currently-scheduled interval belongs to, so clearGeneratePoll can
+  // avoid tearing down a newer generation's interval when called from a stale tick.
+  const pollTokenRef = useRef(0);
   const adhocPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const statusFailRef = useRef(0);
   const adhocFailRef = useRef(0);
@@ -258,8 +265,15 @@ export default function TodayScreen() {
   const adhocBusy = adhocState === 'generating' || adhocMutation.isPending;
   const actionsBusy = generatingBusy || adhocBusy;
 
-  const clearGeneratePoll = () => {
-    if (pollRef.current) {
+  /**
+   * Clears the generate-status poll interval. When `token` is provided, only
+   * clears if it still matches the interval actually scheduled (`pollTokenRef`) —
+   * this prevents a stale tick from a superseded generation from clearing a
+   * newer generation's interval. Omit `token` to force-clear unconditionally
+   * (e.g. starting a fresh generation, or unmount).
+   */
+  const clearGeneratePoll = (token?: number) => {
+    if (pollRef.current && (token === undefined || token === pollTokenRef.current)) {
       clearInterval(pollRef.current);
       pollRef.current = null;
     }
@@ -283,6 +297,10 @@ export default function TodayScreen() {
   const onGenerate = async (userFeedback?: string) => {
     if (genState === 'generating' || generateMutation.isPending || adhocBusy) return;
     clearGeneratePoll();
+    // New generation epoch — any in-flight tick from a prior generation will see
+    // its captured token no longer matches this and will no-op instead of acting
+    // on stale data or clearing this generation's interval.
+    const myToken = ++genTokenRef.current;
     statusFailRef.current = 0;
     setGenState('generating');
     refreshAllowances();
@@ -293,26 +311,32 @@ export default function TodayScreen() {
       if (res.jobId) {
         let attempts = 0;
         const maxAttempts = 30;
+        pollTokenRef.current = myToken;
         pollRef.current = setInterval(() => {
           void (async () => {
             attempts++;
             try {
               const status = await fetchRecommendationStatus(res.jobId);
+              // A newer generation may have started while this fetch was in flight
+              // (or between when this tick fired and this point) — if so, this
+              // result is stale: don't touch genState or clear the newer interval.
+              if (genTokenRef.current !== myToken) return;
               statusFailRef.current = 0;
               if (!status.isRunning) {
-                clearGeneratePoll();
+                clearGeneratePoll(myToken);
                 setGenState('idle');
                 void refetch();
               } else if (attempts >= maxAttempts) {
-                clearGeneratePoll();
+                clearGeneratePoll(myToken);
                 hapticError();
                 setGenState('error');
                 setGenError('That took too long. Try again, or continue in Coach Watts.');
               }
             } catch {
+              if (genTokenRef.current !== myToken) return;
               statusFailRef.current += 1;
               if (statusFailRef.current >= 3 || attempts >= maxAttempts) {
-                clearGeneratePoll();
+                clearGeneratePoll(myToken);
                 hapticError();
                 setGenState('error');
                 setGenError('Couldn’t check generation status. Try again shortly.');
@@ -574,27 +598,43 @@ export default function TodayScreen() {
                 </Text>
               </AnimatedPressable>
             </View>
-            {nutritionEnabled ? (
+            <View className="flex-row items-center gap-2.5">
               <AnimatedPressable
                 accessibilityRole="button"
-                accessibilityLabel="Scan meal photo"
+                accessibilityLabel="Log recovery event"
                 hitSlop={8}
                 className="h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-card"
-                onPress={() =>
-                  router.push({
-                    pathname: APP_HREFS.log,
-                    params: { action: 'camera', t: String(Date.now()) },
-                  } as Href)
-                }
+                onPress={() => router.push(APP_HREFS.recoveryEvent as Href)}
               >
                 <AppSymbol
-                  sf="camera.fill"
+                  sf="cross.case.fill"
                   size={18}
-                  tintColor={theme.brandOnSurface}
-                  fallback="cam"
+                  tintColor={theme.recoveryOnSurface}
+                  fallback="+"
                 />
               </AnimatedPressable>
-            ) : null}
+              {nutritionEnabled ? (
+                <AnimatedPressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Scan meal photo"
+                  hitSlop={8}
+                  className="h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-card"
+                  onPress={() =>
+                    router.push({
+                      pathname: APP_HREFS.log,
+                      params: { action: 'camera', t: String(Date.now()) },
+                    } as Href)
+                  }
+                >
+                  <AppSymbol
+                    sf="camera.fill"
+                    size={18}
+                    tintColor={theme.brandOnSurface}
+                    fallback="cam"
+                  />
+                </AnimatedPressable>
+              ) : null}
+            </View>
           </View>
         </EnterSection>
 

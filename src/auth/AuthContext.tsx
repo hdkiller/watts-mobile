@@ -13,9 +13,12 @@ import {
 } from 'react';
 
 import { fetchUserInfo, setAuthFailureHandler, type UserInfo } from '@/src/api/client';
-import { friendlyError } from '@/src/api/errors';
-import { bumpAuthSessionGeneration } from '@/src/auth/authSessionGeneration';
-import { applyE2eAuthSeed, applyPendingE2eLogin } from '@/src/auth/e2eAuth';
+import { friendlyError, isReachabilityError } from '@/src/api/errors';
+import {
+  bumpAuthSessionGeneration,
+  getAuthSessionGeneration,
+} from '@/src/auth/authSessionGeneration';
+import { applyE2eAuthSeed, applyPendingE2eLogin, isE2eAuthEnabled } from '@/src/auth/e2eAuth';
 import { parseE2eLoginDeepLink } from '@/src/auth/e2eLoginDeepLink';
 import { loginWithPkce } from '@/src/auth/oauth';
 import { loadPendingE2eLogin, setPendingE2eLogin } from '@/src/auth/pendingE2eLogin';
@@ -42,6 +45,15 @@ async function clearHealthSyncForIdentityTransition(): Promise<void> {
     await clearHealthSyncOnSignOut();
   } catch (error) {
     console.warn('Failed to clear health sync state during account transition', error);
+  }
+}
+
+async function clearPendingWellnessCheckinForIdentityTransition(): Promise<void> {
+  try {
+    const { clearPendingWellnessCheckin } = await import('@/src/features/log/offlineWellnessQueue');
+    await clearPendingWellnessCheckin();
+  } catch (error) {
+    console.warn('Failed to clear offline wellness queue during account transition', error);
   }
 }
 
@@ -102,14 +114,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setError(null);
           setStatus('authenticated');
         } catch (err) {
-          await clearHealthSyncForIdentityTransition();
-          setUser(null);
-          setError(
-            err instanceof Error
-              ? `E2E userinfo: ${err.message}`
-              : 'E2E auth seed failed — check token and instance URL',
-          );
-          setStatus('needs_login');
+          if (isReachabilityError(err)) {
+            // Transient connectivity/server error — keep the seeded session and Health
+            // Sync state intact rather than treating a network blip as a login failure.
+            setError(friendlyError(err, 'Could not verify E2E session — check your connection'));
+            setStatus('authenticated');
+          } else {
+            await clearHealthSyncForIdentityTransition();
+            setUser(null);
+            setError(
+              err instanceof Error
+                ? `E2E userinfo: ${err.message}`
+                : 'E2E auth seed failed — check token and instance URL',
+            );
+            setStatus('needs_login');
+          }
         }
         return;
       }
@@ -131,11 +150,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const info = await fetchUserInfo();
         setUser(info);
+        setError(null);
         setStatus('authenticated');
-      } catch {
-        await clearHealthSyncForIdentityTransition();
-        setUser(null);
-        setStatus('needs_login');
+      } catch (err) {
+        if (isReachabilityError(err)) {
+          // Offline/DNS/5xx while checking the existing session: the tokens are still
+          // valid as far as we know, so keep the user signed in and leave Health Sync
+          // state (ledger/watermarks/background task) untouched. Only a definitive auth
+          // failure (401/403) below should sign the user out and wipe health state.
+          setError(
+            friendlyError(err, "Can't reach your Coach Watts instance — check your connection"),
+          );
+          setStatus('authenticated');
+        } else {
+          await clearHealthSyncForIdentityTransition();
+          setUser(null);
+          setStatus('needs_login');
+        }
       }
     } catch (err) {
       setError(friendlyError(err, 'Failed to start app'));
@@ -152,6 +183,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // +native-intent stores pending e2e login; re-bootstrap when it appears.
   const e2eWakeBusy = useRef(false);
   useEffect(() => {
+    if (!isE2eAuthEnabled()) return;
     if (status === 'authenticated' || status === 'loading') return;
 
     async function wakeIfPendingE2eLogin() {
@@ -194,8 +226,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuthFailureHandler(() => {
       setUser(null);
       setStatus((current) => (current === 'needs_instance' ? current : 'needs_login'));
-      void queryClient.clear();
+      queryClient.clear();
+      void clearPersistedQueryCache();
       void clearHealthSyncForIdentityTransition();
+      void clearPendingWellnessCheckinForIdentityTransition();
       void import('@/src/features/activation/connectLater')
         .then(({ clearConnectLater }) => clearConnectLater())
         .catch(() => {
@@ -208,11 +242,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const saveInstance = useCallback(
     async (url: string) => {
       setError(null);
+      let generation = getAuthSessionGeneration();
       await validateInstanceReachability(url);
       const previous = instanceUrl ?? (await getInstanceUrl());
       const normalized = normalizeInstanceUrl(url);
       if (previous && previous !== normalized) {
-        bumpAuthSessionGeneration();
+        generation = bumpAuthSessionGeneration();
         await clearHealthSyncForIdentityTransition();
         const { clearConnectLater } = await import('@/src/features/activation/connectLater');
         await clearConnectLater();
@@ -222,6 +257,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await clearPersistedQueryCache();
       }
       await setInstanceUrl(normalized);
+      if (getAuthSessionGeneration() !== generation) {
+        // A sign-out or another instance switch already took effect while this
+        // call was awaiting I/O — don't stomp on that newer state.
+        return;
+      }
       setInstanceUrlState(normalized);
       setStatus('needs_login');
     },
@@ -239,16 +279,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await validateInstanceReachability(instance);
     // Invalidate stale 401/refresh handlers before opening the browser, then drop
     // in-flight field reads so they cannot race the new grant.
-    bumpAuthSessionGeneration();
+    const generation = bumpAuthSessionGeneration();
     await queryClient.cancelQueries();
     await loginWithPkce(instance);
     const info = await fetchUserInfo();
+    if (getAuthSessionGeneration() !== generation) {
+      // A sign-out (or another sign-in) happened while this OAuth flow was in
+      // flight. That newer state transition already won — don't resurrect this
+      // stale session by overwriting it.
+      return;
+    }
     setUser(info);
     setStatus('authenticated');
   }, [instanceUrl]);
 
   const signOut = useCallback(async () => {
-    bumpAuthSessionGeneration();
+    const generation = bumpAuthSessionGeneration();
     try {
       const { clearPushRegistrationOnSignOut } =
         await import('@/src/features/notifications/pushRegistration');
@@ -257,6 +303,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.warn('Failed to clear push registration on sign-out', error);
     }
     await clearHealthSyncForIdentityTransition();
+    await clearPendingWellnessCheckinForIdentityTransition();
     try {
       const { clearConnectLater } = await import('@/src/features/activation/connectLater');
       await clearConnectLater();
@@ -264,6 +311,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       /* best-effort */
     }
     await clearTokens();
+    await clearPersistedQueryCache();
+    if (getAuthSessionGeneration() !== generation) {
+      // A newer sign-in (or another sign-out) already took effect while this
+      // sign-out was still cleaning up — don't clobber it with stale state.
+      return;
+    }
     setUser(null);
     queryClient.clear();
     setStatus(instanceUrl ? 'needs_login' : 'needs_instance');

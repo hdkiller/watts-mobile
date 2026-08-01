@@ -311,7 +311,11 @@ export default function PlannedWorkoutDetailScreen() {
               </Text>
               {!data.structureIsStrength ? <StructureProfile blocks={chartBlocks} /> : null}
               {structureSteps.map((step, index) => {
-                const meta = [formatDuration(step.durationSec), step.intensityLabel]
+                const meta = [
+                  formatDuration(step.durationSec),
+                  step.intensityLabel,
+                  step.cadenceLabel,
+                ]
                   .filter(Boolean)
                   .join(' · ');
                 const intensity = stepIntensity(step);

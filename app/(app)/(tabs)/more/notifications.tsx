@@ -17,6 +17,7 @@ import {
   useMarkNotificationRead,
   useNotificationsQuery,
 } from '@/src/features/notifications/useNotifications';
+import { useTabScrollPadding } from '@/src/hooks/useTabScrollPadding';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
 function goBackToMore() {
@@ -27,9 +28,14 @@ function goBackToMore() {
   router.replace('/(app)/(tabs)/more' as Href);
 }
 
-function openNotificationLink(link: string | null) {
-  if (!link) return;
-  const resolved = resolvePushOpen({ path: link });
+// Mirrors the field set PushNotificationsBootstrap forwards to `resolvePushOpen` for a live
+// push (path/url/type) so an inbox row resolves the same way a live push would — including the
+// type-based fallback used when a notification has no explicit link. `type` is typed as optional
+// here because the current `/api/notifications` payload (see InboxNotification in
+// src/features/notifications/types.ts) doesn't surface it yet; once the backend adds it, no
+// further change is needed here.
+function openNotificationLink(item: Pick<InboxNotification, 'link'> & { type?: string | null }) {
+  const resolved = resolvePushOpen({ path: item.link, url: item.link, type: item.type ?? null });
   if (resolved.kind === 'app') {
     router.push(resolved.href as Href);
   }
@@ -47,6 +53,7 @@ function NotificationRow({
     : item.read
       ? 'font-medium text-text-body'
       : 'font-semibold text-text-primary';
+  const formattedTime = formatNotificationTime(item.createdAt);
 
   return (
     <Pressable
@@ -61,14 +68,12 @@ function NotificationRow({
         </Text>
         {!item.read ? <View className="mt-1.5 h-2 w-2 rounded-full bg-brand" /> : null}
       </View>
-      <Text className="mt-1.5 text-sm text-text-muted" numberOfLines={3}>
-        {item.body}
-      </Text>
-      {formatNotificationTime(item.createdAt) ? (
-        <Text className="mt-2 text-xs text-text-muted">
-          {formatNotificationTime(item.createdAt)}
+      {item.body ? (
+        <Text className="mt-1.5 text-sm text-text-muted" numberOfLines={3}>
+          {item.body}
         </Text>
       ) : null}
+      {formattedTime ? <Text className="mt-2 text-xs text-text-muted">{formattedTime}</Text> : null}
     </Pressable>
   );
 }
@@ -78,6 +83,7 @@ export default function NotificationsScreen() {
   const { data, isLoading, isError, error, refetch } = useNotificationsQuery();
   const markOne = useMarkNotificationRead();
   const markAll = useMarkAllNotificationsRead();
+  const tabBottomPad = useTabScrollPadding();
 
   const [manualRefreshing, setManualRefreshing] = useState(false);
   const handleRefresh = async () => {
@@ -96,7 +102,7 @@ export default function NotificationsScreen() {
     if (!item.read) {
       markOne.mutate(item.id);
     }
-    openNotificationLink(item.link);
+    openNotificationLink(item);
   };
 
   return (
@@ -152,7 +158,8 @@ export default function NotificationsScreen() {
       ) : (
         <FlatList
           className="flex-1 bg-surface"
-          contentContainerClassName="px-6 pb-10 pt-4"
+          contentContainerClassName="px-6 pt-4"
+          contentContainerStyle={{ paddingBottom: tabBottomPad }}
           data={rows}
           keyExtractor={(item) => item.id}
           refreshControl={

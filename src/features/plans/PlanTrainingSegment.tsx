@@ -89,6 +89,20 @@ function weekContainsTodaySafe(weekMeta: PlanWeekShell | null | undefined): bool
   return today >= weekMeta.startDateKey && today <= (weekMeta.endDateKey ?? weekMeta.startDateKey);
 }
 
+/**
+ * Index of the week to treat as "current": prefer the plan's own `currentWeek`
+ * (id match), but fall back to whichever week's date range actually contains
+ * today. A plan that ended weeks ago has no `currentWeek`, and without this
+ * fallback the view (and the "This week" jump affordance) silently defaults
+ * to the plan's last historical week instead of reflecting today's date.
+ */
+function findCurrentWeekIndex(shell: ActivePlanShell | null | undefined): number {
+  if (!shell) return -1;
+  const byId = shell.weeks.findIndex((w) => w.id === shell.currentWeek?.id);
+  if (byId >= 0) return byId;
+  return shell.weeks.findIndex((w) => weekContainsTodaySafe(w));
+}
+
 export function PlanTrainingSegment({
   shell,
   loading,
@@ -122,7 +136,7 @@ export function PlanTrainingSegment({
       weekCount: shell?.weeks.length ?? 0,
     });
     if (shell) {
-      const idx = shell.weeks.findIndex((w) => w.id === shell.currentWeek?.id);
+      const idx = findCurrentWeekIndex(shell);
       setWeekIndex(idx >= 0 ? idx : Math.max(0, shell.weeks.length - 1));
     }
   }
@@ -178,6 +192,15 @@ export function PlanTrainingSegment({
   const [moveUndo, setMoveUndo] = useState<MoveUndo | null>(null);
   const [sessionEditor, setSessionEditor] = useState<SessionEditorContext | null>(null);
   const swipeStartX = useRef<number | null>(null);
+  const busyAbortRef = useRef<AbortController | null>(null);
+
+  // Abort any in-flight busy operation (adapt/generate pollers) when this segment unmounts —
+  // leaving Plan mid-poll would otherwise keep hitting /api/plans/status after the screen is gone.
+  useEffect(() => {
+    return () => {
+      busyAbortRef.current?.abort();
+    };
+  }, []);
 
   const weekSessions = useMemo(() => {
     const items = weekSessionsQuery.data ?? [];
@@ -213,10 +236,7 @@ export function PlanTrainingSegment({
     !nutritionQuery.isError &&
     !weekHasSelectedMeals(nutritionDays);
 
-  const currentWeekIndex = useMemo(() => {
-    if (!shell) return -1;
-    return shell.weeks.findIndex((w) => w.id === shell.currentWeek?.id);
-  }, [shell]);
+  const currentWeekIndex = useMemo(() => findCurrentWeekIndex(shell), [shell]);
   const weekIsPast = Boolean(
     weekMeta?.endDateKey && weekMeta.endDateKey < todayKey && !weekContainsToday,
   );
@@ -313,28 +333,37 @@ export function PlanTrainingSegment({
     setWeekIndex(currentWeekIndex);
   };
 
-  const runBusy = async (label: string, fn: () => Promise<unknown>) => {
+  const runBusy = async (label: string, fn: (signal: AbortSignal) => Promise<unknown>) => {
+    // Supersede any still-running busy operation (its own poll keeps going otherwise).
+    busyAbortRef.current?.abort();
+    const controller = new AbortController();
+    busyAbortRef.current = controller;
     setActionError(null);
     setBusyMsg(label);
     try {
-      await fn();
+      await fn(controller.signal);
       hapticSuccess();
     } catch (err) {
+      if (controller.signal.aborted) return;
       hapticError();
       setActionError(friendlyError(err, 'Something went wrong'));
     } finally {
-      setBusyMsg(null);
+      if (busyAbortRef.current === controller) {
+        busyAbortRef.current = null;
+        setBusyMsg(null);
+      }
     }
   };
 
   const generateMissingStructures = () => {
     if (needsStructureIds.length === 0) return;
-    void runBusy('Generating structures', () =>
+    void runBusy('Generating structures', (signal) =>
       genWeekStructures.mutateAsync({
         ids: needsStructureIds,
         onProgress: (done, total) => {
           setBusyMsg(`Generating structures (${done}/${total})`);
         },
+        signal,
       }),
     );
   };
@@ -404,7 +433,9 @@ export function PlanTrainingSegment({
       {
         text: title.includes('Push') ? 'Push forward' : 'Recalculate',
         onPress: () =>
-          void runBusy(busy, () => adapt.mutateAsync({ planId: shell.id, adaptationType })),
+          void runBusy(busy, (signal) =>
+            adapt.mutateAsync({ planId: shell.id, adaptationType, signal }),
+          ),
       },
     ]);
   };
@@ -446,7 +477,9 @@ export function PlanTrainingSegment({
       onPress: () => {
         const blockId = weekMeta?.blockId;
         if (!blockId) return;
-        void runBusy('Generating phase workouts', () => genBlock.mutateAsync(blockId));
+        void runBusy('Generating phase workouts', (signal) =>
+          genBlock.mutateAsync({ blockId, signal }),
+        );
       },
     },
     {
@@ -813,8 +846,8 @@ export function PlanTrainingSegment({
                 onGenerateStructure={
                   !item.structureChartBlocks || item.structureChartBlocks.length < 2
                     ? () =>
-                        void runBusy('Generating structure', () =>
-                          genStructure.mutateAsync(item.id),
+                        void runBusy('Generating structure', (signal) =>
+                          genStructure.mutateAsync({ plannedWorkoutId: item.id, signal }),
                         )
                     : undefined
                 }
@@ -915,11 +948,12 @@ export function PlanTrainingSegment({
           disabled={Boolean(busyMsg)}
           onPress={() => {
             if (!weekMeta) return;
-            void runBusy('Generating week', async () => {
+            void runBusy('Generating week', async (signal) => {
               await genWeek.mutateAsync({
                 blockId: weekMeta.blockId,
                 weekId: weekMeta.id,
                 instructions: aiInstructions,
+                signal,
               });
               setAiWeekOpen(false);
               setAiInstructions('');

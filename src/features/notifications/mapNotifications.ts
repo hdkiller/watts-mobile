@@ -27,22 +27,18 @@ export function mapNotificationItem(raw: unknown): InboxNotification | null {
   const row = asRecord(raw);
   if (!row) return null;
 
+  // Only the id is load-bearing. Everything else degrades gracefully: a row the
+  // server counts as unread must never be silently dropped from the list, or the
+  // badge count and the rendered inbox diverge (CW-300).
   const id = asString(row.id);
-  const title = asString(row.title);
-  const body = asString(row.message) ?? asString(row.body);
-  const read = asBoolean(row.read);
-  const createdAt = asString(row.createdAt);
-
-  if (!id || !title || !body || read === null || !createdAt) {
-    return null;
-  }
+  if (!id) return null;
 
   return {
     id,
-    title,
-    body,
-    read,
-    createdAt,
+    title: asString(row.title) ?? 'Notification',
+    body: asString(row.message) ?? asString(row.body) ?? '',
+    read: asBoolean(row.read) ?? false,
+    createdAt: asString(row.createdAt) ?? '',
     link: asString(row.link),
   };
 }

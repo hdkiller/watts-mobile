@@ -45,6 +45,16 @@ describe('mapLogForm', () => {
     expect(payload).toEqual({ date: '2026-07-19', sleepHours: 8 });
   });
 
+  it('clamps negative free-text sleep hours and weight to zero', () => {
+    const payload = toWellnessPayload(
+      { ...emptyLogForm(), sleepHours: '-3', weight: '-10' },
+      '2026-07-19',
+    );
+
+    expect(payload.sleepHours).toBe(0);
+    expect(payload.weight).toBe(0);
+  });
+
   it('prefills from today’s wellness row', () => {
     const today = pickTodayWellness(
       [

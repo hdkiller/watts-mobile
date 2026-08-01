@@ -2,7 +2,7 @@
  * pre-emit critique: P5 H5 E5 S4 R5 V4 — goal → days → volume → sports → timeline → approach
  */
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Text, TextInput, View } from 'react-native';
 
 import { friendlyError } from '@/src/api/errors';
@@ -195,6 +195,15 @@ export function PlanGeneratorPanel({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastAction, setLastAction] = useState<LastAction | null>(null);
+  const generateAbortRef = useRef<AbortController | null>(null);
+
+  // Abort the first-week-preview poller (up to ~180s) when this panel unmounts — the athlete
+  // may navigate away from plan creation mid-generate, and the poll must not keep running.
+  useEffect(() => {
+    return () => {
+      generateAbortRef.current?.abort();
+    };
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -265,6 +274,10 @@ export function PlanGeneratorPanel({
     setBusy(true);
     setPhase('working');
     onGenerateStart?.();
+    // Supersede any still-running generate (e.g. a fast Retry tap) before starting a new one.
+    generateAbortRef.current?.abort();
+    const controller = new AbortController();
+    generateAbortRef.current = controller;
     try {
       const hours = clampVolumeHours(volumeHours);
       await saveAvailability(buildAvailabilityDays(days, sports));
@@ -285,17 +298,21 @@ export function PlanGeneratorPanel({
       setPlanId(result.planId);
       setActivateStartIso(startIso);
       setPhases(mapPhaseGlance(result.plan?.blocks));
-      const week = await generateFirstWeekPreview(result);
+      const week = await generateFirstWeekPreview(result, { signal: controller.signal });
       setPreview(week);
       setPhase('preview');
       hapticSuccess();
     } catch (err) {
+      if (controller.signal.aborted) return;
       setPhase('form');
       setFormStep('approach');
       setError(friendlyError(err, 'Could not generate plan'));
       hapticError();
     } finally {
-      setBusy(false);
+      if (generateAbortRef.current === controller) {
+        generateAbortRef.current = null;
+        setBusy(false);
+      }
     }
   };
 
