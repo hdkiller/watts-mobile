@@ -12,6 +12,7 @@ import {
   retryPendingPushUnregistration,
 } from './pushRegistration';
 import { pushDataFromNotificationContent, resolvePushOpen } from './resolvePushOpen';
+import { useUnreadNotificationsCount } from './useNotifications';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -44,6 +45,14 @@ export function PushNotificationsBootstrap() {
   const { status } = useAuth();
   const queryClient = useQueryClient();
   const handledResponseIds = useRef(new Set<string>());
+  const unreadCount = useUnreadNotificationsCount();
+
+  useEffect(() => {
+    if (status !== 'authenticated' || Platform.OS === 'web') {
+      return;
+    }
+    void Notifications.setBadgeCountAsync(unreadCount);
+  }, [status, unreadCount]);
 
   // Retry any push-device unregistration that failed on a previous sign-out, on launch
   // and whenever the app returns to the foreground — independent of current auth status,
