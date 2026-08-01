@@ -32,9 +32,10 @@ export function parseE2eLoginDeepLink(input: string): ParsedE2eLoginDeepLink | n
   }
 
   const protocol = url.protocol.replace(/:$/, '').toLowerCase();
-  if (protocol !== APP_SCHEME && protocol !== 'http' && protocol !== 'https') {
-    // Path-only synthetic URL uses coachwatts; ignore unrelated schemes.
-    if (protocol !== APP_SCHEME) return null;
+  if (protocol !== APP_SCHEME) {
+    // Only the app's custom scheme is accepted; http/https (Universal Links) are
+    // intentionally excluded to keep the trigger surface minimal.
+    return null;
   }
 
   const host = url.hostname || url.host;
