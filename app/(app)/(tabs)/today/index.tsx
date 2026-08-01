@@ -598,27 +598,43 @@ export default function TodayScreen() {
                 </Text>
               </AnimatedPressable>
             </View>
-            {nutritionEnabled ? (
+            <View className="flex-row items-center gap-2.5">
               <AnimatedPressable
                 accessibilityRole="button"
-                accessibilityLabel="Scan meal photo"
+                accessibilityLabel="Log recovery event"
                 hitSlop={8}
                 className="h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-card"
-                onPress={() =>
-                  router.push({
-                    pathname: APP_HREFS.log,
-                    params: { action: 'camera', t: String(Date.now()) },
-                  } as Href)
-                }
+                onPress={() => router.push(APP_HREFS.recoveryEvent as Href)}
               >
                 <AppSymbol
-                  sf="camera.fill"
+                  sf="cross.case.fill"
                   size={18}
-                  tintColor={theme.brandOnSurface}
-                  fallback="cam"
+                  tintColor={theme.recoveryOnSurface}
+                  fallback="+"
                 />
               </AnimatedPressable>
-            ) : null}
+              {nutritionEnabled ? (
+                <AnimatedPressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Scan meal photo"
+                  hitSlop={8}
+                  className="h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-card"
+                  onPress={() =>
+                    router.push({
+                      pathname: APP_HREFS.log,
+                      params: { action: 'camera', t: String(Date.now()) },
+                    } as Href)
+                  }
+                >
+                  <AppSymbol
+                    sf="camera.fill"
+                    size={18}
+                    tintColor={theme.brandOnSurface}
+                    fallback="cam"
+                  />
+                </AnimatedPressable>
+              ) : null}
+            </View>
           </View>
         </EnterSection>
 
