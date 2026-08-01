@@ -14,6 +14,12 @@ Format:
 
 ---
 
+## 2026-08-01 — Android Internal AAB build + upload (versionCode 5)
+
+- Merged `develop` into `master` via [PR #117](https://github.com/watt-mind/watts-mobile/pull/117) (174 commits since the previous master merge).
+- Built and uploaded signed AAB **0.1.1 / versionCode 5** (`coach-watts-0.1.1-vc5.aab`, ~98.5 MiB) via `pnpm release:android:internal -- --version-code 5 --upload-internal`; Play Internal rollout committed (status: completed).
+- Note: versionCode 4 (built 2026-07-28) was uploaded to Internal previously but never logged here — Play track showed `0.1.1 (4)` completed before this release.
+
 ## 2026-07-27 — Apple Support ticket created for Paid Apps screening bug (Case ID 20000120973249)
 
 - Submitted Apple Developer Contact Us ticket regarding the portal bug on Bank Account Holder Compliance Screening ("Add user info" submission reload loop across browsers/PDFs).
