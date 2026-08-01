@@ -4,10 +4,7 @@ import Constants from 'expo-constants';
 import * as WebBrowser from 'expo-web-browser';
 
 import { APP_SCHEME, OAUTH_CLIENT_ID } from '@/src/config/env';
-import {
-  bumpAuthSessionGeneration,
-  getAuthSessionGeneration,
-} from '@/src/auth/authSessionGeneration';
+import { getAuthSessionGeneration } from '@/src/auth/authSessionGeneration';
 import { COMPANION_SCOPES } from '@/src/auth/scopes';
 import { saveTokens, type StoredTokens } from '@/src/auth/tokenStorage';
 import { Colors } from '@/src/theme/colors';
@@ -50,10 +47,10 @@ export function assertOAuthClientConfigured(): string {
 }
 
 export async function loginWithPkce(instanceBaseUrl: string): Promise<StoredTokens> {
-  // Invalidate in-flight 401/refresh handlers before the browser returns — otherwise a
-  // stale failAuthSession can clear the brand-new tokens and bounce straight to login.
-  bumpAuthSessionGeneration();
-
+  // Callers bump the auth session generation before invoking this (see
+  // AuthContext.signIn) so in-flight 401/refresh handlers from a prior session
+  // can't clear the brand-new tokens — and so the post-flow generation check
+  // doesn't chase a second, redundant bump made here.
   const clientId = assertOAuthClientConfigured();
   const redirectUri = getRedirectUri();
 
