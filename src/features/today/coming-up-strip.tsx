@@ -2,6 +2,7 @@
 import { router, type Href } from 'expo-router';
 import { useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { SectionHeader } from '@/src/components/SectionHeader';
 
 import { StructureProfile } from '@/src/features/activity/charts/StructureProfile';
 import { formatActivityDate, formatDuration } from '@/src/features/activity/mapActivity';
@@ -43,9 +44,7 @@ export function ComingUpStrip({ excludePlannedId }: ComingUpStripProps) {
   return (
     <View className="mt-8">
       <View className="flex-row items-baseline justify-between">
-        <Text className="text-xs font-semibold uppercase tracking-widest text-text-muted">
-          Coming up
-        </Text>
+        <SectionHeader title="Coming up" />
         <Pressable
           className="py-1 active:opacity-70"
           hitSlop={8}

@@ -1,6 +1,7 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { SectionHeader } from '@/src/components/SectionHeader';
 
 import { useAuth } from '@/src/auth/AuthContext';
 import { openInstanceWeb } from '@/src/features/account/openInstanceWeb';
@@ -80,7 +81,7 @@ export function TrainingLoadGlance() {
 
   return (
     <View key="content" className="mt-6">
-      <Text className="text-xs uppercase tracking-wide text-text-muted">Training Load & Form</Text>
+      <SectionHeader title="Training Load & Form" />
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Open training load and form"
