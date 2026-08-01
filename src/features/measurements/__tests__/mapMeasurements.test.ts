@@ -29,6 +29,21 @@ describe('mapMeasurements', () => {
     ).toBe(true);
   });
 
+  it('rejects negative or zero values instead of building a payload', () => {
+    expect(
+      toCreatePayload(
+        { ...emptyMeasurementForm('weight'), value: '-165' },
+        { weightUnits: 'Pounds', distanceUnits: 'Miles' },
+      ),
+    ).toBeNull();
+    expect(
+      toCreatePayload(
+        { ...emptyMeasurementForm('waist'), value: '0' },
+        { weightUnits: 'Kilograms', distanceUnits: 'Kilometers' },
+      ),
+    ).toBeNull();
+  });
+
   it('converts lbs display to kg for create payload', () => {
     const payload = toCreatePayload(
       { ...emptyMeasurementForm('weight'), value: '165' },
