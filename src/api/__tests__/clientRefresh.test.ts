@@ -32,7 +32,7 @@ import {
   fetchUserInfo,
   setAuthFailureHandler,
 } from '../client';
-import { ApiError } from '../errors';
+import { ApiError, isReachabilityError } from '../errors';
 import { resetAuthSessionGenerationForTests } from '@/src/auth/authSessionGeneration';
 
 describe('apiFetch token refresh error handling (CW-135)', () => {
@@ -59,9 +59,11 @@ describe('apiFetch token refresh error handling (CW-135)', () => {
       } as Response)
       .mockRejectedValueOnce(new TypeError('Network request failed'));
 
-    const response = await apiFetch('/api/test-endpoint');
-
-    expect(response.status).toBe(401);
+    // The network error must propagate distinctly (CW-276) rather than resolving
+    // to the original stale 401 response — otherwise callers inspecting the HTTP
+    // status (e.g. fetchUserInfo -> isReachabilityError) would misclassify this as
+    // a genuine auth failure instead of a connectivity problem.
+    await expect(apiFetch('/api/test-endpoint')).rejects.toThrow('Network request failed');
     expect(mockClearTokens).not.toHaveBeenCalled();
     expect(failureHandler).not.toHaveBeenCalled();
   });
@@ -103,9 +105,10 @@ describe('apiFetch token refresh error handling (CW-135)', () => {
         json: async () => ({ error: 'Bad Gateway' }),
       } as Response);
 
-    const response = await apiFetch('/api/test-endpoint');
-
-    expect(response.status).toBe(401);
+    // The 502 must propagate distinctly (CW-276) rather than resolving to the
+    // original stale 401 response, so callers can classify it as a server error
+    // rather than a genuine auth failure.
+    await expect(apiFetch('/api/test-endpoint')).rejects.toMatchObject({ status: 502 });
     expect(mockClearTokens).not.toHaveBeenCalled();
     expect(failureHandler).not.toHaveBeenCalled();
   });
@@ -182,5 +185,31 @@ describe('fetchUserInfo error classification (CW-161)', () => {
     global.fetch = vi.fn().mockRejectedValue(new TypeError('Network request failed'));
 
     await expect(fetchUserInfo()).rejects.toBeInstanceOf(TypeError);
+  });
+
+  it('classifies a network failure during 401-triggered refresh as reachability, not auth failure (CW-276)', async () => {
+    // 1st fetch (userinfo): 401 Unauthorized (e.g. an expired access token).
+    // 2nd fetch (token refresh endpoint): throws TypeError network failure.
+    // Regression guard: previously apiFetch's catch block swallowed the network
+    // error during refresh and returned the original stale 401 Response, which
+    // fetchUserInfo turned into ApiError(401) — and isReachabilityError treats any
+    // defined HTTP status as authoritative, so a 401 was misclassified as a
+    // genuine auth failure instead of a reachability problem.
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce({ status: 401, ok: false } as Response)
+      .mockRejectedValueOnce(new TypeError('Network request failed'));
+
+    let caught: unknown;
+    try {
+      await fetchUserInfo();
+    } catch (err) {
+      caught = err;
+    }
+
+    expect(caught).toBeInstanceOf(TypeError);
+    expect(isReachabilityError(caught)).toBe(true);
+    expect(mockClearTokens).not.toHaveBeenCalled();
+    expect(failureHandler).not.toHaveBeenCalled();
   });
 });
