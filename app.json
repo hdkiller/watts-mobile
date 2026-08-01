@@ -181,6 +181,7 @@
       "react-native-health-connect",
       "./plugins/withHealthConnectPermissionDelegate",
       "./plugins/withAndroidReleaseSigning",
+      "./plugins/withAndroidReleaseManifestPermissionStrip",
       "expo-background-task",
       [
         "expo-build-properties",

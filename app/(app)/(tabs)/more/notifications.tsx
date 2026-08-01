@@ -52,6 +52,7 @@ function NotificationRow({
     : item.read
       ? 'font-medium text-text-body'
       : 'font-semibold text-text-primary';
+  const formattedTime = formatNotificationTime(item.createdAt);
 
   return (
     <Pressable
@@ -69,11 +70,7 @@ function NotificationRow({
       <Text className="mt-1.5 text-sm text-text-muted" numberOfLines={3}>
         {item.body}
       </Text>
-      {formatNotificationTime(item.createdAt) ? (
-        <Text className="mt-2 text-xs text-text-muted">
-          {formatNotificationTime(item.createdAt)}
-        </Text>
-      ) : null}
+      {formattedTime ? <Text className="mt-2 text-xs text-text-muted">{formattedTime}</Text> : null}
     </Pressable>
   );
 }
