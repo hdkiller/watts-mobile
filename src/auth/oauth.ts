@@ -10,6 +10,7 @@ import {
 } from '@/src/auth/authSessionGeneration';
 import { COMPANION_SCOPES } from '@/src/auth/scopes';
 import { saveTokens, type StoredTokens } from '@/src/auth/tokenStorage';
+import { Colors } from '@/src/theme/colors';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -82,8 +83,8 @@ export async function loginWithPkce(instanceBaseUrl: string): Promise<StoredToke
     {
       preferEphemeralSession: false,
       showInRecents: true,
-      toolbarColor: '#09090b',
-      secondaryToolbarColor: '#09090b',
+      toolbarColor: Colors.background,
+      secondaryToolbarColor: Colors.background,
       showTitle: false,
       enableDefaultShareMenuItem: false,
     },
