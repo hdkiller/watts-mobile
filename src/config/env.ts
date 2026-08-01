@@ -7,6 +7,12 @@ function extraString(key: string): string {
   return typeof value === 'string' ? value : '';
 }
 
+function extraBoolean(key: string, defaultValue = false): boolean {
+  const value = extra[key];
+  if (typeof value === 'boolean') return value;
+  return typeof value === 'string' ? envFlag(value, defaultValue) : defaultValue;
+}
+
 export const DEFAULT_INSTANCE_URL =
   process.env.EXPO_PUBLIC_DEFAULT_INSTANCE_URL ??
   (extraString('defaultInstanceUrl') || 'https://coachwatts.com');
@@ -59,6 +65,15 @@ export const E2E_ALLOWED_HOSTS = envCsv(process.env.EXPO_PUBLIC_E2E_ALLOWED_HOST
 export const E2E_ALLOW_ANY_HOST = envFlag(process.env.EXPO_PUBLIC_E2E_ALLOW_ANY_HOST);
 
 export const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN ?? (extraString('sentryDsn') || '');
+
+/**
+ * Sentry is enabled only in explicitly opted-in deployed builds. This keeps
+ * local Metro/dev-client sessions out of the operational error stream.
+ */
+export const SENTRY_ENABLED = envFlag(
+  process.env.EXPO_PUBLIC_SENTRY_ENABLED,
+  extraBoolean('sentryEnabled'),
+);
 
 /** Optional release name for Sentry (EAS can set via EXPO_PUBLIC_SENTRY_RELEASE). */
 export const SENTRY_RELEASE =

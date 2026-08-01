@@ -78,6 +78,12 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       sentryEnvironment:
         process.env.EXPO_PUBLIC_SENTRY_ENVIRONMENT ??
         (process.env.EAS_BUILD === 'true' ? 'production' : 'development'),
+      // Local Metro/dev-client runs must not emit operational errors. Deployed
+      // builds opt in through EAS profile env (or an explicit local build flag).
+      sentryEnabled:
+        process.env.EXPO_PUBLIC_SENTRY_ENABLED === undefined
+          ? process.env.EAS_BUILD === 'true'
+          : isTruthyEnv(process.env.EXPO_PUBLIC_SENTRY_ENABLED),
       sentryRelease:
         process.env.EXPO_PUBLIC_SENTRY_RELEASE ?? process.env.EAS_BUILD_ID ?? undefined,
       sentryDist: process.env.EXPO_PUBLIC_SENTRY_DIST ?? process.env.EAS_BUILD_NUMBER ?? undefined,

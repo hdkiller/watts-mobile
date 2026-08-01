@@ -8,13 +8,15 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_SENTRY_ENVIRONMENT": "development",
+        "EXPO_PUBLIC_SENTRY_ENABLED": "true",
+        "EXPO_PUBLIC_SENTRY_ENVIRONMENT": "development-deployment",
         "SENTRY_DISABLE_AUTO_UPLOAD": "true"
       }
     },
     "e2e": {
       "extends": "development",
       "env": {
+        "EXPO_PUBLIC_SENTRY_ENABLED": "false",
         "EXPO_PUBLIC_SENTRY_ENVIRONMENT": "e2e",
         "EXPO_PUBLIC_E2E_AUTH": "1",
         "EXPO_PUBLIC_E2E_INSTANCE_URL": "http://localhost:3199",
@@ -28,6 +30,7 @@
         "buildType": "apk"
       },
       "env": {
+        "EXPO_PUBLIC_SENTRY_ENABLED": "false",
         "EXPO_PUBLIC_SENTRY_ENVIRONMENT": "preview",
         "SENTRY_DISABLE_AUTO_UPLOAD": "true"
       }
@@ -35,6 +38,7 @@
     "production": {
       "autoIncrement": true,
       "env": {
+        "EXPO_PUBLIC_SENTRY_ENABLED": "true",
         "EXPO_PUBLIC_SENTRY_ENVIRONMENT": "production"
       }
     }
