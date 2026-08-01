@@ -164,7 +164,7 @@ export function toCreatePayload(
   opts: { weightUnits: WeightUnits; distanceUnits: DistanceUnits },
 ): CreateBodyMeasurementPayload | null {
   const display = Number(form.value.trim());
-  if (!Number.isFinite(display)) return null;
+  if (!Number.isFinite(display) || display <= 0) return null;
 
   const isCustom = form.metricKey === 'custom';
   const option = findMetricOption(form.metricKey);
