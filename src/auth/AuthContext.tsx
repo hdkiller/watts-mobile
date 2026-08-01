@@ -14,7 +14,10 @@ import {
 
 import { fetchUserInfo, setAuthFailureHandler, type UserInfo } from '@/src/api/client';
 import { friendlyError, isReachabilityError } from '@/src/api/errors';
-import { bumpAuthSessionGeneration } from '@/src/auth/authSessionGeneration';
+import {
+  bumpAuthSessionGeneration,
+  getAuthSessionGeneration,
+} from '@/src/auth/authSessionGeneration';
 import { applyE2eAuthSeed, applyPendingE2eLogin, isE2eAuthEnabled } from '@/src/auth/e2eAuth';
 import { parseE2eLoginDeepLink } from '@/src/auth/e2eLoginDeepLink';
 import { loginWithPkce } from '@/src/auth/oauth';
@@ -239,11 +242,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const saveInstance = useCallback(
     async (url: string) => {
       setError(null);
+      let generation = getAuthSessionGeneration();
       await validateInstanceReachability(url);
       const previous = instanceUrl ?? (await getInstanceUrl());
       const normalized = normalizeInstanceUrl(url);
       if (previous && previous !== normalized) {
-        bumpAuthSessionGeneration();
+        generation = bumpAuthSessionGeneration();
         await clearHealthSyncForIdentityTransition();
         const { clearConnectLater } = await import('@/src/features/activation/connectLater');
         await clearConnectLater();
@@ -253,6 +257,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await clearPersistedQueryCache();
       }
       await setInstanceUrl(normalized);
+      if (getAuthSessionGeneration() !== generation) {
+        // A sign-out or another instance switch already took effect while this
+        // call was awaiting I/O — don't stomp on that newer state.
+        return;
+      }
       setInstanceUrlState(normalized);
       setStatus('needs_login');
     },
@@ -270,16 +279,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await validateInstanceReachability(instance);
     // Invalidate stale 401/refresh handlers before opening the browser, then drop
     // in-flight field reads so they cannot race the new grant.
-    bumpAuthSessionGeneration();
+    const generation = bumpAuthSessionGeneration();
     await queryClient.cancelQueries();
     await loginWithPkce(instance);
     const info = await fetchUserInfo();
+    if (getAuthSessionGeneration() !== generation) {
+      // A sign-out (or another sign-in) happened while this OAuth flow was in
+      // flight. That newer state transition already won — don't resurrect this
+      // stale session by overwriting it.
+      return;
+    }
     setUser(info);
     setStatus('authenticated');
   }, [instanceUrl]);
 
   const signOut = useCallback(async () => {
-    bumpAuthSessionGeneration();
+    const generation = bumpAuthSessionGeneration();
     try {
       const { clearPushRegistrationOnSignOut } =
         await import('@/src/features/notifications/pushRegistration');
@@ -296,9 +311,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       /* best-effort */
     }
     await clearTokens();
+    await clearPersistedQueryCache();
+    if (getAuthSessionGeneration() !== generation) {
+      // A newer sign-in (or another sign-out) already took effect while this
+      // sign-out was still cleaning up — don't clobber it with stale state.
+      return;
+    }
     setUser(null);
     queryClient.clear();
-    await clearPersistedQueryCache();
     setStatus(instanceUrl ? 'needs_login' : 'needs_instance');
   }, [instanceUrl]);
 
