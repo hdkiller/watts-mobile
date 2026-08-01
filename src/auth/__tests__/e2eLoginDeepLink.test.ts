@@ -37,6 +37,12 @@ describe('parseE2eLoginDeepLink', () => {
     expect(parseE2eLoginDeepLink('coachwatts://today')).toBeNull();
     expect(parseE2eLoginDeepLink('coachwatts://oauth/callback')).toBeNull();
   });
+
+  it('rejects http/https schemes (Universal Links) even with a matching path', () => {
+    expect(parseE2eLoginDeepLink('http://coachwatts.example/e2e/login')).toBeNull();
+    expect(parseE2eLoginDeepLink('https://coachwatts.example/e2e/login')).toBeNull();
+    expect(parseE2eLoginDeepLink('https://coachwatts.example/e2e/login?email=a%40b.c')).toBeNull();
+  });
 });
 
 describe('e2eLoginDeepLinkUrl', () => {
