@@ -45,19 +45,27 @@ function PreferenceRow({
   value,
   onValueChange,
   disabled = false,
+  disabledReason,
 }: {
   title: string;
   description: string;
   value: boolean;
   onValueChange: (val: boolean) => void;
   disabled?: boolean;
+  disabledReason?: string;
 }) {
   const theme = useThemeColors();
   return (
-    <View className="flex-row items-center justify-between border-b border-border/80 px-4 py-4">
+    <View
+      className="flex-row items-center justify-between border-b border-border/80 px-4 py-4"
+      style={disabled ? { opacity: 0.5 } : undefined}
+    >
       <View className="mr-4 flex-1">
         <Text className="text-base font-semibold text-text-primary">{title}</Text>
         <Text className="mt-1 text-sm leading-5 text-text-muted">{description}</Text>
+        {disabled && disabledReason ? (
+          <Text className="mt-1 text-xs italic text-text-muted">{disabledReason}</Text>
+        ) : null}
       </View>
       <Switch
         trackColor={{ false: theme.border, true: Colors.brand }}
@@ -200,21 +208,36 @@ export default function NotificationSettingsScreen() {
                 description="Get notified when your daily training and recovery recommendation is ready."
                 value={preferences?.RECOMMENDATION_READY ?? true}
                 onValueChange={(val) => handleToggle('RECOMMENDATION_READY', val)}
-                disabled={updateMutation.isPending}
+                disabled={updateMutation.isPending || osPermission === 'denied'}
+                disabledReason={
+                  osPermission === 'denied'
+                    ? 'Enable notifications in system settings first'
+                    : undefined
+                }
               />
               <PreferenceRow
                 title="Workout Analysis"
                 description="Receive AI insights and summary reports on your completed workouts."
                 value={preferences?.WORKOUT_ANALYSIS_READY ?? true}
                 onValueChange={(val) => handleToggle('WORKOUT_ANALYSIS_READY', val)}
-                disabled={updateMutation.isPending}
+                disabled={updateMutation.isPending || osPermission === 'denied'}
+                disabledReason={
+                  osPermission === 'denied'
+                    ? 'Enable notifications in system settings first'
+                    : undefined
+                }
               />
               <PreferenceRow
                 title="Coach Messages"
                 description="Receive alerts when the AI Coach replies to your discussions."
                 value={preferences?.COACH_MESSAGE ?? true}
                 onValueChange={(val) => handleToggle('COACH_MESSAGE', val)}
-                disabled={updateMutation.isPending}
+                disabled={updateMutation.isPending || osPermission === 'denied'}
+                disabledReason={
+                  osPermission === 'denied'
+                    ? 'Enable notifications in system settings first'
+                    : undefined
+                }
               />
             </View>
 
