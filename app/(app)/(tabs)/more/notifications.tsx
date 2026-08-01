@@ -17,6 +17,7 @@ import {
   useMarkNotificationRead,
   useNotificationsQuery,
 } from '@/src/features/notifications/useNotifications';
+import { useTabScrollPadding } from '@/src/hooks/useTabScrollPadding';
 import { useThemeColors } from '@/src/theme/useThemeColors';
 
 function goBackToMore() {
@@ -80,6 +81,7 @@ export default function NotificationsScreen() {
   const { data, isLoading, isError, error, refetch } = useNotificationsQuery();
   const markOne = useMarkNotificationRead();
   const markAll = useMarkAllNotificationsRead();
+  const tabBottomPad = useTabScrollPadding();
 
   const [manualRefreshing, setManualRefreshing] = useState(false);
   const handleRefresh = async () => {
@@ -154,7 +156,8 @@ export default function NotificationsScreen() {
       ) : (
         <FlatList
           className="flex-1 bg-surface"
-          contentContainerClassName="px-6 pb-10 pt-4"
+          contentContainerClassName="px-6 pt-4"
+          contentContainerStyle={{ paddingBottom: tabBottomPad }}
           data={rows}
           keyExtractor={(item) => item.id}
           refreshControl={

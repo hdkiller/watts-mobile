@@ -11,6 +11,7 @@ import { PlanNutritionSegment } from '@/src/features/plans/PlanNutritionSegment'
 import { PlanTrainingSegment } from '@/src/features/plans/PlanTrainingSegment';
 import { PLAN_WEEK_SESSIONS_QUERY_KEY, useActivePlanQuery } from '@/src/features/plans/usePlans';
 import { useOfflineCached } from '@/src/hooks/useOfflineCached';
+import { useTabScrollPadding } from '@/src/hooks/useTabScrollPadding';
 import { hapticLight } from '@/src/lib/haptics';
 
 type PlanSegment = 'training' | 'nutrition';
@@ -62,6 +63,7 @@ function PlanModeSegment({
 export default function PlanTabScreen() {
   const [mode, setMode] = useState<PlanSegment>('training');
   const [refreshing, setRefreshing] = useState(false);
+  const tabBottomPad = useTabScrollPadding();
   const queryClient = useQueryClient();
   const { data: activation } = useActivationStatus();
   const hasUsableData = activation?.hasUsableData;
@@ -91,6 +93,7 @@ export default function PlanTabScreen() {
       <PlanModeSegment mode={mode} onChange={setMode} />
       <ScrollView
         className="flex-1"
+        contentContainerStyle={{ paddingBottom: tabBottomPad }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={() => void refetchAll()} />
         }
