@@ -19,9 +19,14 @@ import {
   formatWindowTime,
   fuelStateLabel,
   goalProgressPct,
+  localDateYmd,
 } from './mapNutrition';
-import type { MacroExplainLabel } from './types';
-import { useNextFuelingWindowQuery, useTodayNutritionQuery } from './useNutrition';
+import { HYDRATION_QUICK_ML, type MacroExplainLabel } from './types';
+import {
+  useNextFuelingWindowQuery,
+  useQuickAddHydration,
+  useTodayNutritionQuery,
+} from './useNutrition';
 
 function openNutritionLog() {
   router.push('/(app)/(tabs)/log?section=nutrition' as Href);
@@ -101,6 +106,7 @@ export function NutritionGlance() {
     enabled: trackingEnabled,
   });
   const { data: nextWindow } = useNextFuelingWindowQuery({ enabled: trackingEnabled });
+  const hydrationAdd = useQuickAddHydration();
 
   const [explainLabel, setExplainLabel] = useState<MacroExplainLabel | null>(null);
 
@@ -228,6 +234,37 @@ export function NutritionGlance() {
                     color={NutritionAccents.hydration}
                   />
                 </View>
+              </View>
+
+              {/* Hydration quick-add — web-parity preset volumes (CW-304) */}
+              <View className="mt-2.5 flex-row items-center gap-2">
+                {HYDRATION_QUICK_ML.map((ml) => (
+                  <Pressable
+                    key={ml}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Log ${ml} milliliters of fluid`}
+                    disabled={hydrationAdd.isPending}
+                    className={`rounded-full border border-border bg-surface px-3 py-1.5 active:opacity-70 ${
+                      hydrationAdd.isPending ? 'opacity-50' : ''
+                    }`}
+                    onPress={() => {
+                      hapticLight();
+                      hydrationAdd.mutate({ date: localDateYmd(), volumeMl: ml });
+                    }}
+                  >
+                    <Text
+                      className="text-xs font-semibold"
+                      style={{ color: NutritionAccents.hydration }}
+                    >
+                      +{ml} ml
+                    </Text>
+                  </Pressable>
+                ))}
+                {hydrationAdd.isError ? (
+                  <Text className="flex-1 text-xs text-danger" numberOfLines={1}>
+                    Couldn’t log fluid
+                  </Text>
+                ) : null}
               </View>
             </>
           )}
