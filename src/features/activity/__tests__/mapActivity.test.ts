@@ -105,6 +105,29 @@ describe('mapPlannedStructure', () => {
     expect(steps.some((s) => s.intensityLabel === '250–280 W')).toBe(true);
   });
 
+  it('maps cadence targets into cadenceLabel (CW-302)', () => {
+    const { steps } = mapPlannedStructure({
+      steps: [
+        { name: 'Spin-up', durationSeconds: 300, cadence: { value: 95 } },
+        {
+          name: 'Climb',
+          durationSeconds: 600,
+          power: { value: 0.85, units: '%ftp' },
+          cadence: { range: { min: 85, max: 95 } },
+        },
+        { name: 'Strides', durationSeconds: 60, cadence: { value: 180, units: 'spm' } },
+        { name: 'Bare number', durationSeconds: 60, cadence: 90 },
+        { name: 'No cadence', durationSeconds: 120, power: { value: 200 } },
+      ],
+    });
+
+    expect(steps[0]).toMatchObject({ cadenceLabel: '95 rpm' });
+    expect(steps[1]).toMatchObject({ intensityLabel: '85% FTP', cadenceLabel: '85–95 rpm' });
+    expect(steps[2]).toMatchObject({ cadenceLabel: '180 spm' });
+    expect(steps[3]).toMatchObject({ cadenceLabel: '90 rpm' });
+    expect(steps[4]).toMatchObject({ cadenceLabel: null });
+  });
+
   it('does not invent intervals from description-only payloads', () => {
     expect(mapPlannedStructure({ description: 'Do 5x5' })).toEqual({
       steps: [],

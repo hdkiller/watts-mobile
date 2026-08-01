@@ -926,6 +926,33 @@ function intensityFromStep(
   return null;
 }
 
+/**
+ * Cadence target label for a structured step ("90 rpm" / "85–95 rpm").
+ * Cadence is a canonical editor target in coach-wattz's workout-support-matrix;
+ * shown after intensity in the step meta line (CW-302).
+ */
+function cadenceFromStep(step: Record<string, unknown>): string | null {
+  const cadence = step.cadence as StepTarget | number | undefined;
+  if (cadence == null) return null;
+  if (typeof cadence === 'number') {
+    return Number.isFinite(cadence) && cadence > 0 ? `${Math.round(cadence)} rpm` : null;
+  }
+  if (typeof cadence !== 'object') return null;
+  const rawUnits = typeof cadence.units === 'string' ? cadence.units.toLowerCase().trim() : '';
+  const unit = rawUnits === 'spm' ? 'spm' : 'rpm';
+  if (typeof cadence.value === 'number' && cadence.value > 0) {
+    return `${Math.round(cadence.value)} ${unit}`;
+  }
+  const { min, max } = targetRangeBounds(cadence.range);
+  if (min != null && max != null) {
+    if (Math.round(min) === Math.round(max)) return `${Math.round(min)} ${unit}`;
+    return `${Math.round(min)}–${Math.round(max)} ${unit}`;
+  }
+  if (min != null) return `${Math.round(min)}+ ${unit}`;
+  if (max != null) return `≤${Math.round(max)} ${unit}`;
+  return null;
+}
+
 function stepDurationSec(step: Record<string, unknown>): number | null {
   const sec = step.durationSeconds ?? step.durationSec ?? step.duration;
   if (typeof sec === 'number' && sec > 0) {
@@ -990,6 +1017,7 @@ function flattenSteps(
       name: stepName(step, out.length),
       durationSec: stepDurationSec(step),
       intensityLabel,
+      cadenceLabel: cadenceFromStep(step),
       zoneIndex,
     });
   }

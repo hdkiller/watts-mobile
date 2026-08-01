@@ -221,6 +221,8 @@ export type PlannedStructureStep = {
   name: string;
   durationSec: number | null;
   intensityLabel: string | null;
+  /** Cadence target ("90 rpm", "85–95 rpm") shown after intensity (CW-302). */
+  cadenceLabel?: string | null;
   /** Strength block title / warmup-cooldown cue — not an exercise row. */
   isSection?: boolean;
   /** Target-aware zone hint for step rail color when resolvable. */
