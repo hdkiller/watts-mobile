@@ -45,6 +45,15 @@ async function clearHealthSyncForIdentityTransition(): Promise<void> {
   }
 }
 
+async function clearPendingWellnessCheckinForIdentityTransition(): Promise<void> {
+  try {
+    const { clearPendingWellnessCheckin } = await import('@/src/features/log/offlineWellnessQueue');
+    await clearPendingWellnessCheckin();
+  } catch (error) {
+    console.warn('Failed to clear offline wellness queue during account transition', error);
+  }
+}
+
 type AuthStatus = 'loading' | 'needs_instance' | 'needs_login' | 'authenticated';
 
 type AuthContextValue = {
@@ -216,6 +225,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.clear();
       void clearPersistedQueryCache();
       void clearHealthSyncForIdentityTransition();
+      void clearPendingWellnessCheckinForIdentityTransition();
       void import('@/src/features/activation/connectLater')
         .then(({ clearConnectLater }) => clearConnectLater())
         .catch(() => {
@@ -277,6 +287,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.warn('Failed to clear push registration on sign-out', error);
     }
     await clearHealthSyncForIdentityTransition();
+    await clearPendingWellnessCheckinForIdentityTransition();
     try {
       const { clearConnectLater } = await import('@/src/features/activation/connectLater');
       await clearConnectLater();
