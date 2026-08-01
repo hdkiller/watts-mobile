@@ -163,8 +163,17 @@ export async function apiFetch(path: string, options: ApiFetchOptions = {}): Pro
   } catch (err) {
     if (isAuthTokenInvalidationError(err)) {
       await failAuthSession(sessionGeneration, `refresh invalidated for ${path}`);
+      return response;
     }
-    return response;
+    // Refresh failed for a reason other than an explicit invalid-token response
+    // (network error, timeout, 5xx from the token endpoint, etc). Don't clear the
+    // session (correct — CW-135), but also don't return the original request's
+    // stale 401: that response's HTTP status carries no information about *why*
+    // refresh failed, so a caller inspecting response.status (e.g. fetchUserInfo,
+    // whose ApiError feeds AuthContext.bootstrap's isReachabilityError check) would
+    // misclassify a transient connectivity/server problem as a genuine auth failure.
+    // Propagate the underlying error instead so it can be classified correctly.
+    throw err;
   }
 }
 
