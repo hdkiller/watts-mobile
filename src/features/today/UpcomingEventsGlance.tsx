@@ -1,6 +1,7 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { router, type Href } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
+import { SectionHeader } from '@/src/components/SectionHeader';
 
 import type { CalendarEventGlance } from '@/src/features/events/types';
 import { useUpcomingEventsQuery } from '@/src/features/events/useEvents';
@@ -19,9 +20,7 @@ export function UpcomingEventsGlance() {
     <View className="mt-8">
       <View className="flex-row items-baseline justify-between">
         <View className="flex-row items-baseline gap-2">
-          <Text className="text-xs font-semibold uppercase tracking-widest text-text-muted">
-            Upcoming Events
-          </Text>
+          <SectionHeader title="Upcoming Events" />
           <Text className="text-xs font-semibold text-text-muted">{data.length}</Text>
         </View>
         <Pressable

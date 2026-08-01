@@ -2,6 +2,7 @@
 import { router, type Href } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { SectionHeader } from '@/src/components/SectionHeader';
 
 import { AppSymbol } from '@/src/components/AppSymbol';
 import { Skeleton } from '@/src/components/Skeleton';
@@ -116,9 +117,7 @@ export function NutritionGlance() {
   return (
     <View className="mt-8">
       <View className="flex-row items-baseline justify-between">
-        <Text className="text-xs font-semibold uppercase tracking-widest text-text-muted">
-          Nutrition
-        </Text>
+        <SectionHeader title="Nutrition" />
         <Pressable hitSlop={8} className="py-1 active:opacity-70" onPress={openMealLogSheet}>
           <Text className="text-sm font-semibold text-brand">Log meal</Text>
         </Pressable>

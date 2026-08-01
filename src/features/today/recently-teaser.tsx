@@ -1,6 +1,7 @@
 import { router, type Href } from 'expo-router';
 import { useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { SectionHeader } from '@/src/components/SectionHeader';
 
 import { formatActivityDate, formatDuration } from '@/src/features/activity/mapActivity';
 import { buildComplianceIndex, type ComplianceMark } from '@/src/features/activity/compliance';
@@ -32,9 +33,7 @@ export function RecentlyTeaser() {
   return (
     <View className="mt-8">
       <View className="flex-row items-baseline justify-between">
-        <Text className="text-xs font-semibold uppercase tracking-widest text-text-muted">
-          Recently
-        </Text>
+        <SectionHeader title="Recently" />
         <Pressable
           className="py-1 active:opacity-70"
           hitSlop={8}

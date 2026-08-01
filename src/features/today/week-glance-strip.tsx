@@ -1,4 +1,5 @@
 import { Text, View } from 'react-native';
+import { SectionHeader } from '@/src/components/SectionHeader';
 
 import type { ActivityListItem, PlannedListItem } from '@/src/features/activity/types';
 import { computeWeekGlance } from '@/src/features/today/weekGlance';
@@ -13,9 +14,7 @@ export function WeekGlanceStrip({ recent, planned }: WeekGlanceStripProps) {
 
   return (
     <View className="mt-8">
-      <Text className="text-xs font-semibold uppercase tracking-widest text-text-muted">
-        This week
-      </Text>
+      <SectionHeader title="This week" />
       <Text className="mt-2 text-sm text-text-body">
         {glance.summaryLine.replace(/^This week:\s*/, '')}
       </Text>
