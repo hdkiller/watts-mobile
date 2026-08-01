@@ -101,7 +101,9 @@ export function AppSymbol({
       name={android ? { ios: sf, android, web: android } : sf}
       size={size}
       tintColor={tintColor}
-      style={style}
+      // Pin the glyph box to size×size: without it the Android Material Symbol
+      // view keeps intrinsic padding and sits off-center in circular buttons (CW-303).
+      style={[{ width: size, height: size }, style]}
       fallback={
         fallback != null ? (
           <Text style={{ fontSize: Math.max(10, size - 2), color: tintColor }}>{fallback}</Text>
