@@ -1,7 +1,7 @@
 /* Hallmark · genre: modern-minimal · design-system: docs/DESIGN.md · designed-as-app */
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Linking, ScrollView, Switch, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { friendlyError } from '@/src/api/errors';
@@ -11,6 +11,24 @@ import { trackActivationEvent } from '@/src/features/activation/analytics';
 import { POLICY_VERSIONS, submitConsent } from '@/src/features/activation/api';
 import { useAdvanceActivationStatus } from '@/src/features/activation/useActivationStatus';
 
+// Human-readable disclosure of the HealthKit / Health Connect record types
+// read for coaching (see src/features/health/syncPermissions.ts for the exact
+// native identifiers). Kept local to this screen — it's the only place that
+// needs a user-facing label per type; syncPermissions.ts stays type-only.
+const HEALTH_DATA_TYPES_READ = [
+  'Body weight & body fat percentage',
+  'Sleep',
+  'Heart rate & resting heart rate',
+  'Heart rate variability (HRV)',
+  'Blood oxygen (SpO2) & respiratory rate',
+  'VO2 max',
+  'Steps & flights climbed',
+  'Active & resting calories burned',
+  'Distance (walking, running, cycling, swimming, wheelchair)',
+  'Cycling & running power, cadence, and speed',
+  'Workouts, including GPS routes',
+];
+
 export default function ActivationConsentScreen() {
   const router = useRouter();
   const advance = useAdvanceActivationStatus();
@@ -18,6 +36,7 @@ export default function ActivationConsentScreen() {
   const [health, setHealth] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showHealthDataTypes, setShowHealthDataTypes] = useState(false);
 
   const onContinue = async () => {
     setError(null);
@@ -71,14 +90,37 @@ export default function ActivationConsentScreen() {
             <Switch value={terms} onValueChange={setTerms} />
           </View>
 
-          <View className="flex-row items-center justify-between gap-4 rounded-xl border border-border bg-card p-4">
-            <View className="flex-1">
-              <Text className="text-base font-medium text-text-primary">Health data</Text>
-              <Text className="mt-1 text-sm text-text-muted">
-                I consent to processing health and biometric data for coaching.
-              </Text>
+          <View className="rounded-xl border border-border bg-card p-4">
+            <View className="flex-row items-center justify-between gap-4">
+              <View className="flex-1">
+                <Text className="text-base font-medium text-text-primary">Health data</Text>
+                <Text className="mt-1 text-sm text-text-muted">
+                  I consent to processing health and biometric data for coaching.
+                </Text>
+              </View>
+              <Switch value={health} onValueChange={setHealth} />
             </View>
-            <Switch value={health} onValueChange={setHealth} />
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ expanded: showHealthDataTypes }}
+              className="mt-3"
+              onPress={() => setShowHealthDataTypes((prev) => !prev)}
+            >
+              <Text className="text-sm font-medium text-brand">
+                {showHealthDataTypes ? 'Hide what we read' : 'What we read'}
+              </Text>
+            </Pressable>
+
+            {showHealthDataTypes ? (
+              <View className="mt-2 gap-1.5">
+                {HEALTH_DATA_TYPES_READ.map((label) => (
+                  <Text key={label} className="text-sm text-text-muted">
+                    {'•'} {label}
+                  </Text>
+                ))}
+              </View>
+            ) : null}
           </View>
         </View>
 

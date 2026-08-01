@@ -30,8 +30,12 @@ vi.mock('@/src/auth/tokenStorage', () => ({
   saveTokens,
 }));
 
-vi.mock('@/src/auth/pendingE2eLogin', () => ({
+const { consumePendingE2eLogin } = vi.hoisted(() => ({
   consumePendingE2eLogin: vi.fn(async () => null),
+}));
+
+vi.mock('@/src/auth/pendingE2eLogin', () => ({
+  consumePendingE2eLogin,
   loadPendingE2eLogin: vi.fn(async () => null),
   setPendingE2eLogin: vi.fn(async () => undefined),
 }));
@@ -116,6 +120,24 @@ describe('applyE2eAuthSeed', () => {
     vi.stubEnv('EXPO_PUBLIC_E2E_ACCESS_TOKEN', '');
     const { applyE2eAuthSeed } = await import('../e2eAuth');
     await expect(applyE2eAuthSeed()).rejects.toThrow(/E2E_ACCESS_TOKEN/);
+  });
+});
+
+describe('applyPendingE2eLogin', () => {
+  afterEach(() => {
+    vi.resetModules();
+    vi.unstubAllEnvs();
+    consumePendingE2eLogin.mockClear();
+    saveTokens.mockClear();
+    setInstanceUrl.mockClear();
+  });
+
+  it('is a no-op and never consumes the pending login when e2e auth is disabled', async () => {
+    vi.stubEnv('EXPO_PUBLIC_E2E_AUTH', '');
+    const { applyPendingE2eLogin } = await import('../e2eAuth');
+    await expect(applyPendingE2eLogin()).resolves.toBeNull();
+    expect(consumePendingE2eLogin).not.toHaveBeenCalled();
+    expect(saveTokens).not.toHaveBeenCalled();
   });
 });
 
