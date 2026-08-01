@@ -3,6 +3,7 @@
  */
 import { router, type Href } from 'expo-router';
 import { Text, View } from 'react-native';
+import { SectionHeader } from '@/src/components/SectionHeader';
 
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
@@ -40,7 +41,7 @@ export function GoalsLiteSection() {
 
   return (
     <View className="mt-8 border-t border-border/80 pt-6">
-      <Text className="text-xs uppercase tracking-wide text-text-muted">Goal</Text>
+      <SectionHeader title="Goal" />
 
       {isLoading ? (
         <View className="mt-3 gap-2">

@@ -3,6 +3,7 @@ import { router, type Href } from 'expo-router';
 import type { SFSymbol } from 'expo-symbols';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { SectionHeader } from '@/src/components/SectionHeader';
 
 import { AppSymbol } from '@/src/components/AppSymbol';
 import { useRecentWellness } from '@/src/features/profile/useRecentWellness';
@@ -153,7 +154,7 @@ export function WellnessSection({
   return (
     <View className="mt-6">
       <View className="flex-row items-center justify-between">
-        <Text className="text-xs uppercase tracking-wide text-text-muted">Wellness</Text>
+        <SectionHeader title="Wellness" />
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Wellness history"
