@@ -23,6 +23,16 @@ const accents = {
   macroFat: '#a78bfa',
   hydration: '#38bdf8', // same value as recovery — fluid accent
   /**
+   * Wellness 7-day trend series accents (theme-invariant) — one hue per metric
+   * so stacked graphs scan apart (CW-301). Sleep shares the calm violet of
+   * macroFat, HRV the sky of recovery; Resting HR gets rose (not `danger` red —
+   * an elevated RHR bar is information, not an error state).
+   */
+  wellnessSleep: '#a78bfa',
+  wellnessHrv: '#38bdf8',
+  wellnessRestingHr: '#fb7185',
+  wellnessRecovery: '#00DC82',
+  /**
    * Z1→Z7 training-zone ramp (blue → teal → yellow → orange → red → purple → zinc).
    * Z2 is teal (`#14b8a6`) so it stays distinct from brand green.
    */

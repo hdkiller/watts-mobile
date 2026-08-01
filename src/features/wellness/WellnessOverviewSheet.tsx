@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { friendlyError } from '@/src/api/errors';
 import { useAuth } from '@/src/auth/AuthContext';
 import { Skeleton } from '@/src/components/Skeleton';
+import { Colors } from '@/src/theme/colors';
 
 import { wellnessDayWebPath } from './mapWellnessOverview';
 import type { WellnessBarSeries, WellnessOverviewMetric } from './types';
@@ -55,22 +56,38 @@ function MetricTile({ metric }: { metric: WellnessOverviewMetric }) {
   );
 }
 
+/** One accent per metric so the stacked graphs scan apart (CW-301). */
+const SERIES_COLORS: Record<string, string> = {
+  sleep: Colors.wellnessSleep,
+  hrv: Colors.wellnessHrv,
+  restingHr: Colors.wellnessRestingHr,
+  recoveryScore: Colors.wellnessRecovery,
+};
+
 function TrendBars({ series }: { series: WellnessBarSeries }) {
   const values = series.points.map((p) => p.value).filter((v): v is number => v != null);
   const max = values.length ? Math.max(...values) : 0;
   if (max <= 0) return null;
+  const color = SERIES_COLORS[series.key] ?? Colors.wellnessRecovery;
 
   return (
     <View className="mt-4">
-      <Text className="text-xs font-semibold text-text-body">{series.label} · 7 days</Text>
+      <View className="flex-row items-center gap-1.5">
+        <View className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
+        <Text className="text-xs font-semibold text-text-body">{series.label} · 7 days</Text>
+      </View>
       <View className="mt-2 h-16 flex-row items-end gap-1.5">
         {series.points.map((point) => {
           const height = point.value != null && max > 0 ? Math.max(4, (point.value / max) * 56) : 4;
           return (
             <View key={point.date} className="flex-1 items-center justify-end">
               <View
-                className="w-full rounded-t-sm bg-brand/70"
-                style={{ height, opacity: point.value == null ? 0.2 : 1 }}
+                className="w-full rounded-t-sm"
+                style={{
+                  height,
+                  backgroundColor: color,
+                  opacity: point.value == null ? 0.2 : 0.85,
+                }}
               />
             </View>
           );
