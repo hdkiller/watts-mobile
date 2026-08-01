@@ -90,7 +90,9 @@ export default function NotificationSettingsScreen() {
     refetch,
   } = useNotificationPreferencesQuery();
   const updateMutation = useUpdateNotificationPreferences();
-  const [osPermission, setOsPermission] = useState<PushPermissionState>('granted');
+  // 'undetermined' until the async permission check resolves; the denied-state banner below
+  // only renders on `=== 'denied'`, so this has no visible effect on the granted-by-default path.
+  const [osPermission, setOsPermission] = useState<PushPermissionState>('undetermined');
 
   useEffect(() => {
     let active = true;
