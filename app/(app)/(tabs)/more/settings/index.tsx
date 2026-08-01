@@ -198,7 +198,13 @@ export default function SettingsScreen() {
   }, []);
 
   const openWebPath = async (path: string) => {
-    await openInstanceWeb(instanceUrl, path);
+    const opened = await openInstanceWeb(instanceUrl, path);
+    if (!opened) {
+      Alert.alert(
+        'Unable to open browser',
+        'We could not open your Coach Watts account page because no server is currently connected. Please sign in again and try once more.',
+      );
+    }
   };
 
   const handleInstancePress = () => {

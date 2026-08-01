@@ -127,6 +127,8 @@ export async function mintE2eToken(
  * Consume a pending `coachwatts://e2e/login` intent: mint + persist instance/tokens.
  */
 export async function applyPendingE2eLogin(): Promise<E2eAuthSeedResult | null> {
+  if (!isE2eAuthEnabled()) return null;
+
   const pending = await consumePendingE2eLogin();
   if (!pending) return null;
 

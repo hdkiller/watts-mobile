@@ -88,6 +88,10 @@ function EditForm({
     const pro = Number(protein) || 0;
     const carb = Number(carbs) || 0;
     const f = Number(fat) || 0;
+    if (cal < 0 || pro < 0 || carb < 0 || f < 0) {
+      setError('Calories and macros cannot be negative.');
+      return;
+    }
     const mealType: ApiMealType = mealSlotToApiMealType(meal);
 
     setError(null);
