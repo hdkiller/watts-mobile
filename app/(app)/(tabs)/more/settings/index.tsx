@@ -53,6 +53,22 @@ function ExternalMark() {
   return <AppSymbol sf="arrow.up.right" size={13} tintColor={theme.textMuted} fallback="↗" />;
 }
 
+/**
+ * `index` is the Settings stack's `unstable_settings.anchor`, so when it's
+ * pushed from the More root it becomes the sole/first entry in this stack's
+ * own navigation state — the auto-generated header back button only looks at
+ * that local state, not the parent tree, so it never appears. Supply an
+ * explicit one, matching the fallback pattern already used in
+ * settings/notifications.tsx.
+ */
+function goBackToMore() {
+  if (router.canGoBack()) {
+    router.back();
+    return;
+  }
+  router.replace('/(app)/(tabs)/more' as Href);
+}
+
 /** Only a handful of preferences are device-local; the rest follow the account. */
 function DeviceTag() {
   return (
@@ -139,6 +155,23 @@ function MenuRow({
 
 export default function SettingsScreen() {
   const theme = useThemeColors();
+  const renderHeaderLeft = () => (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Back"
+      hitSlop={12}
+      onPress={goBackToMore}
+      style={{
+        minWidth: 44,
+        minHeight: 44,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginLeft: Platform.OS === 'ios' ? -6 : 0,
+      }}
+    >
+      <AppSymbol sf="chevron.left" size={22} tintColor={theme.textPrimary} fallback="←" />
+    </Pressable>
+  );
 
   const { instanceUrl, signOut } = useAuth();
   const { data: athleteProfile } = useAthleteProfileQuery();
@@ -240,6 +273,7 @@ export default function SettingsScreen() {
         options={{
           title: 'Settings',
           headerShown: true,
+          headerLeft: renderHeaderLeft,
         }}
       />
       <SafeAreaView testID="settings-screen" style={{ flex: 1, backgroundColor: theme.surface }}>
