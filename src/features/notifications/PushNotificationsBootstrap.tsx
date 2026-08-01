@@ -9,6 +9,7 @@ import { useAuth } from '@/src/auth/AuthContext';
 import { invalidateQueriesForPush } from './invalidateFromPush';
 import { registerPushForAuthenticatedSession } from './pushRegistration';
 import { pushDataFromNotificationContent, resolvePushOpen } from './resolvePushOpen';
+import { useUnreadNotificationsCount } from './useNotifications';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -36,6 +37,14 @@ export function PushNotificationsBootstrap() {
   const { status } = useAuth();
   const queryClient = useQueryClient();
   const handledResponseIds = useRef(new Set<string>());
+  const unreadCount = useUnreadNotificationsCount();
+
+  useEffect(() => {
+    if (status !== 'authenticated' || Platform.OS === 'web') {
+      return;
+    }
+    void Notifications.setBadgeCountAsync(unreadCount);
+  }, [status, unreadCount]);
 
   useEffect(() => {
     if (status !== 'authenticated' || Platform.OS === 'web') {
