@@ -7,8 +7,12 @@ import { AppState, Platform, type AppStateStatus } from 'react-native';
 import { useAuth } from '@/src/auth/AuthContext';
 
 import { invalidateQueriesForPush } from './invalidateFromPush';
-import { registerPushForAuthenticatedSession } from './pushRegistration';
+import {
+  registerPushForAuthenticatedSession,
+  retryPendingPushUnregistration,
+} from './pushRegistration';
 import { pushDataFromNotificationContent, resolvePushOpen } from './resolvePushOpen';
+import { useUnreadNotificationsCount } from './useNotifications';
 
 function captureRegistrationFailure(error: string) {
   try {
@@ -38,7 +42,12 @@ Notifications.setNotificationHandler({
   }),
 });
 
-function navigateFromPushData(data: Record<string, unknown> | undefined) {
+function navigateFromPushData(data: Record<string, unknown> | undefined, isAuthenticated: boolean) {
+  if (!isAuthenticated) {
+    // Signed out (or auth state not yet resolved) — don't route into authenticated
+    // content on behalf of a stale/leaked push notification.
+    return;
+  }
   const resolved = resolvePushOpen(pushDataFromNotificationContent(data));
   if (resolved.kind !== 'app') {
     return;
@@ -57,6 +66,7 @@ export function PushNotificationsBootstrap() {
   const handledResponseIds = useRef(new Set<string>());
   const lastRegistrationStateRef = useRef<'failed' | 'succeeded' | null>(null);
   const registrationInFlightRef = useRef(false);
+  const unreadCount = useUnreadNotificationsCount();
 
   const attemptPushRegistration = useCallback((cancelledRef: { current: boolean }) => {
     if (registrationInFlightRef.current) return;
@@ -76,6 +86,34 @@ export function PushNotificationsBootstrap() {
         registrationInFlightRef.current = false;
       }
     })();
+  }, []);
+
+  useEffect(() => {
+    if (status !== 'authenticated' || Platform.OS === 'web') {
+      return;
+    }
+    void Notifications.setBadgeCountAsync(unreadCount);
+  }, [status, unreadCount]);
+
+  // Retry any push-device unregistration that failed on a previous sign-out, on launch
+  // and whenever the app returns to the foreground — independent of current auth status,
+  // since the whole point is clearing out a stale registration left over from before.
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      return;
+    }
+
+    void retryPendingPushUnregistration();
+
+    const subscription = AppState.addEventListener('change', (nextState: AppStateStatus) => {
+      if (nextState === 'active') {
+        void retryPendingPushUnregistration();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
   }, []);
 
   useEffect(() => {
@@ -110,7 +148,10 @@ export function PushNotificationsBootstrap() {
         return;
       }
       handledResponseIds.current.add(responseId);
-      navigateFromPushData(response.notification.request.content.data as Record<string, unknown>);
+      navigateFromPushData(
+        response.notification.request.content.data as Record<string, unknown>,
+        status === 'authenticated',
+      );
     });
 
     void Notifications.getLastNotificationResponseAsync().then((response) => {
@@ -118,7 +159,10 @@ export function PushNotificationsBootstrap() {
       const responseId = response.notification.request.identifier;
       if (handledResponseIds.current.has(responseId)) return;
       handledResponseIds.current.add(responseId);
-      navigateFromPushData(response.notification.request.content.data as Record<string, unknown>);
+      navigateFromPushData(
+        response.notification.request.content.data as Record<string, unknown>,
+        status === 'authenticated',
+      );
       void Notifications.clearLastNotificationResponseAsync();
     });
 

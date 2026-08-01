@@ -556,6 +556,13 @@ export function CoachChat({
         </View>
       </View>
 
+      <View className="border-b border-border bg-surface px-5 py-2">
+        <Text className="text-xs leading-4 text-text-muted">
+          Coach Watts provides general fitness guidance, not medical advice. Consult a healthcare
+          provider for medical concerns.
+        </Text>
+      </View>
+
       {chat.notice ? <Text className="px-5 pt-2 text-sm text-modify">{chat.notice}</Text> : null}
 
       {chat.isReadOnly ? (

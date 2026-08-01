@@ -17,9 +17,9 @@ describe('openInstanceWeb', () => {
     vi.clearAllMocks();
   });
 
-  it('does nothing if instanceUrl is null or undefined', async () => {
-    await openInstanceWeb(null, '/settings/danger');
-    await openInstanceWeb(undefined, '/settings/danger');
+  it('does nothing and returns false if instanceUrl is null or undefined', async () => {
+    await expect(openInstanceWeb(null, '/settings/danger')).resolves.toBe(false);
+    await expect(openInstanceWeb(undefined, '/settings/danger')).resolves.toBe(false);
     expect(WebBrowser.openBrowserAsync).not.toHaveBeenCalled();
     expect(mintAppWebHandoff).not.toHaveBeenCalled();
   });
@@ -30,7 +30,7 @@ describe('openInstanceWeb', () => {
       expiresIn: 300,
     });
 
-    await openInstanceWeb('https://coachwatts.com', '/settings/danger');
+    await expect(openInstanceWeb('https://coachwatts.com', '/settings/danger')).resolves.toBe(true);
 
     expect(mintAppWebHandoff).toHaveBeenCalledWith('/settings/danger');
     expect(WebBrowser.openBrowserAsync).toHaveBeenCalledTimes(1);
