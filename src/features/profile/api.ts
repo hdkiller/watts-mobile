@@ -119,6 +119,9 @@ export async function isAiSettingsBearerAvailable(): Promise<boolean> {
   }
 }
 
+// Currently unused in-app: account deletion is handed off to the authenticated web
+// danger-zone page (see src/features/account/openInstanceWeb.ts). Wiring this
+// in-app DELETE path is a separate, deliberate product decision (CW-277).
 export async function deleteAthleteAccount(): Promise<void> {
   const response = await apiFetch('/api/profile', {
     method: 'DELETE',

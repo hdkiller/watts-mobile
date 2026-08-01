@@ -40,6 +40,23 @@ import { clearWatermarks, resolveReadWindow, setWatermark } from './watermarks';
 let inFlight: Promise<SyncPassResult> | null = null;
 
 /**
+ * Manual sync entry points (retryLedgerItem, syncWorkoutByPlatformSessionId,
+ * syncUnsyncedWorkouts) run outside the single-flight `inFlight` pass and can be
+ * triggered concurrently with each other and with a background pass. Each one's
+ * promise is tracked here so clearHealthSyncOnSignOut can await all of them —
+ * not just `inFlight` — before clearing local state.
+ */
+const manualSyncInFlight = new Set<Promise<unknown>>();
+
+function trackManualSync<T>(op: Promise<T>): Promise<T> {
+  const tracked = op.finally(() => {
+    manualSyncInFlight.delete(tracked);
+  });
+  manualSyncInFlight.add(tracked);
+  return tracked;
+}
+
+/**
  * Monotonic generation bumped when sign-out begins (see clearHealthSyncOnSignOut).
  * A running `runHealthSyncPass` captures this value at start; if it goes stale
  * mid-pass, the pass refuses to persist any further ledger/watermark write —
@@ -67,12 +84,16 @@ function isHealthSyncGenerationCurrent(generation: number): boolean {
  * clearHealthSyncOnSignOut so the ledger clear cannot race a stale pass.
  */
 export async function awaitInFlightHealthSyncPass(): Promise<void> {
-  if (!inFlight) return;
-  try {
-    await inFlight;
-  } catch {
-    // Any failure is the pass's own concern — nothing to surface here.
-  }
+  const pending: Promise<unknown>[] = [...manualSyncInFlight];
+  if (inFlight) pending.push(inFlight);
+  if (pending.length === 0) return;
+  await Promise.all(
+    pending.map((p) =>
+      p.catch(() => {
+        // Any failure is the operation's own concern — nothing to surface here.
+      }),
+    ),
+  );
 }
 
 export type SyncPassResult = {
@@ -463,6 +484,15 @@ async function assertWorkoutSyncAllowed(): Promise<void> {
 }
 
 export async function retryLedgerItem(id: string): Promise<void> {
+  return trackManualSync(retryLedgerItemImpl(id));
+}
+
+async function retryLedgerItemImpl(id: string): Promise<void> {
+  // Capture the generation this manual retry runs under. Threaded through the
+  // sync helpers below so a sign-out mid-retry cancels the write instead of
+  // racing clearHealthSyncOnSignOut — see isHealthSyncGenerationCurrent.
+  const generation = getHealthSyncGeneration();
+
   const prefs = await loadHealthSyncPreferences();
   if (!prefs.syncEnabled) {
     throw new Error('Enable Sync to Coach Watts first');
@@ -484,7 +514,7 @@ export async function retryLedgerItem(id: string): Promise<void> {
     if (!sample || !sampleHasMetrics(sample)) {
       throw new Error('No on-device metrics for that day');
     }
-    const status = await syncWellnessSample(sample, true);
+    const status = await syncWellnessSample(sample, true, generation);
     if (status === 'failed') await throwLedgerFailure(id);
     return;
   }
@@ -497,7 +527,7 @@ export async function retryLedgerItem(id: string): Promise<void> {
   const session = sessions.find((s) => s.platformSessionId === sessionId);
   if (!session) throw new Error('Workout no longer on device');
   const remotes = await fetchRemoteWorkoutsForMatch(LOOKBACK_DAYS);
-  const status = await syncWorkoutSession(session, remotes, true);
+  const status = await syncWorkoutSession(session, remotes, true, generation);
   if (status === 'failed') await throwLedgerFailure(id);
 }
 
@@ -508,6 +538,15 @@ export async function syncWorkoutByPlatformSessionId(
   platformSessionId: string,
   options: { force?: boolean } = {},
 ): Promise<void> {
+  return trackManualSync(syncWorkoutByPlatformSessionIdImpl(platformSessionId, options));
+}
+
+async function syncWorkoutByPlatformSessionIdImpl(
+  platformSessionId: string,
+  options: { force?: boolean } = {},
+): Promise<void> {
+  const generation = getHealthSyncGeneration();
+
   await assertWorkoutSyncAllowed();
 
   const session = await findPlatformWorkoutSession(platformSessionId);
@@ -515,7 +554,7 @@ export async function syncWorkoutByPlatformSessionId(
 
   const remotes = await fetchRemoteWorkoutsForMatch(LOOKBACK_DAYS);
   const force = options.force === true;
-  const status = await syncWorkoutSession(session, remotes, force);
+  const status = await syncWorkoutSession(session, remotes, force, generation);
   if (status === 'failed') {
     await throwLedgerFailure(workoutLedgerId(platformSessionId));
   }
@@ -530,6 +569,12 @@ export type SyncUnsyncedWorkoutsResult = {
 
 /** Sync only inventory rows that are needs_sync / failed / pending. */
 export async function syncUnsyncedWorkouts(): Promise<SyncUnsyncedWorkoutsResult> {
+  return trackManualSync(syncUnsyncedWorkoutsImpl());
+}
+
+async function syncUnsyncedWorkoutsImpl(): Promise<SyncUnsyncedWorkoutsResult> {
+  const generation = getHealthSyncGeneration();
+
   await assertWorkoutSyncAllowed();
 
   const [rows, sessions, remotes] = await Promise.all([
@@ -547,13 +592,18 @@ export async function syncUnsyncedWorkouts(): Promise<SyncUnsyncedWorkoutsResult
   };
 
   for (const row of targets) {
+    if (!isHealthSyncGenerationCurrent(generation)) break;
     const session = sessionById.get(row.platformSessionId);
     result.attempted += 1;
     if (!session) {
       result.failed += 1;
       continue;
     }
-    const status = await syncWorkoutSession(session, remotes, true);
+    const status = await syncWorkoutSession(session, remotes, true, generation);
+    if (status === 'cancelled') {
+      result.attempted -= 1;
+      break;
+    }
     if (status === 'synced' || status === 'skipped') result.synced += 1;
     else if (status === 'pending') result.pending += 1;
     else result.failed += 1;
