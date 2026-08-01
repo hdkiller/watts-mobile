@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Alert, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-screens/experimental';
+import { ScrollViewMarker, SafeAreaView } from 'react-native-screens/experimental';
 
 import { useOfflineCached } from '@/src/hooks/useOfflineCached';
 import { useTabScrollPadding } from '@/src/hooks/useTabScrollPadding';
@@ -556,439 +556,455 @@ export default function TodayScreen() {
       edges={{ top: true }}
       style={{ flex: 1, backgroundColor: theme.surface }}
     >
-      <ScrollView
-        className="flex-1 bg-surface"
-        contentContainerClassName="px-6 pt-4"
-        contentContainerStyle={{ paddingBottom: tabBottomPad }}
-        refreshControl={
-          <RefreshControl
-            refreshing={manualRefreshing}
-            onRefresh={() => void onRefresh()}
-            tintColor={theme.brandOnSurface}
-          />
-        }
-      >
-        <EnterSection order={0}>
-          <View className="flex-row items-center justify-between gap-3">
-            <View className="min-w-0 flex-1">
-              <Text className="text-sm text-text-muted">{dateLabel}</Text>
-              <AnimatedPressable
-                testID="today-greeting-name"
-                accessibilityRole="button"
-                accessibilityLabel={
-                  greetingName
-                    ? `${greetingPhrase}, ${greetingName}. Open athlete profile`
-                    : `${greetingPhrase}. Open athlete profile`
-                }
-                hitSlop={8}
-                className="mt-1 self-start active:opacity-70"
-                onPress={() => {
-                  hapticLight();
-                  router.push(APP_HREFS.athlete as Href);
-                }}
-              >
-                <Text className="text-2xl font-semibold text-text-primary">
-                  {greetingPhrase}
-                  {greetingName ? (
-                    <>
-                      {', '}
-                      <Text className="text-brand">{greetingName}</Text>
-                    </>
-                  ) : null}
-                </Text>
-              </AnimatedPressable>
-            </View>
-            {nutritionEnabled ? (
-              <AnimatedPressable
-                accessibilityRole="button"
-                accessibilityLabel="Scan meal photo"
-                hitSlop={8}
-                className="h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-card"
-                onPress={() =>
-                  router.push({
-                    pathname: APP_HREFS.log,
-                    params: { action: 'camera', t: String(Date.now()) },
-                  } as Href)
-                }
-              >
-                <AppSymbol
-                  sf="camera.fill"
-                  size={18}
-                  tintColor={theme.brandOnSurface}
-                  fallback="cam"
-                />
-              </AnimatedPressable>
-            ) : null}
-          </View>
-        </EnterSection>
-
-        {showFinishSetup ? (
+      {/* Marks the content ScrollView so the native tab bar's minimize/restore
+          tracking (NativeTabs minimizeBehavior) can find it — UIKit's automatic
+          scroll-view detection doesn't see through the SafeAreaView wrapper. */}
+      <ScrollViewMarker style={{ flex: 1 }}>
+        <ScrollView
+          className="flex-1 bg-surface"
+          contentContainerClassName="px-6 pt-4"
+          contentContainerStyle={{ paddingBottom: tabBottomPad }}
+          refreshControl={
+            <RefreshControl
+              refreshing={manualRefreshing}
+              onRefresh={() => void onRefresh()}
+              tintColor={theme.brandOnSurface}
+            />
+          }
+        >
           <EnterSection order={0}>
-            <View className="mt-4">
-              <FinishSetupCard />
+            <View className="flex-row items-center justify-between gap-3">
+              <View className="min-w-0 flex-1">
+                <Text className="text-sm text-text-muted">{dateLabel}</Text>
+                <AnimatedPressable
+                  testID="today-greeting-name"
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    greetingName
+                      ? `${greetingPhrase}, ${greetingName}. Open athlete profile`
+                      : `${greetingPhrase}. Open athlete profile`
+                  }
+                  hitSlop={8}
+                  className="mt-1 self-start active:opacity-70"
+                  onPress={() => {
+                    hapticLight();
+                    router.push(APP_HREFS.athlete as Href);
+                  }}
+                >
+                  <Text className="text-2xl font-semibold text-text-primary">
+                    {greetingPhrase}
+                    {greetingName ? (
+                      <>
+                        {', '}
+                        <Text className="text-brand">{greetingName}</Text>
+                      </>
+                    ) : null}
+                  </Text>
+                </AnimatedPressable>
+              </View>
+              {nutritionEnabled ? (
+                <AnimatedPressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Scan meal photo"
+                  hitSlop={8}
+                  className="h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-card"
+                  onPress={() =>
+                    router.push({
+                      pathname: APP_HREFS.log,
+                      params: { action: 'camera', t: String(Date.now()) },
+                    } as Href)
+                  }
+                >
+                  <AppSymbol
+                    sf="camera.fill"
+                    size={18}
+                    tintColor={theme.brandOnSurface}
+                    fallback="cam"
+                  />
+                </AnimatedPressable>
+              ) : null}
             </View>
           </EnterSection>
-        ) : null}
 
-        <OfflineBanner visible={showCachedOffline} lastUpdatedLabel={lastUpdatedLabel} />
+          {showFinishSetup ? (
+            <EnterSection order={0}>
+              <View className="mt-4">
+                <FinishSetupCard />
+              </View>
+            </EnterSection>
+          ) : null}
 
-        {hardError ? (
-          <View className="mt-6 rounded-xl border border-danger/40 bg-tint-error p-4">
-            <Text className="text-base text-danger">
-              {friendlyError(error, 'Could not load today')}
-            </Text>
-            <Pressable className="mt-3" hitSlop={8} onPress={() => void refetch()}>
-              <Text className="font-semibold text-brand">Retry</Text>
-            </Pressable>
-          </View>
-        ) : null}
+          <OfflineBanner visible={showCachedOffline} lastUpdatedLabel={lastUpdatedLabel} />
 
-        <AnalysisReadyCard recent={recentQuery.data} />
-
-        {!showFinishSetup && !checkinCompleted ? (
-          <EnterSection order={1}>
-            <Pressable
-              testID="daily-checkin"
-              accessibilityRole="button"
-              accessibilityLabel="Do Quick Daily Coach Check-In"
-              className="mt-6 py-1 active:opacity-80"
-              onPress={() => router.push(APP_HREFS.dailyCheckin as Href)}
-            >
-              <Text className="text-xs font-semibold uppercase tracking-wide text-brand">
-                Coach Check-In
+          {hardError ? (
+            <View className="mt-6 rounded-xl border border-danger/40 bg-tint-error p-4">
+              <Text className="text-base text-danger">
+                {friendlyError(error, 'Could not load today')}
               </Text>
-              <View className="mt-1 flex-row items-center justify-between">
-                <Text className="text-xl font-semibold text-text-primary">
-                  Daily Coach Check-In
+              <Pressable className="mt-3" hitSlop={8} onPress={() => void refetch()}>
+                <Text className="font-semibold text-brand">Retry</Text>
+              </Pressable>
+            </View>
+          ) : null}
+
+          <AnalysisReadyCard recent={recentQuery.data} />
+
+          {!showFinishSetup && !checkinCompleted ? (
+            <EnterSection order={1}>
+              <Pressable
+                testID="daily-checkin"
+                accessibilityRole="button"
+                accessibilityLabel="Do Quick Daily Coach Check-In"
+                className="mt-6 py-1 active:opacity-80"
+                onPress={() => router.push(APP_HREFS.dailyCheckin as Href)}
+              >
+                <Text className="text-xs font-semibold uppercase tracking-wide text-brand">
+                  Coach Check-In
                 </Text>
-                <AppSymbol
-                  sf="chevron.right"
-                  size={16}
-                  tintColor={theme.brandOnSurface}
-                  fallback="›"
+                <View className="mt-1 flex-row items-center justify-between">
+                  <Text className="text-xl font-semibold text-text-primary">
+                    Daily Coach Check-In
+                  </Text>
+                  <AppSymbol
+                    sf="chevron.right"
+                    size={16}
+                    tintColor={theme.brandOnSurface}
+                    fallback="›"
+                  />
+                </View>
+                <Text className="mt-1.5 text-sm leading-5 text-text-muted">
+                  Coach has questions prepared to adjust today’s recommendation.
+                </Text>
+              </Pressable>
+            </EnterSection>
+          ) : null}
+
+          {showGeneratePanel ? (
+            <AnalyzeReadinessPanel
+              state={genState}
+              errorMessage={genError}
+              quotaInfo={genQuota}
+              generatingPending={generateMutation.isPending}
+              onAnalyze={() => void onGenerate()}
+              onOpenWeb={() => void openWeb()}
+              onDismissQuota={() => {
+                generateMutation.reset();
+                setGenState('idle');
+                setGenError(null);
+                setGenQuota(null);
+                setActionError(null);
+              }}
+              onAdhoc={!showFinishSetup && emptyNoDecision ? () => setAdhocOpen(true) : undefined}
+              adhocDisabled={actionsBusy}
+            />
+          ) : null}
+
+          {adhocState === 'generating' ? (
+            <View className="mt-6 items-center rounded-2xl border border-border bg-card/80 p-5">
+              <Text className="text-base font-semibold text-text-primary">Generating workout…</Text>
+              <Text className="mt-1 text-center text-sm leading-5 text-text-muted">
+                AI is designing your session for today
+              </Text>
+            </View>
+          ) : null}
+
+          {adhocState === 'quota' ? (
+            <QuotaLimitCard
+              className="mt-6"
+              info={adhocQuota ?? { feature: 'WORKOUT_GENERATION' }}
+              surface="today_adhoc"
+              onDismiss={() => {
+                clearAdhocPoll();
+                adhocMutation.reset();
+                setAdhocState('idle');
+                setAdhocError(null);
+                setAdhocQuota(null);
+                setActionError(null);
+              }}
+            />
+          ) : null}
+
+          {adhocState === 'error' ? (
+            <View className="mt-6 rounded-2xl border border-danger/40 bg-tint-error p-5">
+              <Text className="text-lg font-semibold text-text-primary">
+                Couldn’t generate workout
+              </Text>
+              <Text className="mt-2 text-sm leading-5 text-danger">
+                {adhocError || 'Something went wrong. Try again, or continue in Coach Watts.'}
+              </Text>
+              <View className="mt-5 gap-3">
+                <Button
+                  label="Try again"
+                  onPress={() => {
+                    clearAdhocPoll();
+                    setAdhocState('idle');
+                    setAdhocOpen(true);
+                  }}
+                />
+                <Button
+                  label="Open Coach Watts"
+                  variant="secondary"
+                  onPress={() => void openWeb()}
+                />
+                <Button
+                  label="Dismiss"
+                  variant="secondary"
+                  onPress={() => {
+                    clearAdhocPoll();
+                    setAdhocState('idle');
+                  }}
                 />
               </View>
-              <Text className="mt-1.5 text-sm leading-5 text-text-muted">
-                Coach has questions prepared to adjust today’s recommendation.
-              </Text>
-            </Pressable>
-          </EnterSection>
-        ) : null}
-
-        {showGeneratePanel ? (
-          <AnalyzeReadinessPanel
-            state={genState}
-            errorMessage={genError}
-            quotaInfo={genQuota}
-            generatingPending={generateMutation.isPending}
-            onAnalyze={() => void onGenerate()}
-            onOpenWeb={() => void openWeb()}
-            onDismissQuota={() => {
-              generateMutation.reset();
-              setGenState('idle');
-              setGenError(null);
-              setGenQuota(null);
-              setActionError(null);
-            }}
-            onAdhoc={!showFinishSetup && emptyNoDecision ? () => setAdhocOpen(true) : undefined}
-            adhocDisabled={actionsBusy}
-          />
-        ) : null}
-
-        {adhocState === 'generating' ? (
-          <View className="mt-6 items-center rounded-2xl border border-border bg-card/80 p-5">
-            <Text className="text-base font-semibold text-text-primary">Generating workout…</Text>
-            <Text className="mt-1 text-center text-sm leading-5 text-text-muted">
-              AI is designing your session for today
-            </Text>
-          </View>
-        ) : null}
-
-        {adhocState === 'quota' ? (
-          <QuotaLimitCard
-            className="mt-6"
-            info={adhocQuota ?? { feature: 'WORKOUT_GENERATION' }}
-            surface="today_adhoc"
-            onDismiss={() => {
-              clearAdhocPoll();
-              adhocMutation.reset();
-              setAdhocState('idle');
-              setAdhocError(null);
-              setAdhocQuota(null);
-              setActionError(null);
-            }}
-          />
-        ) : null}
-
-        {adhocState === 'error' ? (
-          <View className="mt-6 rounded-2xl border border-danger/40 bg-tint-error p-5">
-            <Text className="text-lg font-semibold text-text-primary">
-              Couldn’t generate workout
-            </Text>
-            <Text className="mt-2 text-sm leading-5 text-danger">
-              {adhocError || 'Something went wrong. Try again, or continue in Coach Watts.'}
-            </Text>
-            <View className="mt-5 gap-3">
-              <Button
-                label="Try again"
-                onPress={() => {
-                  clearAdhocPoll();
-                  setAdhocState('idle');
-                  setAdhocOpen(true);
-                }}
-              />
-              <Button label="Open Coach Watts" variant="secondary" onPress={() => void openWeb()} />
-              <Button
-                label="Dismiss"
-                variant="secondary"
-                onPress={() => {
-                  clearAdhocPoll();
-                  setAdhocState('idle');
-                }}
-              />
             </View>
-          </View>
-        ) : null}
+          ) : null}
 
-        {hasRecommendation ? (
-          <EnterSection order={1}>
-            <View className="mt-6">
-              <View className="flex-row items-center">
-                <Text className="text-xs uppercase tracking-wide text-text-muted">
-                  Today’s call
-                </Text>
-                {data!.confidence != null ? (
-                  <ConfidenceDots confidence={data!.confidence} fillClass={heroToneClasses.fill} />
-                ) : null}
-              </View>
-              <View
-                testID="today-recommendation"
-                className={`mt-3 rounded-2xl border border-l-4 border-border ${heroToneClasses.accent} ${heroToneClasses.tint} p-5`}
-              >
-                <Text className={`text-2xl font-semibold ${heroToneClasses.kicker}`}>
-                  {data!.actionLabel}
-                </Text>
-                {data!.rationale ? (
-                  <Text className="mt-3 text-base leading-6 text-text-body">{data!.rationale}</Text>
-                ) : null}
-                {data!.modificationSummary && !data!.userAccepted ? (
-                  <Text className="mt-3 text-sm text-text-muted">
-                    Proposed change: {data!.modificationSummary}
+          {hasRecommendation ? (
+            <EnterSection order={1}>
+              <View className="mt-6">
+                <View className="flex-row items-center">
+                  <Text className="text-xs uppercase tracking-wide text-text-muted">
+                    Today’s call
                   </Text>
-                ) : null}
+                  {data!.confidence != null ? (
+                    <ConfidenceDots
+                      confidence={data!.confidence}
+                      fillClass={heroToneClasses.fill}
+                    />
+                  ) : null}
+                </View>
+                <View
+                  testID="today-recommendation"
+                  className={`mt-3 rounded-2xl border border-l-4 border-border ${heroToneClasses.accent} ${heroToneClasses.tint} p-5`}
+                >
+                  <Text className={`text-2xl font-semibold ${heroToneClasses.kicker}`}>
+                    {data!.actionLabel}
+                  </Text>
+                  {data!.rationale ? (
+                    <Text className="mt-3 text-base leading-6 text-text-body">
+                      {data!.rationale}
+                    </Text>
+                  ) : null}
+                  {data!.modificationSummary && !data!.userAccepted ? (
+                    <Text className="mt-3 text-sm text-text-muted">
+                      Proposed change: {data!.modificationSummary}
+                    </Text>
+                  ) : null}
+                </View>
+                {!showFinishSetup ? <FuelStateDecisionLink /> : null}
               </View>
+            </EnterSection>
+          ) : null}
+
+          {plannedOnlyHero && planned ? (
+            <EnterSection order={1}>
+              <PlannedSummaryCard planned={planned} hero />
               {!showFinishSetup ? <FuelStateDecisionLink /> : null}
-            </View>
-          </EnterSection>
-        ) : null}
+            </EnterSection>
+          ) : null}
 
-        {plannedOnlyHero && planned ? (
-          <EnterSection order={1}>
-            <PlannedSummaryCard planned={planned} hero />
-            {!showFinishSetup ? <FuelStateDecisionLink /> : null}
-          </EnterSection>
-        ) : null}
+          {hasRecommendation && planned ? (
+            <EnterSection order={2}>
+              <PlannedSummaryCard planned={planned} />
+            </EnterSection>
+          ) : null}
 
-        {hasRecommendation && planned ? (
-          <EnterSection order={2}>
-            <PlannedSummaryCard planned={planned} />
-          </EnterSection>
-        ) : null}
+          {actionError ? <Text className="mt-4 text-sm text-danger">{actionError}</Text> : null}
 
-        {actionError ? <Text className="mt-4 text-sm text-danger">{actionError}</Text> : null}
-
-        {hasRecommendation ? (
-          <EnterSection order={3}>
-            <View className="mt-4 gap-3">
-              {data?.userAccepted ? (
-                planned ? (
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="Accepted — view workout"
-                    className="flex-row items-center justify-center gap-2 rounded-xl border border-border-strong bg-card/80 px-4 py-3.5 active:opacity-70"
-                    onPress={() => openPlannedWorkout(planned.id)}
-                  >
-                    <AppSymbol
-                      sf="checkmark"
-                      size={16}
-                      tintColor={theme.successOnSurface}
-                      fallback="ok"
+          {hasRecommendation ? (
+            <EnterSection order={3}>
+              <View className="mt-4 gap-3">
+                {data?.userAccepted ? (
+                  planned ? (
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel="Accepted — view workout"
+                      className="flex-row items-center justify-center gap-2 rounded-xl border border-border-strong bg-card/80 px-4 py-3.5 active:opacity-70"
+                      onPress={() => openPlannedWorkout(planned.id)}
+                    >
+                      <AppSymbol
+                        sf="checkmark"
+                        size={16}
+                        tintColor={theme.successOnSurface}
+                        fallback="ok"
+                      />
+                      <Text className="text-base font-semibold text-success">
+                        Accepted — view workout
+                      </Text>
+                    </Pressable>
+                  ) : (
+                    <View className="flex-row items-center justify-center gap-2 rounded-xl border border-border-strong bg-card/80 px-4 py-3.5">
+                      <AppSymbol
+                        sf="checkmark"
+                        size={16}
+                        tintColor={theme.successOnSurface}
+                        fallback="ok"
+                      />
+                      <Text className="text-base font-semibold text-success">
+                        {data.action === 'rest' ? 'Rest day accepted' : 'Accepted'}
+                      </Text>
+                    </View>
+                  )
+                ) : data?.canAccept ? (
+                  <Button
+                    testID="today-recommendation-accept"
+                    label={data.action === 'rest' ? 'Accept rest day' : 'Accept recommendation'}
+                    onPress={() => void onAccept()}
+                    loading={acceptMutation.isPending}
+                    disabled={actionsBusy}
+                  />
+                ) : null}
+                <View className="flex-row gap-3">
+                  <View className="flex-1">
+                    <Button
+                      variant="secondary"
+                      label="Refine"
+                      onPress={() => setRefineOpen(true)}
+                      disabled={actionsBusy}
                     />
-                    <Text className="text-base font-semibold text-success">
-                      Accepted — view workout
-                    </Text>
-                  </Pressable>
-                ) : (
-                  <View className="flex-row items-center justify-center gap-2 rounded-xl border border-border-strong bg-card/80 px-4 py-3.5">
-                    <AppSymbol
-                      sf="checkmark"
-                      size={16}
-                      tintColor={theme.successOnSurface}
-                      fallback="ok"
-                    />
-                    <Text className="text-base font-semibold text-success">
-                      {data.action === 'rest' ? 'Rest day accepted' : 'Accepted'}
-                    </Text>
                   </View>
-                )
-              ) : data?.canAccept ? (
+                  <View className="flex-1">
+                    <Button
+                      testID="today-recommendation-more"
+                      variant="secondary"
+                      label="More"
+                      onPress={() => setMoreOpen(true)}
+                      disabled={actionsBusy}
+                    />
+                  </View>
+                </View>
+              </View>
+            </EnterSection>
+          ) : null}
+
+          {plannedOnlyHero && planned ? (
+            <EnterSection order={2}>
+              <View className="mt-4 gap-3">
+                <View className="flex-row gap-3">
+                  <View className="flex-1">
+                    <Button
+                      label="Complete"
+                      onPress={() => {
+                        Alert.alert(
+                          'Mark complete?',
+                          'This marks today’s planned session as completed.',
+                          [
+                            { text: 'Cancel', style: 'cancel' },
+                            {
+                              text: 'Complete',
+                              onPress: () => {
+                                setActionError(null);
+                                completePlannedMutation.mutate(undefined, {
+                                  onError: (err) =>
+                                    setActionError(
+                                      friendlyError(err, 'Failed to complete workout'),
+                                    ),
+                                  onSuccess: () => hapticSuccess(),
+                                });
+                              },
+                            },
+                          ],
+                        );
+                      }}
+                      loading={completePlannedMutation.isPending}
+                      disabled={
+                        actionsBusy ||
+                        completePlannedMutation.isPending ||
+                        skipPlannedMutation.isPending
+                      }
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <Button
+                      variant="secondary"
+                      label="Skip"
+                      onPress={() => {
+                        Alert.alert(
+                          'Skip this workout?',
+                          'This marks today’s planned session as skipped.',
+                          [
+                            { text: 'Cancel', style: 'cancel' },
+                            {
+                              text: 'Skip',
+                              style: 'destructive',
+                              onPress: () => {
+                                setActionError(null);
+                                skipPlannedMutation.mutate(undefined, {
+                                  onError: (err) =>
+                                    setActionError(friendlyError(err, 'Failed to skip workout')),
+                                  onSuccess: () => hapticSuccess(),
+                                });
+                              },
+                            },
+                          ],
+                        );
+                      }}
+                      loading={skipPlannedMutation.isPending}
+                      disabled={
+                        actionsBusy ||
+                        completePlannedMutation.isPending ||
+                        skipPlannedMutation.isPending
+                      }
+                    />
+                  </View>
+                </View>
                 <Button
-                  testID="today-recommendation-accept"
-                  label={data.action === 'rest' ? 'Accept rest day' : 'Accept recommendation'}
-                  onPress={() => void onAccept()}
-                  loading={acceptMutation.isPending}
+                  variant="secondary"
+                  label="View workout details"
+                  onPress={() => openPlannedWorkout(planned.id)}
                   disabled={actionsBusy}
                 />
-              ) : null}
-              <View className="flex-row gap-3">
-                <View className="flex-1">
-                  <Button
-                    variant="secondary"
-                    label="Refine"
-                    onPress={() => setRefineOpen(true)}
-                    disabled={actionsBusy}
-                  />
-                </View>
-                <View className="flex-1">
-                  <Button
-                    testID="today-recommendation-more"
-                    variant="secondary"
-                    label="More"
-                    onPress={() => setMoreOpen(true)}
-                    disabled={actionsBusy}
-                  />
-                </View>
+                <Button
+                  variant="secondary"
+                  label="Generate Ad-Hoc Workout"
+                  onPress={() => setAdhocOpen(true)}
+                  disabled={actionsBusy}
+                />
+                <AllowanceHint feature="WORKOUT_GENERATION" />
               </View>
-            </View>
-          </EnterSection>
-        ) : null}
-
-        {plannedOnlyHero && planned ? (
-          <EnterSection order={2}>
-            <View className="mt-4 gap-3">
-              <View className="flex-row gap-3">
-                <View className="flex-1">
-                  <Button
-                    label="Complete"
-                    onPress={() => {
-                      Alert.alert(
-                        'Mark complete?',
-                        'This marks today’s planned session as completed.',
-                        [
-                          { text: 'Cancel', style: 'cancel' },
-                          {
-                            text: 'Complete',
-                            onPress: () => {
-                              setActionError(null);
-                              completePlannedMutation.mutate(undefined, {
-                                onError: (err) =>
-                                  setActionError(friendlyError(err, 'Failed to complete workout')),
-                                onSuccess: () => hapticSuccess(),
-                              });
-                            },
-                          },
-                        ],
-                      );
-                    }}
-                    loading={completePlannedMutation.isPending}
-                    disabled={
-                      actionsBusy ||
-                      completePlannedMutation.isPending ||
-                      skipPlannedMutation.isPending
-                    }
-                  />
-                </View>
-                <View className="flex-1">
-                  <Button
-                    variant="secondary"
-                    label="Skip"
-                    onPress={() => {
-                      Alert.alert(
-                        'Skip this workout?',
-                        'This marks today’s planned session as skipped.',
-                        [
-                          { text: 'Cancel', style: 'cancel' },
-                          {
-                            text: 'Skip',
-                            style: 'destructive',
-                            onPress: () => {
-                              setActionError(null);
-                              skipPlannedMutation.mutate(undefined, {
-                                onError: (err) =>
-                                  setActionError(friendlyError(err, 'Failed to skip workout')),
-                                onSuccess: () => hapticSuccess(),
-                              });
-                            },
-                          },
-                        ],
-                      );
-                    }}
-                    loading={skipPlannedMutation.isPending}
-                    disabled={
-                      actionsBusy ||
-                      completePlannedMutation.isPending ||
-                      skipPlannedMutation.isPending
-                    }
-                  />
-                </View>
-              </View>
-              <Button
-                variant="secondary"
-                label="View workout details"
-                onPress={() => openPlannedWorkout(planned.id)}
-                disabled={actionsBusy}
-              />
-              <Button
-                variant="secondary"
-                label="Generate Ad-Hoc Workout"
-                onPress={() => setAdhocOpen(true)}
-                disabled={actionsBusy}
-              />
-              <AllowanceHint feature="WORKOUT_GENERATION" />
-            </View>
-          </EnterSection>
-        ) : null}
-
-        {showConnectDeviceCue ? (
-          <EnterSection order={4}>
-            <View className="mt-4">
-              <Button
-                variant="secondary"
-                label="Connect a device"
-                onPress={() => router.push(APP_HREFS.settingsConnectedApps as Href)}
-              />
-            </View>
-          </EnterSection>
-        ) : null}
-
-        {!showFinishSetup ? (
-          <>
-            {/* Secondary glances — each section owns its own label (no empty "Context" kicker). */}
-            <NutritionGlance />
-
-            <EnterSection order={5}>
-              <WellnessSection
-                recoveryItems={activeRecovery}
-                recoveryError={recoveryError}
-                recoveryErrorMessage={friendlyError(recoveryErr, 'Couldn’t load recovery events')}
-                onRetryRecovery={() => void refetchRecovery()}
-              />
             </EnterSection>
+          ) : null}
 
-            {/* No entering animation here: these glances swap fixed-height skeletons for
+          {showConnectDeviceCue ? (
+            <EnterSection order={4}>
+              <View className="mt-4">
+                <Button
+                  variant="secondary"
+                  label="Connect a device"
+                  onPress={() => router.push(APP_HREFS.settingsConnectedApps as Href)}
+                />
+              </View>
+            </EnterSection>
+          ) : null}
+
+          {!showFinishSetup ? (
+            <>
+              {/* Secondary glances — each section owns its own label (no empty "Context" kicker). */}
+              <NutritionGlance />
+
+              <EnterSection order={5}>
+                <WellnessSection
+                  recoveryItems={activeRecovery}
+                  recoveryError={recoveryError}
+                  recoveryErrorMessage={friendlyError(recoveryErr, 'Couldn’t load recovery events')}
+                  onRetryRecovery={() => void refetchRecovery()}
+                />
+              </EnterSection>
+
+              {/* No entering animation here: these glances swap fixed-height skeletons for
               async-loaded content, and a layout animation on the shared wrapper leaves
               stale measurements (sections overlapping — issue 058). */}
-            <View>
-              <TrainingLoadGlance />
-              <MonthlyProgressGlance />
-              <WeekGlanceStrip recent={recentQuery.data} planned={upcomingQuery.data} />
-              <UpcomingEventsGlance />
-              <ComingUpStrip excludePlannedId={planned?.id} />
-              <RecentlyTeaser />
-            </View>
-          </>
-        ) : null}
-      </ScrollView>
+              <View>
+                <TrainingLoadGlance />
+                <MonthlyProgressGlance />
+                <WeekGlanceStrip recent={recentQuery.data} planned={upcomingQuery.data} />
+                <UpcomingEventsGlance />
+                <ComingUpStrip excludePlannedId={planned?.id} />
+                <RecentlyTeaser />
+              </View>
+            </>
+          ) : null}
+        </ScrollView>
+      </ScrollViewMarker>
 
       <RecommendationDetailSheet
         visible={detailOpen}
